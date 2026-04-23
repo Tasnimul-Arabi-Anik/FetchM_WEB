@@ -17,3 +17,28 @@ test_run_output/
 test_run_output_escalated/
 
 .DS_Store
+
+# Ignore local development files
+local_settings.py
+
+# Ignore shell history
+.Rhistory
+
+# FetchM Web runtime data and local state
+fetchm_webapp/.env
+fetchm_webapp/data/
+
+# FetchM Web local backups / variant scratch files
+fetchm_webapp/static/styles.backup.css
+fetchm_webapp/static/styles.chatgpt_variant_backup.css
+fetchm_webapp/templates/index_dashboard.backup.html
+fetchm_webapp/templates/index_dashboard.chatgpt_variant_backup.html
+
+# Legacy tool trees not used by the webapp runtime anymore
+fetchM/
+fetchm/
+
+# Local image assets outside the webapp source tree
+fetchm.png
+fetchm_species.png
+fetchm_website.png

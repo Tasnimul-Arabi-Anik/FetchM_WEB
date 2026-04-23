@@ -1,0 +1,17 @@
+.git
+.gitignore
+
+# Local runtime data and secrets
+fetchm_webapp/data/
+fetchm_webapp/.env
+
+# Python caches
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache/
+
+# Misc local artifacts
+*.sqlite-journal
+*.log
