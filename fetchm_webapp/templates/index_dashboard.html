@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="fetchm-redesign-page">
+  <section class="fetchm-redesign-shell">
+    <header class="fetchm-redesign-brand">
+      <div class="fetchm-mark" aria-hidden="true">FM</div>
+      <div class="fetchm-brand-copy">
+        <h1>FetchM</h1>
+        <p>Bacterial sequence-based metadata exploration platform</p>
+      </div>
+    </header>
+
+    <section class="fetchm-intro-stack">
+      <div class="fetchm-intro-card fetchm-intro-card-primary">
+        <p class="fetchm-intro-lead">FetchM retrieves bacterial metadata from NCBI, standardizes key metadata fields, performs comprehensive analyses, and supports metadata-driven comparative genomics.</p>
+      </div>
+      <div class="fetchm-intro-card fetchm-intro-card-secondary">
+        <ol class="fetchm-intro-steps">
+          <li>Select your target species or genus</li>
+          <li>Run metadata analysis to better understand the genomic resources</li>
+          <li>Open sequence download options with much higher flexibility</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="fetchm-workflow-card">
+      <div class="selection-copy fetchm-selection-head">
+        <strong>Species or genus</strong>
+        <span>Begin with your organism of interest</span>
+      </div>
+
+      <label class="taxon-search selection-search fetchm-search-field">
+        <div class="search-shell">
+          <span class="fetchm-search-icon" aria-hidden="true"></span>
+          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" placeholder="Type Escherichia, Salmonella, Bacillus...">
+          <div class="search-results" id="taxon-search-results" hidden></div>
+        </div>
+      </label>
+      <input type="hidden" id="selected-taxon-id">
+
+      <p class="dashboard-inline-warning" id="dashboard-warning" hidden></p>
+
+      <div class="fetchm-action-row">
+        <a class="fetchm-action-card fetchm-action-primary is-disabled" id="metadata-page-link" href="#" aria-disabled="true">
+          <span class="fetchm-action-icon" aria-hidden="true">A</span>
+          <strong>Run metadata analysis</strong>
+        </a>
+        <a class="fetchm-action-card fetchm-action-secondary is-disabled" id="sequence-link" href="#" aria-disabled="true">
+          <span class="fetchm-action-icon" aria-hidden="true">S</span>
+          <strong>Sequence Download Options</strong>
+        </a>
+      </div>
+
+      <div class="dashboard-links fetchm-secondary-actions">
+        <button type="button" class="alt-toggle" id="feedback-toggle" aria-expanded="false">Feedback or Report</button>
+      </div>
+
+      <form action="{{ url_for('report_problem') }}" method="post" class="job-form problem-box fetchm-feedback-panel" id="feedback-form" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Support</p>
+            <h3>Feedback or Report</h3>
+          </div>
+          <span class="job-meta">{{ home_metrics.open_reports }} open reports</span>
+        </div>
+        <input type="hidden" name="selected_taxon_id" id="problem-selected-taxon-id">
+        <input type="hidden" name="selected_taxon_name" id="problem-selected-taxon-name">
+        <input type="hidden" name="requested_action" id="problem-requested-action">
+        <label>
+          <span>Message</span>
+          <textarea name="message" rows="4" placeholder="Describe the issue, missing feature, or confusing result."></textarea>
+        </label>
+        <button type="submit" class="ghost">Send problem report</button>
+      </form>
+    </section>
+
+    <section class="fetchm-stats-grid" aria-label="Catalog summary">
+      <article class="fetchm-stat-card">
+        <div class="fetchm-stat-icon" aria-hidden="true">Sp</div>
+        <div>
+          <strong>{{ home_metrics.species_total }}</strong>
+          <span>Species</span>
+        </div>
+      </article>
+      <article class="fetchm-stat-card">
+        <div class="fetchm-stat-icon" aria-hidden="true">Ge</div>
+        <div>
+          <strong>{{ home_metrics.genus_total }}</strong>
+          <span>Genera</span>
+        </div>
+      </article>
+      <article class="fetchm-stat-card">
+        <div class="fetchm-stat-icon" aria-hidden="true">Gn</div>
+        <div>
+          <strong>{{ home_metrics.genome_total }}</strong>
+          <span>Genomes</span>
+        </div>
+      </article>
+    </section>
+
+    <section class="fetchm-citation-card">
+      <div class="fetchm-citation-head">
+        <h3>Citation</h3>
+        <p>Make the research visible and citable</p>
+      </div>
+      <div class="fetchm-citation-body">
+        Anik TA. FetchM: Streamlining Genome and Metadata Integration for Microbial Comparative Genomics. <em>bioRxiv</em>, 2025.
+      </div>
+    </section>
+  </section>
+</main>
+<script>
+  const taxa = {{ taxa_json|tojson }};
+  let activeView = "selection";
+  const taxonSearchInput = document.getElementById("taxon-search-input");
+  const taxonSearchResults = document.getElementById("taxon-search-results");
+  const selectedTaxonId = document.getElementById("selected-taxon-id");
+  const metadataPageLink = document.getElementById("metadata-page-link");
+  const dashboardWarning = document.getElementById("dashboard-warning");
+  const problemTaxonId = document.getElementById("problem-selected-taxon-id");
+  const problemTaxonName = document.getElementById("problem-selected-taxon-name");
+  const problemRequestedAction = document.getElementById("problem-requested-action");
+  const feedbackToggle = document.getElementById("feedback-toggle");
+  const feedbackPanel = document.getElementById("feedback-form");
+  const sequenceLink = document.getElementById("sequence-link");
+
+  const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
+  const MAX_SEARCH_RESULTS = 8;
+
+  function normalizeQuery(value) {
+    return value.trim().toLowerCase();
+  }
+
+  function rankedMatches(query) {
+    if (!query) return [];
+    const items = [];
+    for (const item of taxa) {
+      const name = item.species_name.toLowerCase();
+      const index = name.indexOf(query);
+      if (index === -1) continue;
+      items.push({ item, index });
+    }
+    items.sort((a, b) => {
+      if (a.index !== b.index) return a.index - b.index;
+      if ((b.item.genome_count || 0) !== (a.item.genome_count || 0)) {
+        return (b.item.genome_count || 0) - (a.item.genome_count || 0);
+      }
+      return a.item.species_name.localeCompare(b.item.species_name);
+    });
+    return items.slice(0, MAX_SEARCH_RESULTS).map((entry) => entry.item);
+  }
+
+  function hideResults() {
+    taxonSearchResults.hidden = true;
+    taxonSearchResults.innerHTML = "";
+  }
+
+  function hideWarning() {
+    dashboardWarning.hidden = true;
+    dashboardWarning.textContent = "";
+  }
+
+  function showWarning(message) {
+    dashboardWarning.textContent = message;
+    dashboardWarning.hidden = false;
+  }
+
+  function chooseTaxon(selected) {
+    taxonSearchInput.value = selected.species_name;
+    refreshSelectionSummary();
+    hideResults();
+    hideWarning();
+  }
+
+  function renderResults() {
+    const query = normalizeQuery(taxonSearchInput.value);
+    const matches = rankedMatches(query);
+    if (!matches.length || !query) {
+      hideResults();
+      return;
+    }
+    taxonSearchResults.innerHTML = "";
+    matches.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "search-result";
+      button.innerHTML = `<strong>${item.species_name}</strong><span>${item.taxon_rank} · ${item.genome_count || 0} genomes</span>`;
+      button.addEventListener("click", () => chooseTaxon(item));
+      taxonSearchResults.appendChild(button);
+    });
+    taxonSearchResults.hidden = false;
+  }
+
+  function syncProblemForm() {
+    problemTaxonId.value = selectedTaxonId.value;
+    problemTaxonName.value = taxonSearchInput.value.trim();
+    const modeToAction = { selection: "selection", metadata: "metadata", seq: "sequence" };
+    problemRequestedAction.value = modeToAction[activeView] || "selection";
+  }
+
+  function refreshSelectionSummary() {
+    const selected = taxaByName.get(taxonSearchInput.value.trim());
+    if (selected) {
+      selectedTaxonId.value = selected.id;
+      metadataPageLink.href = `/taxa/${selected.id}/metadata`;
+      metadataPageLink.classList.remove("is-disabled");
+      metadataPageLink.setAttribute("aria-disabled", "false");
+      sequenceLink.href = `/taxa/${selected.id}/sequences`;
+      sequenceLink.classList.remove("is-disabled");
+      sequenceLink.setAttribute("aria-disabled", "false");
+    } else {
+      selectedTaxonId.value = "";
+      metadataPageLink.href = "#";
+      metadataPageLink.classList.add("is-disabled");
+      metadataPageLink.setAttribute("aria-disabled", "true");
+      sequenceLink.href = "#";
+      sequenceLink.classList.add("is-disabled");
+      sequenceLink.setAttribute("aria-disabled", "true");
+    }
+    syncProblemForm();
+  }
+
+  function setActiveView(view) {
+    activeView = view;
+    metadataPageLink.classList.toggle("active", view === "metadata");
+    sequenceLink.classList.toggle("active", view === "seq");
+    syncProblemForm();
+  }
+
+  metadataPageLink.addEventListener("click", (event) => {
+    if (metadataPageLink.classList.contains("is-disabled")) {
+      event.preventDefault();
+      showWarning("No species or genus has been selected.");
+      return;
+    }
+    hideWarning();
+    setActiveView("metadata");
+  });
+
+  sequenceLink.addEventListener("click", (event) => {
+    if (sequenceLink.classList.contains("is-disabled")) {
+      event.preventDefault();
+      showWarning("No species or genus has been selected.");
+      return;
+    }
+    setActiveView("seq");
+    hideWarning();
+  });
+
+  feedbackToggle.addEventListener("click", () => {
+    const isOpen = !feedbackPanel.hidden;
+    feedbackPanel.hidden = isOpen;
+    feedbackToggle.setAttribute("aria-expanded", String(!isOpen));
+  });
+  taxonSearchInput.addEventListener("input", () => {
+    setActiveView("selection");
+    refreshSelectionSummary();
+    renderResults();
+    hideWarning();
+  });
+  taxonSearchInput.addEventListener("change", () => {
+    setActiveView("selection");
+    refreshSelectionSummary();
+  });
+  taxonSearchInput.addEventListener("focus", renderResults);
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".taxon-search")) {
+      hideResults();
+    }
+  });
+  setActiveView("selection");
+  refreshSelectionSummary();
+</script>
+{% endblock %}

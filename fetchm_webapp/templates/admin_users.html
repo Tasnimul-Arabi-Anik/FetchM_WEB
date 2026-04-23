@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Users</h1>
+      <p class="lede">Review registered users and their current workload counts.</p>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>User Search</h2>
+    <form action="{{ url_for('admin_users') }}" method="get" class="inline-form">
+      <label>
+        <span>Search users</span>
+        <input type="text" name="q" value="{{ admin_query }}" placeholder="username or email">
+      </label>
+      <button type="submit">Apply</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <h2>Users</h2>
+    {% if users %}
+      <div class="admin-list">
+        {% for user in users %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <strong>{{ user["username"] }}</strong>
+              {% if user["username"] == session.get("username") %}
+                <span class="status running">you</span>
+              {% endif %}
+            </div>
+            <div class="job-meta">{{ user["email"] }}</div>
+            <div class="job-meta">Created: {{ user["created_at"] }}</div>
+            <div class="job-meta">Jobs: {{ user["job_count"] }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No users found.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

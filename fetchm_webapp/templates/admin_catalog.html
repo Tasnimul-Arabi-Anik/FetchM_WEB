@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Catalog</h1>
+      <p class="lede">Manage taxa that can be selected from the application catalog.</p>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Taxon Catalog</h2>
+    <form action="{{ url_for('admin_add_species') }}" method="post" class="inline-form">
+      <label>
+        <span>Taxon name</span>
+        <input type="text" name="taxon_name" placeholder="Staphylococcus haemolyticus or Staphylococcus" required>
+      </label>
+      <label>
+        <span>Rank</span>
+        <select name="taxon_rank">
+          {% for key, config in taxon_ranks.items() %}
+            <option value="{{ key }}">{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Assembly source</span>
+        <select name="assembly_source">
+          {% for key, config in assembly_sources.items() %}
+            <option value="{{ key }}">{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Add taxon</button>
+    </form>
+    <form action="{{ url_for('admin_sync_all_species') }}" method="post" class="action-row top-gap">
+      <button type="submit" class="ghost">Refresh all taxa</button>
+    </form>
+    {% if taxa %}
+      <div class="admin-list top-gap">
+        {% for item in taxa %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <strong>{{ item.species_name }}</strong>
+              <span class="status {{ 'completed' if item.status == 'ready' else 'running' if item.status == 'syncing' else 'queued' if item.status == 'pending' else 'failed' }}">{{ item.status }}</span>
+            </div>
+            <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+            <div class="job-meta">Query: {{ item.query_name }}</div>
+            <div class="job-meta">Assembly source: {{ assembly_sources[item.assembly_source].label }}</div>
+            {% if item.genome_count %}
+              <div class="job-meta">Genomes: {{ item.genome_count }}</div>
+            {% endif %}
+            {% if item.taxon_id %}
+              <div class="job-meta">Taxon ID: {{ item.taxon_id }}</div>
+            {% endif %}
+            {% if item.last_synced_at %}
+              <div class="job-meta">Last synced: {{ item.last_synced_at }}</div>
+            {% endif %}
+            {% if item.sync_error %}
+              <div class="job-meta danger-text">Last error: {{ item.sync_error }}</div>
+            {% endif %}
+            <form action="{{ url_for('admin_sync_species', species_id=item.id) }}" method="post" class="action-row">
+              <button type="submit" class="ghost">Refresh taxon</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No taxa have been added yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

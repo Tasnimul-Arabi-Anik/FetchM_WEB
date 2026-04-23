@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Discovery</h1>
+      <p class="lede">Manage discovery scopes that feed new taxa into the catalog.</p>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Discovery Scopes</h2>
+    <form action="{{ url_for('admin_add_discovery_scope') }}" method="post" class="inline-form">
+      <label>
+        <span>Scope value</span>
+        <input type="text" name="scope_value" placeholder="1279 or Staphylococcus" required>
+      </label>
+      <label>
+        <span>Label</span>
+        <input type="text" name="scope_label" placeholder="optional display label">
+      </label>
+      <label>
+        <span>Discovery rank</span>
+        <select name="target_rank">
+          {% for key, config in taxon_ranks.items() %}
+            <option value="{{ key }}">{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Assembly source</span>
+        <select name="assembly_source">
+          {% for key, config in assembly_sources.items() %}
+            <option value="{{ key }}">{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Add scope</button>
+    </form>
+    {% if discovery_scopes %}
+      <div class="admin-list top-gap">
+        {% for scope in discovery_scopes %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <strong>{{ scope.scope_label }}</strong>
+              <span class="status {{ 'completed' if scope.status == 'ready' else 'running' if scope.status == 'discovering' else 'queued' if scope.status == 'pending' else 'failed' }}">{{ scope.status }}</span>
+            </div>
+            <div class="job-meta">Scope: {{ scope.scope_value.split('|')[0] }}</div>
+            <div class="job-meta">Rank: {{ taxon_ranks[scope.target_rank].label }}</div>
+            <div class="job-meta">Assembly source: {{ assembly_sources[scope.assembly_source].label }}</div>
+            <div class="job-meta">Last discovery added: {{ scope.discovered_species_count }} taxa</div>
+            {% if scope.last_discovered_at %}
+              <div class="job-meta">Last discovered: {{ scope.last_discovered_at }}</div>
+            {% endif %}
+            {% if scope.last_error %}
+              <div class="job-meta danger-text">Last error: {{ scope.last_error }}</div>
+            {% endif %}
+            <form action="{{ url_for('admin_sync_discovery_scope', scope_id=scope.id) }}" method="post" class="action-row">
+              <button type="submit" class="ghost">Refresh scope</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No discovery scopes configured yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

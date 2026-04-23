@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Instance controls</h1>
+      <p class="lede">Review users, inspect all jobs, stop abusive workloads, and clean old data.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">admin</span>
+      <div class="job-meta">{{ users|length }} users</div>
+      <div class="job-meta">{{ jobs|length }} jobs</div>
+      <div class="job-meta">{{ taxa|length }} taxa</div>
+      <div class="job-meta">{{ discovery_scopes|length }} scopes</div>
+    </div>
+  </section>
+
+  <nav class="panel admin-nav">
+    <a href="#system">System</a>
+    <a href="#catalog">Catalog</a>
+    <a href="#operations">Operations</a>
+    <a href="#users">Users</a>
+  </nav>
+
+  <section id="system" class="admin-group">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">System</p>
+        <h2>Runtime and backfill state</h2>
+      </div>
+      <p class="section-note">Storage, sync activity, discovery policy, and TSV materialization progress.</p>
+    </div>
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>System Info</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ backfill.storage.disk_free_label }}</strong>
+            <span>System free space</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.disk_used_label }}</strong>
+            <span>System used ({{ backfill.storage.disk_used_percent }}%)</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.app_data_label }}</strong>
+            <span>App data footprint</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.species_label }}</strong>
+            <span>Taxon TSV storage</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.jobs_label }}</strong>
+            <span>Job data storage</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.db_label }}</strong>
+            <span>SQLite DB size</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Catalog Backfill</h3>
+        <div class="progress-head">
+          <strong>{{ backfill.progress_percent }}% TSV-ready</strong>
+          <span>ETA: {{ backfill.eta_label }}</span>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width: {{ backfill.progress_percent }}%"></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.ready_total or 0 }}</strong>
+            <span>Ready taxa</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.pending_total or 0 }}</strong>
+            <span>Pending taxa</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.syncing_total or 0 }}</strong>
+            <span>Syncing now</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ "%.1f"|format(backfill.taxa_ready_rate_per_hour) if backfill.taxa_ready_rate_per_hour else "0.0" }}</strong>
+            <span>Ready taxa/hour</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.recent_taxa.last_hour or 0 }}</strong>
+            <span>TSVs built in 1h</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.recent_taxa.last_6h or 0 }}</strong>
+            <span>TSVs built in 6h</span>
+          </div>
+        </div>
+        <div class="metrics-grid top-gap">
+          {% for row in backfill.rank_breakdown %}
+            <div class="metric-card metric-wide">
+              <strong>{{ taxon_ranks[row.taxon_rank].label }}</strong>
+              <span>{{ row.ready or 0 }} ready / {{ row.total or 0 }} total</span>
+              <span>{{ row.pending or 0 }} pending, {{ row.syncing or 0 }} syncing, {{ row.failed or 0 }} failed</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="metrics-grid top-gap">
+          <div class="metric-card metric-wide">
+            <strong>Discovery scopes</strong>
+            <span>{{ backfill.discovery_totals.ready_total or 0 }} ready / {{ backfill.discovery_totals.total or 0 }} total</span>
+            <span>{{ backfill.discovery_totals.discovering_total or 0 }} discovering, {{ backfill.discovery_totals.pending_total or 0 }} pending</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>Internal partitions</strong>
+            <span>{{ backfill.discovery_totals.internal_total or 0 }} internal genus partitions</span>
+            <span>{{ backfill.recent_scopes.last_hour or 0 }} discovery scopes completed in 1h</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>Sync Activity</h3>
+        <form action="{{ url_for('admin_requeue_stuck_species') }}" method="post" class="inline-form">
+          <label>
+            <span>Requeue stuck TSV syncs older than</span>
+            <input type="number" name="older_than_minutes" min="1" value="30">
+          </label>
+          <button type="submit" class="ghost">Requeue stuck taxa</button>
+        </form>
+        <div class="metrics-grid top-gap">
+          {% if backfill.syncing_taxa %}
+            {% for item in backfill.syncing_taxa %}
+              <div class="admin-card metric-wide">
+                <div class="job-card-head">
+                  <strong>{{ item.species_name }}</strong>
+                  <span class="status {{ 'failed' if item.is_stale else 'running' }}">{{ item.claimed_age_label }}</span>
+                </div>
+                <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+                <div class="job-meta">Query: {{ item.query_name }}</div>
+                <div class="job-meta">Worker: {{ item.claimed_by }}</div>
+                <div class="job-meta">Assembly source: {{ assembly_sources[item.assembly_source].label }}</div>
+                <div class="job-meta {{ 'danger-text' if item.has_retries else '' }}">Attempts in current sync cycle: {{ item.attempt_count }}</div>
+                <div class="job-meta {{ 'danger-text' if item.is_stale else '' }}">Total age in current sync cycle: {{ item.total_age_label }}</div>
+                {% if item.claimed_at %}
+                  <div class="job-meta">Current claim started: {{ item.claimed_at }}</div>
+                {% endif %}
+                {% if item.sync_first_claimed_at %}
+                  <div class="job-meta">First claim in cycle: {{ item.sync_first_claimed_at }}</div>
+                {% endif %}
+                {% if item.genome_count %}
+                  <div class="job-meta">Last genome count: {{ item.genome_count }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="metric-card metric-wide">
+              <strong>No active TSV syncs</strong>
+              <span>All workers are idle or waiting for pending taxa.</span>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Discovery Policy</h3>
+        <form action="{{ url_for('admin_set_discovery_policy') }}" method="post" class="inline-form">
+          <label>
+            <span>Discovery policy</span>
+            <select name="discovery_policy">
+              {% for key, config in discovery_policies.items() %}
+                <option value="{{ key }}" {% if backfill.discovery_policy == key %}selected{% endif %}>{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Update discovery policy</button>
+        </form>
+        <div class="hint-block top-gap">
+          <strong>Discovery control</strong>
+          <p>Use <code>Paused</code> when you want all worker capacity to stay on TSV generation for release. A single genus can remain in <code>syncing</code> for a long time if its NCBI genome metadata query is especially large.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section id="catalog" class="admin-group">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Catalog</p>
+        <h2>Managed taxa and discovery scopes</h2>
+      </div>
+      <p class="section-note">Taxon inventory, manual adds, scope definitions, and refresh controls.</p>
+    </div>
+
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>Taxon Catalog</h3>
+        <form action="{{ url_for('admin_add_species') }}" method="post" class="inline-form">
+          <label>
+            <span>Taxon name</span>
+            <input type="text" name="taxon_name" placeholder="Staphylococcus haemolyticus or Staphylococcus" required>
+          </label>
+          <label>
+            <span>Rank</span>
+            <select name="taxon_rank">
+              {% for key, config in taxon_ranks.items() %}
+                <option value="{{ key }}">{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Assembly source</span>
+            <select name="assembly_source">
+              {% for key, config in assembly_sources.items() %}
+                <option value="{{ key }}">{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Add taxon</button>
+        </form>
+        <form action="{{ url_for('admin_sync_all_species') }}" method="post" class="action-row top-gap">
+          <button type="submit" class="ghost">Refresh all taxa</button>
+        </form>
+        {% if taxa %}
+          <div class="admin-list top-gap">
+            {% for item in taxa %}
+              <div class="admin-card">
+                <div class="job-card-head">
+                  <strong>{{ item.species_name }}</strong>
+                  <span class="status {{ 'completed' if item.status == 'ready' else 'running' if item.status == 'syncing' else 'queued' if item.status == 'pending' else 'failed' }}">{{ item.status }}</span>
+                </div>
+                <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+                <div class="job-meta">Query: {{ item.query_name }}</div>
+                <div class="job-meta">Assembly source: {{ assembly_sources[item.assembly_source].label }}</div>
+                {% if item.genome_count %}
+                  <div class="job-meta">Genomes: {{ item.genome_count }}</div>
+                {% endif %}
+                {% if item.taxon_id %}
+                  <div class="job-meta">Taxon ID: {{ item.taxon_id }}</div>
+                {% endif %}
+                {% if item.last_synced_at %}
+                  <div class="job-meta">Last synced: {{ item.last_synced_at }}</div>
+                {% endif %}
+                {% if item.sync_error %}
+                  <div class="job-meta danger-text">Last error: {{ item.sync_error }}</div>
+                {% endif %}
+                <form action="{{ url_for('admin_sync_species', species_id=item.id) }}" method="post" class="action-row">
+                  <button type="submit" class="ghost">Refresh taxon</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty">No taxa have been added yet.</p>
+        {% endif %}
+      </section>
+
+      <section class="panel">
+        <h3>Discovery Scopes</h3>
+        <form action="{{ url_for('admin_add_discovery_scope') }}" method="post" class="inline-form">
+          <label>
+            <span>Scope value</span>
+            <input type="text" name="scope_value" placeholder="1279 or Staphylococcus" required>
+          </label>
+          <label>
+            <span>Label</span>
+            <input type="text" name="scope_label" placeholder="optional display label">
+          </label>
+          <label>
+            <span>Discovery rank</span>
+            <select name="target_rank">
+              {% for key, config in taxon_ranks.items() %}
+                <option value="{{ key }}">{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Assembly source</span>
+            <select name="assembly_source">
+              {% for key, config in assembly_sources.items() %}
+                <option value="{{ key }}">{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Add scope</button>
+        </form>
+        {% if discovery_scopes %}
+          <div class="admin-list top-gap">
+            {% for scope in discovery_scopes %}
+              <div class="admin-card">
+                <div class="job-card-head">
+                  <strong>{{ scope.scope_label }}</strong>
+                  <span class="status {{ 'completed' if scope.status == 'ready' else 'running' if scope.status == 'discovering' else 'queued' if scope.status == 'pending' else 'failed' }}">{{ scope.status }}</span>
+                </div>
+                <div class="job-meta">Scope: {{ scope.scope_value.split('|')[0] }}</div>
+                <div class="job-meta">Rank: {{ taxon_ranks[scope.target_rank].label }}</div>
+                <div class="job-meta">Assembly source: {{ assembly_sources[scope.assembly_source].label }}</div>
+                <div class="job-meta">Last discovery added: {{ scope.discovered_species_count }} taxa</div>
+                {% if scope.last_discovered_at %}
+                  <div class="job-meta">Last discovered: {{ scope.last_discovered_at }}</div>
+                {% endif %}
+                {% if scope.last_error %}
+                  <div class="job-meta danger-text">Last error: {{ scope.last_error }}</div>
+                {% endif %}
+                <form action="{{ url_for('admin_sync_discovery_scope', scope_id=scope.id) }}" method="post" class="action-row">
+                  <button type="submit" class="ghost">Refresh scope</button>
+                </form>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="empty">No discovery scopes configured yet.</p>
+        {% endif %}
+      </section>
+    </div>
+  </section>
+
+  <section id="operations" class="admin-group">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Operations</p>
+        <h2>Job control and cleanup</h2>
+      </div>
+      <p class="section-note">Search jobs, stop or delete them, and clear old stored output.</p>
+    </div>
+
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>Search and Filter</h3>
+        <form action="{{ url_for('admin_dashboard') }}" method="get" class="inline-form">
+          <label>
+            <span>Search users or jobs</span>
+            <input type="text" name="q" value="{{ admin_query }}" placeholder="username, email, job id, file name">
+          </label>
+          <label>
+            <span>Job status</span>
+            <select name="status">
+              {% for value in ["all", "queued", "running", "completed", "failed", "cancelled"] %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ value }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Apply</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Cleanup</h3>
+        <form action="{{ url_for('admin_cleanup_jobs') }}" method="post" class="inline-form">
+          <label>
+            <span>Delete completed, failed, or cancelled jobs older than</span>
+            <input type="number" name="older_than_days" min="1" value="30">
+          </label>
+          <button type="submit" class="danger">Clean old job data</button>
+        </form>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h3>All Jobs</h3>
+      {% if jobs %}
+        <div class="admin-list">
+          {% for job in jobs %}
+            <div class="admin-card">
+              <div class="job-card-head">
+                <a class="ghost-link" href="{{ url_for('job_detail', job_id=job.id) }}">{{ job.id }}</a>
+                <span class="status {{ job.status }}">{{ job.status }}</span>
+              </div>
+              <div class="job-meta">{{ job.owner_username or "no owner" }} • {{ job.mode }} • {{ job.input_name }}</div>
+              <div class="job-meta">Created: {{ job.created_at }}</div>
+              <div class="job-meta">Updated: {{ job.updated_at }}</div>
+              {% if job.return_code is not none %}
+                <div class="job-meta">Return code: {{ job.return_code }}</div>
+              {% endif %}
+              {% if job.status in ["queued", "running"] %}
+                <form action="{{ url_for('admin_cancel_job', job_id=job.id) }}" method="post" class="action-row">
+                  <button type="submit" class="danger">Stop job</button>
+                </form>
+              {% else %}
+                <form action="{{ url_for('admin_delete_job', job_id=job.id) }}" method="post" class="action-row">
+                  <button type="submit" class="ghost">Delete job</button>
+                </form>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No jobs found.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section id="users" class="admin-group">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Users</p>
+        <h2>Accounts and workload visibility</h2>
+      </div>
+      <p class="section-note">Review registered users and their current job volume.</p>
+    </div>
+
+    <section class="panel">
+      <h3>Users</h3>
+      {% if users %}
+        <div class="admin-list">
+          {% for user in users %}
+            <div class="admin-card">
+              <div class="job-card-head">
+                <strong>{{ user["username"] }}</strong>
+                {% if user["username"] == session.get("username") %}
+                  <span class="status running">you</span>
+                {% endif %}
+              </div>
+              <div class="job-meta">{{ user["email"] }}</div>
+              <div class="job-meta">Created: {{ user["created_at"] }}</div>
+              <div class="job-meta">Jobs: {{ user["job_count"] }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No users found.</p>
+      {% endif %}
+    </section>
+  </section>
+</main>
+{% endblock %}

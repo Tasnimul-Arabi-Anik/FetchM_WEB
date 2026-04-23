@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Jobs</p>
+      <h1>Track Jobs</h1>
+      <p class="lede">See your active and completed metadata and sequence download requests.</p>
+    </div>
+  </section>
+
+  <section class="metrics-grid">
+    <article class="metric-card">
+      <strong>{{ jobs|length }}</strong>
+      <span>Total jobs</span>
+    </article>
+    <article class="metric-card">
+      <strong>{{ active_jobs|length }}</strong>
+      <span>Active jobs</span>
+    </article>
+    <article class="metric-card">
+      <strong>{{ finished_jobs|length }}</strong>
+      <span>Finished jobs</span>
+    </article>
+  </section>
+
+  <section class="panel">
+    <h2>Active</h2>
+    {% if active_job_cards %}
+      <div class="admin-list">
+        {% for item in active_job_cards %}
+          {% set job = item.job %}
+          {% set progress = item.progress %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <a class="ghost-link" href="{{ url_for('job_detail', job_id=job.id) }}">{{ job.id }}</a>
+              <span class="status {{ job.status }}">{{ job.status }}</span>
+            </div>
+            <div class="job-meta">{{ job.mode }} • {{ job.input_name }}</div>
+            <div class="job-progress-inline">
+              <strong>{{ progress.headline }}</strong>
+              <span>{{ progress.percent }}%</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" style="width: {{ progress.percent }}%"></div>
+            </div>
+            <div class="job-meta">Last activity: {{ progress.last_activity_age_label }} ago</div>
+            {% if progress.stalled %}
+              <div class="job-meta"><strong>Possible stall detected.</strong></div>
+            {% endif %}
+            {% if job.mode == "seq" and progress.snapshot %}
+              <div class="job-meta">
+                {{ progress.snapshot.downloaded_count }} / {{ progress.snapshot.total_targets }} sequences downloaded
+                {% if progress.snapshot.total_targets %}
+                  ({{ progress.snapshot.download_percent }}%)
+                {% endif %}
+              </div>
+            {% endif %}
+            <div class="job-meta">Created: {{ job.created_at }}</div>
+            <div class="job-meta">Updated: {{ job.updated_at }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No active jobs.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>History</h2>
+    {% if finished_job_cards %}
+      <div class="admin-list">
+        {% for item in finished_job_cards %}
+          {% set job = item.job %}
+          {% set progress = item.progress %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <a class="ghost-link" href="{{ url_for('job_detail', job_id=job.id) }}">{{ job.id }}</a>
+              <span class="status {{ job.status }}">{{ job.status }}</span>
+            </div>
+            <div class="job-meta">{{ job.mode }} • {{ job.input_name }}</div>
+            <div class="job-progress-inline">
+              <strong>{{ progress.headline }}</strong>
+              <span>{{ progress.percent }}%</span>
+            </div>
+            <div class="job-meta">Last activity: {{ progress.last_activity_age_label }} ago</div>
+            <div class="job-meta">Created: {{ job.created_at }}</div>
+            <div class="job-meta">Updated: {{ job.updated_at }}</div>
+            {% if job.return_code is not none %}
+              <div class="job-meta">Return code: {{ job.return_code }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No finished jobs yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

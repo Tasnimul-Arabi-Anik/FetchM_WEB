@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>fetchM Jobs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v='20260422-sequence-nav-type1') }}">
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="brand" href="{{ url_for('index') }}">FetchM WEB</a>
+        <div class="topbar-actions">
+          <a class="tag ghost-link" href="{{ url_for('index') }}"><strong>Home</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('user_jobs') }}"><strong>Track Jobs</strong></a>
+          {% if session.get("user_id") %}
+            {% if g.get("is_admin") %}
+              <a class="ghost-link" href="{{ url_for('admin_dashboard') }}">Admin</a>
+            {% endif %}
+            <div class="tag">{{ session.get("username") }}</div>
+            <form action="{{ url_for('logout') }}" method="post">
+              <button type="submit" class="ghost">Log out</button>
+            </form>
+          {% else %}
+            <a class="ghost-link" href="{{ url_for('login') }}">Sign in</a>
+            <a class="ghost-link" href="{{ url_for('register') }}">Register</a>
+          {% endif %}
+        </div>
+      </header>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="flash-stack">
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>

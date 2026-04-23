@@ -1,0 +1,144 @@
+services:
+  fetchm-web:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    expose:
+      - "8000"
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_SECURE_COOKIE: "1"
+      FETCHM_WEBAPP_DEBUG: "0"
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-worker:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-worker-2:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-worker-3:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-worker-4:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-job-worker:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: jobs
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-job-worker-2:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: jobs
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-job-worker-3:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: jobs
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  fetchm-job-worker-4:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: jobs
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    depends_on:
+      - fetchm-web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:

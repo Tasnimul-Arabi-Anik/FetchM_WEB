@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Jobs</h1>
+      <p class="lede">Search jobs, stop abusive workloads, and clean stored job data.</p>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <div class="grid admin-group-grid">
+    <section class="panel">
+      <h2>Search and Filter</h2>
+      <form action="{{ url_for('admin_jobs') }}" method="get" class="inline-form">
+        <label>
+          <span>Search users or jobs</span>
+          <input type="text" name="q" value="{{ admin_query }}" placeholder="username, email, job id, file name">
+        </label>
+        <label>
+          <span>Job status</span>
+          <select name="status">
+            {% for value in ["all", "queued", "running", "completed", "failed", "cancelled"] %}
+              <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">Apply</button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <h2>Cleanup</h2>
+      <form action="{{ url_for('admin_cleanup_jobs') }}" method="post" class="inline-form">
+        <label>
+          <span>Delete completed, failed, or cancelled jobs older than</span>
+          <input type="number" name="older_than_days" min="1" value="30">
+        </label>
+        <button type="submit" class="danger">Clean old job data</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="panel">
+    <h2>All Jobs</h2>
+    {% if jobs %}
+      <div class="admin-list">
+        {% for job in jobs %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <a class="ghost-link" href="{{ url_for('job_detail', job_id=job.id) }}">{{ job.id }}</a>
+              <span class="status {{ job.status }}">{{ job.status }}</span>
+            </div>
+            <div class="job-meta">{{ job.owner_username or "no owner" }} • {{ job.mode }} • {{ job.input_name }}</div>
+            <div class="job-meta">Created: {{ job.created_at }}</div>
+            <div class="job-meta">Updated: {{ job.updated_at }}</div>
+            {% if job.return_code is not none %}
+              <div class="job-meta">Return code: {{ job.return_code }}</div>
+            {% endif %}
+            {% if job.status in ["queued", "running"] %}
+              <form action="{{ url_for('admin_cancel_job', job_id=job.id) }}" method="post" class="action-row">
+                <button type="submit" class="danger">Stop job</button>
+              </form>
+            {% else %}
+              <form action="{{ url_for('admin_delete_job', job_id=job.id) }}" method="post" class="action-row">
+                <button type="submit" class="ghost">Delete job</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No jobs found.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

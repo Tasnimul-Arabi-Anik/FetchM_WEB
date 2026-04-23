@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Problems</h1>
+      <p class="lede">User-submitted issues from the public landing page.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">inbox</span>
+      <div class="job-meta">{{ reports|length }} reports</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Problem Reports</h2>
+    {% if reports %}
+      <div class="admin-list">
+        {% for report in reports %}
+          <article class="admin-card">
+            <div class="job-card-head">
+              <strong>#{{ report.id }} · {{ report.username }}</strong>
+              <span class="status {{ report.status }}">{{ report.status }}</span>
+            </div>
+            <div class="job-meta">
+              {{ report.created_at }}
+              {% if report.email %} · {{ report.email }}{% endif %}
+              {% if report.taxon_name %} · {{ report.taxon_name }}{% endif %}
+              {% if report.requested_action %} · {{ report.requested_action }}{% endif %}
+            </div>
+            <p>{{ report.message }}</p>
+            {% if report.admin_note %}
+              <div class="hint-block">
+                <strong>Admin note</strong>
+                <p>{{ report.admin_note }}</p>
+              </div>
+            {% endif %}
+            <form action="{{ url_for('admin_problem_status', report_id=report.id) }}" method="post" class="inline-form">
+              <input type="hidden" name="status" value="{% if report.status == 'open' %}resolved{% else %}open{% endif %}">
+              <label class="inline-note">
+                <span>Note</span>
+                <input type="text" name="admin_note" placeholder="Optional admin note">
+              </label>
+              <button type="submit" class="ghost">{% if report.status == 'open' %}Mark resolved{% else %}Reopen{% endif %}</button>
+            </form>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No problem reports yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

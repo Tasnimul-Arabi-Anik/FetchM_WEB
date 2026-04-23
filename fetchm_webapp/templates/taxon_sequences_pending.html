@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel">
+    <p class="eyebrow">Sequence Download</p>
+    <h1>{{ species.species_name }}</h1>
+    <p class="lede">
+      Metadata for this {{ species.taxon_rank }} is being prepared for sequence download.
+    </p>
+
+    <div class="metrics-grid">
+      <article class="metric-card">
+        <strong>{{ species.genome_count or 0 }}</strong>
+        <span>Genomes in scope</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ pending_state_label }}</strong>
+        <span>Metadata state</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ species.metadata_last_built_at or "Not built yet" }}</strong>
+        <span>Last metadata build</span>
+      </article>
+    </div>
+
+    <div class="admin-card">
+      <strong>What is happening now</strong>
+      <p class="section-note">
+        {% if species.metadata_status in ["missing", "pending"] %}
+          A metadata build has been queued automatically from the managed TSV for this taxon.
+        {% elif species.metadata_status == "building" %}
+          A metadata build is already running for this taxon.
+        {% elif species.metadata_status == "failed" %}
+          The previous metadata build failed. A fresh rebuild has been queued automatically.
+        {% else %}
+          Metadata is not ready yet for sequence filtering.
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="launch-actions">
+      <a class="button-like" href="{{ url_for('taxon_sequences', species_id=species.id) }}">Reload sequence dashboard</a>
+      <a class="button-like ghost" href="{{ url_for('taxon_metadata', species_id=species.id) }}">Open metadata analysis</a>
+    </div>
+  </section>
+</main>
+{% endblock %}

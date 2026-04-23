@@ -1,0 +1,9 @@
+<nav class="panel admin-nav">
+  <a href="{{ url_for('admin_dashboard') }}" class="{% if admin_section == 'overview' %}active{% endif %}">Overview</a>
+  <a href="{{ url_for('admin_catalog') }}" class="{% if admin_section == 'catalog' %}active{% endif %}">Catalog</a>
+  <a href="{{ url_for('admin_discovery') }}" class="{% if admin_section == 'discovery' %}active{% endif %}">Discovery</a>
+  <a href="{{ url_for('admin_metadata') }}" class="{% if admin_section == 'metadata' %}active{% endif %}">Metadata</a>
+  <a href="{{ url_for('admin_problems') }}" class="{% if admin_section == 'problems' %}active{% endif %}">Problems</a>
+  <a href="{{ url_for('admin_jobs') }}" class="{% if admin_section == 'jobs' %}active{% endif %}">Jobs</a>
+  <a href="{{ url_for('admin_users') }}" class="{% if admin_section == 'users' %}active{% endif %}">Users</a>
+</nav>

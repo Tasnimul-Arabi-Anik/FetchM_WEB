@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Job {{ job.id }}</p>
+      <h1>{{ job.mode }} submission</h1>
+      <p class="lede">{{ job.input_name }}</p>
+      {% if job.mode == "seq" and job.filters and job.filters.get("input_source") == "taxon_sequences" and job.filters.get("taxon_id") %}
+        <p class="detail-backlink">
+          <a class="ghost-link" href="{{ url_for('taxon_sequences', species_id=job.filters.get('taxon_id')) }}">Go back to Sequence Download Page</a>
+        </p>
+      {% endif %}
+    </div>
+    <div class="status-box">
+      <span class="status {{ job.status }}">{{ job.status }}</span>
+      <div class="job-meta">Created: {{ job.created_at }}</div>
+      <div class="job-meta">Updated: {{ job.updated_at }}</div>
+      {% if job.return_code is not none %}
+        <div class="job-meta">Return code: {{ job.return_code }}</div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Progress</h2>
+    <div class="progress-head">
+      <strong>{{ progress.headline }}</strong>
+      <span>{{ progress.percent }}%</span>
+    </div>
+    <div class="progress-track" aria-hidden="true">
+      <div class="progress-fill" style="width: {{ progress.percent }}%"></div>
+    </div>
+    {% if progress.failure_summary %}
+      <div class="summary-box danger">
+        <strong>Failure summary</strong>
+        <p>{{ progress.failure_summary }}</p>
+        {% if progress.recent_errors %}
+          <pre>{{ progress.recent_errors | join('\n') }}</pre>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="step-list">
+      {% for step in progress.steps %}
+        <div class="step-card {{ step.state }}">
+          <div class="step-title-row">
+            <strong>{{ step.label }}</strong>
+            <span class="step-state">{{ step.state }}</span>
+          </div>
+          {% if step.timestamp %}
+            <div class="job-meta">{{ step.timestamp }}</div>
+          {% endif %}
+          {% if step.detail %}
+            <div class="job-meta">{{ step.detail }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="grid">
+    <section class="panel">
+      <h2>Command</h2>
+      <pre>{{ " ".join(job.command) }}</pre>
+      {% if job.filters %}
+        <h2>Filters</h2>
+        <pre>{{ job.filters | tojson(indent=2) }}</pre>
+      {% endif %}
+      {% if job.status == "running" %}
+        <form action="{{ url_for('cancel_job', job_id=job.id) }}" method="post">
+          <button type="submit" class="danger">Cancel job</button>
+        </form>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Outputs</h2>
+      {% if sequence_download_assets %}
+        <div class="summary-box">
+          <strong>Sequence download package</strong>
+          <p>Use the packaged downloads below instead of opening dozens of individual FASTA files.</p>
+          <div class="coverage-table">
+            {% if sequence_download_assets.bundle_path %}
+              <div class="coverage-row">
+                <strong>Full result ZIP</strong>
+                <span>All downloaded sequence outputs in one archive.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=sequence_download_assets.bundle_path) }}">
+                    Download ZIP
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if sequence_download_assets.combined_fasta_path %}
+              <div class="coverage-row">
+                <strong>Combined multi-FASTA</strong>
+                <span>All downloaded genomes concatenated into one FASTA file.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=sequence_download_assets.combined_fasta_path) }}">
+                    Download FASTA
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      {% if grouped_output_summary %}
+        <div class="summary-box">
+          <strong>Grouped sequence output</strong>
+          <p>
+            This sequence job was organized by <strong>{{ grouped_output_summary.group_label }}</strong>.
+            {% if grouped_output_summary.group_count %}
+              {{ grouped_output_summary.group_count }} grouped folders are present.
+            {% else %}
+              Grouped folders have not been materialized yet.
+            {% endif %}
+          </p>
+          {% if grouped_output_summary.group_items %}
+            <div class="coverage-table">
+              {% for item in grouped_output_summary.group_items %}
+                <div class="coverage-row">
+                  <strong>{{ item.name }}</strong>
+                  <span>{{ item.fasta_count }} FASTA{% if item.fasta_count != 1 %}s{% endif %}, {{ item.metadata_count }} metadata file{% if item.metadata_count != 1 %}s{% endif %}</span>
+                  <span>
+                    <a href="{{ url_for('download_grouped_output_group_bundle', job_id=job.id, group_slug=item.slug) }}">
+                      Download {{ item.name }} ZIP
+                    </a>
+                  </span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% if grouped_output_summary.summary_file %}
+            <p>
+              <a href="{{ url_for('download_output', job_id=job.id, relative_path=grouped_output_summary.summary_file) }}">
+                Open grouping summary
+              </a>
+              ·
+              <a href="{{ url_for('download_grouped_output_bundle', job_id=job.id) }}">
+                Download grouped ZIP
+              </a>
+            </p>
+          {% endif %}
+        </div>
+        {% if grouped_output_summary.grouped_files %}
+          <h3>Grouped outputs</h3>
+          <div class="file-list">
+            {% for file in grouped_output_summary.grouped_files %}
+              <a href="{{ url_for('download_output', job_id=job.id, relative_path=file) }}">{{ file }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endif %}
+      {% if output_files %}
+        {% if grouped_output_summary %}
+          <h3>All output files</h3>
+        {% endif %}
+        <div class="file-list">
+          {% for file in output_files %}
+            <a href="{{ url_for('download_output', job_id=job.id, relative_path=file) }}">{{ file }}</a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty">No output files yet.</p>
+      {% endif %}
+    </section>
+  </section>
+
+  <section class="panel">
+    <h2>Log</h2>
+    <pre class="log">{{ log_text }}</pre>
+  </section>
+</main>
+{% endblock %}

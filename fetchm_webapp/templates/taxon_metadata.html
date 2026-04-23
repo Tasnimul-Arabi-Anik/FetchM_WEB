@@ -1,0 +1,508 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Metadata Analysis</p>
+      <h1>{{ species.species_name }}</h1>
+      <p class="lede">Metadata Analysis of your target taxon</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">{{ species.taxon_rank }}</span>
+      <div class="job-meta">{{ analysis.row_total }} genomes · {{ analysis.column_total }} metadata columns</div>
+      <div class="job-meta">Last built: {{ (species.metadata_last_built_at or "unknown")[:10] if species.metadata_last_built_at else "unknown" }}</div>
+      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}">Go to Sequence Download Page</a>
+    </div>
+  </section>
+
+  <nav class="admin-nav metadata-nav">
+    {% for key, item in metadata_sections.items() %}
+      <a class="{% if active_section == key %}active{% endif %}" href="{{ url_for('taxon_metadata_section', species_id=species.id, section=key) }}">{{ item.label }}</a>
+    {% endfor %}
+  </nav>
+
+  <section class="metrics-grid">
+    <article class="metric-card">
+      <strong>{{ analysis.row_total }}</strong>
+      <span>Genomes analyzed</span>
+    </article>
+    {% if species.taxon_rank == "genus" %}
+      <article class="metric-card">
+        <strong>{{ analysis.distinct_species_count }}</strong>
+        <span>Species represented</span>
+      </article>
+    {% else %}
+    <article class="metric-card">
+      <strong>{{ analysis.distinct_host_count }}</strong>
+      <span>Distinct hosts</span>
+    </article>
+    {% endif %}
+    <article class="metric-card">
+      <strong>{{ analysis.distinct_country_count }}</strong>
+      <span>Distinct countries</span>
+    </article>
+    <article class="metric-card">
+      <strong>{% if analysis.year_start %}{{ analysis.year_start }}-{{ analysis.year_end }}{% else %}Unknown{% endif %}</strong>
+      <span>Collection year span</span>
+    </article>
+    {% if species.taxon_rank == "genus" %}
+      <article class="metric-card">
+        <strong>{{ analysis.distinct_host_count }}</strong>
+        <span>Distinct hosts</span>
+      </article>
+    {% endif %}
+  </section>
+
+  {% if active_section == "summary" %}
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Summary</p>
+            <h2>Results</h2>
+          </div>
+        </div>
+        <div class="report-list">
+          {% for paragraph in analysis.summary_paragraphs_html %}
+            <article class="report-card">
+              <p>{{ paragraph|safe }}</p>
+            </article>
+          {% endfor %}
+          {% for insight in analysis.insights %}
+            <article class="report-card">
+              <p>{{ insight }}</p>
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Metadata Completeness</h2>
+        <div class="coverage-bars">
+          {% for item in analysis.completeness_rows %}
+            <div class="coverage-bar-card">
+              <div class="coverage-bar-head">
+                <strong>{{ item.field }}</strong>
+                <span>{{ item.present_percent }}%</span>
+              </div>
+              <div class="coverage-track">
+                <div class="coverage-fill" style="width: {{ item.present_percent }}%;"></div>
+              </div>
+              <div class="coverage-caption">{{ item.present }} present · {{ item.unknown }} unknown · {{ item.absent }} absent</div>
+            </div>
+          {% endfor %}
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Geographic Distribution</h2>
+      {% if analysis.plots.geography_map %}
+        <div class="plot-shell">{{ analysis.plots.geography_map.html|safe }}</div>
+        <p class="figure-caption">Geographic distribution of the currently represented genomes across mapped countries.</p>
+      {% endif %}
+    </section>
+  {% elif active_section == "geography" %}
+    <section class="panel">
+      <h2>Geographic Distribution</h2>
+      {% if analysis.plots.geography_map %}
+        <div class="plot-shell">{{ analysis.plots.geography_map.html|safe }}</div>
+        <p class="figure-caption">Geographic distribution of the currently represented genomes across mapped countries.</p>
+      {% else %}
+        <p class="empty">Geographic map will appear once country-level metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Distribution by Country</h2>
+      {% if analysis.plots.country_bar %}
+        <div class="plot-shell">{{ analysis.plots.country_bar.html|safe }}</div>
+      {% endif %}
+      <p class="figure-caption">Country-level distribution across the current dataset.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Distribution by Continent and Subcontinent</h2>
+      <div class="metadata-summary-grid">
+        {% if analysis.plots.continent_bar %}
+          <div class="plot-shell">{{ analysis.plots.continent_bar.html|safe }}</div>
+        {% endif %}
+        {% if analysis.plots.subcontinent_bar %}
+          <div class="plot-shell">{{ analysis.plots.subcontinent_bar.html|safe }}</div>
+        {% endif %}
+      </div>
+      <p class="figure-caption">Continental and subcontinental views provide the broad and intermediate geographic scales of the same dataset.</p>
+    </section>
+
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <h2>Metadata Completeness</h2>
+        <div class="coverage-bars">
+          {% for item in analysis.completeness_rows if item.field in ["Geographic Location", "Country", "Continent", "Subcontinent", "Collection Date"] %}
+            <div class="coverage-bar-card">
+              <div class="coverage-bar-head">
+                <strong>{{ item.field }}</strong>
+                <span>{{ item.present_percent }}%</span>
+              </div>
+              <div class="coverage-track">
+                <div class="coverage-fill" style="width: {{ item.present_percent }}%;"></div>
+              </div>
+              <div class="coverage-caption">{{ item.present }} present · {{ item.unknown }} unknown · {{ item.absent }} absent</div>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <aside class="panel">
+        <h2>Leading Geographic Labels</h2>
+        <div class="metadata-summary-grid">
+          <article class="summary-box">
+            <h3>Top Countries</h3>
+            <div class="summary-list">
+              {% for value, count in analysis.top_countries %}
+                <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
+              {% endfor %}
+            </div>
+          </article>
+          <article class="summary-box">
+            <h3>Top Continents</h3>
+            <div class="summary-list">
+              {% for value, count in analysis.top_continents %}
+                <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
+              {% endfor %}
+            </div>
+          </article>
+          <article class="summary-box">
+            <h3>Top Subcontinents</h3>
+            <div class="summary-list">
+              {% for value, count in analysis.top_subcontinents %}
+                <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
+              {% endfor %}
+            </div>
+          </article>
+        </div>
+      </aside>
+    </section>
+  {% elif active_section == "species_diversity" %}
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <strong>{{ analysis.species_diversity.distinct_species_total }}</strong>
+        <span>Species represented</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ analysis.species_diversity.singleton_species_total }}</strong>
+        <span>Singleton species</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ analysis.species_diversity.top_five_share_percent }}%</strong>
+        <span>Genomes in top 5 species</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ analysis.species_diversity.median_genomes_per_species }}</strong>
+        <span>Median genomes per species</span>
+      </article>
+    </section>
+
+    <section class="panel">
+      <h2>Ranked Species Distribution</h2>
+      {% if analysis.plots.species_diversity_bar %}
+        <div class="plot-shell">{{ analysis.plots.species_diversity_bar.html|safe }}</div>
+        <p class="figure-caption">The most represented species in the selected genus, with lower-abundance taxa collapsed into an <strong>Other</strong> category when needed.</p>
+      {% else %}
+        <p class="empty">Species diversity plots will appear once organism names are available in the metadata.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Cumulative Species Coverage</h2>
+      {% if analysis.plots.species_cumulative_line %}
+        <div class="plot-shell">{{ analysis.plots.species_cumulative_line.html|safe }}</div>
+        <p class="figure-caption">The cumulative curve shows how quickly the dominant species account for the total genus-wide genome set.</p>
+      {% else %}
+        <p class="empty">Cumulative species coverage will appear once enough organism annotations are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <h2>Leading Species</h2>
+        <div class="summary-list">
+          {% for value, count in analysis.species_diversity.species_counts[:20] %}
+            <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
+          {% endfor %}
+        </div>
+      </section>
+      <aside class="panel">
+        <h2>Diversity Highlights</h2>
+        <div class="report-list">
+          <article class="report-card">
+            <p><strong>{{ analysis.species_diversity.dominant_species or "No dominant species" }}</strong>{% if analysis.species_diversity.dominant_species_count %} contributes <strong>{{ analysis.species_diversity.dominant_species_count }}</strong> genomes to the current genus-wide dataset.{% else %} is not yet available from the current metadata.{% endif %}</p>
+          </article>
+          <article class="report-card">
+            <p>The top <strong>five species</strong> account for <strong>{{ analysis.species_diversity.top_five_share_percent }}%</strong> of the genomes currently represented for this genus.</p>
+          </article>
+          <article class="report-card">
+            <p><strong>{{ analysis.species_diversity.singleton_species_total }}</strong> species are currently represented by a single genome, highlighting the long tail of low-abundance taxa in this genus.</p>
+          </article>
+        </div>
+      </aside>
+    </section>
+  {% elif active_section == "host" %}
+    <section class="panel">
+      <h2>Host Distribution</h2>
+      {% if analysis.plots.host_bar %}
+        <div class="plot-shell">{{ analysis.plots.host_bar.html|safe }}</div>
+        <p class="figure-caption">Dominant host annotations in the current dataset, with counts labeled directly on the bars.</p>
+      {% else %}
+        <p class="empty">Host plots will appear once host annotations are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Host Disease Distribution</h2>
+      {% if analysis.plots.host_disease_bar %}
+        <div class="plot-shell">{{ analysis.plots.host_disease_bar.html|safe }}</div>
+        <p class="figure-caption">Reported host-disease categories when such metadata is present.</p>
+      {% else %}
+        <p class="empty">Host-disease plots will appear once disease annotations are available.</p>
+      {% endif %}
+    </section>
+  {% elif active_section == "environment" %}
+    <section class="panel">
+      <h2>Isolation Source Distribution</h2>
+      {% if analysis.plots.source_bar %}
+        <div class="plot-shell">{{ analysis.plots.source_bar.html|safe }}</div>
+        <p class="figure-caption">Most common isolation sources represented in the metadata.</p>
+      {% else %}
+        <p class="empty">Isolation-source plots will appear once source metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Broad Environmental Context</h2>
+      {% if analysis.plots.environment_bar %}
+        <div class="plot-shell">{{ analysis.plots.environment_bar.html|safe }}</div>
+        <p class="figure-caption">Broad environmental contexts for the sampled genomes.</p>
+      {% else %}
+        <p class="empty">Broad environment plots will appear once environment metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Sample Type Distribution</h2>
+      {% if analysis.plots.sample_type_bar %}
+        <div class="plot-shell">{{ analysis.plots.sample_type_bar.html|safe }}</div>
+        <p class="figure-caption">Sample-type distribution for genomes with sample descriptors.</p>
+      {% else %}
+        <p class="empty">Sample-type plots will appear once sample-type metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Local Environment Distribution</h2>
+      {% if analysis.plots.environment_local_bar %}
+        <div class="plot-shell">{{ analysis.plots.environment_local_bar.html|safe }}</div>
+        <p class="figure-caption">Local environmental context, where available.</p>
+      {% else %}
+        <p class="empty">Local environment plots will appear once local environment metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Environmental Medium Distribution</h2>
+      {% if analysis.plots.environment_medium_bar %}
+        <div class="plot-shell">{{ analysis.plots.environment_medium_bar.html|safe }}</div>
+        <p class="figure-caption">Environmental medium distribution, expanding the environmental interpretation beyond the broad scale.</p>
+      {% else %}
+        <p class="empty">Environmental medium plots will appear once medium metadata is available.</p>
+      {% endif %}
+    </section>
+  {% elif active_section == "temporal" %}
+    <section class="panel">
+      <h2>Temporal Analysis</h2>
+      {% if analysis.plots.temporal_count_line %}
+        <div class="plot-shell">{{ analysis.plots.temporal_count_line.html|safe }}</div>
+        <p class="figure-caption">Wide temporal overview showing the number of genomes represented through collection time.</p>
+      {% else %}
+        <p class="empty">Temporal analysis will appear once collection-year metadata is sufficiently populated.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      {% if analysis.plots.year_length_scatter %}
+        <div class="plot-shell">{{ analysis.plots.year_length_scatter.html|safe }}</div>
+        <p class="figure-caption">Assembly sequence length across collection time, with a trend line and correlation statistics embedded in the figure.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      {% if analysis.plots.year_gene_total_scatter %}
+        <div class="plot-shell">{{ analysis.plots.year_gene_total_scatter.html|safe }}</div>
+        <p class="figure-caption">Total annotated gene counts across collection time, with a trend line and correlation statistics embedded in the figure.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      {% if analysis.plots.year_gene_protein_scatter %}
+        <div class="plot-shell">{{ analysis.plots.year_gene_protein_scatter.html|safe }}</div>
+        <p class="figure-caption">Protein-coding gene counts across collection time, with a trend line and correlation statistics embedded in the figure.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      {% if analysis.plots.year_gene_pseudo_scatter %}
+        <div class="plot-shell">{{ analysis.plots.year_gene_pseudo_scatter.html|safe }}</div>
+        <p class="figure-caption">Pseudogene counts across collection time, with a trend line and correlation statistics embedded in the figure.</p>
+      {% endif %}
+    </section>
+  {% elif active_section == "quality" %}
+    <section class="panel">
+      <h2>CheckM Completeness Distribution</h2>
+      {% if analysis.plots.completeness_hist %}
+        <div class="plot-shell">{{ analysis.plots.completeness_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of reported CheckM completeness values across genomes with available quality annotation.</p>
+      {% else %}
+        <p class="empty">CheckM completeness distribution will appear once quality annotations are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Assembly Level Distribution</h2>
+      {% if analysis.plots.assembly_level_bar %}
+        <div class="plot-shell">{{ analysis.plots.assembly_level_bar.html|safe }}</div>
+        <p class="figure-caption">Assembly-level distribution, complementing the CheckM-based quality view.</p>
+      {% else %}
+        <p class="empty">Assembly-level distribution will appear once assembly level metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Contig Count Distribution</h2>
+      {% if analysis.plots.contig_hist %}
+        <div class="plot-shell">{{ analysis.plots.contig_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of contig counts across genomes with contig statistics available.</p>
+      {% else %}
+        <p class="empty">Contig-count distribution will appear once contig statistics are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Scaffold Count Distribution</h2>
+      {% if analysis.plots.scaffold_hist %}
+        <div class="plot-shell">{{ analysis.plots.scaffold_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of scaffold counts across genomes with scaffold statistics available.</p>
+      {% else %}
+        <p class="empty">Scaffold-count distribution will appear once scaffold statistics are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Genome Quality by CheckM</h2>
+      <div class="coverage-bars">
+        {% for item in analysis.quality_bands %}
+          <div class="coverage-bar-card">
+            <div class="coverage-bar-head">
+              <strong>{{ item.label }}</strong>
+              <span>{{ item.percent }}%</span>
+            </div>
+            <div class="coverage-track">
+              <div class="coverage-fill" style="width: {{ item.percent }}%;"></div>
+            </div>
+            <div class="coverage-caption">{{ item.count }} genomes</div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Numerical Findings</h2>
+      <div class="report-list">
+        {% for finding in analysis.numeric_findings %}
+          <article class="report-card">
+            <p>{{ finding }}</p>
+          </article>
+        {% endfor %}
+      </div>
+    </section>
+  {% elif active_section == "genomic" %}
+    <section class="panel">
+      <h2>Assembly Length Distribution</h2>
+      {% if analysis.plots.genome_length_hist %}
+        <div class="plot-shell">{{ analysis.plots.genome_length_hist.html|safe }}</div>
+        <p class="figure-caption">Assembly length distribution. Values in the narrative are reported in Kbp for readability when appropriate.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Annotated Gene Distribution</h2>
+      {% if analysis.plots.gene_total_hist %}
+        <div class="plot-shell">{{ analysis.plots.gene_total_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of total annotated gene counts across genomes.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Protein-coding Gene Distribution</h2>
+      {% if analysis.plots.gene_protein_hist %}
+        <div class="plot-shell">{{ analysis.plots.gene_protein_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of protein-coding gene counts across genomes.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Pseudogene Distribution</h2>
+      {% if analysis.plots.gene_pseudo_hist %}
+        <div class="plot-shell">{{ analysis.plots.gene_pseudo_hist.html|safe }}</div>
+        <p class="figure-caption">Distribution of pseudogene counts across genomes.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <div class="metrics-grid">
+        <article class="metric-card">
+          <strong>{{ analysis.genome_length_display }}</strong>
+          <span>Mean genome length</span>
+        </article>
+        <article class="metric-card">
+          <strong>{% if analysis.contigs %}{{ "{:,.0f}".format(analysis.contigs.mean) }}{% else %}N/A{% endif %}</strong>
+          <span>Mean contig count</span>
+        </article>
+        <article class="metric-card">
+          <strong>{% if analysis.scaffolds %}{{ "{:,.0f}".format(analysis.scaffolds.mean) }}{% else %}N/A{% endif %}</strong>
+          <span>Mean scaffold count</span>
+        </article>
+        <article class="metric-card">
+          <strong>{{ analysis.distinct_continent_count }}</strong>
+          <span>Distinct continents</span>
+        </article>
+      </div>
+    </section>
+  {% elif active_section == "explore" %}
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <h2>Downloads</h2>
+        <div class="action-row">
+          <a class="button-like" href="{{ url_for('download_taxon_metadata_bundle', species_id=species.id) }}">Download analysis ZIP</a>
+          <a class="button-like" href="{{ url_for('download_taxon_metadata', species_id=species.id) }}">Download current CSV</a>
+        </div>
+        <div class="report-list top-gap">
+          <article class="report-card">
+            <p>The ZIP export includes the current metadata CSV, a summary text report, and downloadable interactive figure files generated from the stored metadata.</p>
+          </article>
+        </div>
+      </section>
+      <aside class="panel">
+        <h2>Available Metadata Columns</h2>
+        <details class="advanced-panel" open>
+          <summary>Fields in current stored metadata</summary>
+          <div class="field-chip-grid">
+            {% for field in analysis.fieldnames %}
+              <span class="field-chip">{{ field }}</span>
+            {% endfor %}
+          </div>
+        </details>
+      </aside>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Overview</h1>
+      <p class="lede">System health, storage, sync activity, and catalog backfill progress.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">admin</span>
+      <div class="job-meta">{{ backfill.taxa_totals.total or 0 }} taxa</div>
+      <div class="job-meta">{{ backfill.discovery_totals.total or 0 }} scopes</div>
+      <div class="job-meta">{{ backfill.taxa_totals.syncing_total or 0 }} initial syncs</div>
+      <div class="job-meta">{{ backfill.taxa_totals.refreshing_total or 0 }} refreshing</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section id="system" class="admin-group">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">System</p>
+        <h2>Runtime and backfill state</h2>
+      </div>
+      <p class="section-note">Storage, sync activity, discovery policy, and TSV materialization progress.</p>
+    </div>
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>Pipeline Board</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ backfill.genome_totals.catalog_genomes_total or 0 }}</strong>
+            <span>Genomes in managed TSV catalog</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.genome_totals.metadata_genomes_total or 0 }}</strong>
+            <span>Genomes covered by metadata</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.genome_totals.metadata_taxa_ready_total or 0 }}</strong>
+            <span>Taxa with metadata ready</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.genome_totals.metadata_stored_rows_total or 0 }}</strong>
+            <span>Stored assembly metadata rows</span>
+          </div>
+        </div>
+        <div class="metrics-grid top-gap">
+          <div class="metric-card metric-wide">
+            <strong>1. Discovery</strong>
+            <span>Current cadence: {{ discovery_policies[backfill.discovery_policy].label }}</span>
+            <span>{{ backfill.discovery_totals.ready_total or 0 }} scopes ready, {{ backfill.recent_scopes.last_6h or 0 }} completed in 6h</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>2. TSV Catalog</strong>
+            <span>Build missing: {{ catalog_policies[backfill.catalog_build_policy].label }} | Refresh existing: {{ catalog_policies[backfill.catalog_refresh_policy].label }}</span>
+            <span>{{ backfill.taxa_totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.catalog_genomes_total or 0 }} genomes currently represented</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>3. Metadata</strong>
+            <span>Build missing: {{ metadata_policies[metadata_dashboard.metadata_build_policy].label }} | Refresh existing: {{ metadata_policies[metadata_dashboard.metadata_refresh_policy].label }}</span>
+            <span>{{ metadata_dashboard.totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.metadata_genomes_total or 0 }} genomes with metadata coverage</span>
+          </div>
+        </div>
+        <div class="metrics-grid top-gap">
+          <div class="metric-card metric-wide">
+            <strong>Recent catalog additions</strong>
+            <span>{{ backfill.recent_taxa_added.last_7d or 0 }} taxa added in 7 days</span>
+            <span>{{ backfill.recent_taxa_added.species_last_30d or 0 }} species and {{ backfill.recent_taxa_added.genus_last_30d or 0 }} genera added in 30 days</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>Recent genome deltas</strong>
+            <span>{{ backfill.sync_event_totals.genomes_added_last_7d or 0 }} genomes added by TSV syncs in 7 days</span>
+            <span>{{ backfill.sync_event_totals.genomes_added_last_30d or 0 }} genomes added in 30 days, across {{ backfill.sync_event_totals.build_events_last_30d or 0 }} first builds and {{ backfill.sync_event_totals.refresh_events_last_30d or 0 }} refreshes</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>Metadata behavior</strong>
+            <span>Current metadata updates reuse stored per-assembly metadata rows and only fetch enrichment for newly seen assemblies.</span>
+            <span>Existing assemblies are regenerated from the latest TSV plus stored metadata, while the BioSample cache still reduces repeat upstream calls.</span>
+          </div>
+        </div>
+        {% if backfill.latest_sync_event %}
+          <div class="hint-block top-gap">
+            <strong>Latest TSV sync delta</strong>
+            <p>{{ backfill.latest_sync_event.species_name }} ({{ taxon_ranks[backfill.latest_sync_event.taxon_rank].label }}) was {{ backfill.latest_sync_event.sync_kind }} synced at {{ backfill.latest_sync_event.synced_at }}: {{ backfill.latest_sync_event.before_genome_count or 0 }} -> {{ backfill.latest_sync_event.after_genome_count or 0 }} genomes (delta {{ backfill.latest_sync_event.delta_genome_count or 0 }}).</p>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="panel">
+        <h3>System Info</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ backfill.storage.disk_free_label }}</strong>
+            <span>System free space</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.disk_used_label }}</strong>
+            <span>System used ({{ backfill.storage.disk_used_percent }}%)</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.app_data_label }}</strong>
+            <span>App data footprint</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.species_label }}</strong>
+            <span>Taxon TSV storage</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.jobs_label }}</strong>
+            <span>Job data storage</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.storage.db_label }}</strong>
+            <span>SQLite DB size</span>
+          </div>
+        </div>
+
+        <div class="top-gap">
+          <h3>CPU and Memory</h3>
+          <div class="metrics-grid">
+            <div class="metric-card metric-wide">
+              <strong>{{ "%.1f"|format(backfill.system_monitor.cpu_percent) if backfill.system_monitor.cpu_percent is not none else "N/A" }}%</strong>
+              <span>CPU usage</span>
+              <div class="progress-track wave-track" aria-hidden="true">
+                <div class="progress-fill wave-fill {{ backfill.system_monitor.cpu_status }}" style="width: {{ backfill.system_monitor.cpu_percent or 0 }}%;"></div>
+              </div>
+            </div>
+            <div class="metric-card metric-wide">
+              <strong>{{ backfill.system_monitor.memory.used_label }} / {{ backfill.system_monitor.memory.total_label }}</strong>
+              <span>Memory usage ({{ backfill.system_monitor.memory.used_percent }}%)</span>
+              <div class="progress-track wave-track" aria-hidden="true">
+                <div class="progress-fill wave-fill {{ backfill.system_monitor.memory_status }}" style="width: {{ backfill.system_monitor.memory.used_percent }}%;"></div>
+              </div>
+              <span>{{ backfill.system_monitor.memory.available_label }} available</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="top-gap">
+          <h3>Network</h3>
+          <div class="metrics-grid">
+            <div class="metric-card metric-wide">
+              <strong>{{ backfill.system_monitor.network.link_speed_label }}</strong>
+              <span>Negotiated link capacity</span>
+              <span>
+                {{ backfill.system_monitor.network.primary_interface or 'N/A' }}
+                {% if backfill.system_monitor.network.operstate %}
+                  • {{ backfill.system_monitor.network.operstate }}
+                {% endif %}
+                {% if backfill.system_monitor.network.duplex %}
+                  • {{ backfill.system_monitor.network.duplex }}
+                {% endif %}
+              </span>
+            </div>
+            <div class="metric-card metric-wide">
+              <strong>{{ backfill.system_monitor.network.rx_rate_label }}</strong>
+              <span>Live receive throughput</span>
+              <span>{{ backfill.system_monitor.network.rx_total_label }} received total</span>
+            </div>
+            <div class="metric-card metric-wide">
+              <strong>{{ backfill.system_monitor.network.tx_rate_label }}</strong>
+              <span>Live send throughput</span>
+              <span>{{ backfill.system_monitor.network.tx_total_label }} sent total</span>
+            </div>
+            <div class="metric-card metric-wide">
+              <strong>{{ backfill.system_monitor.network.interface_count }}</strong>
+              <span>Active interfaces</span>
+              <span>
+                {% if backfill.system_monitor.network.active_interfaces %}
+                  {{ backfill.system_monitor.network.active_interfaces|join(', ') }}
+                {% else %}
+                  None detected
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="top-gap">
+          <h3>System Temperatures</h3>
+          {% if backfill.system_monitor.temperatures %}
+            <div class="coverage-bars">
+              {% for item in backfill.system_monitor.temperatures %}
+                <div class="coverage-bar-card">
+                  <div class="coverage-bar-head">
+                    <strong>{{ item.label }}</strong>
+                    <span>{{ item.current_c }} C / {{ item.threshold_c }} C</span>
+                  </div>
+                  <div class="coverage-track thermometer-track">
+                    <div class="coverage-fill thermometer-fill {{ item.status }}" style="width: {{ item.percent_of_threshold }}%;"></div>
+                  </div>
+                  <div class="coverage-caption">
+                    {% if item.current_c >= item.threshold_c %}
+                      Above alert threshold
+                    {% elif item.current_c >= item.threshold_c * 0.9 %}
+                      Near alert threshold
+                    {% else %}
+                      Within expected range
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="metric-card metric-wide">
+              <strong>No hardware temperature sensors available</strong>
+              <span>The current runtime could not read any `hwmon` temperature inputs.</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <form action="{{ url_for('admin_set_system_monitor') }}" method="post" class="inline-form top-gap">
+          <label>
+            <span>Alert email</span>
+            <input type="email" name="system_temp_alert_email" value="{{ backfill.system_monitor.alert_settings.email }}">
+          </label>
+          <label>
+            <span>Threshold (C)</span>
+            <input type="number" step="0.1" min="1" name="system_temp_alert_threshold_c" value="{{ backfill.system_monitor.alert_settings.threshold_c }}">
+          </label>
+          <label>
+            <span>Cooldown (minutes)</span>
+            <input type="number" min="1" name="system_temp_alert_cooldown_minutes" value="{{ backfill.system_monitor.alert_settings.cooldown_minutes }}">
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" name="system_temp_alert_enabled" value="1" {% if backfill.system_monitor.alert_settings.enabled %}checked{% endif %}>
+            <span>Email me when temperatures are too high</span>
+          </label>
+          <button type="submit" class="ghost">Save temperature alert settings</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h3>Observability</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ observability.live_worker_total }}</strong>
+            <span>Live workers</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ observability.active_metadata_total }}</strong>
+            <span>Active metadata builds</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ observability.active_job_total }}</strong>
+            <span>Queued or running jobs</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ observability.stalled_job_total }}</strong>
+            <span>Possibly stalled jobs</span>
+          </div>
+        </div>
+        {% if observability.stale_worker_total or observability.stale_heartbeat_files_removed %}
+          <div class="job-meta top-gap">
+            {% if observability.stale_worker_total %}
+              {{ observability.stale_worker_total }} stale worker heartbeat entries hidden.
+            {% endif %}
+            {% if observability.stale_heartbeat_files_removed %}
+              {{ observability.stale_heartbeat_files_removed }} very old heartbeat files pruned automatically.
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <div class="top-gap">
+          <h3>Workers</h3>
+          {% if observability.worker_snapshots %}
+            <div class="admin-list">
+              {% for item in observability.worker_snapshots %}
+                <div class="admin-card">
+                  <div class="job-card-head">
+                    <strong>{{ item.worker_name }}</strong>
+                    <span class="status {{ 'running' if item.alive else 'failed' }}">{{ 'live' if item.alive else 'stale' }}</span>
+                  </div>
+                  <div class="job-meta">Last heartbeat {{ item.age_label }} ago</div>
+                  <div class="job-meta">{{ item.metadata_builds }} metadata builds • {{ item.running_jobs }} running jobs</div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty">No worker heartbeats found.</p>
+          {% endif %}
+        </div>
+
+        <div class="top-gap">
+          <h3>Active Metadata Builds</h3>
+          {% if observability.metadata_claims %}
+            <div class="admin-list">
+              {% for item in observability.metadata_claims %}
+                <div class="admin-card">
+                  <div class="job-card-head">
+                    <strong>{{ item.species_name }}</strong>
+                    <span class="status {{ 'running' if item.worker_live else 'failed' }}">{{ item.status }}</span>
+                  </div>
+                  <div class="job-meta">{{ taxon_ranks[item.taxon_rank].label }} • {{ item.genome_count }} genomes</div>
+                  <div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div>
+                  {% if item.error %}
+                    <div class="job-meta">{{ item.error }}</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty">No active metadata builds.</p>
+          {% endif %}
+        </div>
+
+        <div class="top-gap">
+          <h3>Active Jobs</h3>
+          {% if observability.active_job_cards %}
+            <div class="admin-list">
+              {% for item in observability.active_job_cards %}
+                {% set job = item.job %}
+                {% set progress = item.progress %}
+                <div class="admin-card">
+                  <div class="job-card-head">
+                    <a class="ghost-link" href="{{ url_for('admin_jobs') }}#{{ job.id }}">{{ job.id }}</a>
+                    <span class="status {{ 'failed' if progress.stalled else job.status }}">{{ 'stalled' if progress.stalled else job.status }}</span>
+                  </div>
+                  <div class="job-meta">{{ job.mode }} • {{ job.input_name }}</div>
+                  <div class="job-progress-inline">
+                    <strong>{{ progress.headline }}</strong>
+                    <span>{{ progress.percent }}%</span>
+                  </div>
+                  <div class="progress-track" aria-hidden="true">
+                    <div class="progress-fill" style="width: {{ progress.percent }}%"></div>
+                  </div>
+                  <div class="job-meta">Last activity {{ progress.last_activity_age_label }} ago</div>
+                  {% if job.mode == "seq" and progress.snapshot %}
+                    <div class="job-meta">{{ progress.snapshot.downloaded_count }} / {{ progress.snapshot.total_targets }} sequences downloaded</div>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="empty">No queued or running jobs.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Catalog Backfill</h3>
+        <div class="progress-head">
+          <strong>{{ backfill.progress_percent }}% TSV-ready</strong>
+          <span>ETA: {{ backfill.eta_label }}</span>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width: {{ backfill.progress_percent }}%"></div>
+        </div>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.ready_total or 0 }}</strong>
+            <span>Ready taxa</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.pending_total or 0 }}</strong>
+            <span>Pending taxa</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.syncing_total or 0 }}</strong>
+            <span>Initial syncs now</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.refreshing_total or 0 }}</strong>
+            <span>Refreshing now</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.taxa_totals.refresh_queued_total or 0 }}</strong>
+            <span>Refresh queued</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ "%.1f"|format(backfill.taxa_ready_rate_per_hour) if backfill.taxa_ready_rate_per_hour else "0.0" }}</strong>
+            <span>Ready taxa/hour</span>
+          </div>
+          <div class="metric-card">
+            <strong>{{ backfill.recent_taxa.last_6h or 0 }}</strong>
+            <span>TSVs built in 6h</span>
+          </div>
+        </div>
+        <div class="metrics-grid top-gap">
+          {% for row in backfill.rank_breakdown %}
+            <div class="metric-card metric-wide">
+              <strong>{{ taxon_ranks[row.taxon_rank].label }}</strong>
+              <span>{{ row.ready or 0 }} ready / {{ row.total or 0 }} total</span>
+              <span>{{ row.pending or 0 }} pending, {{ row.syncing or 0 }} initial syncs, {{ row.refreshing or 0 }} refreshing, {{ row.refresh_queued or 0 }} queued refresh, {{ row.failed or 0 }} failed</span>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="metrics-grid top-gap">
+          <div class="metric-card metric-wide">
+            <strong>Discovery scopes</strong>
+            <span>{{ backfill.discovery_totals.ready_total or 0 }} ready / {{ backfill.discovery_totals.total or 0 }} total</span>
+            <span>{{ backfill.discovery_totals.discovering_total or 0 }} discovering, {{ backfill.discovery_totals.pending_total or 0 }} pending</span>
+          </div>
+          <div class="metric-card metric-wide">
+            <strong>Internal partitions</strong>
+            <span>{{ backfill.discovery_totals.internal_total or 0 }} internal genus partitions</span>
+            <span>{{ backfill.recent_scopes.last_hour or 0 }} discovery scopes completed in 1h</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid admin-group-grid">
+      <section class="panel">
+        <h3>Sync Activity</h3>
+        <form action="{{ url_for('admin_requeue_stuck_species') }}" method="post" class="inline-form">
+          <label>
+            <span>Requeue stuck TSV syncs older than</span>
+            <input type="number" name="older_than_minutes" min="1" value="30">
+          </label>
+          <button type="submit" class="ghost">Requeue stuck taxa</button>
+        </form>
+        <div class="metrics-grid top-gap">
+          {% if backfill.syncing_taxa %}
+            {% for item in backfill.syncing_taxa %}
+              <div class="admin-card metric-wide">
+                <div class="job-card-head">
+                  <strong>{{ item.species_name }}</strong>
+                  <span class="status {{ 'failed' if item.is_stale else 'running' }}">{{ item.claimed_age_label }}</span>
+                </div>
+                <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+                <div class="job-meta">{{ 'Refreshing existing TSV' if item.refreshing_existing else 'Building first TSV' }}</div>
+                <div class="job-meta">Query: {{ item.query_name }}</div>
+                <div class="job-meta">Worker: {{ item.claimed_by }}</div>
+                <div class="job-meta">Assembly source: {{ assembly_sources[item.assembly_source].label }}</div>
+                <div class="job-meta {{ 'danger-text' if item.has_retries else '' }}">Attempts in current sync cycle: {{ item.attempt_count }}</div>
+                <div class="job-meta {{ 'danger-text' if item.is_stale else '' }}">Total age in current sync cycle: {{ item.total_age_label }}</div>
+                {% if item.claimed_at %}
+                  <div class="job-meta">Current claim started: {{ item.claimed_at }}</div>
+                {% endif %}
+                {% if item.sync_first_claimed_at %}
+                  <div class="job-meta">First claim in cycle: {{ item.sync_first_claimed_at }}</div>
+                {% endif %}
+                {% if item.genome_count %}
+                  <div class="job-meta">Last genome count: {{ item.genome_count }}</div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="metric-card metric-wide">
+              <strong>No active TSV syncs</strong>
+              <span>All workers are idle or waiting for pending taxa.</span>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Catalog Policy</h3>
+        <form action="{{ url_for('admin_set_catalog_policy') }}" method="post" class="inline-form">
+          <label>
+            <span>Build missing TSVs</span>
+            <select name="catalog_build_policy">
+              {% for key, config in catalog_policies.items() %}
+                <option value="{{ key }}" {% if backfill.catalog_build_policy == key %}selected{% endif %}>{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Refresh existing TSVs</span>
+            <select name="catalog_refresh_policy">
+              {% for key, config in catalog_policies.items() %}
+                <option value="{{ key }}" {% if backfill.catalog_refresh_policy == key %}selected{% endif %}>{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Update catalog schedules</button>
+        </form>
+        <div class="hint-block top-gap">
+          <strong>Catalog control</strong>
+          <p>Build missing TSVs controls first-time TSV materialization. Refresh existing TSVs controls scheduled rebuilds for taxa that already have a managed TSV. Pausing refresh keeps ready taxa available without requeueing them.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Discovery Policy</h3>
+        <form action="{{ url_for('admin_set_discovery_policy') }}" method="post" class="inline-form">
+          <label>
+            <span>Discovery policy</span>
+            <select name="discovery_policy">
+              {% for key, config in discovery_policies.items() %}
+                <option value="{{ key }}" {% if backfill.discovery_policy == key %}selected{% endif %}>{{ config.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <button type="submit">Update discovery policy</button>
+        </form>
+        <div class="hint-block top-gap">
+          <strong>Discovery control</strong>
+          <p>Use <code>Paused</code> when you want all worker capacity to stay on TSV generation for release. A single genus can remain in <code>syncing</code> for a long time if its NCBI genome metadata query is especially large.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
+{% endblock %}

@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .sequence-page {
+    font-size: 1.12rem;
+  }
+
+  .sequence-page .eyebrow {
+    font-size: 0.88rem;
+  }
+
+  .sequence-page h1 {
+    font-size: 2.5rem;
+  }
+
+  .sequence-page h2 {
+    font-size: 1.68rem;
+  }
+
+  .sequence-page .lede,
+  .sequence-page label span,
+  .sequence-page .sequence-filter-trigger,
+  .sequence-page .sequence-options-summary,
+  .sequence-page .button-like,
+  .sequence-page button,
+  .sequence-page input,
+  .sequence-page select,
+  .sequence-page .job-meta,
+  .sequence-page .section-note,
+  .sequence-page .sequence-chip span,
+  .sequence-page .sequence-chip small,
+  .sequence-page .sequence-inline-radio span,
+  .sequence-page .sequence-radio-card span,
+  .sequence-page .sequence-radio-card small,
+  .sequence-page .sequence-table td,
+  .sequence-page .sequence-table th {
+    font-size: 1.06rem;
+  }
+
+  .sequence-page .sequence-preview-count strong {
+    font-size: 1.68rem;
+  }
+
+  .sequence-page .sequence-preview-count span {
+    font-size: 1.04rem;
+  }
+
+  button.sequence-filter-trigger,
+  .sequence-filter-trigger {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    margin: 0;
+    padding: 3px 7px;
+    border: 1px solid var(--line) !important;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72) !important;
+    color: var(--ink) !important;
+    box-shadow: none !important;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  button.sequence-filter-trigger.is-active,
+  .sequence-filter-trigger.is-active {
+    background: var(--accent) !important;
+    color: white !important;
+    border-color: var(--accent) !important;
+  }
+
+  .sequence-filter-actions {
+    margin-top: 2px;
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100%;
+  }
+
+  .sequence-filter-actions-left {
+    display: flex !important;
+    justify-content: flex-start !important;
+  }
+
+  .sequence-filter-actions-center {
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  .sequence-filter-actions-right {
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+
+  .sequence-filter-actions button,
+  .sequence-filter-actions .button-like {
+    width: auto !important;
+    white-space: nowrap !important;
+    font-size: 1.12rem !important;
+    font-weight: 700 !important;
+  }
+
+  .sequence-filter-actions-center .button-like {
+    background: var(--accent) !important;
+    color: #fff !important;
+  }
+
+  .sequence-filter-actions-center .button-like:hover,
+  .sequence-filter-actions-center .button-like:focus-visible {
+    background: #0f4c40 !important;
+  }
+
+  .sequence-download-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sequence-download-grid > div {
+    width: 100% !important;
+    grid-column: 1 / -1 !important;
+  }
+
+  .sequence-output-row {
+    width: 100% !important;
+  }
+
+  .launch-actions-inline {
+    width: 100% !important;
+    justify-content: flex-end !important;
+    margin-left: auto !important;
+  }
+
+  .launch-actions-inline button {
+    font-size: 1.12rem !important;
+    font-weight: 700 !important;
+  }
+
+  .sequence-inline-radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+  }
+
+  .sequence-inline-radio input {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: #fff;
+    display: inline-block;
+    flex: 0 0 16px;
+    position: relative;
+    top: 0;
+  }
+
+  .sequence-inline-radio input:checked {
+    border-color: var(--accent);
+    background:
+      radial-gradient(circle at center, var(--accent) 0 4px, transparent 5px),
+      #fff;
+  }
+</style>
+<main class="layout sequence-page">
+  <section class="panel">
+    <p class="eyebrow">Sequence Download</p>
+    <div class="section-heading">
+      <div>
+        <h1>{{ species.species_name }}</h1>
+        <p class="lede">
+          Build a download subset. Filters use <strong>OR</strong> within one field and <strong>AND</strong> across different fields.
+          To use <strong>OR</strong> across different fields select <strong>"Match Any Filters"</strong> in the Advanced setting.
+        </p>
+      </div>
+      <a class="button-like ghost" href="{{ url_for('taxon_metadata', species_id=species.id) }}">Back to metadata analysis</a>
+    </div>
+
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Filters</h2>
+      </div>
+    </div>
+
+    <form class="job-form sequence-filter-form" method="get" action="{{ url_for('taxon_sequences', species_id=species.id) }}">
+      <div class="sequence-filter-picker">
+        <div class="sequence-filter-toolbar">
+          {% for key in sequence_dashboard.primary_filter_keys %}
+            {% set field = sequence_dashboard.filter_field_map[key] %}
+            <button type="button" class="sequence-filter-trigger" data-sequence-panel="{{ key }}">
+              <span>{{ field.label }}</span>
+            </button>
+          {% endfor %}
+          <button type="button" class="sequence-filter-trigger" data-sequence-panel="year_range">
+            <span>Collection year</span>
+          </button>
+          <button type="button" class="sequence-filter-trigger" data-sequence-panel="checkm_quality">
+            <span>CheckM</span>
+          </button>
+          <button type="button" class="sequence-filter-trigger" data-sequence-panel="assembly_features">
+            <span>Assembly features</span>
+          </button>
+        </div>
+
+        <div class="sequence-filter-advanced-row">
+          <details class="sequence-filter-advanced">
+            <summary class="sequence-filter-advanced-label">Advanced</summary>
+            <div class="sequence-filter-advanced-options">
+              <label class="sequence-inline-radio">
+                <input type="radio" name="filter_logic" value="and" {% if sequence_dashboard.filter_logic == "and" %}checked{% endif %}>
+                <span>Match all filters</span>
+              </label>
+              <label class="sequence-inline-radio">
+                <input type="radio" name="filter_logic" value="or" {% if sequence_dashboard.filter_logic == "or" %}checked{% endif %}>
+                <span>Match any filter</span>
+              </label>
+            </div>
+          </details>
+        </div>
+
+        <div class="sequence-floating-shell">
+          {% for key, field in sequence_dashboard.filter_field_map.items() %}
+            <section class="sequence-floating-panel" data-sequence-panel-body="{{ key }}" hidden>
+              <div class="sequence-accordion-body">
+                <label>
+                  <span>{{ field.label }}</span>
+                  <input
+                    type="search"
+                    class="sequence-option-search"
+                    data-filter-target="{{ field.key }}"
+                    placeholder="Search {{ field.label|lower }} options"
+                    autocomplete="off"
+                  >
+                </label>
+                <div class="sequence-chip-grid sequence-chip-grid-vertical" id="filter-{{ field.key }}">
+                  {% for option in field.options %}
+                    <label class="sequence-chip" data-filter-option="{{ option.value|lower }}">
+                      <input type="checkbox" name="{{ field.key }}" value="{{ option.value }}" {% if option.value in sequence_dashboard.filters[field.key] %}checked{% endif %}>
+                      <span>{{ option.value }}</span>
+                      <small>{{ option.count }}</small>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+            </section>
+          {% endfor %}
+          <section class="sequence-floating-panel" data-sequence-panel-body="year_range" hidden>
+            <div class="sequence-accordion-body">
+              <div class="sequence-range-grid">
+                <label>
+                  <span>Collection year from</span>
+                  <input type="number" step="1" min="1900" max="2100" name="year_from" value="{{ '' if sequence_dashboard.filters.year_from is none else sequence_dashboard.filters.year_from }}">
+                </label>
+                <label>
+                  <span>Collection year to</span>
+                  <input type="number" step="1" min="1900" max="2100" name="year_to" value="{{ '' if sequence_dashboard.filters.year_to is none else sequence_dashboard.filters.year_to }}">
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section class="sequence-floating-panel" data-sequence-panel-body="checkm_quality" hidden>
+            <div class="sequence-accordion-body">
+              <div class="sequence-range-grid">
+                <label>
+                  <span>CheckM completeness min</span>
+                  <input type="number" step="0.1" min="0" max="100" name="checkm_min" value="{{ '' if sequence_dashboard.filters.checkm_min is none else sequence_dashboard.filters.checkm_min }}">
+                </label>
+                <label>
+                  <span>CheckM completeness max</span>
+                  <input type="number" step="0.1" min="0" max="100" name="checkm_max" value="{{ '' if sequence_dashboard.filters.checkm_max is none else sequence_dashboard.filters.checkm_max }}">
+                </label>
+                <label>
+                  <span>CheckM contamination max</span>
+                  <input type="number" step="0.1" min="0" name="contamination_max" value="{{ '' if sequence_dashboard.filters.contamination_max is none else sequence_dashboard.filters.contamination_max }}">
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <section class="sequence-floating-panel" data-sequence-panel-body="assembly_features" hidden>
+            <div class="sequence-accordion-body">
+              <div class="sequence-range-grid">
+                <label>
+                  <span>Genome length min (Kbp)</span>
+                  <input type="number" step="0.1" min="0" name="genome_length_min_kbp" value="{{ '' if sequence_dashboard.filters.genome_length_min_kbp is none else sequence_dashboard.filters.genome_length_min_kbp }}">
+                </label>
+                <label>
+                  <span>Genome length max (Kbp)</span>
+                  <input type="number" step="0.1" min="0" name="genome_length_max_kbp" value="{{ '' if sequence_dashboard.filters.genome_length_max_kbp is none else sequence_dashboard.filters.genome_length_max_kbp }}">
+                </label>
+                <label>
+                  <span>Contig count max</span>
+                  <input type="number" step="1" min="0" name="contig_count_max" value="{{ '' if sequence_dashboard.filters.contig_count_max is none else sequence_dashboard.filters.contig_count_max }}">
+                </label>
+                <label>
+                  <span>Scaffold count max</span>
+                  <input type="number" step="1" min="0" name="scaffold_count_max" value="{{ '' if sequence_dashboard.filters.scaffold_count_max is none else sequence_dashboard.filters.scaffold_count_max }}">
+                </label>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="sequence-filter-actions">
+        <div class="sequence-filter-actions-left">
+          <button type="submit">Apply filters</button>
+        </div>
+        <div class="sequence-filter-actions-center">
+          <a class="button-like ghost" href="#sequence-preview">See Preview</a>
+        </div>
+        <div class="sequence-filter-actions-right">
+          <button type="submit" formaction="{{ url_for('download_taxon_sequence_metadata_subset', species_id=species.id) }}" formmethod="post" class="ghost" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Download filtered metadata CSV</button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Download Setup</h2>
+      </div>
+    </div>
+
+    <div class="metrics-grid metrics-grid-sequence-top">
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.row_total }} <span>Genomes in metadata scope</span></strong>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.matched_row_total }} <span>Genomes matching filters</span></strong>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.match_percent }}% <span>Subset of taxon scope</span></strong>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.estimated_total_bytes_label }} <span>Estimated subset size</span></strong>
+      </article>
+    </div>
+
+    <article class="metric-card metric-card-filters top-gap">
+      <strong>Filters Applied</strong>
+      <span>
+        {% if sequence_dashboard.active_filters_summary %}
+          {{ sequence_dashboard.filter_logic_label }}: {{ sequence_dashboard.active_filters_label }}
+        {% else %}
+          No filters applied
+        {% endif %}
+      </span>
+    </article>
+
+    <form class="job-form top-gap sequence-download-form" method="post" action="{{ url_for('create_taxon_sequence_job', species_id=species.id) }}">
+          {% for name, value in sequence_dashboard.filter_hidden_inputs %}
+            <input type="hidden" name="{{ name }}" value="{{ value }}">
+          {% endfor %}
+          <div class="sequence-options-stack">
+            <details class="sequence-options-box" {% if request.form.get('check_only') or request.form.get('retries') or request.form.get('retry_delay') %}open{% endif %}>
+              <summary class="sequence-options-summary">fetchM sequence options</summary>
+              <div class="sequence-options-body">
+                <div class="sequence-range-grid sequence-range-grid-compact">
+                  <label>
+                    <span>Retries</span>
+                    <input type="number" step="1" min="0" name="retries" value="{{ request.form.get('retries', '3') }}">
+                  </label>
+                  <label>
+                    <span>Retry delay (seconds)</span>
+                    <input type="number" step="1" min="1" name="retry_delay" value="{{ request.form.get('retry_delay', '5') }}">
+                  </label>
+                </div>
+                <label class="checkbox">
+                  <input type="checkbox" name="check_only" value="1" {% if request.form.get('check_only') %}checked{% endif %}>
+                  <span>Check availability only without downloading files</span>
+                </label>
+              </div>
+            </details>
+            <div class="sequence-output-row">
+              <details class="sequence-options-box sequence-options-box-output" {% if request.form.get('grouping_mode') == 'field' or request.form.get('group_field') %}open{% endif %}>
+                <summary class="sequence-options-summary">Output types</summary>
+                <div class="sequence-options-body">
+                  <div class="sequence-grouping-grid sequence-grouping-grid-compact">
+                    <label class="sequence-radio-card">
+                      <input type="radio" name="grouping_mode" value="single" {% if request.form.get('grouping_mode', 'single') != 'field' %}checked{% endif %}>
+                      <span>One folder</span>
+                      <small>Keep all matched genomes together.</small>
+                    </label>
+                    <label class="sequence-radio-card">
+                      <input type="radio" name="grouping_mode" value="field" {% if request.form.get('grouping_mode') == 'field' %}checked{% endif %}>
+                      <span>Group by one field</span>
+                      <small>Build grouped folders and ZIP bundles.</small>
+                    </label>
+                  </div>
+                  <label>
+                    <span>Grouping field</span>
+                    <select name="group_field">
+                      <option value="country" {% if request.form.get('group_field', 'country') == 'country' %}selected{% endif %}>Country</option>
+                      <option value="host" {% if request.form.get('group_field') == 'host' %}selected{% endif %}>Host</option>
+                      <option value="isolation_source" {% if request.form.get('group_field') == 'isolation_source' %}selected{% endif %}>Isolation source</option>
+                      <option value="assembly_level" {% if request.form.get('group_field') == 'assembly_level' %}selected{% endif %}>Assembly level</option>
+                    </select>
+                  </label>
+                </div>
+              </details>
+              <div class="launch-actions launch-actions-inline">
+                <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Download filtered sequences</button>
+              </div>
+            </div>
+          </div>
+    </form>
+  </section>
+
+  <section class="panel" id="sequence-preview">
+      <div class="section-heading">
+        <div>
+          <h2>Preview</h2>
+          <p class="section-note sequence-note-left">{{ sequence_dashboard.filter_sentence }}</p>
+        </div>
+        <div class="sequence-preview-count">
+          <strong>{{ sequence_dashboard.matched_row_total }}</strong>
+          <span>matching genomes</span>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <article class="metric-card">
+          <strong>{{ sequence_dashboard.distinct_country_count }}</strong>
+          <span>Countries in subset</span>
+        </article>
+        <article class="metric-card">
+          <strong>{{ sequence_dashboard.distinct_host_count }}</strong>
+          <span>Hosts in subset</span>
+        </article>
+        <article class="metric-card">
+          <strong>{{ sequence_dashboard.distinct_isolation_source_count }}</strong>
+          <span>Isolation sources in subset</span>
+        </article>
+        <article class="metric-card">
+          <strong>
+            {% if sequence_dashboard.year_start and sequence_dashboard.year_end %}
+              {{ sequence_dashboard.year_start }}-{{ sequence_dashboard.year_end }}
+            {% else %}
+              N/A
+            {% endif %}
+          </strong>
+          <span>Collection-year span</span>
+        </article>
+      </div>
+
+      {% if not preview_rows %}
+        <div class="summary-box danger top-gap">
+          <strong>No genomes match the current combination of filters.</strong>
+          <p>Broaden one or more filter groups to restore overlap before exporting metadata or launching sequence download.</p>
+        </div>
+      {% endif %}
+
+      <div class="sequence-table-shell top-gap">
+        <table class="sequence-table">
+          <thead>
+            <tr>
+              {% for column in preview_columns %}
+                <th>{{ column }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview_rows %}
+              <tr>
+                {% for column in preview_columns %}
+                  <td>{{ row.get(column, "") or "—" }}</td>
+                {% endfor %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  </section>
+</main>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const triggers = Array.from(document.querySelectorAll("[data-sequence-panel]"));
+    const panels = Array.from(document.querySelectorAll("[data-sequence-panel-body]"));
+    const closePanels = () => {
+      triggers.forEach((trigger) => {
+        trigger.classList.remove("is-active");
+      });
+      panels.forEach((panel) => {
+        panel.hidden = true;
+        panel.classList.remove("is-active");
+      });
+    };
+    const activatePanel = (key) => {
+      triggers.forEach((trigger) => {
+        trigger.classList.toggle("is-active", trigger.getAttribute("data-sequence-panel") === key);
+      });
+      panels.forEach((panel) => {
+        const active = panel.getAttribute("data-sequence-panel-body") === key;
+        panel.hidden = !active;
+        panel.classList.toggle("is-active", active);
+      });
+    };
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const key = trigger.getAttribute("data-sequence-panel");
+        const isActive = trigger.classList.contains("is-active");
+        if (isActive) {
+          closePanels();
+          return;
+        }
+        activatePanel(key);
+      });
+    });
+    panels.forEach((panel) => {
+      panel.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+    });
+    document.addEventListener("click", () => closePanels());
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closePanels();
+      }
+    });
+    document.querySelectorAll(".sequence-option-search").forEach((input) => {
+      const target = input.getAttribute("data-filter-target");
+      const grid = document.getElementById(`filter-${target}`);
+      if (!grid) {
+        return;
+      }
+      input.addEventListener("input", () => {
+        const needle = input.value.trim().toLowerCase();
+        Array.from(grid.querySelectorAll("[data-filter-option]")).forEach((option) => {
+          const haystack = option.getAttribute("data-filter-option") || "";
+          const visible = !needle || haystack.includes(needle);
+          option.hidden = !visible;
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}

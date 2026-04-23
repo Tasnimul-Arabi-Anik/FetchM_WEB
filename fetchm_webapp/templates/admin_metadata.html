@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Metadata Fetch</h1>
+      <p class="lede">Build and refresh managed taxon metadata using the existing fetchM enrichment pipeline.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">metadata</span>
+      <div class="job-meta">{{ metadata_dashboard.totals.ready_total or 0 }} ready</div>
+      <div class="job-meta">{{ metadata_dashboard.totals.pending_total or 0 }} pending</div>
+      <div class="job-meta">{{ metadata_dashboard.totals.building_total or 0 }} building</div>
+      <div class="job-meta">{{ metadata_dashboard.totals.refreshing_total or 0 }} refreshing</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Metadata Control</h2>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.ready_total or 0 }}</strong>
+        <span>Metadata ready</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.pending_total or 0 }}</strong>
+        <span>Pending builds</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.building_total or 0 }}</strong>
+        <span>Building now</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.refreshing_total or 0 }}</strong>
+        <span>Refreshing now</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.refresh_queued_total or 0 }}</strong>
+        <span>Refresh queued</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.failed_total or 0 }}</strong>
+        <span>Failed builds</span>
+      </div>
+    </div>
+    <div class="metrics-grid top-gap">
+      {% for row in metadata_dashboard.rank_breakdown %}
+        <div class="metric-card metric-wide">
+          <strong>{{ taxon_ranks[row.taxon_rank].label }}</strong>
+          <span>{{ row.ready or 0 }} ready / {{ row.total or 0 }} total</span>
+          <span>{{ row.pending or 0 }} pending, {{ row.building or 0 }} first builds, {{ row.refreshing or 0 }} refreshing, {{ row.refresh_queued or 0 }} queued refresh, {{ row.failed or 0 }} failed</span>
+        </div>
+      {% endfor %}
+    </div>
+    <form action="{{ url_for('admin_set_metadata_policy') }}" method="post" class="inline-form top-gap">
+      <label>
+        <span>Build missing</span>
+        <select name="metadata_build_policy">
+          {% for key, config in metadata_policies.items() %}
+            <option value="{{ key }}" {% if metadata_dashboard.metadata_build_policy == key %}selected{% endif %}>{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Refresh existing</span>
+        <select name="metadata_refresh_policy">
+          {% for key, config in metadata_policies.items() %}
+            <option value="{{ key }}" {% if metadata_dashboard.metadata_refresh_policy == key %}selected{% endif %}>{{ config.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Update metadata schedules</button>
+    </form>
+    <div class="action-row top-gap">
+      <form action="{{ url_for('admin_queue_missing_metadata') }}" method="post">
+        <button type="submit" class="ghost">Build missing metadata</button>
+      </form>
+      <form action="{{ url_for('admin_refresh_all_metadata') }}" method="post">
+        <button type="submit">Refresh all metadata</button>
+      </form>
+      <form action="{{ url_for('admin_reset_stale_metadata_failures') }}" method="post">
+        <button type="submit" class="ghost">Reset restart-only failures</button>
+      </form>
+    </div>
+    <div class="hint-block top-gap">
+      <strong>Build behavior</strong>
+      <p>Build missing controls first-time metadata generation for taxa that do not have metadata yet. Refresh existing controls scheduled rebuilds for taxa that already have metadata. Genus metadata is built directly from the managed taxon TSV. Species metadata first tries to derive from an already-built genus dataset; if that is unavailable, it falls back to a direct metadata build for that species TSV. Managed builds now write only <code>ncbi_dataset_updated.tsv</code> and a comprehensive <code>ncbi_clean.csv</code> under the selected taxon directory.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Metadata Queue</h2>
+    {% if metadata_dashboard.active_items %}
+      <div class="admin-list">
+        {% for item in metadata_dashboard.active_items %}
+          <div class="admin-card">
+            <div class="job-card-head">
+              <strong>{{ item.species_name }}</strong>
+              <span class="status {{ 'completed' if item.status == 'ready' else 'running' if item.status == 'building' else 'queued' if item.status == 'pending' else 'failed' }}">
+                {% if item.refreshing_existing %}
+                  refreshing
+                {% elif item.refresh_queued %}
+                  refresh queued
+                {% else %}
+                  {{ item.status }}
+                {% endif %}
+              </span>
+            </div>
+            <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+            <div class="job-meta">
+              {% if item.refreshing_existing %}
+                Refreshing existing metadata
+              {% elif item.refresh_queued %}
+                Refresh queued for existing metadata
+              {% elif item.status == 'building' %}
+                Building first metadata output
+              {% else %}
+                Waiting for first metadata build
+              {% endif %}
+            </div>
+            {% if item.claimed_by %}
+              <div class="job-meta">Worker: {{ item.claimed_by }}</div>
+            {% endif %}
+            <div class="job-meta">Attempts: {{ item.attempt_count }}</div>
+            <div class="job-meta">Current age: {{ item.claimed_age_label }}</div>
+            <div class="job-meta">Total age: {{ item.total_age_label }}</div>
+            {% if item.source_taxon_id %}
+              <div class="job-meta">Derived from taxon ID: {{ item.source_taxon_id }}</div>
+            {% endif %}
+            {% if item.error %}
+              <div class="job-meta danger-text">Last error: {{ item.error }}</div>
+            {% endif %}
+            <form action="{{ url_for('admin_refresh_species_metadata', species_id=item.id) }}" method="post" class="action-row">
+              <button type="submit" class="ghost">Queue metadata refresh</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty">No pending, active, or failed metadata builds right now.</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Taxa</h2>
+    <div class="admin-list">
+      {% for item in taxa %}
+        <div class="admin-card">
+          <div class="job-card-head">
+            <strong>{{ item.species_name }}</strong>
+            <span class="status {{ 'completed' if item.metadata_status == 'ready' else 'running' if item.metadata_status == 'building' else 'queued' if item.metadata_status == 'pending' else 'failed' if item.metadata_status == 'failed' else 'queued' }}">
+              {% if item.metadata_status == 'ready' and item.metadata_claimed_at %}
+                refreshing
+              {% elif item.metadata_status == 'ready' and item.metadata_refresh_requested %}
+                refresh queued
+              {% else %}
+                {{ item.metadata_status }}
+              {% endif %}
+            </span>
+          </div>
+          <div class="job-meta">Rank: {{ taxon_ranks[item.taxon_rank].label }}</div>
+          {% if item.metadata_last_built_at %}
+            <div class="job-meta">Last built: {{ item.metadata_last_built_at }}</div>
+          {% endif %}
+          {% if item.metadata_error %}
+            <div class="job-meta danger-text">Last error: {{ item.metadata_error }}</div>
+          {% endif %}
+          <form action="{{ url_for('admin_refresh_species_metadata', species_id=item.id) }}" method="post" class="action-row">
+            <button type="submit" class="ghost">Queue metadata refresh</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}

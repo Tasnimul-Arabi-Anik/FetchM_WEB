@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout auth-layout">
+  <section class="panel auth-panel">
+    <p class="eyebrow">Create account</p>
+    <h1>Register for fetchM Web</h1>
+    <p class="lede">Each account only sees its own jobs, logs, and outputs.</p>
+    <form action="{{ url_for('register') }}" method="post" class="job-form">
+      <label>
+        <span>Username</span>
+        <input type="text" name="username" required minlength="3" autocomplete="username">
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" name="email" required autocomplete="email">
+      </label>
+      <label>
+        <span>Password</span>
+        <input type="password" name="password" required minlength="8" autocomplete="new-password">
+      </label>
+      <label>
+        <span>Confirm password</span>
+        <input type="password" name="confirm_password" required minlength="8" autocomplete="new-password">
+      </label>
+      <button type="submit">Create account</button>
+    </form>
+    <p class="auth-links">
+      <a href="{{ url_for('login') }}">Already have an account? Sign in.</a>
+    </p>
+  </section>
+</main>
+{% endblock %}

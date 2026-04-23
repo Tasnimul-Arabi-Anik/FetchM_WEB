@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel landing-hero">
+    <div class="landing-copy">
+      <p class="eyebrow">fetchM Web</p>
+      <h1>Select a species or genus, then move into metadata analysis or sequence download.</h1>
+      <p class="lede">Start typing any synced taxon name. Suggestions now match what you type anywhere in the name, not only the first letters.</p>
+      <div id="dashboard-mount"></div>
+      <div class="workflow-strip">
+        <div class="workflow-step">
+          <span class="workflow-index">1</span>
+          <strong>Select a species or genus</strong>
+        </div>
+        <div class="workflow-step">
+          <span class="workflow-index">2</span>
+          <strong>Metadata analysis</strong>
+        </div>
+        <div class="workflow-step">
+          <span class="workflow-index">3</span>
+          <strong>Sequence download</strong>
+        </div>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="citation-card">
+        <strong>Citation</strong>
+        <p>Anik TA. <em>FetchM: Streamlining Genome and Metadata Integration for Microbial Comparative Genomics.</em> bioRxiv. 2025. doi: <a href="https://doi.org/10.1101/2025.04.08.647722" target="_blank" rel="noreferrer">10.1101/2025.04.08.647722</a></p>
+      </div>
+      <div class="speedometer-grid">
+        <article class="speedometer-card">
+          <div class="speedometer" style="--gauge-progress: 270deg;">
+            <div class="speedometer-core">
+              <strong>{{ home_metrics.species_total }}</strong>
+              <span>Species</span>
+            </div>
+          </div>
+        </article>
+        <article class="speedometer-card">
+          <div class="speedometer" style="--gauge-progress: 270deg;">
+            <div class="speedometer-core">
+              <strong>{{ home_metrics.genus_total }}</strong>
+              <span>Genera</span>
+            </div>
+          </div>
+        </article>
+        <article class="speedometer-card">
+          <div class="speedometer" style="--gauge-progress: 270deg;">
+            <div class="speedometer-core">
+              <strong>{{ home_metrics.genome_total }}</strong>
+              <span>Genomes</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid landing-grid">
+    <section class="panel">
+      <div class="dashboard-head">
+        <div>
+          <p class="eyebrow">FetchM Web Dashboard</p>
+          <h2>Select a synced species or genus, then choose your next step.</h2>
+        </div>
+      </div>
+
+      <div class="feature-stack">
+        <section class="feature-card feature-card-selection">
+          <div class="feature-copy">
+            <strong>Selection</strong>
+            <span>Search the managed catalog and keep the selected taxon in focus.</span>
+          </div>
+          <label class="taxon-search feature-search">
+            <div class="search-shell">
+              <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" placeholder="Start typing a species or genus name">
+              <div class="search-results" id="taxon-search-results" hidden></div>
+            </div>
+          </label>
+          <input type="hidden" id="selected-taxon-id">
+          <div class="selection-summary dashboard-selection" id="selection-summary">
+            <strong id="selection-name">No taxon selected yet.</strong>
+            <span id="selection-meta">Choose a synced species or genus from the catalog suggestions.</span>
+          </div>
+        </section>
+
+        <a class="feature-card feature-card-action feature-card-link is-disabled" id="metadata-page-link" href="#" aria-disabled="true">
+          <div class="feature-copy">
+            <strong>Metadata Analysis</strong>
+            <span>Open the metadata summary for the selected taxon.</span>
+          </div>
+        </a>
+
+        <button type="button" class="feature-card feature-card-action" id="sequence-toggle" aria-expanded="false">
+          <span class="feature-copy">
+            <strong>Sequence Download</strong>
+            <span>Upload an <code>ncbi_clean.csv</code> file and start sequence retrieval.</span>
+          </span>
+        </button>
+      </div>
+
+      <form action="{{ url_for('create_job') }}" method="post" enctype="multipart/form-data" class="job-form sequence-panel" id="launch-form" hidden>
+        <input type="hidden" name="mode" value="seq">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Sequence Download</p>
+            <h3>Submit a sequence-only job</h3>
+          </div>
+          <span class="job-meta">{{ home_metrics.genome_total }} genomes currently represented</span>
+        </div>
+
+        <div class="hint-block advanced-block">
+          <strong>Input file</strong>
+          <p>Sequence download currently uses an uploaded <code>ncbi_clean.csv</code> file produced from metadata analysis.</p>
+        </div>
+
+        <label>
+          <span>Input file</span>
+          <input type="file" name="input_file" id="input-file" accept=".csv">
+        </label>
+
+        <div class="advanced-grid">
+          <fieldset>
+            <legend>Filters</legend>
+            <label>
+              <span>Host filters</span>
+              <input type="text" name="host" placeholder="Homo sapiens, Gallus gallus">
+            </label>
+            <label>
+              <span>Year filters</span>
+              <input type="text" name="year" placeholder="2018, 2020-2024">
+            </label>
+            <label>
+              <span>Country filters</span>
+              <input type="text" name="country" placeholder="Bangladesh, United States">
+            </label>
+            <label>
+              <span>Continent filters</span>
+              <input type="text" name="cont" placeholder="Asia, Africa">
+            </label>
+            <label>
+              <span>Subcontinent filters</span>
+              <input type="text" name="subcont" placeholder="Southern Asia">
+            </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Download options</legend>
+            <label>
+              <span>Retries</span>
+              <input type="number" name="retries" value="3" min="1">
+            </label>
+            <label>
+              <span>Retry delay (seconds)</span>
+              <input type="number" name="retry_delay" value="5" step="0.5" min="0">
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" name="check_only" value="1">
+              <span>Check only, do not download sequences</span>
+            </label>
+          </fieldset>
+        </div>
+
+        <div class="launch-actions sequence-actions">
+          <button type="submit">Start sequence download</button>
+        </div>
+      </form>
+
+      <div class="dashboard-links">
+        <button type="button" class="alt-toggle" id="feedback-toggle" aria-expanded="false">Feedback or Report</button>
+      </div>
+
+      <section class="problem-box" id="feedback-panel" hidden>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Support</p>
+            <h3>Feedback or Report</h3>
+          </div>
+          <span class="job-meta">{{ home_metrics.open_reports }} open reports</span>
+        </div>
+        <form action="{{ url_for('report_problem') }}" method="post" class="job-form">
+          <input type="hidden" name="selected_taxon_id" id="problem-selected-taxon-id">
+          <input type="hidden" name="selected_taxon_name" id="problem-selected-taxon-name">
+          <input type="hidden" name="requested_action" id="problem-requested-action">
+          <label>
+            <span>Message</span>
+            <textarea name="message" rows="4" placeholder="Describe the issue, missing feature, or confusing result."></textarea>
+          </label>
+          <button type="submit" class="ghost">Send problem report</button>
+        </form>
+      </section>
+    </section>
+  </section>
+</main>
+<script>
+  const taxa = {{ taxa_json|tojson }};
+  let activeView = "selection";
+  const fileInput = document.getElementById("input-file");
+  const taxonSearchInput = document.getElementById("taxon-search-input");
+  const taxonSearchResults = document.getElementById("taxon-search-results");
+  const selectedTaxonId = document.getElementById("selected-taxon-id");
+  const selectionName = document.getElementById("selection-name");
+  const selectionMeta = document.getElementById("selection-meta");
+  const metadataPageLink = document.getElementById("metadata-page-link");
+  const launchForm = document.getElementById("launch-form");
+  const problemTaxonId = document.getElementById("problem-selected-taxon-id");
+  const problemTaxonName = document.getElementById("problem-selected-taxon-name");
+  const problemRequestedAction = document.getElementById("problem-requested-action");
+  const feedbackToggle = document.getElementById("feedback-toggle");
+  const feedbackPanel = document.getElementById("feedback-panel");
+  const sequenceToggle = document.getElementById("sequence-toggle");
+
+  const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
+  const MAX_SEARCH_RESULTS = 8;
+
+  function normalizeQuery(value) {
+    return value.trim().toLowerCase();
+  }
+
+  function rankedMatches(query) {
+    if (!query) return [];
+    const items = [];
+    for (const item of taxa) {
+      const name = item.species_name.toLowerCase();
+      const index = name.indexOf(query);
+      if (index === -1) continue;
+      items.push({ item, index });
+    }
+    items.sort((a, b) => {
+      if (a.index !== b.index) return a.index - b.index;
+      if ((b.item.genome_count || 0) !== (a.item.genome_count || 0)) {
+        return (b.item.genome_count || 0) - (a.item.genome_count || 0);
+      }
+      return a.item.species_name.localeCompare(b.item.species_name);
+    });
+    return items.slice(0, MAX_SEARCH_RESULTS).map((entry) => entry.item);
+  }
+
+  function hideResults() {
+    taxonSearchResults.hidden = true;
+    taxonSearchResults.innerHTML = "";
+  }
+
+  function chooseTaxon(selected) {
+    taxonSearchInput.value = selected.species_name;
+    refreshSelectionSummary();
+    hideResults();
+  }
+
+  function renderResults() {
+    const query = normalizeQuery(taxonSearchInput.value);
+    const matches = rankedMatches(query);
+    if (!matches.length || !query) {
+      hideResults();
+      return;
+    }
+    taxonSearchResults.innerHTML = "";
+    matches.forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "search-result";
+      button.innerHTML = `<strong>${item.species_name}</strong><span>${item.taxon_rank} · ${item.genome_count || 0} genomes</span>`;
+      button.addEventListener("click", () => chooseTaxon(item));
+      taxonSearchResults.appendChild(button);
+    });
+    taxonSearchResults.hidden = false;
+  }
+
+  function syncProblemForm() {
+    problemTaxonId.value = selectedTaxonId.value;
+    problemTaxonName.value = taxonSearchInput.value.trim();
+    const modeToAction = { selection: "selection", metadata: "metadata", seq: "sequence" };
+    problemRequestedAction.value = modeToAction[activeView] || "selection";
+  }
+
+  function refreshSelectionSummary() {
+    const selected = taxaByName.get(taxonSearchInput.value.trim());
+    if (selected) {
+      selectedTaxonId.value = selected.id;
+      selectionName.textContent = selected.species_name;
+      selectionMeta.textContent = `${selected.taxon_rank} · ${selected.genome_count || 0} genomes`;
+      metadataPageLink.href = `/taxa/${selected.id}/metadata`;
+      metadataPageLink.classList.remove("is-disabled");
+      metadataPageLink.setAttribute("aria-disabled", "false");
+    } else {
+      selectedTaxonId.value = "";
+      selectionName.textContent = "No taxon selected yet.";
+      selectionMeta.textContent = "Choose a synced species or genus from the catalog suggestions.";
+      metadataPageLink.href = "#";
+      metadataPageLink.classList.add("is-disabled");
+      metadataPageLink.setAttribute("aria-disabled", "true");
+    }
+    syncProblemForm();
+  }
+
+  function setActiveView(view) {
+    activeView = view;
+    const sequenceOpen = view === "seq";
+    launchForm.hidden = !sequenceOpen;
+    sequenceToggle.classList.toggle("active", sequenceOpen);
+    sequenceToggle.setAttribute("aria-expanded", String(sequenceOpen));
+    fileInput.required = sequenceOpen;
+    syncProblemForm();
+  }
+
+  metadataPageLink.addEventListener("click", (event) => {
+    if (metadataPageLink.classList.contains("is-disabled")) {
+      event.preventDefault();
+      alert("Select a synced species or genus from the suggestions first.");
+      return;
+    }
+    setActiveView("metadata");
+  });
+
+  sequenceToggle.addEventListener("click", () => {
+    const nextView = activeView === "seq" ? "selection" : "seq";
+    setActiveView(nextView);
+    if (nextView === "seq") {
+      launchForm.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+
+  feedbackToggle.addEventListener("click", () => {
+    const isOpen = !feedbackPanel.hidden;
+    feedbackPanel.hidden = isOpen;
+    feedbackToggle.setAttribute("aria-expanded", String(!isOpen));
+  });
+  taxonSearchInput.addEventListener("input", () => {
+    setActiveView("selection");
+    refreshSelectionSummary();
+    renderResults();
+  });
+  taxonSearchInput.addEventListener("change", () => {
+    setActiveView("selection");
+    refreshSelectionSummary();
+  });
+  taxonSearchInput.addEventListener("focus", renderResults);
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".taxon-search")) {
+      hideResults();
+    }
+  });
+  launchForm.addEventListener("submit", (event) => {
+    if (!fileInput.files.length) {
+      event.preventDefault();
+      alert("Upload an ncbi_clean.csv file before starting sequence download.");
+    }
+  });
+  setActiveView("selection");
+  refreshSelectionSummary();
+</script>
+{% endblock %}

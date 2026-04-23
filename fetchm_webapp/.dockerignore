@@ -1,0 +1,8 @@
+.git
+.gitignore
+fetchm_webapp/data
+fetchm_webapp/.env
+fetchm_webapp/__pycache__
+fetchm_webapp/*.pyc
+fetchm/__pycache__
+fetchm/**/*.pyc
