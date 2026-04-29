@@ -6889,6 +6889,31 @@ HOST_CURATION_DECISIONS = {
 }
 
 
+def normalize_host_curation_decision(value: Any, default: str = "ambiguous") -> str:
+    text = "" if value is None else str(value).strip().lower()
+    text = re.sub(r"[^a-z0-9]+", "_", text).strip("_")
+    aliases = {
+        "review_needed": "ambiguous",
+        "needs_review": "ambiguous",
+        "manual_review": "ambiguous",
+        "unmapped": "ambiguous",
+        "approve_blank": "missing",
+        "blank": "missing",
+        "absent": "missing",
+        "source": "non_host_source",
+        "non_host": "non_host_source",
+        "non_host_source": "non_host_source",
+        "taxonomy": "taxonomy_candidate",
+        "taxonomic_candidate": "taxonomy_candidate",
+        "approve_direct": "taxonomy_candidate",
+        "approve_genus_level": "taxonomy_candidate",
+        "broad": "broad_host",
+        "broad_host": "broad_host",
+    }
+    decision = aliases.get(text, text)
+    return decision if decision in HOST_CURATION_DECISIONS else default
+
+
 def host_curation_source_path() -> Path | None:
     candidates = [
         DATA_DIR / "host_manual_review_suggestions.csv",
@@ -6912,11 +6937,7 @@ def host_curation_read_rows() -> list[dict[str, Any]]:
             raw_host = (raw.get("raw_host") or raw.get("host") or raw.get("value") or "").strip()
             if not raw_host:
                 continue
-            decision = normalize_standardization_lookup(raw.get("decision") or raw.get("review_decision") or "ambiguous")
-            if decision in {"review_needed", "needs_review", "manual_review", "unmapped"}:
-                decision = "ambiguous"
-            if decision not in HOST_CURATION_DECISIONS:
-                decision = "ambiguous"
+            decision = normalize_host_curation_decision(raw.get("decision") or raw.get("review_decision") or "ambiguous")
             count = parse_optional_int(raw.get("count") or raw.get("total_rows") or raw.get("affected_rows")) or 0
             proposed_host = (
                 raw.get("proposed_host")
@@ -6947,7 +6968,7 @@ def host_curation_read_rows() -> list[dict[str, Any]]:
 
 
 def host_curation_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
-    decision = normalize_standardization_lookup(values.get("decision") or "all")
+    decision = normalize_host_curation_decision(values.get("decision") or "all", default="all")
     status = normalize_standardization_lookup(values.get("status") or "unapproved")
     query = str(values.get("q") or "").strip()
     limit = parse_optional_int(values.get("limit")) or 200
