@@ -12,10 +12,10 @@ The standardization work focused on genus-level managed metadata. Species-level
 standardization remains deferred because species metadata is derived from and
 can be refreshed after genus-level rules stabilize.
 
-Latest fully audited genus-level dataset before the final clustered-rule pass:
+Latest fully audited genus-level dataset after the final clustered-rule pass:
 
 - Files scanned: 5,066 genus metadata files.
-- Rows scanned: 2,596,095 genome metadata rows.
+- Rows scanned: 2,596,460 genome metadata rows.
 - File errors: 0.
 
 ## Major Improvements
@@ -74,7 +74,7 @@ full audit found:
 Collection-date/year recovery was improved from primary and reviewed secondary
 date fields. The latest full audit found:
 
-- Collection year present: 83.51%.
+- Collection year present: 83.52%.
 
 ## Quantitative Host Results
 
@@ -85,13 +85,14 @@ Host-review burden decreased in stages:
 | Initial post-lineage audit | 4,034 | After rank-aware host columns were introduced. |
 | After microbial self-descriptor and context recovery improvements | 3,156 | E. coli/lab descriptors no longer mapped as hosts. |
 | After AI-approved host rule imports | 1,714 | Positive and negative AI-reviewed rules imported. |
+| After final clustered host-rule pass | 1,347 | Additional clustered host/negative rules imported; undetermined values preserved. |
 
-Latest fully audited host metrics before final clustered-rule pass:
+Latest fully audited host metrics after final clustered-rule pass:
 
-- Host TaxID present: 1,557,821 rows.
-- Host TaxID coverage: 60.01%.
-- Host context recovered rows: 161,450.
-- Host review-needed rows: 1,714.
+- Host TaxID present: 1,559,841 rows.
+- Host TaxID coverage: 60.08%.
+- Host context recovered rows: 162,473.
+- Host review-needed rows: 1,347.
 
 ## Final Clustered Rule Pass
 
@@ -102,9 +103,26 @@ with conservative rules:
 - Approved blank/non-host/not-identifiable rules added: 23.
 - Undetermined values left unresolved: 960.
 
-The final clustered-rule standardization refresh was started after these rules
-were imported. A final audit should be run after all genus tasks complete to
-quantify the post-clustered-rule host-review count.
+The final clustered-rule standardization refresh completed successfully across all 5,066 genus metadata files. The post-clustered-rule audit reduced host review-needed rows to 1,347 while preserving undetermined values as unresolved rather than forcing low-confidence host assignments.
+
+## Final Audit Snapshot
+
+Final audit folder inside the running container:
+
+- `/app/fetchm_webapp/standardization/review/quality_audit/20260429_110152`
+
+Key final audit metrics:
+
+- Files scanned: 5,066.
+- Rows scanned: 2,596,460.
+- File errors: 0.
+- Host TaxID present: 1,559,841 rows.
+- Host TaxID coverage: 60.08%.
+- Host review-needed rows: 1,347.
+- Country present: 2,260,778 rows (87.07%).
+- Collection year present: 2,168,464 rows (83.52%).
+- Country-continent mismatches: 0.
+- Country-subcontinent mismatches: 0.
 
 ## Current Rule Assets
 
