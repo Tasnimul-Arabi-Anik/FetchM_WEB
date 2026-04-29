@@ -11547,6 +11547,11 @@ def prepare_sequence_download_artifacts(job: JobRecord) -> None:
     if not output_root.exists():
         return
 
+    input_path = Path(job.input_path)
+    filtered_metadata_path = output_root / "filtered_metadata.csv"
+    if input_path.exists():
+        shutil.copy2(input_path, filtered_metadata_path)
+
     fasta_files = sorted(
         path for path in output_root.glob("*.fna")
         if path.is_file()
@@ -11560,6 +11565,23 @@ def prepare_sequence_download_artifacts(job: JobRecord) -> None:
                 if not combined_handle.tell():
                     continue
                 combined_handle.write("\n")
+
+    filters = job.filters or {}
+    summary_path = output_root / "sequence_job_summary.txt"
+    summary_lines = [
+        f"Job ID: {job.id}",
+        f"Input: {job.input_name}",
+        f"Status: {job.status}",
+        f"Created: {job.created_at}",
+        f"Updated: {job.updated_at}",
+        f"Matched genomes: {filters.get('matched_row_total', 'unknown')}",
+        f"Filter logic: {filters.get('filter_logic', 'and')}",
+        f"Filters: {filters.get('sequence_filter_sentence') or 'No filters applied'}",
+        f"Downloaded FASTA files: {len(fasta_files)}",
+        f"Combined FASTA: {'yes' if fasta_files else 'no'}",
+        f"Filtered metadata CSV: {'yes' if filtered_metadata_path.exists() else 'no'}",
+    ]
+    summary_path.write_text("\n".join(str(line) for line in summary_lines) + "\n", encoding="utf-8")
 
     zip_path = output_root / "sequence_download_bundle.zip"
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -13310,6 +13332,7 @@ def create_taxon_sequence_job(species_id: int) -> Any:
         "taxon_rank": species.taxon_rank,
         "matched_row_total": sequence_dashboard["matched_row_total"],
         "match_percent": sequence_dashboard["match_percent"],
+        "filter_logic": sequence_dashboard["filter_logic"],
         "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
         "selected_filters": sequence_dashboard["filters"],
         "grouping_mode": grouping_mode,
