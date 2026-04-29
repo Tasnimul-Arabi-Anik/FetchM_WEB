@@ -531,3 +531,19 @@ Date: 2026-04-29
   - `Pogona` -> `Pogona` / 103695.
   - `pufferfish` -> `Tetraodontiformes` / 31031.
   - `Albino Bristlenose Pleco` -> `Ancistrus` / 52070.
+
+## Clustered Remaining-Host Import
+
+Date: 2026-04-29
+
+- Reviewed `remaining_host_1190_clustered_actions.csv` using the ChatGPT cluster instructions.
+- Added 190 new Host_SD rules from `host_rules_AI_clustered_approved_ready_to_import.csv`.
+- Added 0 new approved blank/non-host rules from `host_values_AI_clustered_blank_or_undetermined.csv`.
+- Left 983 undetermined values unresolved with no production rule.
+- No conflicting host mappings were imported.
+
+### Clustered blank/non-host import correction
+
+- Approved blank/non-host values present in clustered file: 23.
+- Newly added blank/non-host rules after decision-normalization correction: 23.
+- Undetermined values still left unresolved with no production rule: 960.

@@ -6520,3 +6520,193 @@ Gerbillinae,gerbillinae,10045,medium,Broad eukaryotic host group. Import only as
 Siphonaptera,siphonaptera,7509,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Ticks,ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Ticks (Hyalommamarginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Children,Homo sapiens,9606,high,Curated mapping from cluster instruction/common host name.
+cystic fibrosis (CF) patients,Homo sapiens,9606,high,Curated mapping from cluster instruction/common host name.
+Argus Pheasent,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Francolin,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Hen,Gallus gallus,9031,high,Curated mapping from cluster instruction/common host name.
+Litlle corella,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+magpie,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Pied Oystercatcher,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+puoltry,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Eagle,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+parakeet,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+snow finch,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+falcon,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Finch,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Red-crowned parakeet (Cyanoramphus novaezelandiae),Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Screech Owl,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+elk,Cervus elaphus,9860,high,Curated mapping from cluster instruction/common host name.
+Beagle,Canis lupus familiaris,9615,high,Curated mapping from cluster instruction/common host name.
+Bull,Bos taurus,9913,high,Curated mapping from cluster instruction/common host name.
+bunny,Oryctolagus cuniculus,9986,high,Curated mapping from cluster instruction/common host name.
+Dassie,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Japanese macaque,Macaca fuscata,9542,high,Curated mapping from cluster instruction/common host name.
+ruminants,Ruminantia,9845,medium,Curated mapping from cluster instruction/common host name.
+Black footed ferret,Mustela nigripes,9669,high,Curated mapping from cluster instruction/common host name.
+Porcupine,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+ring-tailed lemur,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+tamarin,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Wild-ruminants,Ruminantia,9845,medium,Curated mapping from cluster instruction/common host name.
+Assamese macaque,Macaca assamensis,9555,high,Curated mapping from cluster instruction/common host name.
+emperor tamarin,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+small ruminants,Ruminantia,9845,medium,Curated mapping from cluster instruction/common host name.
+Sulawesi Macaque,Mammalia,40674,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Cod,Gadus,8048,medium,Curated mapping from cluster instruction/common host name.
+Filefish,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+trout,Salmonidae,8015,medium,Curated mapping from cluster instruction/common host name.
+Blue Fin Tuna,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Bass,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Blotchy rock cod,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+bowfin tuna,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+brown trout,Salmo trutta,8032,high,Curated mapping from cluster instruction/common host name.
+farmed Atlantic cod,Gadus morhua,8049,high,Curated mapping from cluster instruction/common host name.
+halibut,Pleuronectiformes,8252,medium,Curated mapping from cluster instruction/common host name.
+herring,Clupeidae,7950,medium,Curated mapping from cluster instruction/common host name.
+wild bass,Actinopterygii,7898,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+wild brown trout,Salmo trutta,8032,high,Curated mapping from cluster instruction/common host name.
+grasshopper,Orthoptera,6993,medium,Curated mapping from cluster instruction/common host name.
+brine shrimp,Artemia,6660,medium,Curated mapping from cluster instruction/common host name.
+bumblebee,Bombus,28641,medium,Curated mapping from cluster instruction/common host name.
+Hyaloma sp.,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+moth,Lepidoptera,7088,medium,Curated mapping from cluster instruction/common host name.
+psyllid,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+beetle,Coleoptera,7041,medium,Curated mapping from cluster instruction/common host name.
+Macrosteles sp. nr. severini,macrosteles sp.,3411084,high,"TaxonKit exact eukaryotic match from variant ""macrosteles sp.""."
+Orgeriinae sp.,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Trioza apicalis 11-H40,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+calanoid copepod,Calanoida,6833,medium,Curated mapping from cluster instruction/common host name.
+copepod,Copepoda,6830,medium,Curated mapping from cluster instruction/common host name.
+dung beetle,Scarabaeoidea,208436,medium,Curated mapping from cluster instruction/common host name.
+Hyalomma asiaticum bv. kozlovi olenew,hyalomma asiaticum,266040,high,"TaxonKit exact eukaryotic match from variant ""hyalomma asiaticum""."
+Hyalomma scupense str. ESP,hyalomma scupense,1260755,high,"TaxonKit exact eukaryotic match from variant ""hyalomma scupense""."
+Marine shrimp,Decapoda,6683,medium,Curated mapping from cluster instruction/common host name.
+Paper wasp,Polistes,7458,medium,Curated mapping from cluster instruction/common host name.
+penaeid shrimp,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Predatory mite,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Red and black beetle,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Red Turpenine Beetle,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Spider,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+vespid wasp,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+wasp,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+wax moth,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Wood Wasp,Arthropoda,6656,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Biserrula pelecinus L,biserrula pelecinus,47093,high,"TaxonKit exact eukaryotic match from variant ""biserrula pelecinus""."
+Calliandra grandiflora,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Cruciferous,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+G.max,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Glycyrrhiza uralensis Fisch,glycyrrhiza uralensis,74613,high,"TaxonKit exact eukaryotic match from variant ""glycyrrhiza uralensis""."
+Hass avocado,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Legume root,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Lupine moromi,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Morchella sp. M20-7,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Nut,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Origanum vulgare spp. vulgare,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Prunus persica var.nectarina,prunus persica,3760,high,"TaxonKit exact eukaryotic match from variant ""prunus persica""."
+Trifolium,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+turfgrass,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Vigna unguiculata ssp. sesquipedalis,vigna unguiculata,3917,high,"TaxonKit exact eukaryotic match from variant ""vigna unguiculata""."
+Aspen,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Biserrula pelecinus L.,biserrula pelecinus,47093,high,"TaxonKit exact eukaryotic match from variant ""biserrula pelecinus""."
+boysenberry,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+cactus,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Dahlia,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Fern,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Kaempferia rotunda Linn.,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+mangrove,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Marguerite Daisy,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Mimosa calodendron,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Mimosa paranapiacabae,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Passiflora edulis Sims,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Tetrastigma hemsleyanum Diels et Gilg,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Valeriana jatamansi Jones,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Zingiber officinale rhizome,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+almond tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Biserrula pelecinus Casbah,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Brittle root,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+coastal mangrove,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Elm tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Fern leaf,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+forest legume species,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+fruit,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Glycyrrhiza uralensis F.,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Guava_tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Isolated from beet root,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+jarak tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Kaempferia marginata Carey,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+leaf hopper,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+leaf mustard,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Legume,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Legume sp.,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Lupinus honoratus,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Mangrove forest,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Melilotus albus root-nodule,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Mimosa magentea,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Mixed temperate forest tree species,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Morchella esculenta (L.) Pers.,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+olive tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Origanum vulgare L.,origanum vulgare,39352,high,"TaxonKit exact eukaryotic match from variant ""origanum vulgare""."
+Origanum vulgare spp. heracleoticum,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Origanum vulgare ssp. vulgare,origanum vulgare,39352,high,"TaxonKit exact eukaryotic match from variant ""origanum vulgare""."
+Oryza.sativa L,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Pigeonpea root,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Pink-headed fruit dove (Ptilinopus porphyreus),Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Prunus dulcis (Mill.) D.A.Webb,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Prunus serrulata 'Shirofugen',Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Raphanus sativus L seed,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Rubber tree roots,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Russian olive tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Sakura tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+tree,Viridiplantae,33090,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
+Trifolium resupinatum L.,trifolium resupinatum,97036,high,"TaxonKit exact eukaryotic match from variant ""trifolium resupinatum""."
+Trifolium spumosum L. (Annual Mediterranean clovers),trifolium spumosum,97041,high,"TaxonKit exact eukaryotic match from variant ""trifolium spumosum""."
+Mollusk,Mollusca,6447,medium,Curated mapping from cluster instruction/common host name.
+ascidian,Ascidiacea,7713,medium,Curated mapping from cluster instruction/common host name.
+Alhagi sparsifolia Shap.,alhagi sparsifolia,218100,high,"TaxonKit exact eukaryotic match from variant ""alhagi sparsifolia""."
+Callyspongia sp. cf. C. flammea,callyspongia sp.,2916753,high,"TaxonKit exact eukaryotic match from variant ""callyspongia sp.""."
+Oecomys cf bicolor,oecomys,48010,medium,"TaxonKit exact eukaryotic match from variant ""oecomys""."
+"sablefish, Anoplopoma fimbria",sablefish,229290,high,"TaxonKit exact eukaryotic match from variant ""sablefish""."
+Cardiolucina cf quadrata,cardiolucina,102296,medium,"TaxonKit exact eukaryotic match from variant ""cardiolucina""."
+Cucurbita pepo (Zucchini) var. Rosa,cucurbita pepo,3663,high,"TaxonKit exact eukaryotic match from variant ""cucurbita pepo""."
+Epidulcina cf delphinae,epidulcina,1548737,medium,"TaxonKit exact eukaryotic match from variant ""epidulcina""."
+"New Mexico Milkvetch, Astragalus neomexicanus",astragalus neomexicanus,3084257,high,"TaxonKit exact eukaryotic match from variant ""astragalus neomexicanus""."
+Olea europaea var. europaea,olea europaea,4146,high,"TaxonKit exact eukaryotic match from variant ""olea europaea""."
+"Vulpes lagopus / Vulpes vulpes, crossbreed",vulpes lagopus,494514,high,"TaxonKit exact eukaryotic match from variant ""vulpes lagopus""."
+Agave americana L.,agave americana,39510,high,"TaxonKit exact eukaryotic match from variant ""agave americana""."
+Allium sativum var. 'purple stripe',allium sativum,4682,high,"TaxonKit exact eukaryotic match from variant ""allium sativum""."
+Alnus viridis ssp. crispa,alnus viridis,38784,high,"TaxonKit exact eukaryotic match from variant ""alnus viridis""."
+Alyssum serpyllifolium ssp. lusitanicum,alyssum serpyllifolium,226043,high,"TaxonKit exact eukaryotic match from variant ""alyssum serpyllifolium""."
+Bituminaria bituminosa var albomarginata,bituminaria bituminosa,53836,high,"TaxonKit exact eukaryotic match from variant ""bituminaria bituminosa""."
+Casuarina equisetifolia subsp. incana.,casuarina equisetifolia,3523,high,"TaxonKit exact eukaryotic match from variant ""casuarina equisetifolia""."
+Chamaecytisus prolifer var. palmensis,chamaecytisus prolifer,49805,high,"TaxonKit exact eukaryotic match from variant ""chamaecytisus prolifer""."
+Cichorium endivia var. crispum,cichorium endivia,114280,high,"TaxonKit exact eukaryotic match from variant ""cichorium endivia""."
+Codiaeum variegatum var. pictum. cv. Goldstar,codiaeum variegatum,138558,high,"TaxonKit exact eukaryotic match from variant ""codiaeum variegatum""."
+Corchorus aestuans var. aestuans,corchorus aestuans,360610,high,"TaxonKit exact eukaryotic match from variant ""corchorus aestuans""."
+Coreopsis lanceolata L.,coreopsis lanceolata,159666,high,"TaxonKit exact eukaryotic match from variant ""coreopsis lanceolata""."
+"Creosote bush, Larrea Tridentata",creosote bush,66636,high,"TaxonKit exact eukaryotic match from variant ""creosote bush""."
+Daucus carota var. sativa,daucus carota,4039,high,"TaxonKit exact eukaryotic match from variant ""daucus carota""."
+Dioscorea bulbifera L.,dioscorea bulbifera,35874,high,"TaxonKit exact eukaryotic match from variant ""dioscorea bulbifera""."
+Eruca vesicaria subsp. sativa cv. Montana,eruca vesicaria,180536,high,"TaxonKit exact eukaryotic match from variant ""eruca vesicaria""."
+Ficus microcarpa var. hillii,ficus microcarpa,66385,high,"TaxonKit exact eukaryotic match from variant ""ficus microcarpa""."
+Gloverina cf vestifex,gloverina,768443,medium,"TaxonKit exact eukaryotic match from variant ""gloverina""."
+Gunnera perpensa L.,gunnera perpensa,138603,high,"TaxonKit exact eukaryotic match from variant ""gunnera perpensa""."
+Iris laevigata Fisch,iris laevigata,198817,high,"TaxonKit exact eukaryotic match from variant ""iris laevigata""."
+Ixodes holocyclus str. Sidney,ixodes holocyclus,65647,high,"TaxonKit exact eukaryotic match from variant ""ixodes holocyclus""."
+Ixodes ricinus str. Achnasheen,ixodes ricinus,34613,high,"TaxonKit exact eukaryotic match from variant ""ixodes ricinus""."
+Ixodes ricinus str. Chiz,ixodes ricinus,34613,high,"TaxonKit exact eukaryotic match from variant ""ixodes ricinus""."
+Ixodes ricinus str. ESP,ixodes ricinus,34613,high,"TaxonKit exact eukaryotic match from variant ""ixodes ricinus""."
+Linum austriacum ssp. austriacum,linum austriacum,586375,high,"TaxonKit exact eukaryotic match from variant ""linum austriacum""."
+Lonchura striata var. domestica,lonchura striata,40157,high,"TaxonKit exact eukaryotic match from variant ""lonchura striata""."
+Macrochloa tenacissima L.,macrochloa tenacissima,666013,high,"TaxonKit exact eukaryotic match from variant ""macrochloa tenacissima""."
+Mentha arvensis L.,mentha arvensis,292239,high,"TaxonKit exact eukaryotic match from variant ""mentha arvensis""."
+Micronycteris cf minuta,micronycteris,148056,medium,"TaxonKit exact eukaryotic match from variant ""micronycteris""."
+Opuntia phaeacantha var. discata,opuntia phaeacantha,176270,high,"TaxonKit exact eukaryotic match from variant ""opuntia phaeacantha""."
+Paris polyphylla var. yunnanensis (Franch.) Hand.-Mzt.,paris polyphylla,49666,high,"TaxonKit exact eukaryotic match from variant ""paris polyphylla""."
+Potentilla anserina L.,potentilla anserina,57926,high,"TaxonKit exact eukaryotic match from variant ""potentilla anserina""."
+Proechimys cf cayennensis,proechimys,10162,medium,"TaxonKit exact eukaryotic match from variant ""proechimys""."
+Raphanus sativus var.,raphanus sativus,3726,high,"TaxonKit exact eukaryotic match from variant ""raphanus sativus""."
+Rumex acetosa L.,rumex acetosa,41241,high,"TaxonKit exact eukaryotic match from variant ""rumex acetosa""."
+Sambucus canadensis L.,sambucus canadensis,57008,high,"TaxonKit exact eukaryotic match from variant ""sambucus canadensis""."
+"Scarlet Hedgenettle, Stachys coccinea",stachys coccinea,141787,high,"TaxonKit exact eukaryotic match from variant ""stachys coccinea""."
+Sipunculus nudus L.,sipunculus nudus,6446,high,"TaxonKit exact eukaryotic match from variant ""sipunculus nudus""."
+"Western Tansy-Mustard, Descurainia pinnata",descurainia pinnata,110556,high,"TaxonKit exact eukaryotic match from variant ""descurainia pinnata""."

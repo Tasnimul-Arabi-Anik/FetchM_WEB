@@ -167,3 +167,26 @@ St Nectars Cheese,non_host_source,AI reviewed apply_only_if_host_empty: Non-host
 dd,not_identifiable,AI reviewed approve_blank: Safe to blank/mark non-host or missing.
 National University of Trujillo,non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
 N,not_identifiable,AI reviewed approve_blank: Safe to blank/mark non-host or missing.
+GWG,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Host-associated,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Personnel,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Qing Ren,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+USA,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+BHK,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Wei Dai,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Bacillus,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+microbial,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Rhodotorula mucilaginosa JGTA-S1,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Bacillus thuringiensis subsp,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Lactobacillus plantarum IMAU10120,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Streptomyces yatensis CY-1,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Vibrio alginolyticus LF TCBS 15,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Vibrio parahaemolyticus IPNGS16,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+eye makeup preparations powder,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Grown in Bordet-Gengou agar.,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Grown in Bordetella parapertussis specific medium.,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+hospital_environmrnt,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Isochrysis aff. galbana 'Tahitian isolate,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Medium 987,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Nasonia vitripennis LabII strain,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
+Amaru Indians,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
