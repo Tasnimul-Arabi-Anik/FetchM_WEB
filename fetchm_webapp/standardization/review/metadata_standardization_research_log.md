@@ -517,3 +517,17 @@ Date: 2026-04-29
   - `Coffea`, `Bathyopsurus nybelini specimen AT50-02-018`, and `village weaver` map to Host_SD/TaxID.
   - AI-rejected microbial value `Pseudomonas` remains `review_needed` instead of becoming a host mapping.
   - Lab/person/source values such as `N. Ennis, Tisa lab UNH`, `Instituto de Productos Lacteos de Asturias (IPLA)-CSIC`, and `Morbier Cheese` are treated as non-host source values.
+
+### Ready-to-import host rule supplement
+
+- Reviewed `/home/ai-pc/Work/dulab206/host_rules_AI_approved_ready_to_import.csv`.
+- The file contained 557 approved Host_SD mappings.
+- 459 were already represented exactly in `host_synonyms.csv`.
+- 95 additional non-conflicting rules were appended to `host_synonyms.csv`; three apparent new rows were already covered after normalization/equivalent-key handling.
+- No conflicting mappings were found.
+- Representative new checks:
+  - `nestling stork` -> `Aves` / 8782.
+  - `seabird` -> `Aves` / 8782.
+  - `Pogona` -> `Pogona` / 103695.
+  - `pufferfish` -> `Tetraodontiformes` / 31031.
+  - `Albino Bristlenose Pleco` -> `Ancistrus` / 52070.

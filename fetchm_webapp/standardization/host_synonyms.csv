@@ -6425,3 +6425,98 @@ Vinca sp. (Periwinkle),vinca,60092,medium,AI reviewed approve_genus_level: Eukar
 Ochotona,ochotona,9977,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Lepus,lepus,9980,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 village weaver,village weaver,135448,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+nestling stork,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+seabird,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Testudines,Testudines,8459,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Pogona,Pogona,103695,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Soricidae,soricidae,9376,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+sturgeon,Acipenseridae,7902,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Gryllotalpidae,gryllotalpidae,208677,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Laridae,laridae,8910,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Wader,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Southern caracara,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Bullfinch,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Vulture,Aves,8782,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Oregon Junco,Junco,40209,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Mortierellaceae,mortierellaceae,4854,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+scallop,Pectinidae,6570,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Lepidoptera,lepidoptera,7088,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+crane,Gruidae,9109,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Pogona sp.,Pogona,103695,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Kelp,Phaeophyceae,2870,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+pufferfish,Tetraodontiformes,31031,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Albino Bristlenose Pleco,Ancistrus,52070,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Poaceae,poaceae,4479,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Nudibranchia,nudibranchia,70849,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Testudinidae,testudinidae,8487,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Mus,Mus,10088,medium,"Curated broad host group. Safe only as broad/medium-confidence host, not as species-level mapping."
+Delphinidae,delphinidae,9726,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Umbelliferae,umbelliferae,4037,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Erinaceinae,erinaceinae,30577,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Phasianidae,phasianidae,9005,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Demospongiae,demospongiae,6042,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Orthoptera,orthoptera,6993,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Cicadellidae,cicadellidae,30102,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Cephalophinae,cephalophinae,9952,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Amphibia,amphibia,8292,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Chiroptera,chiroptera,9397,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Camelidae,camelidae,9835,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Holothuroidea,holothuroidea,7705,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Amphipoda,amphipoda,6821,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Aphodiinae,aphodiinae,166306,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Chamaeleonidae,chamaeleonidae,40248,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+millipede,millipede,7553,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Arecaceae,arecaceae,4710,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Gorgonacea,gorgonacea,6132,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ticks (H.marginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Pythonidae,pythonidae,34984,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Salmonidae,salmonidae,8015,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Crassulaceae,crassulaceae,3781,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Cricetinae,cricetinae,10026,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Phlebotominae,phlebotominae,7198,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Diplonemea,diplonemea,191814,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Rhaphidophoridae (camel cricket),rhaphidophoridae,62768,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Centipede,centipede,7540,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Cicindelidae,cicindelidae,27450,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+ostriches,ostriches,8798,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Chondrichthyes,chondrichthyes,7777,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Bivalvia,bivalvia,6544,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Cancridae,cancridae,6753,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Phoenicopteridae,phoenicopteridae,9215,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Corallinales,corallinales,31395,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Chironomidae,chironomidae,7149,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ziphiidae,ziphiidae,9756,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Syrphidae,syrphidae,34680,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Nereididae,nereididae,39820,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Muraenidae,muraenidae,46660,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Liparidae,liparidae,183715,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+iguanid lizards,iguanid lizards,8515,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Fabaceae,fabaceae,3803,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Naticidae,naticidae,208830,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Macropodidae,macropodidae,9307,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Scarabaeidae,scarabaeidae,7055,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Staphylinidae,staphylinidae,29026,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Leporidae,leporidae,9979,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Polychaeta,polychaeta,6341,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Symbiodiniaceae,symbiodiniaceae,252141,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Strigiformes,strigiformes,30458,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Elephantidae,elephantidae,9780,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Sirenia,sirenia,9774,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Perdicinae,perdicinae,466544,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Squamata,squamata,8509,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Phasianinae,phasianinae,9072,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Sphenisciformes,sphenisciformes,9230,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ardeidae,ardeidae,8899,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Fringillidae,fringillidae,9133,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+actinostolidae,actinostolidae,86589,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+bovidae,bovidae,9895,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Tiphiidae,tiphiidae,92421,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Didelphidae,didelphidae,9265,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Isopoda,isopoda,29979,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+ants,ants,36668,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+lobster,lobster,6704,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Tetraodontidae,tetraodontidae,31031,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Gerbillinae,gerbillinae,10045,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Siphonaptera,siphonaptera,7509,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ticks,ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ticks (Hyalommamarginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
