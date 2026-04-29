@@ -49,6 +49,7 @@
     <div class="status-box">
       <span class="status running">manual control</span>
       <div class="job-meta">{{ host_curation.summary.total }} unresolved values</div>
+      <div class="job-meta">{{ host_curation.summary.total_rows }} represented rows</div>
       <div class="job-meta">{{ host_curation.summary.visible }} visible</div>
       <div class="job-meta">{{ host_curation.summary.approved }} approved</div>
     </div>
@@ -74,11 +75,45 @@
 
     <div class="metrics-grid top-gap">
       <div class="metric-card"><strong>{{ host_curation.summary.total }}</strong><span>Total unresolved host values</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.total_rows }}</strong><span>Rows represented</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.non_host_source }}</strong><span>Non-host source</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.missing }}</strong><span>Missing</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.taxonomy_candidate }}</strong><span>Taxonomy candidates</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.broad_host }}</strong><span>Broad host</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.ambiguous }}</strong><span>Ambiguous</span></div>
+    </div>
+
+    <div class="table-scroll top-gap">
+      <table>
+        <thead>
+          <tr>
+            <th>Decision group</th>
+            <th>Distinct values</th>
+            <th>Rows represented</th>
+            <th>% of represented rows</th>
+            <th>Approved values</th>
+            <th>Pending values</th>
+            <th>Open group</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in host_curation.decision_breakdown %}
+            <tr>
+              <td>{{ item.label }}</td>
+              <td>{{ item.distinct_values }}</td>
+              <td>{{ item.represented_rows }}</td>
+              <td>{{ item.row_percent }}%</td>
+              <td>{{ item.approved_values }}</td>
+              <td>{{ item.pending_values }}</td>
+              <td>
+                <a href="{{ url_for('admin_host_curation', decision=item.decision, status='unapproved', limit=host_curation.filters.limit) }}">
+                  Review
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </section>
 

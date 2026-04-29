@@ -6975,8 +6975,10 @@ def host_curation_row_visible(row: Mapping[str, Any], filters: Mapping[str, Any]
 def build_host_curation_dashboard(filters: Mapping[str, Any] | None = None) -> dict[str, Any]:
     active_filters = host_curation_filters_from_mapping(filters or {})
     all_rows = host_curation_read_rows()
+    total_represented_rows = sum(int(row.get("count") or 0) for row in all_rows)
     summary = {
         "total": len(all_rows),
+        "total_rows": total_represented_rows,
         "non_host_source": 0,
         "missing": 0,
         "taxonomy_candidate": 0,
@@ -6985,18 +6987,42 @@ def build_host_curation_dashboard(filters: Mapping[str, Any] | None = None) -> d
         "approved": 0,
         "visible": 0,
     }
+    decision_breakdown = {
+        decision: {
+            "decision": decision,
+            "label": decision.replace("_", " "),
+            "distinct_values": 0,
+            "represented_rows": 0,
+            "approved_values": 0,
+            "pending_values": 0,
+            "row_percent": 0.0,
+        }
+        for decision in ["taxonomy_candidate", "broad_host", "non_host_source", "missing", "ambiguous"]
+    }
     for row in all_rows:
         decision = row.get("decision")
         if decision in summary:
             summary[decision] += 1
         if row.get("is_approved"):
             summary["approved"] += 1
+        if decision in decision_breakdown:
+            count = int(row.get("count") or 0)
+            decision_breakdown[decision]["distinct_values"] += 1
+            decision_breakdown[decision]["represented_rows"] += count
+            if row.get("is_approved"):
+                decision_breakdown[decision]["approved_values"] += 1
+            else:
+                decision_breakdown[decision]["pending_values"] += 1
+    if total_represented_rows:
+        for item in decision_breakdown.values():
+            item["row_percent"] = round((item["represented_rows"] / total_represented_rows) * 100, 1)
     visible_rows = [row for row in all_rows if host_curation_row_visible(row, active_filters)]
     summary["visible"] = len(visible_rows)
     return {
         "source_path": str(host_curation_source_path() or ""),
         "filters": active_filters,
         "summary": summary,
+        "decision_breakdown": list(decision_breakdown.values()),
         "rows": visible_rows[: active_filters["limit"]],
         "total_visible_before_limit": len(visible_rows),
     }

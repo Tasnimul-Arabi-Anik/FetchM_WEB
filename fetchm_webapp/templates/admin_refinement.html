@@ -3,9 +3,12 @@
 <main class="layout">
   <section class="panel detail-head">
     <div>
-      <p class="eyebrow">Admin</p>
-      <h1>Metadata Refinement</h1>
-      <p class="lede">Review high-frequency metadata values before adding or backfilling standardized mappings.</p>
+      <p class="eyebrow">Admin · Standardization</p>
+      <h1>General Refinement</h1>
+      <p class="lede">Sample high-frequency metadata values across multiple columns. For the comprehensive host breakdown, use the Host Curation page.</p>
+      <div class="action-row top-gap">
+        <a class="button-like" href="{{ url_for('admin_host_curation') }}">Open Host Curation</a>
+      </div>
     </div>
     <div class="status-box">
       <span class="status running">approval workflow</span>
