@@ -40,7 +40,7 @@
     <div>
       <p class="eyebrow">Admin · Standardization</p>
       <h1>Host Curation</h1>
-      <p class="lede">Review unresolved host values, approve conservative host rules, and keep ambiguous rows out of automatic standardization.</p>
+      <p class="lede">Review host values that remain unresolved after the active standardization dictionaries and approved rules are applied.</p>
       <div class="standardization-tabs">
         <a href="{{ url_for('admin_refinement') }}">General refinement</a>
         <a href="{{ url_for('admin_host_curation') }}" class="active">Host curation</a>
@@ -48,10 +48,10 @@
     </div>
     <div class="status-box">
       <span class="status running">manual control</span>
-      <div class="job-meta">{{ host_curation.summary.total }} unresolved values</div>
+      <div class="job-meta">{{ host_curation.summary.total }} currently pending values</div>
       <div class="job-meta">{{ host_curation.summary.total_rows }} represented rows</div>
+      <div class="job-meta">{{ host_curation.summary.resolved_total }} already resolved from file</div>
       <div class="job-meta">{{ host_curation.summary.visible }} visible</div>
-      <div class="job-meta">{{ host_curation.summary.approved }} approved</div>
     </div>
   </section>
 
@@ -68,18 +68,23 @@
         {% endif %}
       </div>
       <div class="action-row">
-        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='taxonomy_candidate', status='unapproved', limit=host_curation.filters.limit) }}">Export taxonomy candidates</a>
-        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='ambiguous', status='unapproved', limit=host_curation.filters.limit) }}">Export ambiguous review</a>
+        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='taxonomy_candidate', status='pending', limit=host_curation.filters.limit) }}">Export taxonomy candidates</a>
+        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='ambiguous', status='pending', limit=host_curation.filters.limit) }}">Export ambiguous review</a>
       </div>
     </div>
 
     <div class="metrics-grid top-gap">
-      <div class="metric-card"><strong>{{ host_curation.summary.total }}</strong><span>Total unresolved host values</span></div>
-      <div class="metric-card"><strong>{{ host_curation.summary.total_rows }}</strong><span>Rows represented</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.total }}</strong><span>Currently pending host values</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.total_rows }}</strong><span>Pending rows represented</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.resolved_total }}</strong><span>Already resolved values</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.resolved_rows }}</strong><span>Already resolved rows</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.source_total }}</strong><span>Values in source file</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.source_total_rows }}</strong><span>Rows in source file</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.non_host_source }}</strong><span>Non-host source</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.missing }}</strong><span>Missing</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.taxonomy_candidate }}</strong><span>Taxonomy candidates</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.broad_host }}</strong><span>Broad host</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.not_identifiable }}</strong><span>Not identifiable</span></div>
       <div class="metric-card"><strong>{{ host_curation.summary.ambiguous }}</strong><span>Ambiguous</span></div>
     </div>
 
@@ -106,7 +111,7 @@
               <td>{{ item.approved_values }}</td>
               <td>{{ item.pending_values }}</td>
               <td>
-                <a href="{{ url_for('admin_host_curation', decision=item.decision, status='unapproved', limit=host_curation.filters.limit) }}">
+                <a href="{{ url_for('admin_host_curation', decision=item.decision, status='pending', limit=host_curation.filters.limit) }}">
                   Review
                 </a>
               </td>
@@ -129,7 +134,7 @@
         <label>
           <span>Decision</span>
           <select name="decision">
-            {% for option in ['all', 'non_host_source', 'missing', 'taxonomy_candidate', 'broad_host', 'ambiguous'] %}
+            {% for option in ['all', 'taxonomy_candidate', 'broad_host', 'non_host_source', 'missing', 'not_identifiable', 'ambiguous', 'resolved'] %}
               <option value="{{ option }}" {% if host_curation.filters.decision == option %}selected{% endif %}>{{ option.replace('_', ' ') }}</option>
             {% endfor %}
           </select>
@@ -137,7 +142,7 @@
         <label>
           <span>Status</span>
           <select name="status">
-            {% for option in ['unapproved', 'all', 'approved'] %}
+            {% for option in ['pending', 'all', 'resolved', 'unapproved', 'approved'] %}
               <option value="{{ option }}" {% if host_curation.filters.status == option %}selected{% endif %}>{{ option }}</option>
             {% endfor %}
           </select>
@@ -180,6 +185,8 @@
             <th>raw_host</th>
             <th>affected rows</th>
             <th>suggested decision</th>
+            <th>live status</th>
+            <th>live method</th>
             <th>proposed host</th>
             <th>taxid</th>
             <th>confidence</th>
@@ -192,7 +199,9 @@
             <tr>
               <td>{{ row.raw_host }}</td>
               <td>{{ row.count }}</td>
-              <td>{{ row.decision.replace('_', ' ') }}</td>
+              <td>{{ row.display_decision.replace('_', ' ') }}</td>
+              <td>{{ row.live_status }}</td>
+              <td>{{ row.live_method }}</td>
               <td>{{ row.proposed_host }}</td>
               <td>{{ row.taxid }}</td>
               <td>{{ row.confidence }}</td>
@@ -228,7 +237,7 @@
             </tr>
           {% else %}
             <tr>
-              <td colspan="8" class="muted">No rows match the current filters.</td>
+              <td colspan="10" class="muted">No rows match the current filters.</td>
             </tr>
           {% endfor %}
         </tbody>

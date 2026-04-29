@@ -6685,6 +6685,8 @@ def save_approved_standardization_rule(
             "confidence": confidence,
         }
     )
+    if source_column == "Host" and destination == "Host_SD":
+        clear_host_curation_cache()
 
 
 def refinement_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
@@ -6881,6 +6883,8 @@ def visible_high_confidence_refinement_payloads(filters: Mapping[str, Any], limi
 
 HOST_CURATION_DECISIONS = {
     "all",
+    "resolved",
+    "not_identifiable",
     "non_host_source",
     "missing",
     "taxonomy_candidate",
@@ -6907,11 +6911,55 @@ def normalize_host_curation_decision(value: Any, default: str = "ambiguous") -> 
         "taxonomic_candidate": "taxonomy_candidate",
         "approve_direct": "taxonomy_candidate",
         "approve_genus_level": "taxonomy_candidate",
+        "host_organism": "taxonomy_candidate",
         "broad": "broad_host",
         "broad_host": "broad_host",
+        "not_identifiable": "not_identifiable",
+        "not_identifiable_token": "not_identifiable",
     }
     decision = aliases.get(text, text)
     return decision if decision in HOST_CURATION_DECISIONS else default
+
+
+def host_curation_live_state(value: Any) -> dict[str, str]:
+    standardized = standardize_host_metadata(value)
+    method = str(standardized.get("Host_SD_Method") or "")
+    host_sd = str(standardized.get("Host_SD") or "")
+    taxid = str(standardized.get("Host_TaxID") or "")
+    confidence = str(standardized.get("Host_SD_Confidence") or "")
+    if taxid:
+        if method == "broad_dictionary":
+            decision = "broad_host"
+        else:
+            decision = "taxonomy_candidate"
+        return {
+            "live_status": "resolved",
+            "live_decision": decision,
+            "live_host": host_sd,
+            "live_taxid": taxid,
+            "live_method": method,
+            "live_confidence": confidence,
+            "needs_review": "0",
+        }
+    if method in {"missing", "non_host_source", "not_identifiable"}:
+        return {
+            "live_status": "resolved",
+            "live_decision": method,
+            "live_host": "",
+            "live_taxid": "",
+            "live_method": method,
+            "live_confidence": confidence or "none",
+            "needs_review": "0",
+        }
+    return {
+        "live_status": "pending",
+        "live_decision": "ambiguous",
+        "live_host": host_sd if method == "unmapped" else "",
+        "live_taxid": "",
+        "live_method": method or "unmapped",
+        "live_confidence": confidence or "none",
+        "needs_review": "1",
+    }
 
 
 def host_curation_source_path() -> Path | None:
@@ -6926,11 +6974,94 @@ def host_curation_source_path() -> Path | None:
     return None
 
 
+def approved_host_curation_rule_lookup(db: sqlite3.Connection) -> dict[str, sqlite3.Row]:
+    rows = db.execute(
+        """
+        SELECT *
+        FROM standardization_rules
+        WHERE source_column = 'Host'
+          AND destination = 'Host_SD'
+          AND status = 'approved'
+        """
+    ).fetchall()
+    return {str(row["normalized_value"] or ""): row for row in rows}
+
+
+def host_curation_cache_path() -> Path:
+    return DATA_DIR / "host_curation_live_cache.json"
+
+
+def host_curation_cache_key(db: sqlite3.Connection, source_path: Path) -> dict[str, Any]:
+    source_stat = source_path.stat()
+    rule_files = [
+        STANDARDIZATION_DIR / "host_synonyms.csv",
+        STANDARDIZATION_DIR / "host_negative_rules.csv",
+        STANDARDIZATION_DIR / "controlled_categories.csv",
+    ]
+    rule_file_state = []
+    for path in rule_files:
+        if path.exists():
+            stat = path.stat()
+            rule_file_state.append({"path": path.name, "mtime_ns": stat.st_mtime_ns, "size": stat.st_size})
+    row = db.execute(
+        """
+        SELECT COUNT(*) AS total, COALESCE(MAX(approved_at), '') AS latest
+        FROM standardization_rules
+        WHERE source_column = 'Host'
+          AND destination = 'Host_SD'
+          AND status = 'approved'
+        """
+    ).fetchone()
+    return {
+        "source_path": str(source_path),
+        "source_mtime_ns": source_stat.st_mtime_ns,
+        "source_size": source_stat.st_size,
+        "rule_files": rule_file_state,
+        "approved_rule_total": int(row["total"] or 0) if row else 0,
+        "approved_rule_latest": str(row["latest"] or "") if row else "",
+    }
+
+
+def load_host_curation_cached_rows(cache_key: Mapping[str, Any]) -> list[dict[str, Any]] | None:
+    path = host_curation_cache_path()
+    if not path.exists():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if payload.get("cache_key") != cache_key:
+        return None
+    rows = payload.get("rows")
+    return rows if isinstance(rows, list) else None
+
+
+def save_host_curation_cached_rows(cache_key: Mapping[str, Any], rows: list[dict[str, Any]]) -> None:
+    path = host_curation_cache_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "cache_key": cache_key,
+        "created_at": utc_now(),
+        "rows": rows,
+    }
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+
+def clear_host_curation_cache() -> None:
+    host_curation_cache_path().unlink(missing_ok=True)
+
+
 def host_curation_read_rows() -> list[dict[str, Any]]:
     source_path = host_curation_source_path()
     if source_path is None:
         return []
+    db = get_db()
+    cache_key = host_curation_cache_key(db, source_path)
+    cached_rows = load_host_curation_cached_rows(cache_key)
+    if cached_rows is not None:
+        return cached_rows
     rows: list[dict[str, Any]] = []
+    approved_rules = approved_host_curation_rule_lookup(db)
     with source_path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         for raw in reader:
@@ -6948,44 +7079,53 @@ def host_curation_read_rows() -> list[dict[str, Any]]:
             taxid = (raw.get("taxid") or raw.get("proposed_taxid") or raw.get("ontology_id") or "").strip()
             confidence = (raw.get("confidence") or ("medium" if decision == "broad_host" else "none")).strip().lower()
             note = (raw.get("note") or raw.get("review_note") or "").strip()
-            approved_rule = approved_refinement_rule(get_db(), "Host", raw_host, "Host_SD")
+            approved_rule = approved_rules.get(normalize_standardization_lookup(raw_host))
+            live_state = host_curation_live_state(raw_host)
+            display_decision = decision if live_state["live_status"] == "pending" else live_state["live_decision"]
             rows.append(
                 {
                     "raw_host": raw_host,
                     "count": count,
                     "decision": decision,
+                    "display_decision": display_decision,
                     "proposed_host": proposed_host,
                     "taxid": taxid,
                     "confidence": confidence,
                     "note": note,
+                    **live_state,
                     "is_approved": approved_rule is not None,
                     "approved_by": approved_rule["approved_by"] if approved_rule else "",
                     "approved_at": approved_rule["approved_at"] if approved_rule else "",
                 }
             )
     rows.sort(key=lambda item: (-int(item.get("count") or 0), str(item.get("raw_host") or "").lower()))
+    save_host_curation_cached_rows(cache_key, rows)
     return rows
 
 
 def host_curation_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
     decision = normalize_host_curation_decision(values.get("decision") or "all", default="all")
-    status = normalize_standardization_lookup(values.get("status") or "unapproved")
+    status = normalize_standardization_lookup(values.get("status") or "pending")
     query = str(values.get("q") or "").strip()
     limit = parse_optional_int(values.get("limit")) or 200
     return {
         "decision": decision if decision in HOST_CURATION_DECISIONS else "all",
-        "status": status if status in {"all", "approved", "unapproved"} else "unapproved",
+        "status": status if status in {"all", "pending", "resolved", "approved", "unapproved"} else "pending",
         "q": query,
         "limit": max(25, min(limit, 2000)),
     }
 
 
 def host_curation_row_visible(row: Mapping[str, Any], filters: Mapping[str, Any]) -> bool:
-    if filters["decision"] != "all" and row.get("decision") != filters["decision"]:
+    if filters["decision"] != "all" and row.get("display_decision") != filters["decision"]:
         return False
     if filters["status"] == "approved" and not row.get("is_approved"):
         return False
     if filters["status"] == "unapproved" and row.get("is_approved"):
+        return False
+    if filters["status"] == "pending" and row.get("live_status") != "pending":
+        return False
+    if filters["status"] == "resolved" and row.get("live_status") != "resolved":
         return False
     query = str(filters.get("q") or "").lower()
     if query and query not in str(row.get("raw_host") or "").lower() and query not in str(row.get("proposed_host") or "").lower():
@@ -6996,15 +7136,24 @@ def host_curation_row_visible(row: Mapping[str, Any], filters: Mapping[str, Any]
 def build_host_curation_dashboard(filters: Mapping[str, Any] | None = None) -> dict[str, Any]:
     active_filters = host_curation_filters_from_mapping(filters or {})
     all_rows = host_curation_read_rows()
-    total_represented_rows = sum(int(row.get("count") or 0) for row in all_rows)
+    pending_rows = [row for row in all_rows if row.get("live_status") == "pending"]
+    resolved_rows = [row for row in all_rows if row.get("live_status") == "resolved"]
+    total_represented_rows = sum(int(row.get("count") or 0) for row in pending_rows)
+    source_represented_rows = sum(int(row.get("count") or 0) for row in all_rows)
+    resolved_represented_rows = sum(int(row.get("count") or 0) for row in resolved_rows)
     summary = {
-        "total": len(all_rows),
+        "source_total": len(all_rows),
+        "source_total_rows": source_represented_rows,
+        "total": len(pending_rows),
         "total_rows": total_represented_rows,
+        "resolved_total": len(resolved_rows),
+        "resolved_rows": resolved_represented_rows,
         "non_host_source": 0,
         "missing": 0,
         "taxonomy_candidate": 0,
         "broad_host": 0,
         "ambiguous": 0,
+        "not_identifiable": 0,
         "approved": 0,
         "visible": 0,
     }
@@ -7018,10 +7167,10 @@ def build_host_curation_dashboard(filters: Mapping[str, Any] | None = None) -> d
             "pending_values": 0,
             "row_percent": 0.0,
         }
-        for decision in ["taxonomy_candidate", "broad_host", "non_host_source", "missing", "ambiguous"]
+        for decision in ["taxonomy_candidate", "broad_host", "non_host_source", "missing", "not_identifiable", "ambiguous"]
     }
-    for row in all_rows:
-        decision = row.get("decision")
+    for row in pending_rows:
+        decision = row.get("display_decision")
         if decision in summary:
             summary[decision] += 1
         if row.get("is_approved"):
