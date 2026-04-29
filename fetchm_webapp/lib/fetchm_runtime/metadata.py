@@ -15,6 +15,7 @@ import sqlite3
 import ssl
 import threading
 import time
+from itertools import cycle
 from tqdm import tqdm
 from typing import Tuple, Dict, List, Optional, Any
 import xmltodict
@@ -88,11 +89,21 @@ MISSING_VALUE_TOKENS = {
     "no host specified",
     "not specified",
     "not provided",
+    "not determined",
+    "undetermined",
     "missing data",
     "missing value",
     "unavailable",
+    "restricted access",
+    "-",
+    "--",
 }
 DATE_YEAR_PATTERN = re.compile(r"(19|20)\d{2}")
+SLASH_TWO_DIGIT_YEAR_PATTERN = re.compile(r"(?:^|\D)\d{1,2}[/-]\d{1,2}[/-](\d{2})(?:\D|$)")
+MONTH_TWO_DIGIT_YEAR_PATTERN = re.compile(
+    r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*[-\s/]+(\d{2})\b",
+    re.IGNORECASE,
+)
 STATUS_ABSENT = "absent"
 STATUS_UNKNOWN = "unknown"
 FETCH_STATUS_OK = "ok"
@@ -131,9 +142,26 @@ COLLECTION_DATE_ATTRIBUTE_KEYS = {
     "collection_date",
     "collection-date",
     "collection date",
+    "collection_timestamp",
+    "collection timestamp",
+    "colection_date",
+    "colection date",
+    "collection_date_remark",
+    "collection date remark",
     "sample_collection_date",
     "date_of_collection",
+    "sampling_event_date_time_start",
+    "sampling event date time start",
+    "date_host_collection",
+    "date host collection",
     "isolation_date",
+    "isolation date",
+    "harvest_date",
+    "harvest date",
+    "specimen_collection_date",
+    "specimen collection date",
+    "dna_isolation_date",
+    "dna isolation date",
 }
 GEO_LOCATION_ATTRIBUTE_KEYS = {
     "geo_loc_name",
@@ -213,18 +241,6 @@ class RequestRateLimiter:
                     reason,
                 )
 
-
-def parse_retry_after_seconds(response: Optional[requests.Response]) -> Optional[float]:
-    if response is None:
-        return None
-    raw_value = response.headers.get("Retry-After")
-    if not raw_value:
-        return None
-    try:
-        return max(0.0, float(raw_value))
-    except (TypeError, ValueError):
-        return None
-
     def reward(self) -> None:
         if self.base_interval_seconds <= 0:
             return
@@ -244,6 +260,18 @@ def parse_retry_after_seconds(response: Optional[requests.Response]) -> Optional
                     previous_interval,
                     self.interval_seconds,
                 )
+
+
+def parse_retry_after_seconds(response: Optional[requests.Response]) -> Optional[float]:
+    if response is None:
+        return None
+    raw_value = response.headers.get("Retry-After")
+    if not raw_value:
+        return None
+    try:
+        return max(0.0, float(raw_value))
+    except (TypeError, ValueError):
+        return None
 
 
 class MetadataPersistentCache:
@@ -488,6 +516,26 @@ def get_effective_workers(workers: Optional[int], api_key: Optional[str]) -> int
     if workers is not None:
         return max(1, workers)
     return DEFAULT_WORKERS_WITH_API_KEY if api_key else DEFAULT_WORKERS_NO_API_KEY
+
+
+def resolve_ncbi_api_keys(primary_api_key: Optional[str] = None) -> List[str]:
+    keys: List[str] = []
+    seen: set[str] = set()
+    raw_candidates = [
+        primary_api_key or "",
+        os.getenv("NCBI_API_KEY", ""),
+        os.getenv("NCBI_API_KEY_SECONDARY", ""),
+        os.getenv("NCBI_API_KEYS", ""),
+        os.getenv("FETCHM_WEBAPP_NCBI_API_KEYS", ""),
+    ]
+    for raw_value in raw_candidates:
+        for part in str(raw_value or "").replace("\n", ",").split(","):
+            key = part.strip()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            keys.append(key)
+    return keys
 
 
 def build_ncbi_params(api_key: Optional[str], email: Optional[str], **kwargs: Any) -> Dict[str, Any]:
@@ -904,7 +952,12 @@ def fetch_all_metadata(
     request_interval: float,
     workers: int,
 ) -> Tuple[Dict[str, Tuple], Dict[str, Dict[str, Any]]]:
-    rate_limiter = RequestRateLimiter(request_interval)
+    resolved_api_keys = resolve_ncbi_api_keys(api_key)
+    assigned_api_keys = resolved_api_keys or [None]
+    rate_limiters = {
+        current_key: RequestRateLimiter(request_interval)
+        for current_key in assigned_api_keys
+    }
     unique_ids = []
     seen = set()
     for biosample_id in biosample_ids:
@@ -917,17 +970,18 @@ def fetch_all_metadata(
 
     results: Dict[str, Tuple] = {}
     fetch_status: Dict[str, Dict[str, Any]] = {}
+    api_key_cycle = cycle(assigned_api_keys)
     with ThreadPoolExecutor(max_workers=workers) as executor:
         future_map = {
             executor.submit(
                 fetch_metadata,
                 biosample_id,
-                api_key=api_key,
+                api_key=assigned_key,
                 email=email,
                 persistent_cache=persistent_cache,
-                rate_limiter=rate_limiter,
+                rate_limiter=rate_limiters[assigned_key],
             ): biosample_id
-            for biosample_id in unique_ids
+            for biosample_id, assigned_key in ((biosample_id, next(api_key_cycle)) for biosample_id in unique_ids)
         }
         for future in tqdm(as_completed(future_map), total=len(future_map), desc="Fetching metadata"):
             biosample_id = future_map[future]
@@ -982,7 +1036,14 @@ def standardize_date(date: str) -> str:
 
     match = DATE_YEAR_PATTERN.search(cleaned)
     if not match:
-        return STATUS_UNKNOWN
+        match = SLASH_TWO_DIGIT_YEAR_PATTERN.search(cleaned) or MONTH_TWO_DIGIT_YEAR_PATTERN.search(cleaned)
+        if not match:
+            return STATUS_UNKNOWN
+        current_year = pd.Timestamp.utcnow().year
+        current_two_digit_year = current_year % 100
+        two_digit_year = int(match.group(1))
+        year = 2000 + two_digit_year if two_digit_year <= current_two_digit_year else 1900 + two_digit_year
+        return str(year) if 1900 <= year <= current_year else STATUS_UNKNOWN
 
     year = int(match.group(0))
     current_year = pd.Timestamp.utcnow().year
@@ -1649,6 +1710,8 @@ COUNTRY_MAPPING = {
 }
 
 ALIASES = {
+    "Banglade": "Bangladesh",
+    "Czechia": "Czech Republic",
     "USA": "United States",
     "USSR": "Northern Asia",
     "Korea": "North Korea",
@@ -1661,8 +1724,93 @@ ALIASES = {
     "Republic Of The Congo": "Republic of the Congo",
     "Taiwan, Province Of China": "Taiwan",
     "Hong Kong SAR": "Hong Kong",
+    "United Kingdom Of Great Britain And Northern Ireland": "United Kingdom",
+    "United Kingdom (England, Wales & N. Ireland)": "United Kingdom",
+    "Cote D'Ivoire": "Ivory Coast",
+    "Côte D'Ivoire": "Ivory Coast",
+    "Cape Verde": "Cabo Verde",
+    "Italia": "Italy",
+    "Swaziland": "Eswatini",
+    "Macedonia": "North Macedonia",
+    "State Of Palestine": "Palestine",
+    "Gaza Strip": "Palestine",
+    "West Bank": "Palestine",
+
+    # Common territories in BioSample geo_loc_name values.
+    "Guadeloupe": "Guadeloupe",
+    "Greenland": "Greenland",
+    "Reunion": "Reunion",
+    "Réunion": "Reunion",
+    "Puerto Rico": "Puerto Rico",
+    "New Caledonia": "New Caledonia",
+    "Jersey": "Jersey",
+    "Kosovo": "Kosovo",
+    "Svalbard": "Svalbard",
+    "French Guiana": "French Guiana",
+    "Martinique": "Martinique",
+    "Christmas Island": "Christmas Island",
+    "French Polynesia": "French Polynesia",
+    "Cayman Islands": "Cayman Islands",
+    "Faroe Islands": "Faroe Islands",
+    "Yugoslavia": "Yugoslavia",
+    "Virgin Islands": "Virgin Islands",
+    "Palmyra Atoll": "Palmyra Atoll",
+    "Montserrat": "Montserrat",
+    "American Samoa": "American Samoa",
+    "Curacao": "Curacao",
+    "Curaçao": "Curacao",
+    "Northern Mariana Islands": "Northern Mariana Islands",
+    "Perú": "Peru",
+    "Us": "United States",
+    "Bermuda": "Bermuda",
+    "Micronesia, Federated States Of": "Micronesia",
+    "Macau": "Macau",
+    "Macao": "Macau",
+    "East Timor": "Timor-Leste",
+    "Burma": "Myanmar",
+    "Zaire": "Democratic Republic of the Congo",
+    "Belgian Congo": "Democratic Republic of the Congo",
 
 }
+
+COUNTRY_MAPPING.update({
+    "Antarctica": {"Continent": "Antarctica", "Subcontinent": "Antarctica"},
+    "Guadeloupe": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "Greenland": {"Continent": "North America", "Subcontinent": "Northern America"},
+    "Reunion": {"Continent": "Africa", "Subcontinent": "Eastern Africa"},
+    "Puerto Rico": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "New Caledonia": {"Continent": "Oceania", "Subcontinent": "Melanesia"},
+    "Jersey": {"Continent": "Europe", "Subcontinent": "Northern Europe"},
+    "Kosovo": {"Continent": "Europe", "Subcontinent": "Southern Europe"},
+    "Svalbard": {"Continent": "Europe", "Subcontinent": "Northern Europe"},
+    "French Guiana": {"Continent": "South America", "Subcontinent": "South America"},
+    "Martinique": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "Christmas Island": {"Continent": "Oceania", "Subcontinent": "Australia and New Zealand"},
+    "French Polynesia": {"Continent": "Oceania", "Subcontinent": "Polynesia"},
+    "Cayman Islands": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "Faroe Islands": {"Continent": "Europe", "Subcontinent": "Northern Europe"},
+    "Pacific Ocean": {"Continent": "Marine", "Subcontinent": "Ocean"},
+    "Atlantic Ocean": {"Continent": "Marine", "Subcontinent": "Ocean"},
+    "Indian Ocean": {"Continent": "Marine", "Subcontinent": "Ocean"},
+    "Arctic Ocean": {"Continent": "Marine", "Subcontinent": "Ocean"},
+    "Southern Ocean": {"Continent": "Marine", "Subcontinent": "Ocean"},
+    "Mediterranean Sea": {"Continent": "Marine", "Subcontinent": "Sea"},
+    "Baltic Sea": {"Continent": "Marine", "Subcontinent": "Sea"},
+    "North Sea": {"Continent": "Marine", "Subcontinent": "Sea"},
+    "Tasman Sea": {"Continent": "Marine", "Subcontinent": "Sea"},
+    "Line Islands": {"Continent": "Oceania", "Subcontinent": "Polynesia"},
+    "Yugoslavia": {"Continent": "Europe", "Subcontinent": "Southern Europe"},
+    "Virgin Islands": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "Palmyra Atoll": {"Continent": "Oceania", "Subcontinent": "Polynesia"},
+    "Montserrat": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "American Samoa": {"Continent": "Oceania", "Subcontinent": "Polynesia"},
+    "Curacao": {"Continent": "North America", "Subcontinent": "Caribbean"},
+    "Northern Mariana Islands": {"Continent": "Oceania", "Subcontinent": "Micronesia"},
+    "Bermuda": {"Continent": "North America", "Subcontinent": "Northern America"},
+    "Macau": {"Continent": "Asia", "Subcontinent": "Eastern Asia"},
+    "Timor-Leste": {"Continent": "Asia", "Subcontinent": "South-eastern Asia"},
+    "Myanmar": {"Continent": "Asia", "Subcontinent": "South-eastern Asia"},
+})
 
 def normalize_country_name(country):
     """Normalize country names using aliases and lowercase matching"""
@@ -1674,12 +1822,25 @@ def normalize_country_name(country):
     if country.lower() in MISSING_VALUE_TOKENS:
         return None
     
-    # Check aliases first
+    # Check aliases first, including case-insensitive BioSample variants.
     if country in ALIASES:
         return ALIASES[country]
+    country_lower = country.lower()
+    for alias, canonical in ALIASES.items():
+        if alias.lower() == country_lower:
+            return canonical
+    if country_lower.startswith("united kingdom "):
+        return "United Kingdom"
+    if country_lower.endswith(" usa") or country_lower.endswith(", usa") or country_lower == "us":
+        return "United States"
+    if "," in country:
+        leading = country.split(",", 1)[0].strip()
+        if leading and leading.lower() != country_lower:
+            normalized_leading = normalize_country_name(leading)
+            if normalized_leading in COUNTRY_MAPPING:
+                return normalized_leading
     
     # Try case-insensitive matching with COUNTRY_MAPPING
-    country_lower = country.lower()
     for mapped_country in COUNTRY_MAPPING:
         if mapped_country.lower() == country_lower:
             return mapped_country
@@ -1698,22 +1859,27 @@ def extract_country(geo_location):
 def add_geo_columns(df):
     """Add Continent and Subcontinent columns based on Geographic Location"""
     df = df.copy()
-    # Extract and normalize country names
-    df['Country'] = df['Geographic Location'].apply(extract_country)
+    if "Geographic Location" not in df.columns:
+        df["Geographic Location"] = STATUS_ABSENT
+
+    def derive_country(row):
+        existing = row.get("Country")
+        if not pd.isna(existing) and str(existing).strip().lower() not in MISSING_VALUE_TOKENS:
+            return normalize_country_name(str(existing).split(":", 1)[0].strip())
+        return extract_country(row.get("Geographic Location"))
+
+    df['Country'] = df.apply(derive_country, axis=1)
     
     # Add continent and subcontinent with case-insensitive matching
     def map_geo_region(row, key):
-        if row["Geographic Location"] == STATUS_ABSENT:
+        if pd.isna(row["Country"]) and row["Geographic Location"] == STATUS_ABSENT:
             return STATUS_ABSENT
-        if row["Geographic Location"] == STATUS_UNKNOWN:
+        if pd.isna(row["Country"]) and row["Geographic Location"] == STATUS_UNKNOWN:
             return STATUS_UNKNOWN
         return COUNTRY_MAPPING.get(row["Country"], {}).get(key, STATUS_UNKNOWN)
 
     df['Continent'] = df.apply(lambda row: map_geo_region(row, 'Continent'), axis=1)
     df['Subcontinent'] = df.apply(lambda row: map_geo_region(row, 'Subcontinent'), axis=1)
-    
-    # Drop temporary Country column
-    df = df.drop(columns=['Country'], errors='ignore')
     return df
 
 def build_metadata_parser(*, add_help: bool = True) -> argparse.ArgumentParser:
@@ -1776,12 +1942,14 @@ def run_metadata_pipeline(args: argparse.Namespace) -> None:
     persistent_cache: Optional[MetadataPersistentCache] = None
     start_time = time.monotonic()
     try:
-        api_key = args.api_key or os.getenv("NCBI_API_KEY")
-        effective_sleep = get_effective_sleep(args.sleep, api_key)
-        effective_workers = get_effective_workers(args.workers, api_key)
-        if api_key:
+        api_keys = resolve_ncbi_api_keys(args.api_key)
+        primary_api_key = api_keys[0] if api_keys else None
+        effective_sleep = get_effective_sleep(args.sleep, primary_api_key)
+        effective_workers = get_effective_workers(args.workers, primary_api_key)
+        if api_keys:
             logging.info(
-                "Using NCBI API key with request delay %.2fs and %s workers. The key itself is not logged.",
+                "Using %s NCBI API key(s) with request delay %.2fs and %s workers. Keys are not logged.",
+                len(api_keys),
                 effective_sleep,
                 effective_workers,
             )
@@ -1842,7 +2010,7 @@ def run_metadata_pipeline(args: argparse.Namespace) -> None:
 
         biosample_results, fetch_status = fetch_all_metadata(
             biosample_ids_to_fetch,
-            api_key=api_key,
+            api_key=primary_api_key,
             email=args.email,
             persistent_cache=persistent_cache,
             request_interval=effective_sleep,
@@ -2032,7 +2200,7 @@ def run_metadata_pipeline(args: argparse.Namespace) -> None:
         filters = {
             "ANI filtering": "disabled" if "all" in args.ani else ", ".join(args.ani),
             "CheckM threshold": "disabled" if args.checkm is None else str(args.checkm),
-            "NCBI API key used": "yes" if api_key else "no",
+            "NCBI API key used": "yes" if api_keys else "no",
             "NCBI request delay": f"{effective_sleep:.2f} seconds",
             "Metadata workers": str(effective_workers),
             "Sequence download requested": "yes" if args.seq else "no",

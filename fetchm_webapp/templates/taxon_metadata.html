@@ -15,7 +15,7 @@
     </div>
   </section>
 
-  <nav class="admin-nav metadata-nav">
+  <nav class="metadata-tabbar">
     {% for key, item in metadata_sections.items() %}
       <a class="{% if active_section == key %}active{% endif %}" href="{{ url_for('taxon_metadata_section', species_id=species.id, section=key) }}">{{ item.label }}</a>
     {% endfor %}

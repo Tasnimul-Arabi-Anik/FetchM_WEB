@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import csv
+import difflib
 import fcntl
 import json
 import logging
@@ -16,15 +17,18 @@ import smtplib
 import statistics
 import subprocess
 import time
+import threading
 import uuid
 import zipfile
-from collections import Counter
+from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
-from io import BytesIO
+from functools import lru_cache
+from io import BytesIO, StringIO
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Mapping
 
 import numpy as np
 import pandas as pd
@@ -45,23 +49,30 @@ SPECIES_DIR = DATA_DIR / "species"
 METADATA_DIR = DATA_DIR / "metadata"
 LOCKS_DIR = DATA_DIR / "locks"
 DB_PATH = DATA_DIR / "fetchm_webapp.db"
+STANDARDIZATION_DIR = BASE_DIR / "standardization"
 ENV_FILE = BASE_DIR / ".env"
 LOG_FILE_NAME = "job.log"
 UPLOADS_DIR_NAME = "uploads"
 OUTPUTS_DIR_NAME = "outputs"
 from lib.fetchm_runtime.metadata import (
+    COUNTRY_MAPPING,
+    MISSING_VALUE_TOKENS,
+    RequestRateLimiter,
     add_geo_columns,
     extract_country,
     fetch_metadata,
     filter_data,
+    get_effective_sleep,
     load_data,
+    normalize_country_name,
     save_clean_data,
     save_summary,
     standardize_date,
     standardize_host,
+    standardize_isolation_source,
     standardize_location,
 )
-from lib.fetchm_runtime.sequence import DEFAULT_DOWNLOAD_WORKERS, run_sequence_downloads
+from lib.fetchm_runtime.sequence import DEFAULT_DOWNLOAD_WORKERS, SequenceDownloadCancelled, run_sequence_downloads
 RESET_TOKEN_TTL_MINUTES = 60
 PUBLIC_ENDPOINTS = {"login", "register", "forgot_password", "reset_password", "static"}
 
@@ -95,6 +106,30 @@ SPECIES_MAX_AUTO_RETRIES = max(0, int(os.environ.get("FETCHM_WEBAPP_SPECIES_MAX_
 METADATA_REFRESH_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_METADATA_REFRESH_HOURS", "168")))
 METADATA_MAX_AUTO_RETRIES = max(0, int(os.environ.get("FETCHM_WEBAPP_METADATA_MAX_AUTO_RETRIES", "3")))
 METADATA_SLEEP_SECONDS = max(0.0, float(os.environ.get("FETCHM_WEBAPP_METADATA_SLEEP_SECONDS", "0.2")))
+METADATA_FETCH_WORKERS = max(1, int(os.environ.get("FETCHM_WEBAPP_METADATA_FETCH_WORKERS", "1")))
+METADATA_FETCH_BATCH_SIZE = max(
+    1,
+    int(
+        os.environ.get(
+            "FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE",
+            str(max(1, METADATA_FETCH_WORKERS * 4)),
+        )
+    ),
+)
+METADATA_CHUNK_MIN_ROWS = max(1, int(os.environ.get("FETCHM_WEBAPP_METADATA_CHUNK_MIN_ROWS", "50000")))
+METADATA_CHUNK_SIZE = max(1, int(os.environ.get("FETCHM_WEBAPP_METADATA_CHUNK_SIZE", "5000")))
+METADATA_CHUNK_PROGRESS_BUFFER_ROWS = max(
+    0,
+    int(os.environ.get("FETCHM_WEBAPP_METADATA_CHUNK_PROGRESS_BUFFER_ROWS", "20000")),
+)
+STANDARDIZATION_CHUNK_MIN_ROWS = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_CHUNK_MIN_ROWS", "50000")),
+)
+STANDARDIZATION_CHUNK_SIZE = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_CHUNK_SIZE", "10000")),
+)
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_NEGATIVE_CACHE_HOURS", "168"))
@@ -258,6 +293,69 @@ METADATA_POLICIES = {
     "daily": {"label": "Daily", "hours": 24},
 }
 
+
+def parse_ncbi_api_keys() -> list[str]:
+    keys: list[str] = []
+    seen: set[str] = set()
+    raw_candidates = [
+        os.environ.get("NCBI_API_KEY", ""),
+        os.environ.get("NCBI_API_KEY_SECONDARY", ""),
+        os.environ.get("FETCHM_WEBAPP_NCBI_API_KEYS", ""),
+        os.environ.get("NCBI_API_KEYS", ""),
+    ]
+    for raw in raw_candidates:
+        for part in str(raw or "").replace("\n", ",").split(","):
+            key = part.strip()
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            keys.append(key)
+    return keys
+
+
+NCBI_API_KEYS = parse_ncbi_api_keys()
+_ncbi_api_key_lock = threading.Lock()
+_ncbi_api_key_index = 0
+_ncbi_rate_limiter_lock = threading.Lock()
+_ncbi_rate_limiters: dict[str | None, RequestRateLimiter] = {}
+
+
+def next_ncbi_api_key() -> str | None:
+    if not NCBI_API_KEYS:
+        return None
+    candidates: list[tuple[float, float, int, str]] = []
+    now = time.monotonic()
+    with _ncbi_api_key_lock:
+        global _ncbi_api_key_index
+        start_index = _ncbi_api_key_index
+        for offset, key in enumerate(NCBI_API_KEYS):
+            rotated_index = (start_index + offset) % len(NCBI_API_KEYS)
+            limiter = get_ncbi_rate_limiter(key)
+            with limiter.lock:
+                next_allowed_time = limiter.next_allowed_time
+                interval_seconds = limiter.interval_seconds
+            cooling_delay = max(0.0, next_allowed_time - now)
+            candidates.append((cooling_delay, interval_seconds, rotated_index, key))
+        candidates.sort(key=lambda item: (item[0], item[1], item[2]))
+        selected_key = candidates[0][3]
+        selected_index = NCBI_API_KEYS.index(selected_key)
+        _ncbi_api_key_index = selected_index + 1
+        return selected_key
+
+
+def get_ncbi_rate_limiter(api_key: str | None) -> RequestRateLimiter:
+    limiter_key = api_key or "__no_key__"
+    with _ncbi_rate_limiter_lock:
+        limiter = _ncbi_rate_limiters.get(limiter_key)
+        if limiter is not None:
+            return limiter
+        interval_seconds = get_effective_sleep(None, api_key)
+        if METADATA_SLEEP_SECONDS > 0:
+            interval_seconds = min(interval_seconds, METADATA_SLEEP_SECONDS) if api_key else METADATA_SLEEP_SECONDS
+        limiter = RequestRateLimiter(interval_seconds)
+        _ncbi_rate_limiters[limiter_key] = limiter
+        return limiter
+
 SPECIES_TSV_COLUMNS = [
     "Assembly Accession",
     "Assembly Name",
@@ -282,6 +380,15 @@ SPECIES_TSV_COLUMNS = [
     "Annotation Count Gene Pseudogene",
     "CheckM completeness",
     "CheckM contamination",
+]
+
+ASSEMBLY_FEATURE_COLUMNS = [
+    "Assembly Level",
+    "Assembly Status",
+    "Assembly Stats Number of Contigs",
+    "Assembly Stats Number of Scaffolds",
+    "Assembly Stats Contig N50",
+    "Assembly Stats Scaffold N50",
 ]
 
 
@@ -340,6 +447,16 @@ class SpeciesRecord:
     metadata_claimed_by: str | None = None
     metadata_claimed_at: str | None = None
     metadata_source_taxon_id: int | None = None
+    metadata_progress_total: int = 0
+    metadata_progress_completed: int = 0
+    metadata_progress_current_accession: str | None = None
+    metadata_progress_updated_at: str | None = None
+    assembly_backfill_status: str = "idle"
+    assembly_backfill_requested_at: str | None = None
+    assembly_backfill_claimed_by: str | None = None
+    assembly_backfill_claimed_at: str | None = None
+    assembly_backfill_last_built_at: str | None = None
+    assembly_backfill_error: str | None = None
 
 
 @dataclass
@@ -398,8 +515,11 @@ def ensure_directories() -> None:
 
 
 def get_sqlite_connection() -> sqlite3.Connection:
-    connection = sqlite3.connect(DB_PATH, timeout=30)
+    connection = sqlite3.connect(DB_PATH, timeout=120)
     connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA busy_timeout = 120000")
+    connection.execute("PRAGMA journal_mode = WAL")
+    connection.execute("PRAGMA synchronous = NORMAL")
     return connection
 
 
@@ -496,7 +616,13 @@ def init_db() -> None:
             metadata_first_claimed_at TEXT,
             metadata_claimed_by TEXT,
             metadata_claimed_at TEXT,
-            metadata_source_taxon_id INTEGER
+            metadata_source_taxon_id INTEGER,
+            assembly_backfill_status TEXT NOT NULL DEFAULT 'idle',
+            assembly_backfill_requested_at TEXT,
+            assembly_backfill_claimed_by TEXT,
+            assembly_backfill_claimed_at TEXT,
+            assembly_backfill_last_built_at TEXT,
+            assembly_backfill_error TEXT
         );
 
         CREATE INDEX IF NOT EXISTS idx_species_status_updated ON species (status, updated_at);
@@ -576,6 +702,86 @@ def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_assembly_metadata_biosample
         ON assembly_metadata (biosample_accession);
 
+        CREATE TABLE IF NOT EXISTS metadata_species_search (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            species_name TEXT NOT NULL,
+            search_name TEXT NOT NULL,
+            genome_count INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (source_taxon_id) REFERENCES species (id),
+            UNIQUE(source_taxon_id, species_name)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_species_search_name
+        ON metadata_species_search (search_name);
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_species_search_source
+        ON metadata_species_search (source_taxon_id, genome_count DESC);
+
+        CREATE TABLE IF NOT EXISTS metadata_chunks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            species_id INTEGER NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            start_offset INTEGER NOT NULL,
+            end_offset INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            claimed_by TEXT,
+            claimed_at TEXT,
+            total_rows INTEGER NOT NULL DEFAULT 0,
+            completed_rows INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (species_id) REFERENCES species (id),
+            UNIQUE(species_id, chunk_index)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_chunks_status
+        ON metadata_chunks (status, species_id, chunk_index);
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_chunks_species
+        ON metadata_chunks (species_id, status);
+
+        CREATE TABLE IF NOT EXISTS standardization_rules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_column TEXT NOT NULL,
+            original_value TEXT NOT NULL,
+            normalized_value TEXT NOT NULL,
+            category TEXT NOT NULL,
+            destination TEXT NOT NULL,
+            proposed_value TEXT NOT NULL,
+            ontology_id TEXT,
+            method TEXT NOT NULL,
+            confidence TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'approved',
+            approved_by TEXT,
+            approved_at TEXT NOT NULL,
+            note TEXT,
+            UNIQUE(source_column, normalized_value, destination)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_standardization_rules_status
+        ON standardization_rules (status, destination);
+
+        CREATE TABLE IF NOT EXISTS standardization_refresh_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            species_id INTEGER NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending',
+            requested_at TEXT NOT NULL,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            total_rows INTEGER NOT NULL DEFAULT 0,
+            updated_rows INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            FOREIGN KEY (species_id) REFERENCES species (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_standardization_refresh_tasks_status
+        ON standardization_refresh_tasks (status, requested_at);
+
         CREATE TABLE IF NOT EXISTS problem_reports (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
@@ -600,7 +806,10 @@ def init_db() -> None:
     db.commit()
     ensure_job_columns(db)
     ensure_species_columns(db)
+    ensure_metadata_chunk_table(db)
+    ensure_standardization_refresh_table(db)
     ensure_discovery_scope_columns(db)
+    load_approved_standardization_rules_into_memory(db)
     migrate_legacy_jobs(db)
     migrate_legacy_species(db)
     sync_discovery_scopes_from_env(db)
@@ -743,8 +952,7 @@ def record_taxon_sync_event(
 def fetch_biosample_metadata_records(biosample_ids: list[str]) -> dict[str, dict[str, Any]]:
     cached, to_fetch = load_cached_biosample_records(biosample_ids)
     fetched: dict[str, tuple[dict[str, Any], bool]] = {}
-    for biosample_id in to_fetch:
-        record = fetch_metadata_record(biosample_id, METADATA_SLEEP_SECONDS)
+    for biosample_id, record in fetch_uncached_biosample_records(to_fetch).items():
         fetched[biosample_id] = (record, biosample_record_has_data(record))
     save_biosample_cache_records(fetched)
     records = dict(cached)
@@ -753,14 +961,44 @@ def fetch_biosample_metadata_records(biosample_ids: list[str]) -> dict[str, dict
     return records
 
 
+def fetch_uncached_biosample_records(biosample_ids: list[str]) -> dict[str, dict[str, Any]]:
+    unique_ids: list[str] = []
+    seen_ids: set[str] = set()
+    for biosample_id in biosample_ids:
+        if not biosample_id or biosample_id in seen_ids:
+            continue
+        unique_ids.append(biosample_id)
+        seen_ids.add(biosample_id)
+
+    if not unique_ids:
+        return {}
+    if METADATA_FETCH_WORKERS <= 1 or len(unique_ids) == 1:
+        return {
+            biosample_id: fetch_metadata_record(biosample_id, METADATA_SLEEP_SECONDS)
+            for biosample_id in unique_ids
+        }
+
+    records: dict[str, dict[str, Any]] = {}
+    with ThreadPoolExecutor(max_workers=METADATA_FETCH_WORKERS) as executor:
+        future_map = {
+            executor.submit(fetch_metadata_record, biosample_id, METADATA_SLEEP_SECONDS): biosample_id
+            for biosample_id in unique_ids
+        }
+        for future in as_completed(future_map):
+            biosample_id = future_map[future]
+            records[biosample_id] = future.result()
+    return records
+
+
 def fetch_metadata_record(biosample_id: str, sleep_time: float) -> dict[str, Any]:
     del sleep_time
+    api_key = next_ncbi_api_key()
     metadata_tuple, status_info = fetch_metadata(
         biosample_id,
-        api_key=os.environ.get("NCBI_API_KEY"),
+        api_key=api_key,
         email=None,
         persistent_cache=None,
-        rate_limiter=None,
+        rate_limiter=get_ncbi_rate_limiter(api_key),
     )
     isolation_source, collection_date, geo_location, host = metadata_tuple
     record: dict[str, Any] = {
@@ -807,6 +1045,2942 @@ def normalize_metadata_row_payload(row: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+PRIMARY_METADATA_ALIASES = {
+    "Geographic Location": [
+        "BioSample GEO LOC Name",
+        "BioSample Geographic Location Country AND OR SEA",
+        "BioSample Geographic Location Country AND OR SEA Region",
+        "BioSample Country",
+    ],
+    "Host": [
+        "BioSample Host",
+        "BioSample Specific Host",
+        "BioSample NAT Host",
+        "BioSample LAB Host",
+        "BioSample Host Common Name",
+        "BioSample Common Name",
+    ],
+    "Isolation Source": [
+        "BioSample Isolation Source",
+        "BioSample Isolation Site",
+        "BioSample Source Name",
+        "BioSample Source Type",
+        "BioSample Source Material ID",
+        "BioSample Source MAT ID",
+        "BioSample ENV Material",
+        "BioSample Environment Material",
+    ],
+    "Collection Date": [
+        "BioSample Collection Date",
+        "BioSample Collection Timestamp",
+        "BioSample Colection Date",
+        "BioSample Collection Date Remark",
+        "BioSample Sampling Event Date Time Start",
+        "BioSample Date Host Collection",
+        "BioSample Isolation Date",
+        "BioSample Harvest Date",
+        "BioSample Specimen Collection Date",
+        "BioSample DNA Isolation Date",
+    ],
+    "Sample Type": [
+        "BioSample Sample Type",
+        "BioSample Source Type",
+        "BioSample Package",
+        "BioSample ENV Package",
+    ],
+    "Host Disease": [
+        "BioSample Host Disease",
+        "BioSample Disease",
+        "BioSample Diseases",
+        "BioSample Study Disease",
+        "BioSample Ifsac Category",
+    ],
+    "Host Health State": [
+        "BioSample Host Health State",
+        "BioSample Health State",
+    ],
+    "Environment (Broad Scale)": [
+        "BioSample ENV Broad Scale",
+        "BioSample Environment Biome",
+        "BioSample ENV Biome",
+        "BioSample Biome",
+        "BioSample Metagenome Source",
+        "BioSample Environment",
+    ],
+    "Environment (Local Scale)": [
+        "BioSample ENV Local Scale",
+        "BioSample Environment Feature",
+        "BioSample ENV Feature",
+        "BioSample Feature",
+        "BioSample Coll Site GEO Feat",
+    ],
+    "Environment Medium": [
+        "BioSample ENV Medium",
+        "BioSample Environment Material",
+        "BioSample ENV Material",
+        "BioSample Material",
+    ],
+    "Lab Host": ["BioSample LAB Host"],
+    "Isolation Site": [
+        "BioSample Isolation Site",
+        "BioSample Body Site",
+        "BioSample Organism Part",
+        "BioSample Tissue",
+        "BioSample Host Tissue Sampled",
+    ],
+    "Latitude/Longitude": ["BioSample LAT LON"],
+}
+
+HOST_STANDARDIZATION_COLUMNS = [
+    "Host_Original",
+    "Host_Cleaned",
+    "Host_SD",
+    "Host_TaxID",
+    "Host_Rank",
+    "Host_Superkingdom",
+    "Host_Phylum",
+    "Host_Class",
+    "Host_Order",
+    "Host_Family",
+    "Host_Genus",
+    "Host_Species",
+    "Host_Common_Name",
+    "Host_Context_SD",
+    "Host_Age_Group_SD",
+    "Host_Production_Context_SD",
+    "Host_Anatomical_Site_SD",
+    "Host_Match_Method",
+    "Host_Confidence",
+    "Host_Review_Status",
+    "Host_SD_Method",
+    "Host_SD_Confidence",
+]
+
+SECONDARY_STANDARDIZATION_COLUMNS = [
+    "Isolation_Source_SD",
+    "Isolation_Source_SD_Broad",
+    "Isolation_Source_SD_Detail",
+    "Isolation_Source_SD_Method",
+    "Isolation_Source_Ontology_ID",
+    "Environment_Medium_SD",
+    "Environment_Medium_SD_Broad",
+    "Environment_Medium_SD_Detail",
+    "Environment_Medium_SD_Method",
+    "Environment_Medium_Ontology_ID",
+    "Sample_Type_SD",
+    "Sample_Type_SD_Broad",
+    "Sample_Type_SD_Detail",
+    "Sample_Type_SD_Method",
+    "Sample_Type_Ontology_ID",
+]
+
+HOST_SYNONYMS = {
+    "human": ("Homo sapiens", "9606"),
+    "homosapiens": ("Homo sapiens", "9606"),
+    "homo sapiens": ("Homo sapiens", "9606"),
+    "h sapiens": ("Homo sapiens", "9606"),
+    "h. sapiens": ("Homo sapiens", "9606"),
+    "man": ("Homo sapiens", "9606"),
+    "woman": ("Homo sapiens", "9606"),
+    "mouse": ("Mus musculus", "10090"),
+    "murine": ("Mus musculus", "10090"),
+    "mus musculus": ("Mus musculus", "10090"),
+    "cattle": ("Bos taurus", "9913"),
+    "cow": ("Bos taurus", "9913"),
+    "bovine": ("Bos taurus", "9913"),
+    "bos taurus": ("Bos taurus", "9913"),
+    "camel": ("Camelus dromedarius", "9838"),
+    "dromedary": ("Camelus dromedarius", "9838"),
+    "dromedary camel": ("Camelus dromedarius", "9838"),
+    "camelus dromedarius": ("Camelus dromedarius", "9838"),
+    "pig": ("Sus scrofa", "9823"),
+    "pigs": ("Sus scrofa", "9823"),
+    "swine": ("Sus scrofa", "9823"),
+    "porcine": ("Sus scrofa", "9823"),
+    "sus scrofa": ("Sus scrofa", "9823"),
+    "wild boar": ("Sus scrofa", "9823"),
+    "domestic pig": ("Sus scrofa domesticus", "9825"),
+    "sus scrofa domesticus": ("Sus scrofa domesticus", "9825"),
+    "sus scrofa domestica": ("Sus scrofa domesticus", "9825"),
+    "sus scofa domesticus": ("Sus scrofa domesticus", "9825"),
+    "chicken": ("Gallus gallus", "9031"),
+    "broiler": ("Gallus gallus", "9031"),
+    "gallus gallus": ("Gallus gallus", "9031"),
+    "dog": ("Canis lupus familiaris", "9615"),
+    "dogs": ("Canis lupus familiaris", "9615"),
+    "canine": ("Canis lupus familiaris", "9615"),
+    "canis lupus": ("Canis lupus", "9612"),
+    "canis familiaris": ("Canis lupus familiaris", "9615"),
+    "canis lupus familiaris": ("Canis lupus familiaris", "9615"),
+    "cat": ("Felis catus", "9685"),
+    "cats": ("Felis catus", "9685"),
+    "feline": ("Felis catus", "9685"),
+    "felis catus": ("Felis catus", "9685"),
+    "turkey": ("Meleagris gallopavo", "9103"),
+    "meleagris gallopavo": ("Meleagris gallopavo", "9103"),
+    "horse": ("Equus caballus", "9796"),
+    "equine": ("Equus caballus", "9796"),
+    "equus caballus": ("Equus caballus", "9796"),
+    "equus ferus caballus": ("Equus caballus", "9796"),
+    "tibetan ass": ("Equus kiang", "94398"),
+    "tibetan wild ass": ("Equus kiang", "94398"),
+    "equus kiang": ("Equus kiang", "94398"),
+    "sheep": ("Ovis aries", "9940"),
+    "ovine": ("Ovis aries", "9940"),
+    "ovis aries": ("Ovis aries", "9940"),
+    "goat": ("Capra hircus", "9925"),
+    "caprine": ("Capra hircus", "9925"),
+    "capra hircus": ("Capra hircus", "9925"),
+    "capra aegagrus hircus": ("Capra hircus", "9925"),
+    "yak": ("Bos grunniens", "30521"),
+    "tibetan yak": ("Bos grunniens", "30521"),
+    "bos grunniens": ("Bos grunniens", "30521"),
+    "tibetan antelope": ("Pantholops hodgsonii", "59538"),
+    "pantholops hodgsonii": ("Pantholops hodgsonii", "59538"),
+    "duck": ("Anas platyrhynchos", "8839"),
+    "anas platyrhynchos": ("Anas platyrhynchos", "8839"),
+    "goose": ("Anser anser", "8843"),
+    "anser anser": ("Anser anser", "8843"),
+    "salmo salar": ("Salmo salar", "8030"),
+    "atlantic salmon": ("Salmo salar", "8030"),
+    "oncorhynchus mykiss": ("Oncorhynchus mykiss", "8022"),
+    "rainbow trout": ("Oncorhynchus mykiss", "8022"),
+    "rabbit": ("Oryctolagus cuniculus", "9986"),
+    "oryctolagus cuniculus": ("Oryctolagus cuniculus", "9986"),
+    "rat": ("Rattus norvegicus", "10116"),
+    "rattus norvegicus": ("Rattus norvegicus", "10116"),
+    "rattus flavipectus": ("Rattus flavipectus", "69074"),
+    "sciurus vulgaris": ("Sciurus vulgaris", "55149"),
+    "red squirrel": ("Sciurus vulgaris", "55149"),
+    "rhesus macaque": ("Macaca mulatta", "9544"),
+    "macaca mulatta": ("Macaca mulatta", "9544"),
+    "macaca fascicularis": ("Macaca fascicularis", "9541"),
+    "honey bee": ("Apis mellifera", "7460"),
+    "honeybee": ("Apis mellifera", "7460"),
+    "apis mellifera": ("Apis mellifera", "7460"),
+    "escherichia coli": ("Escherichia coli", "562"),
+    "e coli": ("Escherichia coli", "562"),
+    "e. coli": ("Escherichia coli", "562"),
+    "salmonella enterica": ("Salmonella enterica", "28901"),
+    "campylobacter jejuni": ("Campylobacter jejuni", "197"),
+    "streptococcus pneumoniae": ("Streptococcus pneumoniae", "1313"),
+    "saccharomyces cerevisiae": ("Saccharomyces cerevisiae", "4932"),
+    "bakers yeast": ("Saccharomyces cerevisiae", "4932"),
+    "baker s yeast": ("Saccharomyces cerevisiae", "4932"),
+    "rice": ("Oryza sativa", "4530"),
+    "oryza sativa": ("Oryza sativa", "4530"),
+    "tomato": ("Solanum lycopersicum", "4081"),
+    "solanum lycopersicum": ("Solanum lycopersicum", "4081"),
+    "potato": ("Solanum tuberosum", "4113"),
+    "solanum tuberosum": ("Solanum tuberosum", "4113"),
+    "arabidopsis": ("Arabidopsis thaliana", "3702"),
+    "arabidopsis thaliana": ("Arabidopsis thaliana", "3702"),
+    "corn": ("Zea mays", "4577"),
+    "maize": ("Zea mays", "4577"),
+    "zea mays": ("Zea mays", "4577"),
+    "soybean": ("Glycine max", "3847"),
+    "glycine max": ("Glycine max", "3847"),
+    "trifolium repens": ("Trifolium repens", "3899"),
+    "white clover": ("Trifolium repens", "3899"),
+    "medicago sativa": ("Medicago sativa", "3879"),
+    "alfalfa": ("Medicago sativa", "3879"),
+    "vitis vinifera": ("Vitis vinifera", "29760"),
+    "grape": ("Vitis vinifera", "29760"),
+    "nicotiana tabacum": ("Nicotiana tabacum", "4097"),
+    "tobacco": ("Nicotiana tabacum", "4097"),
+    "malus domestica": ("Malus domestica", "3750"),
+    "apple": ("Malus domestica", "3750"),
+    "pistacia vera": ("Pistacia vera", "55513"),
+    "pistachio": ("Pistacia vera", "55513"),
+    "phaseolus vulgaris": ("Phaseolus vulgaris", "3885"),
+    "common bean": ("Phaseolus vulgaris", "3885"),
+    "brassica oleracea": ("Brassica oleracea", "3712"),
+    "allium cepa": ("Allium cepa", "4679"),
+    "onion": ("Allium cepa", "4679"),
+    "cicer arietinum": ("Cicer arietinum", "3827"),
+    "chickpea": ("Cicer arietinum", "3827"),
+    "triticum aestivum": ("Triticum aestivum", "4565"),
+    "wheat": ("Triticum aestivum", "4565"),
+    "citrus sinensis": ("Citrus sinensis", "2711"),
+    "orange": ("Citrus sinensis", "2711"),
+    "citrus": ("Citrus", "2706"),
+    "macrocystis pyrifera": ("Macrocystis pyrifera", "35122"),
+    "giant kelp": ("Macrocystis pyrifera", "35122"),
+    "chroicocephalus novaehollandiae": ("Chroicocephalus novaehollandiae", "2547444"),
+    "lepus europaeus": ("Lepus europaeus", "9983"),
+    "european hare": ("Lepus europaeus", "9983"),
+    "capsicum annuum": ("Capsicum annuum", "4072"),
+    "sweet pepper": ("Capsicum annuum", "4072"),
+    "penaeus vannamei": ("Penaeus vannamei", "6689"),
+    "litopenaeus vannamei": ("Penaeus vannamei", "6689"),
+    "white shrimp": ("Penaeus vannamei", "6689"),
+    "pacific white shrimp": ("Penaeus vannamei", "6689"),
+    "columba livia": ("Columba livia", "8932"),
+    "pigeon": ("Columba livia", "8932"),
+    "rock pigeon": ("Columba livia", "8932"),
+    "domestic pigeon": ("Columba livia", "8932"),
+    "lens culinaris": ("Lens culinaris", "3864"),
+    "lentil": ("Lens culinaris", "3864"),
+    "zostera marina": ("Zostera marina", "29655"),
+    "prunus avium": ("Prunus avium", "42229"),
+    "sweet cherry": ("Prunus avium", "42229"),
+    "cervus canadensis": ("Cervus canadensis", "1574408"),
+    "wapiti": ("Cervus canadensis", "1574408"),
+    "cetonia aurata": ("Cetonia aurata", "290679"),
+    "andrias davidianus": ("Andrias davidianus", "141262"),
+    "chinese giant salamander": ("Andrias davidianus", "141262"),
+    "ciconia ciconia": ("Ciconia ciconia", "8928"),
+    "white stork": ("Ciconia ciconia", "8928"),
+    "agama agama": ("Agama agama", "103336"),
+    "oreochromis niloticus": ("Oreochromis niloticus", "8128"),
+    "nile tilapia": ("Oreochromis niloticus", "8128"),
+    "platygyra acuta": ("Platygyra acuta", "983579"),
+    "oulastrea crispata": ("Oulastrea crispata", "154329"),
+    "magallana gigas": ("Magallana gigas", "29159"),
+    "crassostrea gigas": ("Magallana gigas", "29159"),
+    "pacific oyster": ("Magallana gigas", "29159"),
+    "procyon lotor": ("Procyon lotor", "9654"),
+    "raccoon": ("Procyon lotor", "9654"),
+    "enhydra lutris nereis": ("Enhydra lutris nereis", "1049777"),
+    "drosophila melanogaster": ("Drosophila melanogaster", "7227"),
+    "fruit fly": ("Drosophila melanogaster", "7227"),
+    "hydropotes inermis": ("Hydropotes inermis", "9883"),
+    "water deer": ("Hydropotes inermis", "9883"),
+    "odocoileus virginianus": ("Odocoileus virginianus", "9874"),
+    "white tailed deer": ("Odocoileus virginianus", "9874"),
+    "bubalus bubalis": ("Bubalus bubalis", "89462"),
+    "water buffalo": ("Bubalus bubalis", "89462"),
+    "vicugna pacos": ("Vicugna pacos", "30538"),
+    "alpaca": ("Vicugna pacos", "30538"),
+    "ursus americanus": ("Ursus americanus", "9643"),
+    "american black bear": ("Ursus americanus", "9643"),
+    "crassostrea virginica": ("Crassostrea virginica", "6565"),
+    "eastern oyster": ("Crassostrea virginica", "6565"),
+    "stomoxys": ("Stomoxys", "35569"),
+    "skeletonema costatum": ("Skeletonema costatum", "2843"),
+    "vicia sativa": ("Vicia sativa", "3908"),
+    "common vetch": ("Vicia sativa", "3908"),
+}
+
+HOST_CONTEXT_SYNONYMS = {
+    "patient": ("Homo sapiens", "9606"),
+    "human patient": ("Homo sapiens", "9606"),
+    "human listeriosis": ("Homo sapiens", "9606"),
+    "healthy people": ("Homo sapiens", "9606"),
+    "non hospitalized person": ("Homo sapiens", "9606"),
+    "hospital patients": ("Homo sapiens", "9606"),
+    "infant": ("Homo sapiens", "9606"),
+    "infants": ("Homo sapiens", "9606"),
+    "child": ("Homo sapiens", "9606"),
+    "adult": ("Homo sapiens", "9606"),
+    "homo": ("Homo sapiens", "9606"),
+    "male": ("Homo sapiens", "9606"),
+    "female": ("Homo sapiens", "9606"),
+    "mother": ("Homo sapiens", "9606"),
+    "neonate": ("Homo sapiens", "9606"),
+    "calf": ("Bos taurus", "9913"),
+    "calves": ("Bos taurus", "9913"),
+    "holstein": ("Bos taurus", "9913"),
+    "tibetan sheep": ("Ovis aries", "9940"),
+    "dairy cow": ("Bos taurus", "9913"),
+    "steer": ("Bos taurus", "9913"),
+    "heifer": ("Bos taurus", "9913"),
+    "young chicken": ("Gallus gallus", "9031"),
+    "chickens": ("Gallus gallus", "9031"),
+    "young turkey": ("Meleagris gallopavo", "9103"),
+}
+
+HOST_BROAD_SYNONYMS = {
+    "avian": ("Aves", "8782"),
+    "aves": ("Aves", "8782"),
+    "poultry": ("Aves", "8782"),
+    "fish": ("Actinopterygii", "7898"),
+    "fly": ("Diptera", "7147"),
+    "flies": ("Diptera", "7147"),
+    "mosquito": ("Culicidae", "7157"),
+    "mosquitoes": ("Culicidae", "7157"),
+    "crow": ("Corvus", "30420"),
+    "gull": ("Laridae", "8911"),
+    "blue mussel": ("Mytilus edulis complex", "6579"),
+    "oyster": ("Ostreidae", "6563"),
+    "oysters": ("Ostreidae", "6563"),
+    "rodent": ("Rodentia", "9989"),
+    "deer": ("Cervidae", "9850"),
+    "bovinae": ("Bovinae", "27592"),
+    "hedgehog": ("Erinaceidae", "9363"),
+    "hedgehogs": ("Erinaceidae", "9363"),
+    "animal": ("Metazoa", "33208"),
+    "pepper": ("Capsicum", "4071"),
+}
+
+# Keep substring matching limited to curated aliases. Large TaxonKit imports are
+# exact-match rules; scanning them as substring regexes makes refreshes slow and
+# can over-match scientific names embedded in free text.
+HOST_SUBSTRING_SYNONYMS = dict(HOST_SYNONYMS)
+
+SAMPLE_TYPE_SYNONYMS = {
+    "blood": "blood",
+    "feces": "feces/stool",
+    "faeces": "feces/stool",
+    "fecal": "feces/stool",
+    "faecal": "feces/stool",
+    "stool": "feces/stool",
+    "urine": "urine",
+    "sputum": "sputum",
+    "saliva": "saliva",
+    "swab": "swab",
+    "stool swab": "fecal/stool swab",
+    "fecal swab": "fecal/stool swab",
+    "faecal swab": "fecal/stool swab",
+    "rectal swab": "rectal swab",
+    "rectum swab": "rectal swab",
+    "swab rectum": "rectal swab",
+    "stool/rectal swab": "rectal swab",
+    "rectal swab/stool": "rectal swab",
+    "anal swab": "perianal/anal swab",
+    "perianal swab": "perianal/anal swab",
+    "perirectal swab": "perianal/anal swab",
+    "nasal swab": "nasal swab",
+    "nose swab": "nasal swab",
+    "np swab": "nasopharyngeal swab",
+    "nasopharyngeal swab": "nasopharyngeal swab",
+    "oropharyngeal swab": "oropharyngeal swab",
+    "throat swab": "throat swab",
+    "wound swab": "wound swab",
+    "wound skin swab": "wound/skin swab",
+    "swab wound": "wound swab",
+    "swab wound": "wound swab",
+    "swab_wound": "wound swab",
+    "pus swab": "wound/pus swab",
+    "pus wound swab": "wound/pus swab",
+    "oral swab": "oral swab",
+    "tonsil swab": "tonsil swab",
+    "sinus swab": "sinus swab",
+    "patient sinus swab": "sinus swab",
+    "intrauterine swab": "intrauterine swab",
+    "airsac swab": "air sac swab",
+    "vaginal swab": "vaginal swab",
+    "urethral swab": "urethral swab",
+    "cloacal swab": "cloacal swab",
+    "skin swab": "skin swab",
+    "ear swab": "ear swab",
+    "eye swab": "eye swab",
+    "surveillance swab": "surveillance swab",
+    "screening swab": "surveillance swab",
+    "body swab": "body swab",
+    "environmental swab": "environmental swab",
+    "environmental swab sponge": "environmental swab",
+    "food contact surface": "food-contact surface",
+    "food-contact surface": "food-contact surface",
+    "non food contact surface": "non-food-contact surface",
+    "non-food-contact surface": "non-food-contact surface",
+    "environmental non food contact surface": "non-food-contact surface",
+    "environmental food contact surface": "food-contact surface",
+    "carcass swab": "carcass swab",
+    "brisket swab": "carcass swab",
+    "rump swab": "carcass swab",
+    "drag swab": "drag swab",
+    "chicken drag swab": "drag swab",
+    "hatchery swab": "hatchery swab",
+    "food": "food",
+    "food product": "food product",
+    "food products": "food product",
+    "food source": "food product",
+    "food processing environment": "food processing environment",
+    "food production environment": "food processing environment",
+    "food producing environment": "food processing environment",
+    "food processing facility": "food processing environment",
+    "food industry environment": "food processing environment",
+    "food producing environment surface": "food processing environment",
+    "ready to eat food": "ready-to-eat food",
+    "rte food": "ready-to-eat food",
+    "finished rte food product dairy": "dairy food",
+    "dairy food": "dairy food",
+    "pet food": "pet food",
+    "finished pet food": "pet food",
+    "raw pet food": "pet food",
+    "frozen raw pet food": "pet food",
+    "fermented food": "fermented food",
+    "meat": "meat",
+    "seafood": "seafood",
+    "milk": "milk",
+    "dairy milk": "milk",
+    "patient clinical": "patient/clinical",
+    "clinical patient": "patient/clinical",
+    "mixed culture": "mixed culture",
+    "mixed host and symbiont culture": "mixed culture",
+    "mix_culture": "mixed culture",
+    "bacterial culture": "bacterial culture",
+    "bacteria culture": "bacterial culture",
+    "bacterial cell culture": "bacterial culture",
+    "e.coli": "bacterial culture",
+    "ecoli": "bacterial culture",
+    "e coli": "bacterial culture",
+    "e. coli": "bacterial culture",
+    "escherichia coli": "bacterial culture",
+    "e.coli culture": "bacterial culture",
+    "ecoli culture": "bacterial culture",
+    "e coli culture": "bacterial culture",
+    "e. coli culture": "bacterial culture",
+    "escherichia coli culture": "bacterial culture",
+    "e.coli isolate": "pure/single culture",
+    "ecoli isolate": "pure/single culture",
+    "e coli isolate": "pure/single culture",
+    "e. coli isolate": "pure/single culture",
+    "escherichia coli isolate": "pure/single culture",
+    "e coli jm109": "pure/single culture",
+    "ecoli jm109": "pure/single culture",
+    "dh5alpha": "pure/single culture",
+    "dh5 alpha": "pure/single culture",
+    "dh10b": "pure/single culture",
+    "top10": "pure/single culture",
+    "xl1 blue": "pure/single culture",
+    "xl1 blue mrf": "pure/single culture",
+    "solr": "pure/single culture",
+    "bl21": "pure/single culture",
+    "jm109": "pure/single culture",
+    "atcc strain": "pure/single culture",
+    "control strain": "pure/single culture",
+    "vaccine strain": "pure/single culture",
+    "lab strain": "pure/single culture",
+    "laboratory strain": "pure/single culture",
+    "zymobiomics microbial community standard strain": "pure/single culture",
+    "pure culture": "pure/single culture",
+    "pure cultures of bacteria": "pure/single culture",
+    "pure culture of bacteria": "pure/single culture",
+    "pure bacterial culture": "pure/single culture",
+    "pure culture one microbial species": "pure/single culture",
+    "bacterial strain pure culture": "pure/single culture",
+    "bacterial pure culture": "pure/single culture",
+    "isolated pure culture": "pure/single culture",
+    "pure isolate culture": "pure/single culture",
+    "axenic culture": "pure/single culture",
+    "monoculture": "pure/single culture",
+    "bacterial monoculture": "pure/single culture",
+    "bacterial monoisolate": "pure/single culture",
+    "monoisolate": "pure/single culture",
+    "single culture": "pure/single culture",
+    "strain culture": "pure/single culture",
+    "cultured isolate": "pure/single culture",
+    "microbial isolate culture": "pure/single culture",
+    "cell culture": "cell culture",
+    "celll culture": "cell culture",
+    "metagenomic assembly": "metagenomic assembly",
+    "metagenome assembly": "metagenomic assembly",
+    "enrichment culture": "enrichment culture",
+    "liquid culture": "liquid culture",
+    "isolate in liquid culture": "liquid culture",
+    "plate culture": "plate culture",
+    "laboratory culture": "laboratory culture",
+    "filtered clone culture": "clone culture",
+    "microbial culture": "microbial culture",
+    "microbe culture": "microbial culture",
+    "unicyanobacterial culture": "unicyanobacterial culture",
+    "leaf tissue": "leaf tissue",
+    "intestinal content": "gut content",
+    "intestinal contents": "gut content",
+    "gut content": "gut content",
+    "gut contents": "gut content",
+    "intestinal sample": "gut content",
+    "cloacal sample": "cloacal sample",
+    "manure": "manure",
+    "saline water": "saline water",
+    "shucked": "processed shellfish tissue",
+    "p trap": "trap sample",
+    "p-trap": "trap sample",
+}
+
+ENVIRONMENT_MEDIUM_SYNONYMS = {
+    "soil": "soil",
+    "sediment": "sediment",
+    "water": "water",
+    "river water": "river water",
+    "water river": "river water",
+    "lake water": "lake water",
+    "pond water": "pond water",
+    "water pond": "pond water",
+    "surface water": "surface water",
+    "canal water": "canal water",
+    "creek water": "creek water",
+    "dam water": "reservoir/dam water",
+    "hot spring water": "hot spring water",
+    "irrigation water": "irrigation water",
+    "hospital wastewater": "hospital wastewater",
+    "hospital waste water": "hospital wastewater",
+    "domestic wastewater": "domestic wastewater",
+    "domestic waste water": "domestic wastewater",
+    "wastewater": "wastewater",
+    "seawater": "seawater",
+    "marine water": "seawater",
+    "baltic sea water": "seawater",
+    "freshwater": "freshwater",
+    "fresh water stream": "freshwater",
+    "non tidal fresh water river": "river water",
+    "environment": "environmental sample",
+    "environmental": "environmental sample",
+    "environmental sample": "environmental sample",
+    "natural free living": "natural/free-living",
+    "natural / free living": "natural/free-living",
+    "natural / free-living": "natural/free-living",
+    "subsurface shale": "subsurface shale",
+    "marine sediment": "marine sediment",
+    "estuarine water": "estuarine water",
+    "estuarine open water surface layer": "estuarine water",
+    "oyster pond": "Oyster pond",
+}
+
+CONTROLLED_CATEGORY_ONTOLOGY_IDS = {
+    "blood": "UBERON:0000178",
+    "feces/stool": "UBERON:0001988",
+    "urine": "UBERON:0001088",
+    "sputum": "UBERON:0007311",
+    "saliva": "UBERON:0001836",
+    "soil": "ENVO:00001998",
+    "sediment": "ENVO:00002007",
+    "water": "ENVO:00002006",
+    "wastewater": "ENVO:00002001",
+    "seawater": "ENVO:00002149",
+    "freshwater": "ENVO:00002011",
+    "environmental sample": "ENVO:00010483",
+}
+
+STANDARDIZATION_SPELLING_CORRECTIONS = {
+    "homo sapines": "homo sapiens",
+    "homo sapien": "homo sapiens",
+    "homosapien": "homo sapiens",
+    "homosapiens": "homo sapiens",
+    "homo-sapiens": "homo sapiens",
+    "sus scofa": "sus scrofa",
+    "sus scofa domesticus": "sus scrofa domesticus",
+    "e coli": "escherichia coli",
+    "e. coli": "escherichia coli",
+    "faeces": "feces",
+    "faecal": "fecal",
+    "waste water": "wastewater",
+    "sea water": "seawater",
+    "fresh water": "freshwater",
+}
+
+STANDARDIZATION_MISSING_TOKENS = {
+    "absent",
+    "unknown",
+    "not known",
+    "not available",
+    "not provided",
+    "not collected",
+    "not applicable",
+    "not recorded",
+    "not determined",
+    "none",
+    "restricted access",
+    "missing",
+    "mising",
+    "misisng",
+    "na",
+    "n a",
+    "-",
+}
+
+HOST_NOT_IDENTIFIABLE_TOKENS = {
+    "20 jun 2016",
+    "65",
+    "74",
+    "113",
+    "318",
+    "dh10b",
+    "dh10b life technologies",
+    "dh10b phage resistant",
+    "dh5alpha",
+    "e.coli",
+    "e coli",
+    "e coli jm109",
+    "emdh10b",
+    "ew",
+    "guangdong microbial culture collection center gdmcc",
+    "invasive pneumococcal disease",
+    "instituto de productos lacteos de asturias ipla csic",
+    "isolate",
+    "lab",
+    "lab strain",
+    "lab-strain",
+    "lori",
+    "nist mixed microbial rm strain",
+    "parent",
+    "petroleum microbiology laboratory",
+    "pet",
+    "pets",
+    "companion pet",
+    "canada saskatchewan",
+    "seth lab strain",
+    "solr",
+    "solr stratagene kanamycin resistant",
+    "tbg",
+    "top10",
+    "ucc strain",
+    "uliege",
+    "unassigned viruses",
+    "vaccine strain",
+    "xl1 blue mrf",
+    "zymobiomics microbial community standard strain",
+}
+
+HOST_TAXONOMY_PRIORITY_TOKENS = {
+    "actinobacteria",
+    "bacteria",
+    "prawn",
+    "prawns",
+    "salmon",
+    "water buffalo",
+    "water deer",
+}
+
+LAB_MICROBIAL_CONTEXT_LABEL = "lab bacterial strain/culture"
+E_COLI_CONTEXT_LABEL = "Escherichia coli/lab bacterial culture"
+
+MICROBIAL_SELF_DESCRIPTOR_TERMS = (
+    "acinetobacter",
+    "bacillus",
+    "campylobacter",
+    "clostridioides",
+    "clostridium",
+    "enterobacter",
+    "enterococcus",
+    "escherichia",
+    "escherichia coli",
+    "helicobacter",
+    "klebsiella",
+    "lactobacillus",
+    "legionella",
+    "listeria",
+    "mycobacterium",
+    "neisseria",
+    "pseudomonas",
+    "salmonella",
+    "salmonella enterica",
+    "shigella",
+    "staphylococcus",
+    "streptococcus",
+    "vibrio",
+    "wolbachia",
+    "yersinia",
+)
+
+MICROBIAL_CONTEXT_WORD_PATTERN = re.compile(
+    r"\b(?:"
+    r"axenic|bl21|clone|cloned|competent cells?|culture|cultured|expression host|"
+    r"host strain|isolate|isolated|jm109|lab(?:oratory)? strain|monoisolate|"
+    r"pure culture|strain|strains"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+NON_HOST_SOURCE_HINTS = {
+    "food",
+    "food product",
+    "seafood",
+    "shrimp",
+    "dairy product",
+    "milk",
+    "milk product",
+    "milk products",
+    "milk powder",
+    "soil",
+    "stool",
+    "feces",
+    "faeces",
+    "fecal",
+    "faecal",
+    "meat",
+    "pork",
+    "beef",
+    "water",
+    "wastewater",
+    "environment",
+    "environmental",
+    "environmental sample",
+    "hospital environment",
+    "icu environment",
+    "farm environment",
+    "metagenome",
+    "soil metagenome",
+    "freshwater metagenome",
+    "indoor metagenome",
+    "marine metagenome",
+    "algae",
+    "marine algae",
+    "marine red algae",
+    "not applicable genepio 0001619",
+    "subsurface shale",
+    "p trap",
+    "p-trap",
+    "natural free living",
+    "natural / free living",
+    "natural / free-living",
+    "non host associated",
+    "non-host associated",
+    "land crag",
+    "u bend",
+    "u-bend",
+    "laboratory",
+    "in vitro",
+    "resource islands",
+    "ww outflow samariterstift",
+    "free living",
+    "marl pit",
+    "dairy waste",
+    "rivers natural pond",
+    "unopened",
+    "seeds",
+    "leafy green",
+    "leafy vegetable",
+}
+
+NON_HOST_SOURCE_PATTERN = re.compile(
+    r"\b(?:stool|feces|faeces|fecal|faecal|meat|pork|beef|food|environment|environmental|"
+    r"metagenome|soil|water|wastewater|swab|sample|algae)\b",
+    re.IGNORECASE,
+)
+
+HOST_CONTEXT_SOURCE_DOMINANT_PATTERN = re.compile(
+    r"\b(?:"
+    r"activated sludge|active sludge|sludge|waste\s*water|wastewater|wwtp|"
+    r"treatment plant|processing plant|preprocessing plant|leachate|reactor|digester|influent|effluent|"
+    r"production environment|factory|food plant|milk powder plant|"
+    r"environmental swab|environmental sponge|swab sponge|sponge powder|"
+    r"air sample|drag swab|field|patient room|infant formula|powdered infant formula|"
+    r"drinking water|freshwater|saline water|seawater|marine water|lake water|river water|"
+    r"soil|sediment|rhizosphere|plankton|plant environment|poultry environment|"
+    r"environmental donor|environmental sample|environmental waters"
+    r")\b",
+    re.IGNORECASE,
+)
+
+HOST_CONTEXT_MATERIAL_EVIDENCE_PATTERN = re.compile(
+    r"\b(?:"
+    r"feces|faeces|fecal|faecal|stool|manure|gut|intestinal|rectal|oral|"
+    r"urine|blood|milk|tissue|cadaver|carcass|meat"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+E_COLI_HOST_CONTEXT_PATTERN = re.compile(
+    r"(^|\b)(?:e\s*[\.,-]?\s*coli|ecoli|escherichia\s+coli)(?:\b|$)",
+    re.IGNORECASE,
+)
+
+LAB_MICROBIAL_HOST_CONTEXT_PATTERN = re.compile(
+    r"\b(?:"
+    r"dh[\s-]*5[\s-]*alpha|dh5alpha|dh10b|top[\s-]*10|xl[\s-]*1[\s-]*blue(?:[\s-]*mrf)?|"
+    r"jm[\s-]*109|bl[\s-]*21|solr|lab(?:oratory)?[\s-]*strain|control[\s-]*strain|"
+    r"vaccine[\s-]*strain|atcc[\s-]*strain|microbial[\s-]*community[\s-]*standard[\s-]*strain|"
+    r"zymobiomics[\s-]*microbial[\s-]*community[\s-]*standard[\s-]*strain"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def compact_lookup_text(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", normalize_standardization_lookup(value))
+
+
+def microbial_self_descriptor_context(value: Any) -> tuple[str, str] | None:
+    cleaned = clean_host_lookup_text(value)
+    compact = compact_lookup_text(value)
+    if not cleaned:
+        return None
+    if E_COLI_HOST_CONTEXT_PATTERN.search(cleaned) or "ecoli" in compact or "escherichiacoli" in compact:
+        if re.search(r"\b(?:isolate|strain|jm109|bl21|clone|cloned|pure culture|monoisolate)\b", cleaned):
+            return E_COLI_CONTEXT_LABEL, "pure/single culture"
+        return E_COLI_CONTEXT_LABEL, "bacterial culture"
+    if LAB_MICROBIAL_HOST_CONTEXT_PATTERN.search(cleaned):
+        return LAB_MICROBIAL_CONTEXT_LABEL, "pure/single culture"
+    if not MICROBIAL_CONTEXT_WORD_PATTERN.search(cleaned):
+        return None
+    for term in MICROBIAL_SELF_DESCRIPTOR_TERMS:
+        normalized_term = normalize_standardization_lookup(term)
+        if re.search(rf"(^|\s){re.escape(normalized_term)}(\s|$)", cleaned):
+            return "microbial self/lab culture descriptor", "pure/single culture"
+    return None
+
+
+def context_host_recovery_blocked(field_name: str, value: Any) -> bool:
+    cleaned = clean_host_lookup_text(value)
+    if not cleaned:
+        return True
+    if field_name in {"Environment Medium", "Environment (Local Scale)", "Environment (Broad Scale)"}:
+        return True
+    if re.search(
+        r"\b(?:"
+        r"processing plant|preprocessing plant|production environment|factory|food plant|milk powder plant|"
+        r"air sample|drag swab|patient room|infant formula|powdered infant formula"
+        r")\b",
+        cleaned,
+    ):
+        return True
+    if HOST_CONTEXT_SOURCE_DOMINANT_PATTERN.search(cleaned) and not HOST_CONTEXT_MATERIAL_EVIDENCE_PATTERN.search(cleaned):
+        return True
+    if re.search(r"\b(?:waste\s*water|wastewater|treatment plant|sludge|leachate|reactor|effluent|influent)\b", cleaned):
+        return True
+    if re.search(r"\b(?:environmental swab|environmental sponge|swab sponge|sponge powder)\b", cleaned):
+        return True
+    return False
+
+HOST_CONTEXT_SOURCE_SKIP_TERMS = {
+    "tomato",
+    "avocado",
+    "cantaloupe",
+    "lettuce",
+    "cilantro",
+    "spinach",
+    "papaya",
+    "vegetable",
+    "leafy greens",
+    "enoki mushroom",
+    "kimchi",
+    "peanut butter",
+    "tree nut",
+    "dairy product",
+}
+
+STANDARDIZATION_BROAD_CATEGORIES = {
+    "blood": "clinical/host-associated material",
+    "urine": "clinical/host-associated material",
+    "sputum": "clinical/host-associated material",
+    "respiratory sample": "clinical/host-associated material",
+    "saliva": "clinical/host-associated material",
+    "wound": "clinical/host-associated material",
+    "skin": "clinical/host-associated material",
+    "lung": "clinical/host-associated material",
+    "clinical sample": "clinical/host-associated material",
+    "clinical material": "clinical/host-associated material",
+    "sterile body site": "clinical/host-associated material",
+    "cerebrospinal fluid": "clinical/host-associated material",
+    "nasopharynx": "clinical/host-associated material",
+    "nasal site": "clinical/host-associated material",
+    "oral cavity": "clinical/host-associated material",
+    "throat": "clinical/host-associated material",
+    "liver": "clinical/host-associated material",
+    "intestine": "gut content",
+    "feces/stool": "feces/stool",
+    "fecal/stool swab": "swab",
+    "rectal swab": "swab",
+    "perianal/anal swab": "swab",
+    "nasal swab": "swab",
+    "nasopharyngeal swab": "swab",
+    "oropharyngeal swab": "swab",
+    "throat swab": "swab",
+    "wound swab": "swab",
+    "wound/skin swab": "swab",
+    "wound/pus swab": "swab",
+    "oral swab": "swab",
+    "tonsil swab": "swab",
+    "sinus swab": "swab",
+    "intrauterine swab": "swab",
+    "air sac swab": "swab",
+    "vaginal swab": "swab",
+    "urethral swab": "swab",
+    "cloacal swab": "swab",
+    "skin swab": "swab",
+    "ear swab": "swab",
+    "eye swab": "swab",
+    "environmental swab": "swab",
+    "surveillance swab": "swab",
+    "body swab": "swab",
+    "carcass swab": "swab",
+    "drag swab": "swab",
+    "hatchery swab": "swab",
+    "food-contact surface": "food/processing environment",
+    "non-food-contact surface": "food/processing environment",
+    "food": "food",
+    "food product": "food",
+    "food processing environment": "food/processing environment",
+    "ready-to-eat food": "food",
+    "dairy food": "food/dairy",
+    "pet food": "food",
+    "fermented food": "food",
+    "meat": "food/meat",
+    "chicken meat": "food/meat",
+    "turkey meat": "food/meat",
+    "poultry": "poultry",
+    "poultry meat": "food/meat",
+    "pork": "food/meat",
+    "beef": "food/meat",
+    "seafood": "aquatic food product",
+    "fish product": "aquatic food product",
+    "freshwater fish product": "aquatic food product",
+    "shrimp product": "aquatic food product",
+    "oyster product": "aquatic food product",
+    "shellfish product": "aquatic food product",
+    "milk": "food/dairy",
+    "biological product": "biological/clinical product",
+    "water": "water",
+    "river water": "water",
+    "lake water": "water",
+    "pond water": "water",
+    "surface water": "water",
+    "canal water": "water",
+    "creek water": "water",
+    "reservoir/dam water": "water",
+    "hot spring water": "water",
+    "irrigation water": "water",
+    "wastewater": "water",
+    "hospital wastewater": "water",
+    "domestic wastewater": "water",
+    "seawater": "water",
+    "freshwater": "water",
+    "estuarine water": "water",
+    "saline water": "water",
+    "soil": "soil",
+    "sediment": "sediment",
+    "marine sediment": "sediment",
+    "environmental sample": "environmental material",
+    "natural/free-living": "environmental material",
+    "subsurface shale": "environmental material",
+    "trap sample": "environmental material",
+    "culture": "culture",
+    "mixed culture": "culture",
+    "pure/single culture": "culture",
+    "bacterial culture": "culture",
+    "cell culture": "culture",
+    "microbial culture": "culture",
+    "unicyanobacterial culture": "culture",
+    "metagenomic assembly": "culture/assembly",
+    "enrichment culture": "culture",
+    "liquid culture": "culture",
+    "plate culture": "culture",
+    "laboratory culture": "culture",
+    "clone culture": "culture",
+    "microbial isolate": "culture/isolate",
+    "single cell": "single cell",
+    "DNA extract": "molecular extract",
+    "FFPE tissue": "tissue",
+    "sample": "sample",
+    "culture medium": "culture medium",
+    "gut": "gut content",
+    "gut content": "gut content",
+    "cloacal sample": "cloacal sample",
+    "manure": "agricultural fecal material",
+    "whole organism": "whole organism",
+    "human": "host-associated organism",
+    "pig": "host-associated organism",
+    "chicken": "host-associated organism",
+}
+
+STANDARDIZATION_BROAD_CATEGORIES.update(
+    {
+        "healthcare facility": "healthcare-associated environment",
+        "sewage": "wastewater/sewage",
+        "hospital sewage": "wastewater/sewage",
+        "activated sludge": "wastewater/sewage",
+        "tracheal aspirate/secretion": "respiratory sample",
+        "bronchoalveolar lavage fluid": "respiratory sample",
+        "nasopharynx/oropharynx": "upper respiratory tract",
+        "nasal site": "upper respiratory site",
+        "oral cavity": "oral cavity",
+        "dental plaque": "oral cavity",
+        "urethra/penis": "urogenital site",
+        "urogenital": "urogenital site",
+        "cervix": "urogenital site",
+        "ectocervical mucosa": "urogenital site",
+        "pus": "clinical fluid/material",
+        "abscess": "clinical fluid/material",
+        "liver abscess": "clinical fluid/material",
+        "bodily fluid": "clinical fluid/material",
+        "pleural fluid": "clinical fluid/material",
+        "drainage": "clinical fluid/material",
+        "aspirate": "clinical fluid/material",
+        "gastric biopsy": "gut content",
+        "stomach": "gut content",
+        "rumen": "gut content",
+        "brain": "clinical/host-associated material",
+        "kidney": "clinical/host-associated material",
+        "spleen": "clinical/host-associated material",
+        "bone": "clinical/host-associated material",
+        "eye": "clinical/host-associated material",
+        "ear": "clinical/host-associated material",
+        "placenta": "clinical/host-associated material",
+        "lymph node": "clinical/host-associated material",
+        "root": "plant-associated material",
+        "rhizosphere": "plant-associated material",
+        "leaves": "plant-associated material",
+        "plant": "plant-associated material",
+        "cucumber": "plant-associated material",
+        "potato": "plant-associated material",
+        "nodule": "plant-associated material",
+        "kratom": "plant-associated material",
+        "groundwater": "water",
+        "river": "water",
+        "canal": "water",
+        "irrigation canal": "water",
+        "stream": "water",
+        "pond": "water",
+        "estuary": "water",
+        "hot spring": "water",
+        "surface layer": "water",
+        "deep-sea hydrothermal deposit": "environmental/geologic material",
+        "produced fluids from hydraulically fractured shales": "environmental/geologic material",
+        "ice core section from central arctic ocean": "environmental/geologic material",
+        "core": "environmental/geologic material",
+        "metadata descriptor/non-source": "metadata descriptor / non-source",
+        "urinary tract": "urogenital site",
+        "rectum": "gut content",
+        "rectovaginal site": "urogenital/gastrointestinal site",
+        "groin": "clinical/host-associated material",
+        "bile": "clinical fluid/material",
+        "bloodstream": "clinical fluid/material",
+        "biopsy": "clinical/host-associated material",
+        "gill": "animal tissue/site",
+        "trachea": "respiratory sample",
+        "secretion": "clinical fluid/material",
+        "sink": "built environment",
+        "drain": "built environment",
+        "laboratory": "laboratory environment",
+        "farm": "agricultural environment",
+        "dairy farm": "agricultural environment",
+        "deciduous forest": "environmental material",
+        "ready-to-eat product": "food",
+        "ice cream": "food/dairy",
+        "prawn product": "aquatic food product",
+        "chicken carcass": "food/meat",
+        "ground chicken": "food/meat",
+        "spinach": "food/produce",
+        "papaya": "food/produce",
+        "vegetable": "food/produce",
+        "leafy greens": "food/produce",
+        "tree nut": "food/produce",
+        "peanut butter": "food/plant product",
+        "tooth": "oral cavity",
+        "catheter": "medical device",
+        "sludge": "wastewater/sewage",
+        "metagenome": "metadata descriptor / non-source",
+        "wildlife": "host-associated context",
+        "wood": "plant-associated material",
+        "colon contents": "gut content",
+        "vagina": "urogenital site",
+        "long-term care facility": "healthcare-associated environment",
+        "anaerobic bioreactor effluent": "wastewater/sewage",
+        "hospital wastewater": "wastewater/sewage",
+        "salmon": "host-associated context",
+        "surface": "surface sample",
+        "heart": "clinical/host-associated material",
+        "ascites": "clinical fluid/material",
+        "broiler": "host-associated context",
+        "environmental sample": "environmental material",
+        "endovascular": "clinical/host-associated material",
+        "sponge": "surface/sample collection material",
+        "intestinal epithelial cells": "gut/host-associated material",
+        "mammary gland": "clinical/host-associated material",
+        "cubital fossa": "clinical/host-associated material",
+        "abdomen": "clinical/host-associated material",
+        "genitourinary tract": "urogenital site",
+        "cleanroom floor": "built environment",
+        "air": "environmental material",
+        "cave biofilm": "environmental/geologic material",
+        "cold seep": "environmental/geologic material",
+        "glacier": "environmental/geologic material",
+        "terrestrial environment": "environmental material",
+        "kimchi": "fermented food",
+        "enoki mushroom": "food/produce",
+        "tomato": "food/produce",
+        "avocado": "food/produce",
+        "cantaloupe": "food/produce",
+        "lettuce": "food/produce",
+        "cilantro": "food/produce",
+        "dairy product": "food/dairy",
+        "catfish product": "aquatic food product",
+        "anaerobic digester": "wastewater/organic waste",
+    }
+)
+
+
+def normalize_standardization_lookup(value: Any) -> str:
+    text = "" if value is None else str(value).strip().lower()
+    text = re.sub(r"\([^)]*\)", " ", text)
+    text = re.sub(r"[_;/,|:+-]+", " ", text)
+    text = re.sub(r"[^a-z0-9. ]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return STANDARDIZATION_SPELLING_CORRECTIONS.get(text, text)
+
+
+def standardization_lookup_variants(value: Any) -> list[str]:
+    cleaned = normalize_standardization_lookup(value)
+    variants: list[str] = []
+    for candidate in [cleaned, cleaned.replace(".", ""), cleaned.replace(" ", "")]:
+        candidate = STANDARDIZATION_SPELLING_CORRECTIONS.get(candidate, candidate)
+        if candidate and candidate not in variants:
+            variants.append(candidate)
+        if candidate.endswith("s") and len(candidate) > 4:
+            singular = candidate[:-1]
+            if singular not in variants:
+                variants.append(singular)
+    return variants
+
+
+def load_standardization_csv(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        return [
+            {str(key): str(value).strip() for key, value in row.items() if key is not None}
+            for row in csv.DictReader(handle)
+        ]
+
+
+def apply_core_standardization_overrides() -> None:
+    SAMPLE_TYPE_SYNONYMS.update(
+        {
+            "stool swab": "fecal/stool swab",
+            "fecal swab": "fecal/stool swab",
+            "faecal swab": "fecal/stool swab",
+            "rectal swab": "rectal swab",
+            "rectum swab": "rectal swab",
+            "swab rectum": "rectal swab",
+            "stool rectal swab": "rectal swab",
+            "rectal swab stool": "rectal swab",
+            "anal swab": "perianal/anal swab",
+            "perianal swab": "perianal/anal swab",
+            "perirectal swab": "perianal/anal swab",
+            "intestinal content": "gut content",
+            "intestinal contents": "gut content",
+            "gut content": "gut content",
+            "gut contents": "gut content",
+            "metagenomic assembly": "metagenomic assembly",
+            "metagenome assembly": "metagenomic assembly",
+            "food processing environment": "food processing environment",
+            "food production environment": "food processing environment",
+            "food contact surface": "food-contact surface",
+            "non food contact surface": "non-food-contact surface",
+            "raw intact chicken": "chicken meat",
+            "comminuted chicken": "chicken meat",
+            "nonintact chicken": "chicken meat",
+            "chicken breast": "chicken meat",
+            "young chicken carcass rinse": "chicken meat",
+            "ground turkey": "turkey meat",
+            "comminuted turkey": "turkey meat",
+            "raw ground pork": "pork",
+            "raw ground beef": "beef",
+            "comminuted beef": "beef",
+            "chicken meat": "chicken meat",
+            "turkey meat": "turkey meat",
+            "poultry meat": "poultry meat",
+            "poultry": "poultry",
+            "pork": "pork",
+            "beef": "beef",
+            "fish product": "fish product",
+            "raw fish product": "fish product",
+            "freshwater fish product": "freshwater fish product",
+            "shrimp product": "shrimp product",
+            "prawn product": "shrimp product",
+            "oyster product": "oyster product",
+            "shucked oyster": "oyster product",
+            "shellfish product": "shellfish product",
+            "seafood": "seafood",
+            "cheese": "dairy food",
+            "cheese rind": "dairy food",
+            "yogurt": "dairy food",
+            "yoghurt": "dairy food",
+            "biological product": "biological product",
+            "isolate": "microbial isolate",
+            "bacterial isolate": "microbial isolate",
+            "microbial isolate": "microbial isolate",
+            "single cell": "single cell",
+            "cultured colonies": "culture",
+            "cultured colony": "culture",
+            "cultured microbe": "microbial culture",
+            "cultured bacterium": "bacterial culture",
+            "microorganism": "microbial isolate",
+            "microbe": "microbial isolate",
+            "bacterial": "microbial isolate",
+            "dna": "DNA extract",
+            "genomic dna": "DNA extract",
+            "genomic assembly": "metagenomic assembly",
+            "sample": "sample",
+            "ffpe": "FFPE tissue",
+            "sterile site": "sterile body site",
+            "normally sterile site": "sterile body site",
+            "clinical": "clinical sample",
+            "clinical sample": "clinical sample",
+            "clinical samples": "clinical sample",
+            "clinical specimen": "clinical sample",
+            "clinical material": "clinical material",
+            "homo sapiens clinical": "clinical sample",
+            "hospital": "healthcare facility",
+            "intensive care unit": "healthcare facility",
+            "nursing home": "long-term care facility",
+            "icu": "healthcare facility",
+            "hospital icu": "healthcare facility",
+            "sewage": "sewage",
+            "hospital sewage": "hospital sewage",
+            "activated sludge": "sewage",
+            "respiratory": "respiratory sample",
+            "respiratory sample": "respiratory sample",
+            "respiratory samples": "respiratory sample",
+            "respiratory tract": "respiratory sample",
+            "lower respiratory tract": "respiratory sample",
+            "upper respiratory tract": "respiratory sample",
+            "tracheal aspirate": "tracheal aspirate/secretion",
+            "tracheal secretion": "tracheal aspirate/secretion",
+            "bal": "bronchoalveolar lavage fluid",
+            "bronchoalveolar lavage": "bronchoalveolar lavage fluid",
+            "bronchoalveolar lavage fluid": "bronchoalveolar lavage fluid",
+            "sputum": "sputum",
+            "csf": "cerebrospinal fluid",
+            "cerebrospinal fluid": "cerebrospinal fluid",
+            "np": "nasopharynx/oropharynx",
+            "np swab": "nasopharyngeal swab",
+            "nasopharynx": "nasopharynx/oropharynx",
+            "nasopharyngeal": "nasopharynx/oropharynx",
+            "nasophaynx": "nasopharynx/oropharynx",
+            "pharynx": "nasopharynx/oropharynx",
+            "throat": "nasopharynx/oropharynx",
+            "pharyngeal exudate": "nasopharynx/oropharynx",
+            "nasopharynx oropharynx": "nasopharynx/oropharynx",
+            "nasopharynx/oropharynx": "nasopharynx/oropharynx",
+            "nose": "nasal site",
+            "nasal": "nasal site",
+            "nares": "nasal site",
+            "nare": "nasal site",
+            "nasal cavity": "nasal site",
+            "oral": "oral cavity",
+            "oral cavity": "oral cavity",
+            "oral metagenome": "oral cavity",
+            "dental plaque": "dental plaque",
+            "urethra": "urethra/penis",
+            "urethral": "urethra/penis",
+            "penis urethra": "urethra/penis",
+            "urogenital": "urogenital",
+            "cervix": "cervix",
+            "ectocervical mucosa": "ectocervical mucosa",
+            "pus": "pus",
+            "abscess": "abscess",
+            "liver abscess": "liver abscess",
+            "bodily fluid": "bodily fluid",
+            "fluid": "bodily fluid",
+            "pleural fluid": "pleural fluid",
+            "drainage": "drainage",
+            "aspirate": "aspirate",
+            "liver": "liver",
+            "brain": "brain",
+            "kidney": "kidney",
+            "spleen": "spleen",
+            "bone": "bone",
+            "eye": "eye",
+            "ear": "ear",
+            "placenta": "placenta",
+            "lymph node": "lymph node",
+            "skin": "skin",
+            "wound": "wound",
+            "cecal": "gut content",
+            "caecal": "gut content",
+            "cecum": "gut content",
+            "caecum": "gut content",
+            "cecal content": "gut content",
+            "caecal content": "gut content",
+            "intestine": "gut content",
+            "intestinal tract": "gut content",
+            "gastrointestinal tract": "gut content",
+            "stomach": "gut content",
+            "gastric biopsy": "gastric biopsy",
+            "rumen": "gut content",
+            "root": "root",
+            "rhizosphere": "rhizosphere",
+            "leaves": "leaves",
+            "plant": "plant",
+            "cucumber": "cucumber",
+            "potato": "potato",
+            "nodule": "nodule",
+            "kratom": "kratom",
+            "groundwater": "groundwater",
+            "river": "river",
+            "canal": "canal",
+            "irrigation canal": "irrigation canal",
+            "stream": "stream",
+            "pond": "pond",
+            "estuary": "estuary",
+            "hot spring": "hot spring",
+            "surface layer": "surface layer",
+            "deep sea hydrothermal deposit": "deep-sea hydrothermal deposit",
+            "produced fluids from hydraulically fractured shales": "produced fluids from hydraulically fractured shales",
+            "ice core section from central arctic ocean": "ice core section from central arctic ocean",
+            "core": "core",
+            "bacteria": "metadata descriptor/non-source",
+            "assembly": "metadata descriptor/non-source",
+            "microbial community": "metadata descriptor/non-source",
+            "host associated strain": "metadata descriptor/non-source",
+            "invasive": "metadata descriptor/non-source",
+            "screening": "metadata descriptor/non-source",
+            "surveillance": "metadata descriptor/non-source",
+            "pathogen.cl": "metadata descriptor/non-source",
+            "other": "metadata descriptor/non-source",
+            "uti": "urinary tract",
+            "urinary": "urinary tract",
+            "urinary tract": "urinary tract",
+            "rectal": "rectum",
+            "rectum": "rectum",
+            "recto vaginal": "rectovaginal site",
+            "recto-vaginal": "rectovaginal site",
+            "groin": "groin",
+            "bile": "bile",
+            "biopsy": "biopsy",
+            "bloodstream": "bloodstream",
+            "bloodstream isolates": "bloodstream",
+            "gill": "gill",
+            "trachea": "trachea",
+            "secretion": "secretion",
+            "sink": "sink",
+            "drain": "drain",
+            "laboratory": "laboratory",
+            "farm": "farm",
+            "dairy farm": "dairy farm",
+            "deciduous forest": "deciduous forest",
+            "rte product": "ready-to-eat product",
+            "ice cream": "ice cream",
+            "prawns": "prawn product",
+            "prawn": "prawn product",
+            "ground component chicken": "ground chicken",
+            "ground chicken": "ground chicken",
+            "carcass": "chicken carcass",
+            "spinach": "spinach",
+            "papaya": "papaya",
+            "vegetable": "vegetable",
+            "leafy greens": "leafy greens",
+            "tree nut": "tree nut",
+            "peanut butter": "peanut butter",
+            "tooth": "tooth",
+            "catheter": "catheter",
+            "sludge": "sludge",
+            "metagenome": "metagenome",
+            "wildlife": "wildlife",
+            "wood": "wood",
+            "colon contents": "colon contents",
+            "vagina": "vagina",
+            "long term care facility": "long-term care facility",
+            "anaerobic bioreactor effluent": "anaerobic bioreactor effluent",
+            "hospital wastewater": "hospital wastewater",
+            "salmon": "salmon",
+            "surface": "surface",
+            "heart": "heart",
+            "ascites": "ascites",
+            "broiler": "broiler",
+            "enviromental": "environmental sample",
+            "environmental": "environmental sample",
+            "endovascular": "endovascular",
+            "sponge": "sponge",
+            "rectovaginal site": "rectovaginal site",
+            "ready-to-eat product": "ready-to-eat product",
+            "urinary tract": "urinary tract",
+            "bloodstream": "bloodstream",
+            "environmental sample": "environmental sample",
+            "long-term care facility": "long-term care facility",
+            "prawn product": "prawn product",
+            "ground chicken": "ground chicken",
+            "chicken carcass": "chicken carcass",
+            "healthy people": "",
+            "non hospitalized person": "",
+            "hospital patients": "",
+            "infants": "",
+            "homo": "",
+            "homo sapiens": "",
+            "companion animal": "",
+            "chickens": "",
+            "sheep": "",
+            "whole stomoxys flies": "",
+            "blood from patients of rural regional hospital": "blood",
+            "wt mouse intestinal epithelial cells": "intestinal epithelial cells",
+            "intestinal epithelial cells": "intestinal epithelial cells",
+            "mammary gland": "mammary gland",
+            "right cubital fossa": "cubital fossa",
+            "cubital fossa": "cubital fossa",
+            "abdomen": "abdomen",
+            "genitourinary tract": "genitourinary tract",
+            "balf": "bronchoalveolar lavage fluid",
+            "esputum": "sputum",
+            "rectal screening": "rectum",
+            "nasal surveillance": "nasal site",
+            "cleanroom floor": "cleanroom floor",
+            "air": "air",
+            "biofilm from cave": "cave biofilm",
+            "biofilm from sulfidic cave": "cave biofilm",
+            "cold seep": "cold seep",
+            "glacier": "glacier",
+            "terrestrial": "terrestrial environment",
+            "anthropogenic terrestrial biome": "terrestrial environment",
+            "kimchi": "kimchi",
+            "enoki mushroom": "enoki mushroom",
+            "tomato": "tomato",
+            "avocado": "avocado",
+            "cantaloupe": "cantaloupe",
+            "lettuce": "lettuce",
+            "dairy product": "dairy product",
+            "catfish product": "catfish product",
+            "product raw intact siluriformes ictaluridae": "catfish product",
+            "product raw intact siluriformes ictaluridae catfish": "catfish product",
+            "anaerobic digestion of organic wastes under variable temperature conditions and feedstocks": "anaerobic digester",
+            "anaerobic digester": "anaerobic digester",
+            "cilantro": "cilantro",
+            "cave biofilm": "cave biofilm",
+        }
+    )
+    SAMPLE_TYPE_SYNONYMS.pop("fish", None)
+    ENVIRONMENT_MEDIUM_SYNONYMS.update(
+        {
+            "river water": "river water",
+            "lake water": "lake water",
+            "pond water": "pond water",
+            "hospital wastewater": "hospital wastewater",
+            "hospital waste water": "hospital wastewater",
+            "domestic wastewater": "domestic wastewater",
+            "domestic waste water": "domestic wastewater",
+            "estuarine water": "estuarine water",
+            "marine water": "seawater",
+            "hot spring water": "hot spring water",
+            "irrigation water": "irrigation water",
+            "cheese": "dairy food",
+            "cheese rind": "dairy food",
+            "yogurt": "dairy food",
+            "yoghurt": "dairy food",
+            "biological product": "biological product",
+            "fecal material": "feces/stool",
+            "ant built patch material": "soil",
+            "buffered agar": "culture medium",
+            "agar": "culture medium",
+            "leaf": "plant tissue",
+        }
+    )
+    HOST_BROAD_SYNONYMS.update(
+        {
+            "bird": ("Aves", "8782"),
+            "birds": ("Aves", "8782"),
+            "wild bird": ("Aves", "8782"),
+            "wild birds": ("Aves", "8782"),
+            "avian": ("Aves", "8782"),
+            "mammal": ("Mammalia", "40674"),
+            "mammals": ("Mammalia", "40674"),
+            "rodent": ("Rodentia", "9989"),
+            "rodents": ("Rodentia", "9989"),
+        }
+    )
+
+
+def load_external_standardization_rules() -> None:
+    for row in load_standardization_csv(STANDARDIZATION_DIR / "host_synonyms.csv"):
+        synonym = normalize_standardization_lookup(row.get("synonym"))
+        canonical = (row.get("canonical") or "").strip()
+        taxid = (row.get("taxid") or "").strip()
+        confidence = (row.get("confidence") or "high").strip().lower()
+        if not synonym or not canonical or not taxid:
+            continue
+        if confidence == "medium":
+            HOST_BROAD_SYNONYMS[synonym] = (canonical, taxid)
+        else:
+            HOST_SYNONYMS[synonym] = (canonical, taxid)
+
+    for row in load_standardization_csv(STANDARDIZATION_DIR / "controlled_categories.csv"):
+        synonym = normalize_standardization_lookup(row.get("synonym"))
+        category = (row.get("category") or "").strip()
+        destination = (row.get("destination") or "").strip()
+        ontology_id = (row.get("ontology_id") or "").strip()
+        if not synonym or not category:
+            continue
+        if ontology_id:
+            CONTROLLED_CATEGORY_ONTOLOGY_IDS[category] = ontology_id
+        if destination == "Environment_Medium_SD":
+            ENVIRONMENT_MEDIUM_SYNONYMS[synonym] = category
+        elif destination == "Sample_Type_SD":
+            SAMPLE_TYPE_SYNONYMS[synonym] = category
+        elif destination == "Isolation_Source_SD":
+            SAMPLE_TYPE_SYNONYMS[synonym] = category
+    apply_core_standardization_overrides()
+
+
+load_external_standardization_rules()
+
+
+def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> None:
+    destination = str(rule.get("destination") or "").strip()
+    proposed_value = str(rule.get("proposed_value") or "").strip()
+    ontology_id = str(rule.get("ontology_id") or "").strip()
+    confidence = str(rule.get("confidence") or "").strip().lower()
+    normalized_value = normalize_standardization_lookup(rule.get("normalized_value") or rule.get("original_value"))
+    if not normalized_value or not destination or not proposed_value:
+        return
+
+    if destination == "Host_SD":
+        if not ontology_id:
+            return
+        target = HOST_SYNONYMS if confidence == "high" else HOST_BROAD_SYNONYMS
+        target[normalized_value] = (proposed_value, ontology_id)
+        clear_standardization_runtime_caches()
+        return
+
+    if ontology_id:
+        CONTROLLED_CATEGORY_ONTOLOGY_IDS[proposed_value] = ontology_id
+    if destination == "Environment_Medium_SD":
+        ENVIRONMENT_MEDIUM_SYNONYMS[normalized_value] = proposed_value
+    elif destination in {"Sample_Type_SD", "Isolation_Source_SD"}:
+        SAMPLE_TYPE_SYNONYMS[normalized_value] = proposed_value
+    clear_standardization_runtime_caches()
+
+
+def load_approved_standardization_rules_into_memory(db: sqlite3.Connection) -> None:
+    try:
+        rows = db.execute(
+            """
+            SELECT *
+            FROM standardization_rules
+            WHERE status = 'approved'
+            """
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return
+    for row in rows:
+        apply_approved_standardization_rule_to_memory(dict(row))
+    apply_core_standardization_overrides()
+
+
+def clean_host_lookup_text(value: Any) -> str:
+    return normalize_standardization_lookup(value)
+
+
+HOST_COMMON_NAME_BY_TAXID = {
+    "9606": "human",
+    "10090": "mouse",
+    "10116": "rat",
+    "9913": "cattle",
+    "9823": "pig",
+    "9825": "domestic pig",
+    "9031": "chicken",
+    "9103": "turkey",
+    "8843": "duck",
+    "9615": "dog",
+    "9685": "cat",
+    "9796": "horse",
+    "9925": "goat",
+    "9940": "sheep",
+    "8782": "bird",
+    "40674": "mammal",
+    "9989": "rodent",
+}
+
+HOST_LINEAGE_CACHE: dict[str, dict[str, str]] | None = None
+
+
+HOST_CONTEXT_PATTERNS = [
+    (re.compile(r"\b(pet|pets|companion pet|companion animal)\b", re.IGNORECASE), "Host_Context_SD", "pet/companion animal"),
+    (re.compile(r"\b(infant|neonate|newborn)\b", re.IGNORECASE), "Host_Age_Group_SD", "infant"),
+    (re.compile(r"\b(child|children|pediatric|paediatric)\b", re.IGNORECASE), "Host_Age_Group_SD", "child"),
+    (re.compile(r"\b(adult)\b", re.IGNORECASE), "Host_Age_Group_SD", "adult"),
+    (re.compile(r"\b(young)\b", re.IGNORECASE), "Host_Age_Group_SD", "young"),
+    (re.compile(r"\b(market swine)\b", re.IGNORECASE), "Host_Production_Context_SD", "market swine"),
+    (re.compile(r"\b(steer)\b", re.IGNORECASE), "Host_Production_Context_SD", "steer"),
+    (re.compile(r"\b(heifer)\b", re.IGNORECASE), "Host_Production_Context_SD", "heifer"),
+    (re.compile(r"\b(sow)\b", re.IGNORECASE), "Host_Production_Context_SD", "sow"),
+    (re.compile(r"\b(cecal|caecal|cecum|caecum)\b", re.IGNORECASE), "Host_Anatomical_Site_SD", "cecal/gut content"),
+    (re.compile(r"\b(feces|faeces|fecal|faecal|stool)\b", re.IGNORECASE), "Host_Anatomical_Site_SD", "feces/stool"),
+]
+
+
+def extract_host_context_fields(value: Any) -> dict[str, str]:
+    text = "" if value is None else str(value)
+    context = {
+        "Host_Context_SD": "",
+        "Host_Age_Group_SD": "",
+        "Host_Production_Context_SD": "",
+        "Host_Anatomical_Site_SD": "",
+    }
+    microbial_context = microbial_self_descriptor_context(text)
+    if microbial_context is not None:
+        context["Host_Context_SD"] = microbial_context[0]
+    for pattern, field, label in HOST_CONTEXT_PATTERNS:
+        if pattern.search(text) and not context[field]:
+            context[field] = label
+    return context
+
+
+def host_context_sample_type(host_standardization: Mapping[str, str], host_value: Any) -> tuple[str, str, str]:
+    context_label = str(host_standardization.get("Host_Context_SD") or "")
+    microbial_context = microbial_self_descriptor_context(host_value)
+    if microbial_context is not None:
+        return microbial_context[1], "host_context", ""
+    if context_label in {E_COLI_CONTEXT_LABEL, LAB_MICROBIAL_CONTEXT_LABEL, "microbial self/lab culture descriptor"}:
+        return "pure/single culture", "host_context", ""
+    return "", "missing", ""
+
+
+def empty_host_lineage() -> dict[str, str]:
+    return {
+        "Host_Rank": "",
+        "Host_Superkingdom": "",
+        "Host_Phylum": "",
+        "Host_Class": "",
+        "Host_Order": "",
+        "Host_Family": "",
+        "Host_Genus": "",
+        "Host_Species": "",
+        "Host_Common_Name": "",
+    }
+
+
+def parse_taxonkit_lineage_output(lineage_output: str, reformat_output: str) -> dict[str, dict[str, str]]:
+    ranks: dict[str, tuple[str, str]] = {}
+    for line in lineage_output.splitlines():
+        parts = line.split("\t")
+        if len(parts) >= 3:
+            ranks[parts[0].strip()] = (parts[1].strip(), parts[2].strip())
+
+    parsed: dict[str, dict[str, str]] = {}
+    for line in reformat_output.splitlines():
+        parts = line.split("\t")
+        if not parts:
+            continue
+        taxid = parts[0].strip()
+        if not taxid:
+            continue
+        lineage_text, rank = ranks.get(taxid, ("", ""))
+        superkingdom = ""
+        lineage_set = set(lineage_text.split(";"))
+        for candidate in ("Eukaryota", "Bacteria", "Archaea", "Viruses"):
+            if candidate in lineage_set:
+                superkingdom = candidate
+                break
+        lineage = empty_host_lineage()
+        lineage.update(
+            {
+                "Host_Rank": rank,
+                "Host_Superkingdom": superkingdom,
+                "Host_Phylum": parts[4].strip() if len(parts) > 4 else "",
+                "Host_Class": parts[5].strip() if len(parts) > 5 else "",
+                "Host_Order": parts[6].strip() if len(parts) > 6 else "",
+                "Host_Family": parts[7].strip() if len(parts) > 7 else "",
+                "Host_Genus": parts[8].strip() if len(parts) > 8 else "",
+                "Host_Species": parts[9].strip() if len(parts) > 9 else "",
+                "Host_Common_Name": HOST_COMMON_NAME_BY_TAXID.get(taxid, ""),
+            }
+        )
+        parsed[taxid] = lineage
+    return parsed
+
+
+def run_taxonkit_lineage_batch(taxids: list[str]) -> dict[str, dict[str, str]]:
+    unique_taxids = sorted({str(taxid).strip() for taxid in taxids if str(taxid).strip().isdigit()})
+    if not unique_taxids:
+        return {}
+    try:
+        lineage_result = subprocess.run(
+            ["taxonkit", "lineage", "-r"],
+            input="\n".join(unique_taxids) + "\n",
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+        reformat_result = subprocess.run(
+            ["taxonkit", "reformat", "-f", "{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}"],
+            input=lineage_result.stdout,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=120,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return {}
+    if lineage_result.returncode != 0 or reformat_result.returncode != 0:
+        return {}
+    return parse_taxonkit_lineage_output(lineage_result.stdout, reformat_result.stdout)
+
+
+def host_lineage_cache() -> dict[str, dict[str, str]]:
+    global HOST_LINEAGE_CACHE
+    if HOST_LINEAGE_CACHE is None:
+        HOST_LINEAGE_CACHE = run_taxonkit_lineage_batch(
+            [taxid for _, taxid in list(HOST_SYNONYMS.values()) + list(HOST_BROAD_SYNONYMS.values())]
+        )
+    return HOST_LINEAGE_CACHE
+
+
+@lru_cache(maxsize=20_000)
+def taxonkit_host_lineage(taxid: str) -> dict[str, str]:
+    taxid = str(taxid or "").strip()
+    lineage = empty_host_lineage()
+    if not taxid.isdigit():
+        return lineage
+    cached = host_lineage_cache().get(taxid)
+    if cached is not None:
+        return dict(cached)
+    return run_taxonkit_lineage_batch([taxid]).get(taxid, lineage)
+
+
+def enrich_host_standardization(value: Any, host: Mapping[str, str]) -> dict[str, str]:
+    enriched = {column: "" for column in HOST_STANDARDIZATION_COLUMNS}
+    original = "" if value is None else str(value).strip()
+    cleaned = clean_host_lookup_text(original)
+    enriched.update(
+        {
+            "Host_Original": original,
+            "Host_Cleaned": cleaned,
+            "Host_SD": str(host.get("Host_SD") or ""),
+            "Host_TaxID": str(host.get("Host_TaxID") or ""),
+            "Host_SD_Method": str(host.get("Host_SD_Method") or ""),
+            "Host_SD_Confidence": str(host.get("Host_SD_Confidence") or ""),
+            "Host_Match_Method": str(host.get("Host_SD_Method") or ""),
+            "Host_Confidence": str(host.get("Host_SD_Confidence") or ""),
+            "Host_Review_Status": (
+                "accepted"
+                if host.get("Host_TaxID")
+                else (
+                    "missing"
+                    if str(host.get("Host_SD_Method") or "") == "missing"
+                    else (
+                        str(host.get("Host_SD_Method") or "")
+                        if str(host.get("Host_SD_Method") or "") in {"non_host_source", "not_identifiable"}
+                        else "review_needed"
+                    )
+                )
+            ),
+        }
+    )
+    enriched.update(extract_host_context_fields(original))
+    if enriched["Host_TaxID"]:
+        enriched.update(taxonkit_host_lineage(enriched["Host_TaxID"]))
+    if not enriched["Host_Common_Name"] and cleaned and enriched["Host_SD"] and cleaned != clean_host_lookup_text(enriched["Host_SD"]):
+        enriched["Host_Common_Name"] = cleaned
+    return enriched
+
+
+def standardize_host_metadata(value: Any) -> dict[str, str]:
+    original = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(original):
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "missing",
+            "Host_SD_Confidence": "none",
+        }
+    cleaned = clean_host_lookup_text(original)
+    if microbial_self_descriptor_context(cleaned) is not None:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    if cleaned in HOST_NOT_IDENTIFIABLE_TOKENS:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "not_identifiable",
+            "Host_SD_Confidence": "none",
+        }
+    if cleaned in HOST_TAXONOMY_PRIORITY_TOKENS:
+        for candidate in standardization_lookup_variants(original):
+            if candidate in HOST_SYNONYMS:
+                name, taxid = HOST_SYNONYMS[candidate]
+                return {
+                    "Host_SD": name,
+                    "Host_TaxID": taxid,
+                    "Host_SD_Method": "dictionary",
+                    "Host_SD_Confidence": "high",
+                }
+            if candidate in HOST_BROAD_SYNONYMS:
+                name, taxid = HOST_BROAD_SYNONYMS[candidate]
+                return {
+                    "Host_SD": name,
+                    "Host_TaxID": taxid,
+                    "Host_SD_Method": "broad_dictionary",
+                    "Host_SD_Confidence": "medium",
+                }
+    if cleaned in NON_HOST_SOURCE_HINTS:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    if context_host_recovery_blocked("Host", original):
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    compact = cleaned.replace(".", "")
+    for candidate in standardization_lookup_variants(original):
+        if candidate in HOST_SYNONYMS:
+            name, taxid = HOST_SYNONYMS[candidate]
+            return {
+                "Host_SD": name,
+                "Host_TaxID": taxid,
+                "Host_SD_Method": "dictionary",
+                "Host_SD_Confidence": "high",
+            }
+    for key, (name, taxid) in HOST_SUBSTRING_SYNONYMS.items():
+        pattern = rf"(^|\s){re.escape(key.replace('.', ''))}(\s|$)"
+        if re.search(pattern, compact):
+            return {
+                "Host_SD": name,
+                "Host_TaxID": taxid,
+                "Host_SD_Method": "cleaned_match",
+                "Host_SD_Confidence": "high",
+            }
+    for key, (name, taxid) in HOST_CONTEXT_SYNONYMS.items():
+        if re.search(rf"(^|\s){re.escape(key)}(\s|$)", cleaned):
+            return {
+                "Host_SD": name,
+                "Host_TaxID": taxid,
+                "Host_SD_Method": "context_dictionary",
+                "Host_SD_Confidence": "medium",
+            }
+    for key, (name, taxid) in HOST_BROAD_SYNONYMS.items():
+        if re.search(rf"(^|\s){re.escape(key)}(\s|$)", cleaned):
+            return {
+                "Host_SD": name,
+                "Host_TaxID": taxid,
+                "Host_SD_Method": "broad_dictionary",
+                "Host_SD_Confidence": "medium",
+            }
+    source_category = source_standardization_synonyms().get(cleaned)
+    if source_category:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    if NON_HOST_SOURCE_PATTERN.search(cleaned):
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    return {
+        "Host_SD": original,
+        "Host_TaxID": "",
+        "Host_SD_Method": "unmapped",
+        "Host_SD_Confidence": "none",
+    }
+
+
+def standardize_host_from_metadata_context(row: Mapping[str, Any]) -> dict[str, str] | None:
+    values = [
+        ("Isolation Source", row.get("Isolation Source")),
+        ("Isolation Site", row.get("Isolation Site")),
+        ("Sample Type", row.get("Sample Type")),
+        ("Environment Medium", row.get("Environment Medium")),
+    ]
+    for field_name, value in values:
+        if metadata_value_is_missing(value):
+            continue
+        cleaned = clean_host_lookup_text(value)
+        if context_host_recovery_blocked(field_name, value):
+            continue
+        if field_name == "Isolation Source" and cleaned in HOST_CONTEXT_SOURCE_SKIP_TERMS:
+            continue
+        if cleaned == "poultry":
+            continue
+        if re.search(r"\b(product|meat|carcass|food|seafood|shellfish|shrimp|prawn|oyster)\b", cleaned):
+            continue
+        host = standardize_host_metadata(cleaned)
+        if host.get("Host_TaxID"):
+            method = str(host.get("Host_SD_Method") or "")
+            if not method.startswith("context_"):
+                host["Host_SD_Method"] = f"context_{method}"
+            host["_Host_Source_Value"] = str(value).strip()
+            return host
+        for key, (name, taxid) in {**HOST_CONTEXT_SYNONYMS, **HOST_BROAD_SYNONYMS}.items():
+            if re.search(rf"(^|\s){re.escape(key)}(\s|$)", cleaned):
+                confidence = "medium" if key in HOST_CONTEXT_SYNONYMS else "low"
+                return {
+                    "Host_SD": name,
+                    "Host_TaxID": taxid,
+                    "Host_SD_Method": "context_dictionary",
+                    "Host_SD_Confidence": confidence,
+                    "_Host_Source_Value": str(value).strip(),
+                }
+    return None
+
+
+def metadata_value_is_missing(value: Any) -> bool:
+    if value is None:
+        return True
+    try:
+        if pd.isna(value):
+            return True
+    except TypeError:
+        pass
+    text = str(value).strip()
+    if not text:
+        return True
+    lowered = text.lower()
+    normalized = normalize_standardization_lookup(lowered)
+    if lowered in MISSING_VALUE_TOKENS or normalized in STANDARDIZATION_MISSING_TOKENS:
+        return True
+    missing_prefixes = (
+        "missing",
+        "no collected",
+        "not collect",
+        "not applicable",
+        "not available",
+        "not collected",
+        "not provided",
+        "not recorded",
+        "not determined",
+        "unidentified",
+        "unknown",
+    )
+    if re.match(r"^\d+\s*(not applicable|not available|not collected|not provided|unknown)\b", normalized):
+        return True
+    return normalized.startswith(missing_prefixes)
+
+
+def clean_metadata_concept_text(value: Any) -> str:
+    text = "" if value is None else str(value)
+    text = re.sub(r"\[[A-Za-z]+:\d+\]", " ", text)
+    return normalize_standardization_lookup(text)
+
+
+_METADATA_SYNONYM_CONTEXT_CACHE: dict[int, tuple[int, tuple[tuple[re.Pattern[str], str, str], ...]]] = {}
+_SOURCE_STANDARDIZATION_SYNONYMS_CACHE: tuple[int, int, dict[str, str]] | None = None
+_BROAD_STANDARDIZATION_CONTEXT_CACHE: tuple[int, tuple[tuple[re.Pattern[str], str], ...]] | None = None
+
+
+def clear_standardization_runtime_caches() -> None:
+    global _SOURCE_STANDARDIZATION_SYNONYMS_CACHE, _BROAD_STANDARDIZATION_CONTEXT_CACHE
+    _METADATA_SYNONYM_CONTEXT_CACHE.clear()
+    _SOURCE_STANDARDIZATION_SYNONYMS_CACHE = None
+    _BROAD_STANDARDIZATION_CONTEXT_CACHE = None
+
+
+def metadata_synonym_context_items(synonyms: dict[str, str]) -> tuple[tuple[re.Pattern[str], str, str], ...]:
+    cache_key = id(synonyms)
+    cached = _METADATA_SYNONYM_CONTEXT_CACHE.get(cache_key)
+    if cached is not None and cached[0] == len(synonyms):
+        return cached[1]
+    items = tuple(
+        sorted(
+            (
+                (
+                    re.compile(rf"(^|\s){re.escape(clean_metadata_concept_text(key))}(\s|$)"),
+                    standardized,
+                    CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(standardized, ""),
+                )
+                for key, standardized in synonyms.items()
+                if clean_metadata_concept_text(key)
+            ),
+            key=lambda item: len(item[0].pattern),
+            reverse=True,
+        )
+    )
+    _METADATA_SYNONYM_CONTEXT_CACHE[cache_key] = (len(synonyms), items)
+    return items
+
+
+def source_standardization_synonyms() -> dict[str, str]:
+    global _SOURCE_STANDARDIZATION_SYNONYMS_CACHE
+    stamp = (len(SAMPLE_TYPE_SYNONYMS), len(ENVIRONMENT_MEDIUM_SYNONYMS))
+    if _SOURCE_STANDARDIZATION_SYNONYMS_CACHE is not None and _SOURCE_STANDARDIZATION_SYNONYMS_CACHE[:2] == stamp:
+        return _SOURCE_STANDARDIZATION_SYNONYMS_CACHE[2]
+    combined = {**SAMPLE_TYPE_SYNONYMS, **ENVIRONMENT_MEDIUM_SYNONYMS}
+    _SOURCE_STANDARDIZATION_SYNONYMS_CACHE = (stamp[0], stamp[1], combined)
+    return combined
+
+
+def standardize_metadata_concept(value: Any, synonyms: dict[str, str]) -> tuple[str, str, str]:
+    original = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(original):
+        return "", "missing", ""
+    cleaned = clean_metadata_concept_text(original)
+    for candidate in standardization_lookup_variants(original):
+        if candidate in synonyms:
+            standardized = synonyms[candidate]
+            return standardized, "dictionary", CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(standardized, "")
+    for pattern, standardized, ontology_id in metadata_synonym_context_items(synonyms):
+        if pattern.search(cleaned):
+            return standardized, "context_dictionary", ontology_id
+    return original, "original", ""
+
+
+def first_standardized_concept(
+    values: list[Any],
+    synonyms: dict[str, str],
+    fallback_standardizer: Callable[[str], str] | None = None,
+    *,
+    allow_original: bool = False,
+) -> tuple[str, str, str]:
+    for value in values:
+        if metadata_value_is_missing(value):
+            continue
+        standardized, method, ontology_id = standardize_metadata_concept(value, synonyms)
+        if method != "original":
+            return standardized, method, ontology_id
+        if fallback_standardizer is not None:
+            fallback = fallback_standardizer(str(value).strip())
+            if not metadata_value_is_missing(fallback):
+                return fallback, "standardizer", CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(fallback, "")
+        if allow_original:
+            return standardized, "original", ""
+    return "", "missing", ""
+
+
+HOST_ONLY_ISOLATION_SOURCE_VALUES = {
+    "human",
+    "patient",
+    "infant",
+    "adult",
+    "child",
+    "male",
+    "female",
+    "pig",
+    "swine",
+    "cattle",
+    "cow",
+    "bovine",
+    "dog",
+    "canine",
+    "equine",
+    "goat",
+    "duck",
+    "avian",
+    "fly",
+    "mosquito",
+    "fish",
+    "animal",
+}
+
+
+ISOLATION_SOURCE_CONTEXT_OVERRIDES = {
+    "clinical": "clinical sample",
+    "clinical sample": "clinical sample",
+    "clinical samples": "clinical sample",
+    "clinical material": "clinical material",
+    "clinical specimen": "clinical sample",
+    "homo sapiens clinical": "clinical sample",
+    "sterile site": "sterile body site",
+    "normally sterile site": "sterile body site",
+    "hospital": "healthcare facility",
+    "intensive care unit": "healthcare facility",
+    "nursing home": "long-term care facility",
+    "icu": "healthcare facility",
+    "hospital icu": "healthcare facility",
+    "sewage": "sewage",
+    "hospital sewage": "hospital sewage",
+    "activated sludge": "sewage",
+    "respiratory": "respiratory sample",
+    "tracheal aspirate": "tracheal aspirate/secretion",
+    "tracheal secretion": "tracheal aspirate/secretion",
+    "bal": "bronchoalveolar lavage fluid",
+    "bronchoalveolar lavage": "bronchoalveolar lavage fluid",
+    "bronchoalveolar lavage fluid": "bronchoalveolar lavage fluid",
+    "np": "nasopharynx/oropharynx",
+    "nasopharynx": "nasopharynx/oropharynx",
+    "nasopharyngeal": "nasopharynx/oropharynx",
+    "nasophaynx": "nasopharynx/oropharynx",
+    "pharynx": "nasopharynx/oropharynx",
+    "throat": "nasopharynx/oropharynx",
+    "pharyngeal exudate": "nasopharynx/oropharynx",
+    "nasopharynx oropharynx": "nasopharynx/oropharynx",
+    "nasopharynx/oropharynx": "nasopharynx/oropharynx",
+    "nose": "nasal site",
+    "nasal": "nasal site",
+    "nares": "nasal site",
+    "nare": "nasal site",
+    "nasal cavity": "nasal site",
+    "oral": "oral cavity",
+    "oral cavity": "oral cavity",
+    "oral metagenome": "oral cavity",
+    "dental plaque": "dental plaque",
+    "urethra": "urethra/penis",
+    "urethral": "urethra/penis",
+    "penis urethra": "urethra/penis",
+    "urogenital": "urogenital",
+    "cervix": "cervix",
+    "ectocervical mucosa": "ectocervical mucosa",
+    "pus": "pus",
+    "abscess": "abscess",
+    "liver abscess": "liver abscess",
+    "bodily fluid": "bodily fluid",
+    "fluid": "bodily fluid",
+    "pleural fluid": "pleural fluid",
+    "drainage": "drainage",
+    "aspirate": "aspirate",
+    "liver": "liver",
+    "brain": "brain",
+    "kidney": "kidney",
+    "spleen": "spleen",
+    "bone": "bone",
+    "eye": "eye",
+    "ear": "ear",
+    "placenta": "placenta",
+    "lymph node": "lymph node",
+    "skin": "skin",
+    "wound": "wound",
+    "stomach": "gut content",
+    "gastric biopsy": "gastric biopsy",
+    "rumen": "gut content",
+    "root": "root",
+    "rhizosphere": "rhizosphere",
+    "leaves": "leaves",
+    "plant": "plant",
+    "cucumber": "cucumber",
+    "potato": "potato",
+    "nodule": "nodule",
+    "kratom": "kratom",
+    "groundwater": "groundwater",
+    "river": "river",
+    "canal": "canal",
+    "irrigation canal": "irrigation canal",
+    "stream": "stream",
+    "pond": "pond",
+    "estuary": "estuary",
+    "hot spring": "hot spring",
+    "surface layer": "surface layer",
+    "deep sea hydrothermal deposit": "deep-sea hydrothermal deposit",
+    "produced fluids from hydraulically fractured shales": "produced fluids from hydraulically fractured shales",
+    "ice core section from central arctic ocean": "ice core section from central arctic ocean",
+    "core": "core",
+    "bacteria": "metadata descriptor/non-source",
+    "assembly": "metadata descriptor/non-source",
+    "microbial community": "metadata descriptor/non-source",
+    "host associated strain": "metadata descriptor/non-source",
+    "invasive": "metadata descriptor/non-source",
+    "screening": "metadata descriptor/non-source",
+    "surveillance": "metadata descriptor/non-source",
+    "pathogen.cl": "metadata descriptor/non-source",
+    "other": "metadata descriptor/non-source",
+    "uti": "urinary tract",
+    "urinary": "urinary tract",
+    "urinary tract": "urinary tract",
+    "rectal": "rectum",
+    "rectum": "rectum",
+    "recto vaginal": "rectovaginal site",
+    "recto-vaginal": "rectovaginal site",
+    "groin": "groin",
+    "bile": "bile",
+    "biopsy": "biopsy",
+    "bloodstream": "bloodstream",
+    "bloodstream isolates": "bloodstream",
+    "gill": "gill",
+    "trachea": "trachea",
+    "secretion": "secretion",
+    "sink": "sink",
+    "drain": "drain",
+    "laboratory": "laboratory",
+    "farm": "farm",
+    "dairy farm": "dairy farm",
+    "deciduous forest": "deciduous forest",
+    "rte product": "ready-to-eat product",
+    "ice cream": "ice cream",
+    "prawns": "prawn product",
+    "prawn": "prawn product",
+    "ground component chicken": "ground chicken",
+    "ground chicken": "ground chicken",
+    "carcass": "chicken carcass",
+    "spinach": "spinach",
+    "papaya": "papaya",
+    "vegetable": "vegetable",
+    "leafy greens": "leafy greens",
+    "tree nut": "tree nut",
+    "peanut butter": "peanut butter",
+    "tooth": "tooth",
+    "catheter": "catheter",
+    "sludge": "sludge",
+    "metagenome": "metagenome",
+    "wildlife": "wildlife",
+    "wood": "wood",
+    "colon contents": "colon contents",
+    "vagina": "vagina",
+    "long term care facility": "long-term care facility",
+    "anaerobic bioreactor effluent": "anaerobic bioreactor effluent",
+    "hospital wastewater": "hospital wastewater",
+    "salmon": "salmon",
+    "surface": "surface",
+    "heart": "heart",
+    "ascites": "ascites",
+    "broiler": "broiler",
+    "enviromental": "environmental sample",
+    "environmental": "environmental sample",
+    "endovascular": "endovascular",
+    "sponge": "sponge",
+    "healthy people": "",
+    "non hospitalized person": "",
+    "hospital patients": "",
+    "infants": "",
+    "homo": "",
+    "homo sapiens": "",
+    "companion animal": "",
+    "chickens": "",
+    "sheep": "",
+    "whole stomoxys flies": "",
+    "blood from patients of rural regional hospital": "blood",
+    "wt mouse intestinal epithelial cells": "intestinal epithelial cells",
+    "intestinal epithelial cells": "intestinal epithelial cells",
+    "mammary gland": "mammary gland",
+    "right cubital fossa": "cubital fossa",
+    "cubital fossa": "cubital fossa",
+    "abdomen": "abdomen",
+    "genitourinary tract": "genitourinary tract",
+    "balf": "bronchoalveolar lavage fluid",
+    "esputum": "sputum",
+    "rectal screening": "rectum",
+    "nasal surveillance": "nasal site",
+    "cleanroom floor": "cleanroom floor",
+    "air": "air",
+    "biofilm from cave": "cave biofilm",
+    "biofilm from sulfidic cave": "cave biofilm",
+    "cold seep": "cold seep",
+    "glacier": "glacier",
+    "terrestrial": "terrestrial environment",
+    "anthropogenic terrestrial biome": "terrestrial environment",
+    "kimchi": "kimchi",
+    "enoki mushroom": "enoki mushroom",
+    "tomato": "tomato",
+    "avocado": "avocado",
+    "cantaloupe": "cantaloupe",
+    "lettuce": "lettuce",
+    "dairy product": "dairy product",
+    "catfish product": "catfish product",
+    "product raw intact siluriformes ictaluridae": "catfish product",
+    "product raw intact siluriformes ictaluridae catfish": "catfish product",
+    "anaerobic digestion of organic wastes under variable temperature conditions and feedstocks": "anaerobic digester",
+    "anaerobic digester": "anaerobic digester",
+    "cilantro": "cilantro",
+    "cave biofilm": "cave biofilm",
+}
+
+
+def isolation_source_material_context(value: Any) -> str:
+    if metadata_value_is_missing(value):
+        return ""
+    raw_lower = str(value).strip().lower()
+    cleaned = clean_metadata_concept_text(value)
+    if not cleaned:
+        return ""
+
+    if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES:
+        return ""
+    if cleaned in ISOLATION_SOURCE_CONTEXT_OVERRIDES:
+        return ISOLATION_SOURCE_CONTEXT_OVERRIDES[cleaned]
+    for key, standardized in sorted(ISOLATION_SOURCE_CONTEXT_OVERRIDES.items(), key=lambda item: len(item[0]), reverse=True):
+        if re.search(rf"(^|\s){re.escape(key)}(\s|$)", cleaned):
+            return standardized
+
+    if cleaned == "poultry":
+        return "poultry"
+    if re.search(r"\b(caecal|cecal|caecum|cecum|intestin|gastrointestinal|gut)\b", raw_lower) or re.search(r"\b(caecal|cecal|caecum|cecum|intestin|gastrointestinal|gut)\b", cleaned):
+        return "gut content"
+    if re.search(r"\b(csf|cerebrospinal fluid)\b", cleaned):
+        return "cerebrospinal fluid"
+    if re.search(r"\b(np swab|nasopharyngeal swab)\b", cleaned):
+        return "nasopharyngeal swab"
+    if re.search(r"\b(nasal swab|nose swab)\b", cleaned):
+        return "nasal swab"
+    if re.search(r"\b(chicken|poultry)\b", cleaned) and re.search(r"\b(carcass|meat|breast|comminuted|product|raw|nonintact|intact|rinse|post chill|pre evisceration)\b", cleaned):
+        return "chicken meat"
+    if re.search(r"\bturkey\b", cleaned) and re.search(r"\b(meat|ground|comminuted|product|raw|nonintact|intact)\b", cleaned):
+        return "turkey meat"
+    if re.search(r"\bpork\b", cleaned) and re.search(r"\b(meat|ground|product|raw|nonintact|intact)\b", cleaned):
+        return "pork"
+    if re.search(r"\bbeef\b", cleaned) and re.search(r"\b(meat|ground|comminuted|product|raw|nonintact|intact)\b", cleaned):
+        return "beef"
+    if re.search(r"\bfreshwater fish\b", cleaned) and re.search(r"\b(product|raw|processed|fillet|market)\b", cleaned):
+        return "freshwater fish product"
+    if re.search(r"\bfish\b", cleaned) and re.search(r"\b(product|raw|processed|fillet|market)\b", cleaned):
+        return "fish product"
+    if re.search(r"\b(shrimp|prawn)\b", cleaned) and re.search(r"\b(product|raw|processed|market)\b", cleaned):
+        return "shrimp product"
+    if re.search(r"\boyster\b", cleaned) and re.search(r"\b(product|raw|processed|shucked|market)\b", cleaned):
+        return "oyster product"
+    if re.search(r"\b(shellfish|mussel|clam)\b", cleaned) and re.search(r"\b(product|raw|processed|market)\b", cleaned):
+        return "shellfish product"
+    if cleaned == "seafood":
+        return "seafood"
+    if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES | {"chicken", "turkey"}:
+        return ""
+    if re.search(r"\banimal (swine|cattle|chicken|turkey)\b", cleaned):
+        return ""
+    if re.search(r"\b(human|patient|listeriosis|pig|swine|cattle|cow|steer|heifer|chicken|turkey|poultry)\b", cleaned):
+        food_like = re.search(r"\b(carcass|meat|breast|ground|comminuted|product|raw|nonintact|pork|beef)\b", cleaned)
+        if not food_like:
+            return ""
+    return str(value).strip()
+
+
+def broad_standardization_category(value: str) -> str:
+    if not value:
+        return ""
+    cleaned = normalize_standardization_lookup(value)
+    if cleaned in STANDARDIZATION_BROAD_CATEGORIES:
+        return STANDARDIZATION_BROAD_CATEGORIES[cleaned]
+    global _BROAD_STANDARDIZATION_CONTEXT_CACHE
+    if (
+        _BROAD_STANDARDIZATION_CONTEXT_CACHE is None
+        or _BROAD_STANDARDIZATION_CONTEXT_CACHE[0] != len(STANDARDIZATION_BROAD_CATEGORIES)
+    ):
+        _BROAD_STANDARDIZATION_CONTEXT_CACHE = (
+            len(STANDARDIZATION_BROAD_CATEGORIES),
+            tuple(
+                sorted(
+                    (
+                        (re.compile(rf"(^|\s){re.escape(normalize_standardization_lookup(key))}(\s|$)"), broad)
+                        for key, broad in STANDARDIZATION_BROAD_CATEGORIES.items()
+                    ),
+                    key=lambda item: len(item[0].pattern),
+                    reverse=True,
+                )
+            ),
+        )
+    for pattern, broad in _BROAD_STANDARDIZATION_CONTEXT_CACHE[1]:
+        if pattern.search(cleaned):
+            return broad
+    return value
+
+
+def standardize_secondary_metadata(row: dict[str, Any], host_standardization: dict[str, str]) -> dict[str, str]:
+    host_value = row.get("Host")
+    host_as_context = "" if host_standardization.get("Host_TaxID") else host_value
+    isolation_source_material = isolation_source_material_context(row.get("Isolation Source"))
+    isolation_source, isolation_method, isolation_ontology_id = first_standardized_concept(
+        [isolation_source_material, row.get("Isolation Site"), host_as_context],
+        source_standardization_synonyms(),
+        standardize_isolation_source,
+    )
+    environment_medium, environment_method, environment_ontology_id = first_standardized_concept(
+        [
+            row.get("Environment Medium"),
+            row.get("Environment (Local Scale)"),
+            row.get("Environment (Broad Scale)"),
+            row.get("Isolation Source"),
+            row.get("Sample Type"),
+            host_as_context,
+        ],
+        ENVIRONMENT_MEDIUM_SYNONYMS,
+    )
+    sample_type, sample_type_method, sample_type_ontology_id = first_standardized_concept(
+        [row.get("Sample Type"), row.get("Isolation Source"), host_as_context],
+        SAMPLE_TYPE_SYNONYMS,
+    )
+    host_sample_type, host_sample_method, host_sample_ontology_id = host_context_sample_type(host_standardization, host_value)
+    if host_sample_type and (not sample_type or sample_type in {"culture", "microbial culture", "microbial isolate"}):
+        sample_type, sample_type_method, sample_type_ontology_id = (
+            host_sample_type,
+            host_sample_method,
+            host_sample_ontology_id,
+        )
+    return {
+        "Isolation_Source_SD": isolation_source,
+        "Isolation_Source_SD_Broad": broad_standardization_category(isolation_source),
+        "Isolation_Source_SD_Detail": isolation_source,
+        "Isolation_Source_SD_Method": isolation_method,
+        "Isolation_Source_Ontology_ID": isolation_ontology_id,
+        "Environment_Medium_SD": environment_medium,
+        "Environment_Medium_SD_Broad": broad_standardization_category(environment_medium),
+        "Environment_Medium_SD_Detail": environment_medium,
+        "Environment_Medium_SD_Method": environment_method,
+        "Environment_Medium_Ontology_ID": environment_ontology_id,
+        "Sample_Type_SD": sample_type,
+        "Sample_Type_SD_Broad": broad_standardization_category(sample_type),
+        "Sample_Type_SD_Detail": sample_type,
+        "Sample_Type_SD_Method": sample_type_method,
+        "Sample_Type_Ontology_ID": sample_type_ontology_id,
+    }
+
+
+def standardize_primary_metadata_value(field: str, value: Any) -> str:
+    text = "" if value is None else str(value).strip()
+    if field == "Collection Date":
+        return standardize_date(text)
+    if field == "Geographic Location":
+        return standardize_location(text)
+    if field == "Host":
+        return standardize_host(text)
+    if field == "Isolation Source":
+        return standardize_isolation_source(text)
+    return standardize_isolation_source(text)
+
+
+def fuzzy_similarity_score(left: str, right: str) -> int:
+    return int(round(difflib.SequenceMatcher(None, left, right).ratio() * 100))
+
+
+def best_fuzzy_string_match(value: Any, choices: list[str], min_score: int = 92) -> tuple[str, int] | None:
+    cleaned = normalize_standardization_lookup(value)
+    if len(cleaned) < 4:
+        return None
+    best_choice = ""
+    best_score = 0
+    compact_cleaned = cleaned.replace(" ", "")
+    for choice in choices:
+        normalized_choice = normalize_standardization_lookup(choice)
+        if len(normalized_choice) < 4:
+            continue
+        score = max(
+            fuzzy_similarity_score(cleaned, normalized_choice),
+            fuzzy_similarity_score(compact_cleaned, normalized_choice.replace(" ", "")),
+        )
+        if score > best_score:
+            best_choice = choice
+            best_score = score
+    if not best_choice or best_score < min_score:
+        return None
+    return best_choice, best_score
+
+
+def fuzzy_refinement_candidate(source_column: str, value: Any) -> dict[str, str] | None:
+    text = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(text):
+        return None
+
+    if source_column == "Host":
+        host_choices = list(HOST_SYNONYMS.keys()) + list(HOST_BROAD_SYNONYMS.keys())
+        match = best_fuzzy_string_match(text, host_choices, min_score=93)
+        if not match:
+            return None
+        key, score = match
+        name, taxid = HOST_SYNONYMS.get(key) or HOST_BROAD_SYNONYMS.get(key) or ("", "")
+        if not name or not taxid:
+            return None
+        return {
+            "category": "host organism",
+            "destination": "Host_SD",
+            "proposed_value": name,
+            "ontology_id": taxid,
+            "method": f"fuzzy_match:{score}",
+            "confidence": "medium",
+            "action": "review",
+            "suggestion_score": str(score),
+            "note": f"Fuzzy host match to '{key}'. Admin approval required.",
+        }
+
+    if source_column in {"Environment Medium", "Environment (Broad Scale)", "Environment (Local Scale)"}:
+        destination = "Environment_Medium_SD"
+        category = "environment medium"
+        synonyms = ENVIRONMENT_MEDIUM_SYNONYMS
+    elif source_column == "Sample Type":
+        destination = "Sample_Type_SD"
+        category = "sample type"
+        synonyms = SAMPLE_TYPE_SYNONYMS
+    elif source_column == "Isolation Source":
+        destination = "Isolation_Source_SD"
+        category = "isolation source"
+        synonyms = {**SAMPLE_TYPE_SYNONYMS, **ENVIRONMENT_MEDIUM_SYNONYMS}
+    else:
+        return None
+
+    match = best_fuzzy_string_match(text, list(synonyms.keys()), min_score=91)
+    if not match:
+        return None
+    key, score = match
+    proposed = synonyms.get(key, "")
+    if not proposed:
+        return None
+    return {
+        "category": category,
+        "destination": destination,
+        "proposed_value": proposed,
+        "ontology_id": CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(proposed, ""),
+        "method": f"fuzzy_match:{score}",
+        "confidence": "medium",
+        "action": "review",
+        "suggestion_score": str(score),
+        "note": f"Fuzzy metadata match to '{key}'. Admin approval required.",
+    }
+
+
+def harmonize_primary_metadata_aliases(row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
+    for primary, aliases in PRIMARY_METADATA_ALIASES.items():
+        current = normalized.get(primary)
+        if not metadata_value_is_missing(current):
+            normalized[primary] = standardize_primary_metadata_value(primary, current)
+            continue
+        for alias in aliases:
+            candidate = normalized.get(alias)
+            if metadata_value_is_missing(candidate):
+                continue
+            normalized[primary] = standardize_primary_metadata_value(primary, candidate)
+            break
+    return normalized
+
+
+COLLECTION_DATE_PRIMARY_COLUMNS = ["Collection Date", *PRIMARY_METADATA_ALIASES["Collection Date"]]
+COLLECTION_DATE_SECONDARY_TEXT_COLUMNS = [
+    "BioSample Description",
+    "BioSample Title",
+    "BioSample Comment",
+    "BioSample Comments",
+    "BioSample Collection Date Remark",
+    "BioSample Isolation Source",
+    "Isolation Source",
+    "BioSample Source Name",
+]
+COLLECTION_DATE_CONTEXT_PATTERN = re.compile(
+    r"\b(?:collection|collected|collecting|sampled|sampling|isolation\s+date|isolated|harvest|harvested|"
+    r"specimen\s+collection|date\s+of\s+collection|collection\s+year)\b",
+    re.IGNORECASE,
+)
+COLLECTION_DATE_FALSE_POSITIVE_PATTERN = re.compile(
+    r"\b(?:protocols?|described\s+previously|et\s+al\.|publication|published|submitted|submission|"
+    r"sequenc(?:e|ed|ing)|assembly|bioproject|biosample|accession|created|modified|updated|"
+    r"data\s+agreement)\b",
+    re.IGNORECASE,
+)
+REVIEWED_COLLECTION_DATE_VALUES: dict[str, str] = {}
+
+
+def reviewed_collection_year(value: Any) -> str | None:
+    text = "" if value is None else str(value).strip()
+    if not text:
+        return None
+    return REVIEWED_COLLECTION_DATE_VALUES.get(re.sub(r"\s+", " ", text).strip().lower())
+
+
+def load_reviewed_collection_date_rules() -> None:
+    path = STANDARDIZATION_DIR / "collection_date_reviewed_rules.csv"
+    if not path.exists():
+        return
+    current_year = datetime.now(timezone.utc).year
+    for row in load_standardization_csv(path):
+        source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
+        year = str(row.get("year") or "").strip()
+        if source_value and re.fullmatch(r"(?:19|20)\d{2}", year) and 1900 <= int(year) <= current_year:
+            REVIEWED_COLLECTION_DATE_VALUES[source_value] = year
+
+
+load_reviewed_collection_date_rules()
+
+
+def standardize_collection_year_value(value: Any) -> str | None:
+    text = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(text) or COLLECTION_DATE_FALSE_POSITIVE_PATTERN.search(text):
+        return None
+    if re.search(r"\bmissing\b", text, re.IGNORECASE):
+        return None
+    if not re.search(r"\b(?:19|20)\d{2}\b", text) and re.search(r"\b\d{3}\b", text):
+        return None
+    parsed = standardize_date(text)
+    return None if metadata_value_is_missing(parsed) else parsed
+
+
+def extract_year_from_collection_text(value: Any, require_context: bool = True) -> tuple[str, str, str] | None:
+    text = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(text) or COLLECTION_DATE_FALSE_POSITIVE_PATTERN.search(text):
+        return None
+    reviewed_year = reviewed_collection_year(text)
+    if reviewed_year:
+        return reviewed_year, text[:180], "reviewed_secondary"
+
+    compact = re.sub(r"\s+", " ", text)
+    for match in re.finditer(r"\b(?:19|20)\d{2}\b", compact):
+        year = match.group(0)
+        current_year = datetime.now(timezone.utc).year
+        if not (1900 <= int(year) <= current_year):
+            continue
+        window = compact[max(0, match.start() - 80) : match.end() + 80]
+        before = compact[max(0, match.start() - 80) : match.start()]
+        after = compact[match.end() : match.end() + 80]
+        if require_context and not (
+            COLLECTION_DATE_CONTEXT_PATTERN.search(before) or COLLECTION_DATE_CONTEXT_PATTERN.search(after)
+        ):
+            continue
+        return year, window.strip()[:180], "rule_secondary" if require_context else "trusted_primary"
+
+    if require_context:
+        return None
+
+    parsed = standardize_collection_year_value(compact)
+    if parsed:
+        return parsed, compact[:180], "rule_secondary" if require_context else "trusted_primary"
+    return None
+
+
+def recover_collection_date(row: Mapping[str, Any]) -> tuple[str, str, str, str] | None:
+    existing_status = str(row.get("Collection_Date_Recovery_Status") or "").strip()
+    existing_year = standardize_collection_year_value(row.get("Collection Date"))
+    if existing_status in {"reviewed_secondary", "rule_secondary"} and existing_year:
+        source = str(row.get("Collection_Date_Source") or "Collection Date").strip()
+        evidence = str(row.get("Collection_Date_Evidence") or row.get("Collection Date") or "").strip()
+        return existing_year, source, evidence[:180], existing_status
+    for column in COLLECTION_DATE_PRIMARY_COLUMNS:
+        parsed = standardize_collection_year_value(row.get(column))
+        if parsed:
+            value = "" if row.get(column) is None else str(row.get(column)).strip()
+            return parsed, column, value[:180], "trusted_primary"
+    for column in COLLECTION_DATE_SECONDARY_TEXT_COLUMNS:
+        recovered = extract_year_from_collection_text(row.get(column), require_context=True)
+        if recovered:
+            year, evidence, status = recovered
+            return year, column, evidence, status
+    return None
+
+
+def harmonize_collection_date_metadata(row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
+    recovered = recover_collection_date(normalized)
+    if recovered:
+        year, source, evidence, status = recovered
+        normalized["Collection Date"] = year
+        normalized["Collection_Date_Source"] = source
+        normalized["Collection_Date_Evidence"] = evidence
+        normalized["Collection_Date_Recovery_Status"] = status
+        return normalized
+
+    current = normalized.get("Collection Date")
+    normalized["Collection Date"] = "absent" if metadata_value_is_missing(current) else "unknown"
+    normalized["Collection_Date_Source"] = ""
+    normalized["Collection_Date_Evidence"] = ""
+    normalized["Collection_Date_Recovery_Status"] = normalized["Collection Date"]
+    return normalized
+
+
+SECONDARY_GEO_DIRECT_COLUMNS = [
+    "BioSample ENV Local Scale",
+    "BioSample ENV Broad Scale",
+]
+SECONDARY_GEO_TEXT_COLUMNS = [
+    "BioSample Isolation Source",
+    "Isolation Source",
+    "BioSample Source Name",
+    "BioSample Description",
+    "BioSample Title",
+]
+SECONDARY_GEO_FALSE_POSITIVE_PATTERNS = [
+    re.compile(pattern, re.IGNORECASE)
+    for pattern in [
+        r"\bprotocols?:",
+        r"\bground\s+turkey\b",
+        r"\bgound\s+turkey\b",
+        r"\bturkey\s+(?:embryo|embryos|meat|product|farm|flock|litter|cecum|caecum|cloaca|feces|faeces|gut|intestine|poult|salad|sinus|trachea|tracheae)\b",
+        r"\bturkey\s+(?:pork|beef|hot\s+dog|frank|filet|goulash|steak|patty)\b",
+        r"\bguinea[-\s]?pig\b",
+        r"\bguinea\s+fowl\b",
+        r"\bnorway\s+rat\b",
+        r"\b(?:a\.|aspergillus)\s+niger\b",
+        r"\bcordylus\s+niger\b",
+        r"\blizard\s*\([^)]*\bniger\b[^)]*\)",
+        r"\bniger\s+(?:mycelia|strain|isolate|culture|spore|hyphae)\b",
+        r"\bdeschampsia\s+antarctica\b",
+    ]
+]
+SECONDARY_GEO_LOCATION_CUE_PATTERN = re.compile(
+    r"\b(?:in|from|at|near|within|collected\s+(?:in|from|at)|isolated\s+(?:in|from|at)|"
+    r"sampled\s+(?:in|from|at)|obtained\s+from|originating\s+from|region[, ]+|province[, ]+|site[, ]+)",
+    re.IGNORECASE,
+)
+SECONDARY_GEO_DIRECTIONAL_PREFIXES = ("north", "south", "east", "west", "northern", "southern", "eastern", "western", "central")
+REVIEWED_SECONDARY_GEO_VALUES = {
+    "usa": "United States",
+    "soil around the arctic ocean": "Arctic Ocean",
+    "blood - animal united kingdom": "United Kingdom",
+    "soil, moscow, ussr": "Northern Asia",
+    "gulf of mexico": "Mexico",
+    "seawater off the coast of georgia": "Georgia",
+    "arctic ocean sediment": "Arctic Ocean",
+    "blue lagoon, iceland at 20 cm": "Iceland",
+    "the mediterranean sea": "Mediterranean Sea",
+    "boston harbor massachusetts, united states isolation date: 1999": "United States",
+    "plant (bean pod) australia": "Australia",
+    "oral cavity - animal (dental plaque of dairy cattle, belfast, northern) belfast ireland": "Ireland",
+    "clinical specimen - human pennsylvania, united states isolation date: 1988": "United States",
+    "blood - human jonkoping sweden isolation date: 1993": "Sweden",
+    "alkaline kenya isolation date: june, 2002": "Kenya",
+    "blood - human houston texas, united states isolation date: january 18, 2000": "United States",
+}
+
+
+def load_reviewed_secondary_geo_rules() -> None:
+    path = STANDARDIZATION_DIR / "geography_reviewed_rules.csv"
+    if not path.exists():
+        return
+    for row in load_standardization_csv(path):
+        source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
+        country = str(row.get("country") or "").strip()
+        if source_value and country in COUNTRY_MAPPING:
+            REVIEWED_SECONDARY_GEO_VALUES[source_value] = country
+
+
+load_reviewed_secondary_geo_rules()
+
+
+def normalize_country_candidate(value: Any) -> str | None:
+    text = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(text):
+        return None
+    country = extract_country(text)
+    if country in COUNTRY_MAPPING:
+        return str(country)
+    country = normalize_country_name(text)
+    return str(country) if country in COUNTRY_MAPPING else None
+
+
+def secondary_geo_text_blocked(text: str) -> bool:
+    return any(pattern.search(text) for pattern in SECONDARY_GEO_FALSE_POSITIVE_PATTERNS)
+
+
+def reviewed_secondary_geo_country(text: Any) -> str | None:
+    value = "" if text is None else str(text).strip()
+    if not value:
+        return None
+    compact = re.sub(r"\s+", " ", value).strip().lower()
+    return REVIEWED_SECONDARY_GEO_VALUES.get(compact)
+
+
+def secondary_geo_country_context_blocked(country: str, text: str, match: re.Match[str]) -> bool:
+    after = text[match.end() : match.end() + 80].lower()
+    before = text[max(0, match.start() - 80) : match.start()].lower()
+    phrase = text[max(0, match.start() - 80) : match.end() + 80].lower()
+
+    if re.match(r"\s+style\b", after):
+        return True
+    if country == "Turkey" and re.search(
+        r"\bturkey\s+(?:embryo|embryos|meat|product|farm|flock|litter|cecum|caecum|cloaca|"
+        r"feces|faeces|gut|intestine|pork|beef|hot\s+dog|frank|filet|goulash|patty|poult|"
+        r"salad|sinus|steak|trachea|tracheae)\b",
+        phrase,
+    ):
+        return True
+    if country == "Turkey" and re.search(r"\b(?:ground|gound)\s+turkey\b", phrase):
+        return True
+    if country == "Guinea" and re.search(r"\bguinea[-\s]?(?:pig|fowl)\b", phrase):
+        return True
+    if country == "Norway" and re.search(r"\bnorway\s+rat\b", phrase):
+        return True
+    if country == "Niger" and re.search(r"\b(?:a\.|aspergillus|cordylus)\s+niger\b|\bniger\s+(?:mycelia|strain|isolate|culture|spore|hyphae)\b", phrase):
+        return True
+    if country == "Niger" and re.search(r"\blizard\s*\([^)]*\bniger\b[^)]*\)", phrase):
+        return True
+    if country == "Antarctica" and re.search(r"\bdeschampsia\s+antarctica\b", phrase):
+        return True
+    if country in {"Turkey", "Guinea", "Norway", "Niger"} and re.search(r"\b(?:host|animal)\s*$", before):
+        return True
+    return False
+
+
+def recover_country_from_secondary_text(text: Any) -> tuple[str, str, str] | None:
+    value = "" if text is None else str(text).strip()
+    if metadata_value_is_missing(value) or secondary_geo_text_blocked(value):
+        return None
+
+    reviewed_country = reviewed_secondary_geo_country(value)
+    if reviewed_country:
+        return reviewed_country, value, "reviewed_secondary"
+
+    direct = normalize_country_candidate(value)
+    if direct:
+        if direct in {"Turkey", "Guinea", "Norway", "Niger"} and not SECONDARY_GEO_LOCATION_CUE_PATTERN.search(value):
+            return None
+        return direct, value, "rule_secondary"
+
+    compact = re.sub(r"\s+", " ", value)
+    for country in sorted(COUNTRY_MAPPING, key=len, reverse=True):
+        if len(country) < 4:
+            continue
+        escaped = re.escape(country)
+        country_pattern = re.compile(rf"(?<![A-Za-z]){escaped}(?![A-Za-z])", re.IGNORECASE)
+        match = country_pattern.search(compact)
+        if not match:
+            continue
+        before = compact[max(0, match.start() - 50) : match.start()]
+        after = compact[match.end() : match.end() + 50]
+        phrase = compact[max(0, match.start() - 60) : match.end() + 60].strip()
+        prefix = before.strip().split()[-1].lower() if before.strip().split() else ""
+        if secondary_geo_country_context_blocked(str(country), compact, match):
+            continue
+        if country in {"Turkey", "Guinea", "Norway", "Niger"} and not SECONDARY_GEO_LOCATION_CUE_PATTERN.search(before):
+            continue
+        if prefix in SECONDARY_GEO_DIRECTIONAL_PREFIXES:
+            return str(country), phrase, "rule_secondary"
+        if SECONDARY_GEO_LOCATION_CUE_PATTERN.search(before):
+            return str(country), phrase, "rule_secondary"
+        if re.match(r"^\s*(?:[,;:.]|$)", after) and re.search(r"[,;:]\s*$", before):
+            return str(country), phrase, "rule_secondary"
+    return None
+
+
+def recover_secondary_geography(row: Mapping[str, Any]) -> tuple[str, str, str, str] | None:
+    for column in SECONDARY_GEO_DIRECT_COLUMNS:
+        candidate = normalize_country_candidate(row.get(column))
+        if candidate:
+            value = "" if row.get(column) is None else str(row.get(column)).strip()
+            return candidate, column, value[:180], "rule_secondary"
+    for column in ["Host", "BioSample Host"]:
+        reviewed_country = reviewed_secondary_geo_country(row.get(column))
+        if reviewed_country:
+            value = "" if row.get(column) is None else str(row.get(column)).strip()
+            return reviewed_country, column, value[:180], "reviewed_secondary"
+    for column in SECONDARY_GEO_TEXT_COLUMNS:
+        recovered = recover_country_from_secondary_text(row.get(column))
+        if recovered:
+            country, evidence, status = recovered
+            return country, column, evidence[:180], status
+    return None
+
+
+def harmonize_geography_metadata(row: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(row)
+    country = normalized.get("Country")
+    country_source = "Country" if not metadata_value_is_missing(country) else ""
+    country_confidence = "trusted" if country_source else ""
+    country_evidence = "" if metadata_value_is_missing(country) else str(country).strip()[:180]
+    geo_recovery_status = "trusted_primary" if country_source else ""
+    if metadata_value_is_missing(country):
+        country = extract_country(normalized.get("Geographic Location"))
+        if not metadata_value_is_missing(country):
+            country_source = "Geographic Location"
+            country_confidence = "trusted"
+            country_evidence = "" if normalized.get("Geographic Location") is None else str(normalized.get("Geographic Location")).strip()[:180]
+            geo_recovery_status = "trusted_primary"
+    else:
+        country = extract_country(str(country).split(":", 1)[0])
+
+    if metadata_value_is_missing(country):
+        recovered = recover_secondary_geography(normalized)
+        if recovered:
+            country, country_source, country_evidence, geo_recovery_status = recovered
+            country_confidence = "high"
+
+    if metadata_value_is_missing(country):
+        normalized["Country"] = "absent" if metadata_value_is_missing(normalized.get("Geographic Location")) else "unknown"
+        normalized["Continent"] = "absent" if normalized["Country"] == "absent" else "unknown"
+        normalized["Subcontinent"] = normalized["Continent"]
+        normalized["Country_Source"] = ""
+        normalized["Country_Confidence"] = ""
+        normalized["Country_Evidence"] = ""
+        normalized["Geo_Recovery_Status"] = "absent" if normalized["Country"] == "absent" else "unknown"
+        return normalized
+
+    normalized["Country"] = country
+    mapping = COUNTRY_MAPPING.get(str(country), {})
+    normalized["Continent"] = mapping.get("Continent") or "unknown"
+    normalized["Subcontinent"] = mapping.get("Subcontinent") or "unknown"
+    normalized["Country_Source"] = country_source
+    normalized["Country_Confidence"] = country_confidence
+    normalized["Country_Evidence"] = country_evidence
+    normalized["Geo_Recovery_Status"] = geo_recovery_status or "trusted_primary"
+    return normalized
+
+
+def ensure_managed_metadata_schema(row: dict[str, Any]) -> dict[str, Any]:
+    normalized = harmonize_geography_metadata(harmonize_collection_date_metadata(harmonize_primary_metadata_aliases(row)))
+    for column in SPECIES_TSV_COLUMNS:
+        normalized.setdefault(column, None)
+    host_source_value = normalized.get("Host")
+    host_standardization = standardize_host_metadata(normalized.get("Host"))
+    if not host_standardization.get("Host_TaxID"):
+        context_host_standardization = standardize_host_from_metadata_context(normalized)
+        if context_host_standardization is not None:
+            host_standardization = context_host_standardization
+            host_source_value = context_host_standardization.get("_Host_Source_Value") or host_source_value
+    host_standardization = enrich_host_standardization(host_source_value, host_standardization)
+    for column in HOST_STANDARDIZATION_COLUMNS:
+        normalized[column] = host_standardization[column]
+    secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
+    for column in SECONDARY_STANDARDIZATION_COLUMNS:
+        normalized[column] = secondary_standardization[column]
+    return normalized
+
+
 def metadata_row_accession(row: dict[str, Any]) -> str:
     return str(row.get("Assembly Accession") or "").strip()
 
@@ -834,17 +4008,97 @@ def load_taxon_metadata_rows(species_id: int) -> dict[str, dict[str, Any]]:
     return payloads
 
 
+def load_taxon_metadata_row_chunk(
+    species_id: int,
+    *,
+    limit: int,
+    offset: int,
+) -> list[dict[str, Any]]:
+    with get_sqlite_connection() as db:
+        rows = db.execute(
+            """
+            SELECT row_json
+            FROM assembly_metadata
+            WHERE species_id = ?
+            ORDER BY assembly_accession
+            LIMIT ? OFFSET ?
+            """,
+            (species_id, limit, offset),
+        ).fetchall()
+    return [json.loads(str(row["row_json"])) for row in rows]
+
+
+def load_taxon_metadata_rows_for_accessions(
+    species_id: int,
+    accessions: list[str] | set[str],
+) -> dict[str, dict[str, Any]]:
+    unique_accessions = sorted({str(accession).strip() for accession in accessions if str(accession).strip()})
+    if not unique_accessions:
+        return {}
+    payloads: dict[str, dict[str, Any]] = {}
+    with get_sqlite_connection() as db:
+        for start in range(0, len(unique_accessions), SQLITE_VARIABLE_CHUNK_SIZE):
+            chunk = unique_accessions[start : start + SQLITE_VARIABLE_CHUNK_SIZE]
+            placeholders = ", ".join("?" for _ in chunk)
+            rows = db.execute(
+                f"""
+                SELECT assembly_accession, row_json
+                FROM assembly_metadata
+                WHERE species_id = ?
+                  AND assembly_accession IN ({placeholders})
+                """,
+                (species_id, *chunk),
+            ).fetchall()
+            for row in rows:
+                payloads[str(row["assembly_accession"])] = json.loads(str(row["row_json"]))
+    return payloads
+
+
+def count_taxon_metadata_rows_for_accessions(species_id: int, accessions: set[str]) -> int:
+    if not accessions:
+        return 0
+    sorted_accessions = sorted(accessions)
+    total = 0
+    with get_sqlite_connection() as db:
+        for start in range(0, len(sorted_accessions), SQLITE_VARIABLE_CHUNK_SIZE):
+            chunk = sorted_accessions[start : start + SQLITE_VARIABLE_CHUNK_SIZE]
+            placeholders = ", ".join("?" for _ in chunk)
+            row = db.execute(
+                f"""
+                SELECT COUNT(*) AS total
+                FROM assembly_metadata
+                WHERE species_id = ?
+                  AND assembly_accession IN ({placeholders})
+                """,
+                (species_id, *chunk),
+            ).fetchone()
+            total += int(row["total"] or 0) if row is not None else 0
+    return total
+
+
+def count_taxon_metadata_rows(species_id: int) -> int:
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            "SELECT COUNT(*) AS total FROM assembly_metadata WHERE species_id = ?",
+            (species_id,),
+        ).fetchone()
+    return int(row["total"] or 0) if row is not None else 0
+
+
 def save_taxon_metadata_rows(
     species_id: int,
     rows: list[dict[str, Any]],
     *,
     refreshed_at: str,
+    normalize_rows: bool = True,
 ) -> None:
     if not rows:
         return
     serialized_rows = []
     accessions: list[str] = []
     for row in rows:
+        if normalize_rows:
+            row = ensure_managed_metadata_schema(row)
         accession = metadata_row_accession(row)
         if not accession:
             continue
@@ -862,15 +4116,36 @@ def save_taxon_metadata_rows(
         )
     with get_sqlite_connection() as db:
         if accessions:
-            placeholders = ", ".join("?" for _ in accessions)
-            db.execute(
-                f"""
-                DELETE FROM assembly_metadata
-                WHERE species_id = ?
-                  AND assembly_accession NOT IN ({placeholders})
-                """,
-                (species_id, *accessions),
-            )
+            if len(accessions) <= SQLITE_VARIABLE_CHUNK_SIZE:
+                placeholders = ", ".join("?" for _ in accessions)
+                db.execute(
+                    f"""
+                    DELETE FROM assembly_metadata
+                    WHERE species_id = ?
+                      AND assembly_accession NOT IN ({placeholders})
+                    """,
+                    (species_id, *accessions),
+                )
+            else:
+                db.execute("CREATE TEMP TABLE IF NOT EXISTS temp_keep_accessions (assembly_accession TEXT PRIMARY KEY)")
+                db.execute("DELETE FROM temp_keep_accessions")
+                db.executemany(
+                    "INSERT OR IGNORE INTO temp_keep_accessions (assembly_accession) VALUES (?)",
+                    ((accession,) for accession in accessions),
+                )
+                db.execute(
+                    """
+                    DELETE FROM assembly_metadata
+                    WHERE species_id = ?
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM temp_keep_accessions
+                          WHERE temp_keep_accessions.assembly_accession = assembly_metadata.assembly_accession
+                      )
+                    """,
+                    (species_id,),
+                )
+                db.execute("DELETE FROM temp_keep_accessions")
         else:
             db.execute("DELETE FROM assembly_metadata WHERE species_id = ?", (species_id,))
         db.executemany(
@@ -888,6 +4163,83 @@ def save_taxon_metadata_rows(
                 refreshed_at = excluded.refreshed_at
             """,
             serialized_rows,
+        )
+        db.commit()
+    try:
+        species = load_species(species_id)
+        refresh_metadata_species_search_entries(species, rows)
+    except Exception:
+        logging.exception("Failed to refresh metadata species search entries for taxon %s.", species_id)
+
+
+def upsert_taxon_metadata_rows(
+    species_id: int,
+    rows: list[dict[str, Any]],
+    *,
+    refreshed_at: str,
+) -> int:
+    if not rows:
+        return 0
+    serialized_rows = []
+    for row in rows:
+        row = ensure_managed_metadata_schema(row)
+        accession = metadata_row_accession(row)
+        if not accession:
+            continue
+        serialized_rows.append(
+            (
+                species_id,
+                accession,
+                str(row.get("Assembly Name") or "").strip() or None,
+                str(row.get("Organism Name") or "").strip() or None,
+                metadata_row_biosample_accession(row),
+                json.dumps(normalize_metadata_row_payload(row), sort_keys=True),
+                refreshed_at,
+            )
+        )
+    if not serialized_rows:
+        return 0
+    with get_sqlite_connection() as db:
+        db.executemany(
+            """
+            INSERT INTO assembly_metadata (
+                species_id, assembly_accession, assembly_name, organism_name,
+                biosample_accession, row_json, refreshed_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(species_id, assembly_accession) DO UPDATE SET
+                assembly_name = excluded.assembly_name,
+                organism_name = excluded.organism_name,
+                biosample_accession = excluded.biosample_accession,
+                row_json = excluded.row_json,
+                refreshed_at = excluded.refreshed_at
+            """,
+            serialized_rows,
+        )
+        db.commit()
+    return len(serialized_rows)
+
+
+def update_taxon_metadata_progress(
+    species_id: int,
+    *,
+    total: int,
+    completed: int,
+    current_accession: str | None = None,
+) -> None:
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE species
+            SET metadata_progress_total = ?,
+                metadata_progress_completed = ?,
+                metadata_progress_current_accession = ?,
+                metadata_progress_updated_at = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (total, completed, current_accession, now, now, species_id),
         )
         db.commit()
 
@@ -973,10 +4325,75 @@ def ensure_species_columns(db: sqlite3.Connection) -> None:
         "metadata_claimed_by": "TEXT",
         "metadata_claimed_at": "TEXT",
         "metadata_source_taxon_id": "INTEGER",
+        "metadata_progress_total": "INTEGER NOT NULL DEFAULT 0",
+        "metadata_progress_completed": "INTEGER NOT NULL DEFAULT 0",
+        "metadata_progress_current_accession": "TEXT",
+        "metadata_progress_updated_at": "TEXT",
+        "assembly_backfill_status": "TEXT NOT NULL DEFAULT 'idle'",
+        "assembly_backfill_requested_at": "TEXT",
+        "assembly_backfill_claimed_by": "TEXT",
+        "assembly_backfill_claimed_at": "TEXT",
+        "assembly_backfill_last_built_at": "TEXT",
+        "assembly_backfill_error": "TEXT",
     }
     for column, definition in additions.items():
         if column not in columns:
             db.execute(f"ALTER TABLE species ADD COLUMN {column} {definition}")
+    db.commit()
+
+
+def ensure_metadata_chunk_table(db: sqlite3.Connection) -> None:
+    db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS metadata_chunks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            species_id INTEGER NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            start_offset INTEGER NOT NULL,
+            end_offset INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            claimed_by TEXT,
+            claimed_at TEXT,
+            total_rows INTEGER NOT NULL DEFAULT 0,
+            completed_rows INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (species_id) REFERENCES species (id),
+            UNIQUE(species_id, chunk_index)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_chunks_status
+        ON metadata_chunks (status, species_id, chunk_index);
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_chunks_species
+        ON metadata_chunks (species_id, status);
+        """
+    )
+    db.commit()
+
+
+def ensure_standardization_refresh_table(db: sqlite3.Connection) -> None:
+    db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS standardization_refresh_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            species_id INTEGER NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending',
+            requested_at TEXT NOT NULL,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            total_rows INTEGER NOT NULL DEFAULT 0,
+            updated_rows INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            FOREIGN KEY (species_id) REFERENCES species (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_standardization_refresh_tasks_status
+        ON standardization_refresh_tasks (status, requested_at);
+        """
+    )
     db.commit()
 
 
@@ -1215,6 +4632,93 @@ def normalize_species_name(value: str) -> str:
     return re.sub(r"\s+", " ", value.strip())
 
 
+def species_search_name(value: str) -> str:
+    return normalize_species_name(value).lower()
+
+
+NON_CANONICAL_SPECIES_TOKENS = {
+    "sp",
+    "sp.",
+    "spp",
+    "spp.",
+    "bacterium",
+    "archaeon",
+    "microorganism",
+    "metagenome",
+    "uncultured",
+    "unclassified",
+    "endosymbiont",
+    "symbiont",
+}
+
+
+def canonical_species_from_organism_name(value: str, expected_genus: str | None = None) -> str | None:
+    name = normalize_species_name(value)
+    if not name:
+        return None
+    parts = name.split()
+    if not parts:
+        return None
+    offset = 0
+    if parts[0].lower() == "candidatus":
+        offset = 1
+    if len(parts) < offset + 2:
+        return None
+    genus = parts[offset].strip()
+    species_epithet = parts[offset + 1].strip()
+    if expected_genus and genus.lower() != normalize_species_name(expected_genus).lower():
+        return None
+    cleaned_epithet = species_epithet.rstrip(".,;:").lower()
+    if cleaned_epithet in NON_CANONICAL_SPECIES_TOKENS:
+        return None
+    if not re.match(r"^[a-z][a-z0-9-]*$", cleaned_epithet):
+        return None
+    if offset:
+        return " ".join([parts[0], genus, species_epithet])
+    return " ".join([genus, species_epithet])
+
+
+def refresh_metadata_species_search_entries(species: SpeciesRecord, rows: list[dict[str, Any]]) -> None:
+    if species.taxon_rank != "genus" or not rows:
+        return
+    genus_prefix = f"{species_search_name(species.species_name)} "
+    counts: Counter[str] = Counter()
+    for row in rows:
+        organism_name = normalize_species_name(str(row.get("Organism Name") or ""))
+        if not organism_name:
+            continue
+        search_name = species_search_name(organism_name)
+        if not search_name.startswith(genus_prefix):
+            continue
+        if search_name == species_search_name(species.species_name):
+            continue
+        counts[organism_name] += 1
+
+    now = utc_now()
+    records = [
+        (species.id, species.species_name, organism_name, species_search_name(organism_name), count, now)
+        for organism_name, count in counts.items()
+    ]
+    with get_sqlite_connection() as db:
+        db.execute("DELETE FROM metadata_species_search WHERE source_taxon_id = ?", (species.id,))
+        if records:
+            db.executemany(
+                """
+                INSERT INTO metadata_species_search (
+                    source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                ON CONFLICT(source_taxon_id, species_name) DO UPDATE SET
+                    source_taxon_name = excluded.source_taxon_name,
+                    search_name = excluded.search_name,
+                    genome_count = excluded.genome_count,
+                    updated_at = excluded.updated_at
+                """,
+                records,
+            )
+        db.commit()
+
+
 def normalize_taxon_rank(value: str | None) -> str:
     candidate = (value or "species").strip().lower()
     return candidate if candidate in TAXON_RANKS else "species"
@@ -1433,6 +4937,37 @@ def worker_heartbeat_is_live(worker_name: str) -> bool:
     return age <= WORKER_HEARTBEAT_STALE_SECONDS
 
 
+@contextlib.contextmanager
+def maintain_worker_heartbeat(worker_name: str | None) -> Any:
+    if not worker_name:
+        yield
+        return
+
+    interval_seconds = max(1.0, WORKER_HEARTBEAT_SECONDS / 2.0)
+    stop_event = threading.Event()
+
+    def _heartbeat_loop() -> None:
+        while not stop_event.wait(interval_seconds):
+            try:
+                touch_worker_heartbeat(worker_name)
+            except Exception:
+                logging.exception("Failed to refresh worker heartbeat for %s during long-running work.", worker_name)
+
+    touch_worker_heartbeat(worker_name)
+    heartbeat_thread = threading.Thread(
+        target=_heartbeat_loop,
+        name=f"worker-heartbeat-{worker_name.replace(':', '-')}",
+        daemon=True,
+    )
+    heartbeat_thread.start()
+    try:
+        yield
+    finally:
+        stop_event.set()
+        heartbeat_thread.join(timeout=1.0)
+        touch_worker_heartbeat(worker_name)
+
+
 def acquire_startup_recovery_lock() -> Any | None:
     handle = startup_recovery_lock_path().open("a+", encoding="utf-8")
     try:
@@ -1599,13 +5134,20 @@ def current_user() -> sqlite3.Row | None:
     user_id = session.get("user_id")
     if not user_id:
         return None
-    return get_user_by_id(int(user_id))
+    try:
+        user = get_user_by_id(int(user_id))
+    except (TypeError, ValueError):
+        session.clear()
+        return None
+    if user is None:
+        session.clear()
+        return None
+    return user
 
 
 def login_user(user: sqlite3.Row) -> None:
     session.clear()
     session["user_id"] = int(user["id"])
-    session["username"] = str(user["username"])
 
 
 def logout_user() -> None:
@@ -1804,6 +5346,16 @@ def row_to_species(row: sqlite3.Row) -> SpeciesRecord:
         metadata_claimed_by=str(row["metadata_claimed_by"]) if row["metadata_claimed_by"] else None,
         metadata_claimed_at=str(row["metadata_claimed_at"]) if row["metadata_claimed_at"] else None,
         metadata_source_taxon_id=row["metadata_source_taxon_id"],
+        metadata_progress_total=int(row["metadata_progress_total"] or 0),
+        metadata_progress_completed=int(row["metadata_progress_completed"] or 0),
+        metadata_progress_current_accession=str(row["metadata_progress_current_accession"]) if row["metadata_progress_current_accession"] else None,
+        metadata_progress_updated_at=str(row["metadata_progress_updated_at"]) if row["metadata_progress_updated_at"] else None,
+        assembly_backfill_status=str(row["assembly_backfill_status"] or "idle"),
+        assembly_backfill_requested_at=str(row["assembly_backfill_requested_at"]) if row["assembly_backfill_requested_at"] else None,
+        assembly_backfill_claimed_by=str(row["assembly_backfill_claimed_by"]) if row["assembly_backfill_claimed_by"] else None,
+        assembly_backfill_claimed_at=str(row["assembly_backfill_claimed_at"]) if row["assembly_backfill_claimed_at"] else None,
+        assembly_backfill_last_built_at=str(row["assembly_backfill_last_built_at"]) if row["assembly_backfill_last_built_at"] else None,
+        assembly_backfill_error=str(row["assembly_backfill_error"]) if row["assembly_backfill_error"] else None,
     )
 
 
@@ -1893,8 +5445,9 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             refresh_requested, claimed_by, claimed_at, metadata_status, metadata_path, metadata_clean_path,
             metadata_last_built_at, metadata_error, metadata_refresh_requested, metadata_claim_token,
             metadata_attempt_count, metadata_first_claimed_at, metadata_claimed_by, metadata_claimed_at,
-            metadata_source_taxon_id
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            metadata_source_taxon_id, metadata_progress_total, metadata_progress_completed,
+            metadata_progress_current_accession, metadata_progress_updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             species_name = excluded.species_name,
             slug = excluded.slug,
@@ -1926,7 +5479,11 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             metadata_first_claimed_at = excluded.metadata_first_claimed_at,
             metadata_claimed_by = excluded.metadata_claimed_by,
             metadata_claimed_at = excluded.metadata_claimed_at,
-            metadata_source_taxon_id = excluded.metadata_source_taxon_id
+            metadata_source_taxon_id = excluded.metadata_source_taxon_id,
+            metadata_progress_total = excluded.metadata_progress_total,
+            metadata_progress_completed = excluded.metadata_progress_completed,
+            metadata_progress_current_accession = excluded.metadata_progress_current_accession,
+            metadata_progress_updated_at = excluded.metadata_progress_updated_at
         """,
         (
             species.id if species.id else None,
@@ -1961,6 +5518,10 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             species.metadata_claimed_by,
             species.metadata_claimed_at,
             species.metadata_source_taxon_id,
+            species.metadata_progress_total,
+            species.metadata_progress_completed,
+            species.metadata_progress_current_accession,
+            species.metadata_progress_updated_at,
         ),
     )
     if not species.id:
@@ -2031,6 +5592,21 @@ def list_available_species() -> list[SpeciesRecord]:
           AND tsv_path IS NOT NULL
         ORDER BY taxon_rank, species_name COLLATE NOCASE ASC
         """
+    ).fetchall()
+    return [row_to_species(row) for row in rows]
+
+
+def list_recent_metadata_taxa(limit: int = 100) -> list[SpeciesRecord]:
+    rows = get_db().execute(
+        """
+        SELECT *
+        FROM species
+        WHERE metadata_status IS NOT NULL
+          AND metadata_status != 'missing'
+        ORDER BY updated_at DESC
+        LIMIT ?
+        """,
+        (limit,),
     ).fetchall()
     return [row_to_species(row) for row in rows]
 
@@ -2484,8 +6060,10 @@ def build_backfill_dashboard() -> dict[str, Any]:
     genome_totals = db.execute(
         """
         SELECT
-            SUM(CASE WHEN tsv_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS catalog_genomes_total,
-            SUM(CASE WHEN metadata_clean_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS metadata_genomes_total,
+            (SELECT COUNT(DISTINCT assembly_accession) FROM assembly_metadata) AS catalog_genomes_total,
+            (SELECT COUNT(DISTINCT assembly_accession) FROM assembly_metadata) AS metadata_genomes_total,
+            SUM(CASE WHEN tsv_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS taxon_scoped_catalog_genomes_total,
+            SUM(CASE WHEN metadata_clean_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS taxon_scoped_metadata_genomes_total,
             SUM(CASE WHEN metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_taxa_ready_total,
             (SELECT COUNT(*) FROM assembly_metadata) AS metadata_stored_rows_total
         FROM species
@@ -2622,22 +6200,53 @@ def build_backfill_dashboard() -> dict[str, Any]:
     }
 
 
+def summarize_metadata_build_progress(total: int | None, completed: int | None) -> dict[str, Any]:
+    total_value = max(int(total or 0), 0)
+    completed_value = max(0, min(int(completed or 0), total_value)) if total_value else max(int(completed or 0), 0)
+    percent = int(round((completed_value / total_value) * 100)) if total_value else 0
+    return {
+        "total": total_value,
+        "completed": completed_value,
+        "remaining": max(total_value - completed_value, 0),
+        "percent": percent,
+        "headline": f"{completed_value} / {total_value} rows assembled" if total_value else "Sizing metadata scope",
+    }
+
+
 def build_metadata_dashboard() -> dict[str, Any]:
     db = get_db()
+    live_metadata_claim_ids = {
+        int(row["id"])
+        for row in db.execute(
+            """
+            SELECT id, metadata_claimed_by
+            FROM species
+            WHERE metadata_claimed_at IS NOT NULL
+              AND metadata_claimed_by IS NOT NULL
+            """
+        ).fetchall()
+        if row["metadata_claimed_by"] and worker_heartbeat_is_live(str(row["metadata_claimed_by"]))
+    }
+
     totals = db.execute(
         """
         SELECT
             COUNT(*) AS total,
             SUM(CASE WHEN metadata_path IS NOT NULL THEN 1 ELSE 0 END) AS ready_total,
-            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'pending' THEN 1 ELSE 0 END) AS pending_total,
-            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'building' THEN 1 ELSE 0 END) AS building_total,
-            SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS refreshing_total,
+            SUM(CASE WHEN metadata_status = 'pending' THEN 1 ELSE 0 END) AS pending_total,
+            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'building' AND id IN ({live_ids}) THEN 1 ELSE 0 END) AS building_total,
+            SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_claimed_at IS NOT NULL AND id IN ({live_ids}) THEN 1 ELSE 0 END) AS refreshing_total,
             SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_refresh_requested = 1 AND metadata_claimed_at IS NULL THEN 1 ELSE 0 END) AS refresh_queued_total,
             SUM(CASE WHEN metadata_status = 'failed' THEN 1 ELSE 0 END) AS failed_total,
-            SUM(CASE WHEN metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS clean_ready_total
+            SUM(CASE WHEN metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS clean_ready_total,
+            SUM(CASE WHEN assembly_backfill_status = 'pending' THEN 1 ELSE 0 END) AS assembly_backfill_pending_total,
+            SUM(CASE WHEN assembly_backfill_status = 'running' THEN 1 ELSE 0 END) AS assembly_backfill_running_total,
+            SUM(CASE WHEN assembly_backfill_status = 'done' THEN 1 ELSE 0 END) AS assembly_backfill_done_total,
+            SUM(CASE WHEN assembly_backfill_status = 'failed' THEN 1 ELSE 0 END) AS assembly_backfill_failed_total
         FROM species
         WHERE tsv_path IS NOT NULL
         """
+        .format(live_ids=", ".join(str(item) for item in sorted(live_metadata_claim_ids)) or "NULL")
     ).fetchone()
     rank_rows = db.execute(
         """
@@ -2645,9 +6254,9 @@ def build_metadata_dashboard() -> dict[str, Any]:
             taxon_rank,
             COUNT(*) AS total,
             SUM(CASE WHEN metadata_path IS NOT NULL THEN 1 ELSE 0 END) AS ready,
-            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'pending' THEN 1 ELSE 0 END) AS pending,
-            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'building' THEN 1 ELSE 0 END) AS building,
-            SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS refreshing,
+            SUM(CASE WHEN metadata_status = 'pending' THEN 1 ELSE 0 END) AS pending,
+            SUM(CASE WHEN metadata_path IS NULL AND metadata_status = 'building' AND id IN ({live_ids}) THEN 1 ELSE 0 END) AS building,
+            SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_claimed_at IS NOT NULL AND id IN ({live_ids}) THEN 1 ELSE 0 END) AS refreshing,
             SUM(CASE WHEN metadata_path IS NOT NULL AND metadata_refresh_requested = 1 AND metadata_claimed_at IS NULL THEN 1 ELSE 0 END) AS refresh_queued,
             SUM(CASE WHEN metadata_status = 'failed' THEN 1 ELSE 0 END) AS failed
         FROM species
@@ -2655,6 +6264,7 @@ def build_metadata_dashboard() -> dict[str, Any]:
         GROUP BY taxon_rank
         ORDER BY taxon_rank
         """
+        .format(live_ids=", ".join(str(item) for item in sorted(live_metadata_claim_ids)) or "NULL")
     ).fetchall()
     active_rows = db.execute(
         """
@@ -2668,7 +6278,11 @@ def build_metadata_dashboard() -> dict[str, Any]:
             metadata_first_claimed_at,
             metadata_attempt_count,
             metadata_error,
-            metadata_source_taxon_id
+            metadata_source_taxon_id,
+            metadata_progress_total,
+            metadata_progress_completed,
+            metadata_progress_current_accession,
+            metadata_progress_updated_at
         FROM species
         WHERE metadata_status IN ('pending', 'building', 'failed')
            OR (metadata_status = 'ready' AND metadata_path IS NOT NULL AND (metadata_refresh_requested = 1 OR metadata_claimed_at IS NOT NULL))
@@ -2687,6 +6301,10 @@ def build_metadata_dashboard() -> dict[str, Any]:
     items: list[dict[str, Any]] = []
     now = utc_now_dt()
     for row in active_rows:
+        claimed_by_value = str(row["metadata_claimed_by"]) if row["metadata_claimed_by"] else None
+        worker_live = worker_heartbeat_is_live(claimed_by_value) if claimed_by_value else False
+        if row["metadata_claimed_at"] and not worker_live:
+            continue
         claimed_at = str(row["metadata_claimed_at"]) if row["metadata_claimed_at"] else None
         first_claimed_at = str(row["metadata_first_claimed_at"]) if row["metadata_first_claimed_at"] else None
         items.append(
@@ -2704,15 +6322,880 @@ def build_metadata_dashboard() -> dict[str, Any]:
                 "source_taxon_id": row["metadata_source_taxon_id"],
                 "refresh_queued": bool(row["metadata_status"] == "ready" and not row["metadata_claimed_at"]),
                 "refreshing_existing": bool(row["metadata_status"] == "ready" and row["metadata_claimed_at"]),
+                "progress": summarize_metadata_build_progress(row["metadata_progress_total"], row["metadata_progress_completed"]),
+                "current_accession": str(row["metadata_progress_current_accession"]) if row["metadata_progress_current_accession"] else None,
+                "progress_updated_at": str(row["metadata_progress_updated_at"]) if row["metadata_progress_updated_at"] else None,
             }
         )
+    standardization_rows = db.execute(
+        """
+        SELECT status, COUNT(*) AS total, SUM(total_rows) AS total_rows, SUM(updated_rows) AS updated_rows
+        FROM standardization_refresh_tasks
+        GROUP BY status
+        """
+    ).fetchall()
+    standardization_refresh = {
+        "pending": 0,
+        "running": 0,
+        "done": 0,
+        "failed": 0,
+        "deferred": 0,
+        "total_rows": 0,
+        "updated_rows": 0,
+        "recent": [],
+    }
+    for row in standardization_rows:
+        status = str(row["status"])
+        standardization_refresh[status] = int(row["total"] or 0)
+        standardization_refresh["total_rows"] += int(row["total_rows"] or 0)
+        standardization_refresh["updated_rows"] += int(row["updated_rows"] or 0)
+    recent_standardization = db.execute(
+        """
+        SELECT
+            t.status,
+            t.requested_at,
+            t.claimed_by,
+            t.claimed_at,
+            t.completed_at,
+            t.total_rows,
+            t.updated_rows,
+            t.error,
+            s.species_name,
+            s.taxon_rank
+        FROM standardization_refresh_tasks t
+        JOIN species s ON s.id = t.species_id
+        ORDER BY
+            CASE
+                WHEN t.status = 'running' THEN 0
+                WHEN t.status = 'pending' THEN 1
+                WHEN t.status = 'failed' THEN 2
+                ELSE 3
+            END,
+            COALESCE(t.claimed_at, t.requested_at) DESC
+        LIMIT 20
+        """
+    ).fetchall()
+    standardization_refresh["recent"] = [dict(row) for row in recent_standardization]
     return {
         "totals": dict(totals) if totals is not None else {},
         "rank_breakdown": [dict(row) for row in rank_rows],
         "active_items": items,
         "metadata_build_policy": get_metadata_build_policy(db),
         "metadata_refresh_policy": get_metadata_refresh_policy(db),
+        "host_refinement": build_host_refinement_review(db),
+        "standardization_refresh": standardization_refresh,
     }
+
+
+def build_host_refinement_review(
+    db: sqlite3.Connection,
+    *,
+    limit: int = 30,
+    sample_rows: int = 50000,
+) -> dict[str, Any]:
+    rows = db.execute(
+        """
+        SELECT json_extract(row_json, '$."Host"') AS host, COUNT(*) AS total
+        FROM (
+            SELECT row_json
+            FROM assembly_metadata
+            ORDER BY rowid DESC
+            LIMIT ?
+        )
+        GROUP BY host
+        ORDER BY total DESC
+        LIMIT 1000
+        """,
+        (sample_rows,),
+    ).fetchall()
+    mapped_total = 0
+    unmapped_total = 0
+    top_unmapped: list[dict[str, Any]] = []
+    top_mapped: list[dict[str, Any]] = []
+    for row in rows:
+        host = "" if row["host"] is None else str(row["host"])
+        count = int(row["total"] or 0)
+        standardized = standardize_host_metadata(host)
+        item = {
+            "host": host or "(blank)",
+            "count": count,
+            "host_sd": standardized["Host_SD"],
+            "taxid": standardized["Host_TaxID"],
+            "method": standardized["Host_SD_Method"],
+            "confidence": standardized["Host_SD_Confidence"],
+        }
+        if standardized["Host_TaxID"]:
+            mapped_total += count
+            if len(top_mapped) < limit:
+                top_mapped.append(item)
+        else:
+            unmapped_total += count
+            if len(top_unmapped) < limit:
+                top_unmapped.append(item)
+    return {
+        "mapped_top_rows": mapped_total,
+        "unmapped_top_rows": unmapped_total,
+        "top_unmapped": top_unmapped,
+        "top_mapped": top_mapped,
+        "reviewed_distinct_values": len(rows),
+        "sample_rows": sample_rows,
+    }
+
+
+REFINEMENT_SOURCE_COLUMNS = {
+    "Host": {
+        "label": "Host",
+        "json_path": '$."Host"',
+        "primary_destination": "Host_SD",
+    },
+    "Isolation Source": {
+        "label": "Isolation Source",
+        "json_path": '$."Isolation Source"',
+        "primary_destination": "Isolation_Source_SD",
+    },
+    "Environment Medium": {
+        "label": "Environment Medium",
+        "json_path": '$."Environment Medium"',
+        "primary_destination": "Environment_Medium_SD",
+    },
+    "Environment (Broad Scale)": {
+        "label": "Environment Broad Scale",
+        "json_path": '$."Environment (Broad Scale)"',
+        "primary_destination": "Environment_Medium_SD",
+    },
+    "Environment (Local Scale)": {
+        "label": "Environment Local Scale",
+        "json_path": '$."Environment (Local Scale)"',
+        "primary_destination": "Environment_Medium_SD",
+    },
+    "Sample Type": {
+        "label": "Sample Type",
+        "json_path": '$."Sample Type"',
+        "primary_destination": "Sample_Type_SD",
+    },
+}
+
+
+def classify_refinement_value(source_column: str, value: Any) -> dict[str, str]:
+    text = "" if value is None else str(value).strip()
+    if metadata_value_is_missing(text):
+        return {
+            "category": "missing",
+            "destination": "",
+            "proposed_value": "",
+            "ontology_id": "",
+            "method": "missing",
+            "confidence": "none",
+            "action": "ignore",
+            "suggestion_score": "",
+            "note": "Missing or explicitly absent value.",
+        }
+
+    row = {
+        "Host": text if source_column == "Host" else "",
+        "Isolation Source": text if source_column == "Isolation Source" else "",
+        "Environment Medium": text if source_column == "Environment Medium" else "",
+        "Environment (Broad Scale)": text if source_column == "Environment (Broad Scale)" else "",
+        "Environment (Local Scale)": text if source_column == "Environment (Local Scale)" else "",
+        "Sample Type": text if source_column == "Sample Type" else "",
+    }
+
+    host_standardization = standardize_host_metadata(text if source_column == "Host" else "")
+    secondary = standardize_secondary_metadata(row, host_standardization)
+    if source_column == "Host" and host_standardization["Host_TaxID"]:
+        return {
+            "category": "host organism",
+            "destination": "Host_SD",
+            "proposed_value": host_standardization["Host_SD"],
+            "ontology_id": host_standardization["Host_TaxID"],
+            "method": host_standardization["Host_SD_Method"],
+            "confidence": host_standardization["Host_SD_Confidence"],
+            "action": "review",
+            "suggestion_score": "100",
+            "note": "Taxonomy-backed host standardization candidate.",
+        }
+
+    if source_column == "Host":
+        fuzzy_candidate = fuzzy_refinement_candidate(source_column, text)
+        if fuzzy_candidate is not None:
+            return fuzzy_candidate
+        return {
+            "category": "ambiguous",
+            "destination": "",
+            "proposed_value": text,
+            "ontology_id": "",
+            "method": "unmapped",
+            "confidence": "none",
+            "action": "leave",
+            "suggestion_score": "",
+            "note": "Host value needs manual review before mapping.",
+        }
+
+    for destination, category in [
+        ("Sample_Type_SD", "sample type"),
+        ("Environment_Medium_SD", "environment medium"),
+        ("Isolation_Source_SD", "isolation source"),
+    ]:
+        proposed = secondary.get(destination, "")
+        method = secondary.get(f"{destination}_Method", "")
+        if proposed and method not in {"missing", "original"}:
+            return {
+            "category": category,
+            "destination": destination,
+            "proposed_value": proposed,
+            "ontology_id": secondary.get(f"{destination.replace('_SD', '')}_Ontology_ID", ""),
+            "method": method,
+                "confidence": "medium",
+                "action": "review",
+                "suggestion_score": "100",
+                "note": "MIxS/BioSample-style non-host metadata candidate.",
+            }
+
+    fuzzy_candidate = fuzzy_refinement_candidate(source_column, text)
+    if fuzzy_candidate is not None:
+        return fuzzy_candidate
+
+    return {
+        "category": "ambiguous",
+        "destination": "",
+        "proposed_value": text,
+        "ontology_id": "",
+        "method": "unmapped",
+        "confidence": "none",
+        "action": "leave",
+        "suggestion_score": "",
+        "note": "Needs manual review before mapping.",
+    }
+
+
+def approved_refinement_rule(
+    db: sqlite3.Connection,
+    source_column: str,
+    original_value: Any,
+    destination: str,
+) -> sqlite3.Row | None:
+    normalized_value = normalize_standardization_lookup(original_value)
+    if not normalized_value or not destination:
+        return None
+    return db.execute(
+        """
+        SELECT *
+        FROM standardization_rules
+        WHERE source_column = ?
+          AND normalized_value = ?
+          AND destination = ?
+          AND status = 'approved'
+        LIMIT 1
+        """,
+        (source_column, normalized_value, destination),
+    ).fetchone()
+
+
+def save_approved_standardization_rule(
+    *,
+    source_column: str,
+    original_value: str,
+    category: str,
+    destination: str,
+    proposed_value: str,
+    ontology_id: str,
+    method: str,
+    confidence: str,
+    note: str,
+    approved_by: str,
+) -> None:
+    normalized_value = normalize_standardization_lookup(original_value)
+    if not source_column or not normalized_value or not destination or not proposed_value:
+        raise ValueError("source column, original value, destination, and proposed value are required")
+    db = get_db()
+    approved_at = utc_now()
+    db.execute(
+        """
+        INSERT INTO standardization_rules (
+            source_column, original_value, normalized_value, category, destination,
+            proposed_value, ontology_id, method, confidence, status, approved_by,
+            approved_at, note
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?, ?, ?)
+        ON CONFLICT(source_column, normalized_value, destination)
+        DO UPDATE SET
+            original_value = excluded.original_value,
+            category = excluded.category,
+            proposed_value = excluded.proposed_value,
+            ontology_id = excluded.ontology_id,
+            method = excluded.method,
+            confidence = excluded.confidence,
+            status = 'approved',
+            approved_by = excluded.approved_by,
+            approved_at = excluded.approved_at,
+            note = excluded.note
+        """,
+        (
+            source_column,
+            original_value,
+            normalized_value,
+            category,
+            destination,
+            proposed_value,
+            ontology_id,
+            method,
+            confidence,
+            approved_by,
+            approved_at,
+            note,
+        ),
+    )
+    db.commit()
+    apply_approved_standardization_rule_to_memory(
+        {
+            "normalized_value": normalized_value,
+            "original_value": original_value,
+            "destination": destination,
+            "proposed_value": proposed_value,
+            "ontology_id": ontology_id,
+            "confidence": confidence,
+        }
+    )
+
+
+def refinement_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
+    source = str(values.get("source") or "all").strip()
+    status = str(values.get("status") or "review").strip()
+    confidence = str(values.get("confidence") or "all").strip()
+    min_count = parse_optional_int(values.get("min_count"))
+    return {
+        "source": source if source in {"all", *REFINEMENT_SOURCE_COLUMNS.keys()} else "all",
+        "status": status if status in {"all", "review", "approved", "ambiguous", "missing"} else "review",
+        "confidence": confidence if confidence in {"all", "high", "medium", "none"} else "all",
+        "min_count": max(0, min_count or 0),
+    }
+
+
+def refinement_item_matches_filters(item: Mapping[str, Any], filters: Mapping[str, Any]) -> bool:
+    min_count = int(filters.get("min_count") or 0)
+    if min_count and int(item.get("count") or 0) < min_count:
+        return False
+
+    status_filter = str(filters.get("status") or "review")
+    if status_filter == "review" and (item.get("is_approved") or item.get("action") != "review"):
+        return False
+    if status_filter == "approved" and not item.get("is_approved"):
+        return False
+    if status_filter == "ambiguous" and item.get("category") != "ambiguous":
+        return False
+    if status_filter == "missing" and item.get("category") != "missing":
+        return False
+
+    confidence_filter = str(filters.get("confidence") or "all")
+    if confidence_filter != "all" and item.get("confidence") != confidence_filter:
+        return False
+    return True
+
+
+def build_refinement_dashboard(
+    limit_per_column: int = 50,
+    sample_rows: int = 100000,
+    filters: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    limit = max(10, min(int(limit_per_column or 50), 200))
+    sample_limit = max(1000, min(int(sample_rows or 100000), 1000000))
+    active_filters = refinement_filters_from_mapping(filters or {})
+    db = get_db()
+    sections: list[dict[str, Any]] = []
+    totals = {
+        "values_reviewed": 0,
+        "rows_represented": 0,
+        "review_candidates": 0,
+        "missing_values": 0,
+        "ambiguous_values": 0,
+        "approved_rules": 0,
+        "visible_items": 0,
+        "selectable_items": 0,
+    }
+    for source_column, config in REFINEMENT_SOURCE_COLUMNS.items():
+        if active_filters["source"] != "all" and active_filters["source"] != source_column:
+            continue
+        rows = db.execute(
+            f"""
+            SELECT json_extract(row_json, ?) AS value, COUNT(*) AS total
+            FROM (
+                SELECT row_json
+                FROM assembly_metadata
+                ORDER BY rowid DESC
+                LIMIT ?
+            )
+            GROUP BY value
+            ORDER BY total DESC
+            LIMIT ?
+            """,
+            (config["json_path"], sample_limit, limit),
+        ).fetchall()
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            value = "" if row["value"] is None else str(row["value"])
+            count = int(row["total"] or 0)
+            proposal = classify_refinement_value(source_column, value)
+            approved_rule = approved_refinement_rule(db, source_column, value, proposal.get("destination", ""))
+            item = {
+                "source_column": source_column,
+                "source_label": config["label"],
+                "value": value or "(blank)",
+                "count": count,
+                "is_approved": approved_rule is not None,
+                **proposal,
+            }
+            if approved_rule is not None:
+                item["action"] = "approved"
+                item["approved_by"] = approved_rule["approved_by"] or ""
+                item["approved_at"] = approved_rule["approved_at"] or ""
+            totals["values_reviewed"] += 1
+            totals["rows_represented"] += count
+            if approved_rule is not None:
+                totals["approved_rules"] += 1
+            elif proposal["action"] == "review":
+                totals["review_candidates"] += 1
+            if proposal["category"] == "missing":
+                totals["missing_values"] += 1
+            if proposal["category"] == "ambiguous":
+                totals["ambiguous_values"] += 1
+            item["selectable"] = not item["is_approved"] and item["action"] == "review"
+            if not refinement_item_matches_filters(item, active_filters):
+                continue
+            item["rule_payload"] = serialize_refinement_rule(item) if item["selectable"] else ""
+            items.append(item)
+            totals["visible_items"] += 1
+            if item["selectable"]:
+                totals["selectable_items"] += 1
+        sections.append(
+            {
+                "source_column": source_column,
+                "label": config["label"],
+                "primary_destination": config["primary_destination"],
+                "items": items,
+            }
+        )
+    return {
+        "limit_per_column": limit,
+        "sample_rows": sample_limit,
+        "filters": active_filters,
+        "source_options": [
+            {"value": key, "label": config["label"]}
+            for key, config in REFINEMENT_SOURCE_COLUMNS.items()
+        ],
+        "sections": sections,
+        "totals": totals,
+    }
+
+
+def refinement_rows_for_export(limit_per_column: int = 200) -> list[dict[str, Any]]:
+    dashboard = build_refinement_dashboard(limit_per_column, sample_rows=500000)
+    rows: list[dict[str, Any]] = []
+    for section in dashboard["sections"]:
+        rows.extend(section["items"])
+    return rows
+
+
+def serialize_refinement_rule(item: Mapping[str, Any]) -> str:
+    return json.dumps(
+        {
+            "source_column": item.get("source_column", ""),
+            "original_value": item.get("value", ""),
+            "category": item.get("category", ""),
+            "destination": item.get("destination", ""),
+            "proposed_value": item.get("proposed_value", ""),
+            "ontology_id": item.get("ontology_id", ""),
+            "method": item.get("method", ""),
+            "confidence": item.get("confidence", ""),
+            "note": item.get("note", ""),
+        },
+        separators=(",", ":"),
+    )
+
+
+def approve_refinement_rule_payloads(payloads: list[str], approved_by: str, max_rules: int = 1000) -> dict[str, int]:
+    approved = 0
+    skipped = 0
+    failed = 0
+    for payload in payloads[:max_rules]:
+        try:
+            item = json.loads(payload)
+            save_approved_standardization_rule(
+                source_column=str(item.get("source_column") or "").strip(),
+                original_value=str(item.get("original_value") or "").strip(),
+                category=str(item.get("category") or "").strip(),
+                destination=str(item.get("destination") or "").strip(),
+                proposed_value=str(item.get("proposed_value") or "").strip(),
+                ontology_id=str(item.get("ontology_id") or "").strip(),
+                method=str(item.get("method") or "bulk_review").strip(),
+                confidence=str(item.get("confidence") or "medium").strip(),
+                note=str(item.get("note") or "").strip(),
+                approved_by=approved_by,
+            )
+        except (TypeError, ValueError, json.JSONDecodeError):
+            failed += 1
+            continue
+        approved += 1
+    if len(payloads) > max_rules:
+        skipped += len(payloads) - max_rules
+    return {"approved": approved, "skipped": skipped, "failed": failed}
+
+
+def visible_high_confidence_refinement_payloads(filters: Mapping[str, Any], limit: int) -> list[str]:
+    dashboard = build_refinement_dashboard(limit, filters=filters)
+    payloads: list[str] = []
+    for section in dashboard["sections"]:
+        for item in section["items"]:
+            if item.get("selectable") and item.get("confidence") == "high":
+                payloads.append(serialize_refinement_rule(item))
+    return payloads
+
+
+def taxon_needs_host_refinement(species_id: int) -> bool:
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            """
+            SELECT 1
+            FROM assembly_metadata
+            WHERE species_id = ?
+              AND (
+                  json_type(row_json, '$."Host_SD"') IS NULL
+                  OR json_type(row_json, '$."Isolation_Source_SD"') IS NULL
+                  OR json_type(row_json, '$."Environment_Medium_SD"') IS NULL
+                  OR json_type(row_json, '$."Sample_Type_SD"') IS NULL
+              )
+            LIMIT 1
+            """,
+            (species_id,),
+        ).fetchone()
+    return row is not None
+
+
+def refine_taxon_host_standardization(species: SpeciesRecord) -> int:
+    rows_by_accession = load_taxon_metadata_rows(species.id)
+    if not rows_by_accession:
+        return 0
+    rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
+    save_taxon_metadata_rows(species.id, rows, refreshed_at=utc_now())
+    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, rows)
+    latest = load_species(species.id)
+    latest.metadata_path = metadata_path
+    latest.metadata_clean_path = clean_path
+    latest.genome_count = latest.genome_count or clean_count
+    latest.updated_at = utc_now()
+    save_species(latest)
+    return clean_count
+
+
+def refine_ready_host_standardization(limit: int = 25) -> dict[str, int]:
+    refined = 0
+    skipped = 0
+    failed = 0
+    rows = get_db().execute(
+        """
+        SELECT s.*
+        FROM species s
+        WHERE s.metadata_status = 'ready'
+          AND s.metadata_clean_path IS NOT NULL
+          AND EXISTS (
+                SELECT 1
+                FROM assembly_metadata am
+                WHERE am.species_id = s.id
+                AND (
+                    json_type(am.row_json, '$."Host_SD"') IS NULL
+                    OR json_type(am.row_json, '$."Isolation_Source_SD"') IS NULL
+                    OR json_type(am.row_json, '$."Environment_Medium_SD"') IS NULL
+                    OR json_type(am.row_json, '$."Sample_Type_SD"') IS NULL
+                )
+              LIMIT 1
+          )
+        ORDER BY
+          CASE WHEN s.taxon_rank = 'species' THEN 0 ELSE 1 END,
+          COALESCE(s.genome_count, 2147483647) ASC,
+          s.species_name COLLATE NOCASE ASC
+        LIMIT ?
+        """,
+        (limit,),
+    ).fetchall()
+    for row in rows:
+        if refined >= limit:
+            break
+        species = row_to_species(row)
+        if not taxon_needs_host_refinement(species.id):
+            skipped += 1
+            continue
+        try:
+            refine_taxon_host_standardization(species)
+            refined += 1
+        except Exception:
+            failed += 1
+            logging.exception("Failed to refine host standardization for %s.", species.species_name)
+    return {"refined": refined, "skipped": skipped, "failed": failed}
+
+
+def queue_standardization_refresh_for_ready_taxa(
+    *,
+    limit: int | None = None,
+    dry_run: bool = False,
+    rank_scope: str = "genus",
+) -> dict[str, Any]:
+    rank_scope = str(rank_scope or "genus").strip().lower()
+    if rank_scope not in {"genus", "species", "all"}:
+        rank_scope = "genus"
+    rank_clause = ""
+    params: list[Any] = []
+    if rank_scope != "all":
+        rank_clause = "AND taxon_rank = ?"
+        params.append(rank_scope)
+    rows = get_db().execute(
+        f"""
+        SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path
+        FROM species
+        WHERE status = 'ready'
+          AND metadata_status = 'ready'
+          AND metadata_clean_path IS NOT NULL
+          {rank_clause}
+        ORDER BY
+          CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
+          COALESCE(genome_count, 0) DESC,
+          species_name COLLATE NOCASE ASC
+        """,
+        tuple(params),
+    ).fetchall()
+    eligible: list[sqlite3.Row] = []
+    skipped = 0
+    for row in rows:
+        clean_path = str(row["metadata_clean_path"] or "")
+        if not clean_path or not Path(clean_path).exists():
+            skipped += 1
+            continue
+        eligible.append(row)
+        if limit is not None and len(eligible) >= limit:
+            break
+    if dry_run:
+        return {
+            "eligible": len(eligible),
+            "queued": 0,
+            "running": 0,
+            "skipped": skipped,
+            "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
+            "rank_scope": rank_scope,
+        }
+
+    now = utc_now()
+    queued = 0
+    running = 0
+    with get_sqlite_connection() as db:
+        for row in eligible:
+            species_id = int(row["id"])
+            existing = db.execute(
+                "SELECT status FROM standardization_refresh_tasks WHERE species_id = ?",
+                (species_id,),
+            ).fetchone()
+            if existing is not None and str(existing["status"]) == "running":
+                running += 1
+                continue
+            db.execute(
+                """
+                INSERT INTO standardization_refresh_tasks (
+                    species_id, status, requested_at, claimed_by, claimed_at,
+                    completed_at, total_rows, updated_rows, error
+                )
+                VALUES (?, 'pending', ?, NULL, NULL, NULL, 0, 0, NULL)
+                ON CONFLICT(species_id) DO UPDATE SET
+                    status = 'pending',
+                    requested_at = excluded.requested_at,
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = NULL,
+                    total_rows = 0,
+                    updated_rows = 0,
+                    error = NULL
+                """,
+                (species_id, now),
+            )
+            queued += 1
+        db.commit()
+    return {
+        "eligible": len(eligible),
+        "queued": queued,
+        "running": running,
+        "skipped": skipped,
+        "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
+        "rank_scope": rank_scope,
+    }
+
+
+def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] | None:
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        stale_rows = db.execute(
+            """
+            SELECT id, claimed_by
+            FROM standardization_refresh_tasks
+            WHERE status = 'running'
+              AND claimed_by IS NOT NULL
+            """
+        ).fetchall()
+        stale_ids = [
+            int(row["id"])
+            for row in stale_rows
+            if not worker_heartbeat_is_live(str(row["claimed_by"]))
+        ]
+        if stale_ids:
+            for start in range(0, len(stale_ids), SQLITE_VARIABLE_CHUNK_SIZE):
+                chunk = stale_ids[start : start + SQLITE_VARIABLE_CHUNK_SIZE]
+                placeholders = ", ".join("?" for _ in chunk)
+                db.execute(
+                    f"""
+                    UPDATE standardization_refresh_tasks
+                    SET status = 'pending',
+                        claimed_by = NULL,
+                        claimed_at = NULL,
+                        error = NULL
+                    WHERE id IN ({placeholders})
+                    """,
+                    tuple(chunk),
+                )
+            db.commit()
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute(
+            """
+            SELECT s.*, t.id AS task_id
+            FROM standardization_refresh_tasks t
+            JOIN species s ON s.id = t.species_id
+            WHERE t.status = 'pending'
+              AND s.status = 'ready'
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+            ORDER BY
+              CASE WHEN s.taxon_rank = 'genus' THEN 0 ELSE 1 END,
+              COALESCE(s.genome_count, 0) DESC,
+              t.requested_at ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        updated = db.execute(
+            """
+            UPDATE standardization_refresh_tasks
+            SET status = 'running',
+                claimed_by = ?,
+                claimed_at = ?,
+                completed_at = NULL,
+                error = NULL
+            WHERE id = ?
+              AND status = 'pending'
+            """,
+            (worker_name, now, int(row["task_id"])),
+        ).rowcount
+        db.commit()
+    if not updated:
+        return None
+    return {"task_id": int(row["task_id"]), "species": row_to_species(row)}
+
+
+def mark_standardization_refresh_task_failed(task_id: int, error: str) -> None:
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE standardization_refresh_tasks
+            SET status = 'failed',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                completed_at = ?,
+                error = ?
+            WHERE id = ?
+            """,
+            (now, error[:2000], task_id),
+        )
+        db.commit()
+
+
+def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
+    task_id = int(task["task_id"])
+    species = task["species"]
+    assert isinstance(species, SpeciesRecord)
+    try:
+        stored_row_total = count_taxon_metadata_rows(species.id)
+        if not stored_row_total:
+            raise RuntimeError("No stored metadata rows are available for this taxon.")
+        refreshed_at = utc_now()
+
+        if stored_row_total >= STANDARDIZATION_CHUNK_MIN_ROWS:
+            updated_total = 0
+            for offset in range(0, stored_row_total, STANDARDIZATION_CHUNK_SIZE):
+                chunk_rows = load_taxon_metadata_row_chunk(
+                    species.id,
+                    limit=STANDARDIZATION_CHUNK_SIZE,
+                    offset=offset,
+                )
+                if not chunk_rows:
+                    continue
+                updated_total += upsert_taxon_metadata_rows(
+                    species.id,
+                    chunk_rows,
+                    refreshed_at=refreshed_at,
+                )
+                logging.info(
+                    "Standardized %s rows for %s (%s/%s).",
+                    len(chunk_rows),
+                    species.species_name,
+                    min(offset + len(chunk_rows), stored_row_total),
+                    stored_row_total,
+                )
+            rows_by_accession = load_taxon_metadata_rows(species.id)
+            rows = list(rows_by_accession.values())
+        else:
+            rows_by_accession = load_taxon_metadata_rows(species.id)
+            rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
+            save_taxon_metadata_rows(species.id, rows, refreshed_at=refreshed_at, normalize_rows=False)
+            updated_total = len(rows)
+
+        metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
+            species.slug,
+            rows,
+            normalize_rows=False,
+        )
+        try:
+            refresh_metadata_species_search_entries(species, rows)
+        except Exception:
+            logging.exception("Failed to refresh metadata species search entries for taxon %s.", species.id)
+        now = utc_now()
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE species
+                SET metadata_path = ?,
+                    metadata_clean_path = ?,
+                    genome_count = COALESCE(genome_count, ?),
+                    metadata_last_built_at = COALESCE(metadata_last_built_at, ?),
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (metadata_path, clean_path, clean_count, now, now, species.id),
+            )
+            db.execute(
+                """
+                UPDATE standardization_refresh_tasks
+                SET status = 'done',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    total_rows = ?,
+                    updated_rows = ?,
+                    error = NULL
+                WHERE id = ?
+                """,
+                (now, stored_row_total, min(updated_total, clean_count), task_id),
+            )
+            db.commit()
+        return clean_count
+    except Exception as exc:
+        mark_standardization_refresh_task_failed(task_id, str(exc))
+        raise
 
 
 def admin_common_context(section: str) -> dict[str, Any]:
@@ -2794,6 +7277,56 @@ def normalize_metadata_value(value: Any) -> str:
 def is_meaningful_metadata_value(value: Any) -> bool:
     text = normalize_metadata_value(value)
     return bool(text and text.lower() not in {"absent", "unknown", "not provided", "not applicable", "missing"})
+
+
+def csv_has_columns(path: Path, columns: list[str]) -> bool:
+    if not path.exists():
+        return False
+    try:
+        header = pd.read_csv(path, nrows=0).columns
+    except Exception:
+        return False
+    column_set = set(str(column) for column in header)
+    return all(column in column_set for column in columns)
+
+
+def json_object_path(key: str) -> str:
+    escaped = str(key).replace("\\", "\\\\").replace('"', '\\"')
+    return f'$."{escaped}"'
+
+
+def taxon_has_assembly_feature_columns(species: SpeciesRecord) -> bool:
+    clean_path = Path(species.metadata_clean_path or "")
+    if not csv_has_columns(clean_path, ASSEMBLY_FEATURE_COLUMNS):
+        return False
+    return taxon_stored_metadata_rows_have_columns(species.id, ASSEMBLY_FEATURE_COLUMNS)
+
+
+def taxon_stored_metadata_rows_have_columns(species_id: int, columns: list[str]) -> bool:
+    if not columns:
+        return True
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            "SELECT COUNT(*) AS total FROM assembly_metadata WHERE species_id = ?",
+            (species_id,),
+        ).fetchone()
+        total = int(row["total"] or 0) if row is not None else 0
+        if total <= 0:
+            return False
+        for column in columns:
+            missing = db.execute(
+                """
+                SELECT 1
+                FROM assembly_metadata
+                WHERE species_id = ?
+                  AND json_type(row_json, ?) IS NULL
+                LIMIT 1
+                """,
+                (species_id, json_object_path(column)),
+            ).fetchone()
+            if missing is not None:
+                return False
+    return True
 
 
 def numeric_summary(values: list[float]) -> dict[str, float] | None:
@@ -4714,6 +9247,25 @@ def request_species_metadata_build(species: SpeciesRecord, db: sqlite3.Connectio
     return save_species(species, db)
 
 
+def request_assembly_feature_backfill(species: SpeciesRecord, db: sqlite3.Connection | None = None) -> None:
+    connection = db or get_db()
+    now = utc_now()
+    connection.execute(
+        """
+        UPDATE species
+        SET assembly_backfill_status = 'pending',
+            assembly_backfill_requested_at = ?,
+            assembly_backfill_claimed_by = NULL,
+            assembly_backfill_claimed_at = NULL,
+            assembly_backfill_error = NULL,
+            updated_at = ?
+        WHERE id = ?
+        """,
+        (now, now, species.id),
+    )
+    connection.commit()
+
+
 def release_metadata_claim_rows(
     db: sqlite3.Connection,
     row_ids: list[int],
@@ -5069,6 +9621,20 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
         db.execute("BEGIN IMMEDIATE")
         release_stale_metadata_claims_for_dead_workers(db)
         release_duplicate_metadata_claims_for_worker(db, worker_name)
+        genus_work_exists = db.execute(
+            """
+            SELECT 1
+            FROM species
+            WHERE taxon_rank = 'genus'
+              AND status = 'ready'
+              AND tsv_path IS NOT NULL
+              AND (
+                    metadata_status IN ('pending', 'building')
+                    OR (metadata_status = 'ready' AND metadata_refresh_requested = 1 AND metadata_path IS NOT NULL)
+                  )
+            LIMIT 1
+            """
+        ).fetchone() is not None
         rows = db.execute(
             """
             SELECT *
@@ -5079,19 +9645,29 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
                 )
               AND status = 'ready'
               AND tsv_path IS NOT NULL
+              AND (
+                    taxon_rank = 'genus'
+                    OR ? = 0
+                  )
             ORDER BY
                 CASE
-                    WHEN metadata_status = 'pending' AND metadata_path IS NULL THEN 0
+                    WHEN metadata_status = 'pending' THEN 0
                     WHEN metadata_status = 'ready' AND metadata_refresh_requested = 1 THEN 1
                     ELSE 2
                 END,
                 CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
+                CASE
+                    WHEN metadata_status = 'pending' AND metadata_path IS NULL THEN 0
+                    WHEN metadata_status = 'pending' AND metadata_path IS NOT NULL THEN 1
+                    ELSE 2
+                END,
                 CASE WHEN genome_count IS NULL THEN 1 ELSE 0 END,
                 COALESCE(genome_count, 2147483647) ASC,
                 updated_at ASC,
                 created_at ASC
             LIMIT 24
-            """
+            """,
+            (1 if genus_work_exists else 0,),
         ).fetchall()
         if not rows:
             db.commit()
@@ -5103,7 +9679,7 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
                 continue
             claimed_at = utc_now()
             has_existing_metadata = bool(row["metadata_path"])
-            metadata_status = "ready" if has_existing_metadata else "building"
+            metadata_status = "building" if row["metadata_status"] == "pending" else "ready"
             cursor = db.execute(
                 """
                 UPDATE species
@@ -5134,6 +9710,393 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
 
         db.commit()
         claimed = get_species_by_id(int(claimed_row["id"]), db)
+        assert claimed is not None
+        return claimed
+
+
+def ensure_metadata_chunks_for_species(species: SpeciesRecord) -> int:
+    if species.taxon_rank != "genus" or not species.tsv_path:
+        return 0
+    if species.genome_count is not None and species.genome_count < METADATA_CHUNK_MIN_ROWS:
+        return 0
+    existing_count = 0
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            "SELECT COUNT(*) AS total FROM metadata_chunks WHERE species_id = ?",
+            (species.id,),
+        ).fetchone()
+        existing_count = int(row["total"] or 0) if row is not None else 0
+    if existing_count:
+        return existing_count
+
+    rows = load_filtered_taxon_tsv_rows(species)
+    total_rows = len(rows)
+    if total_rows < METADATA_CHUNK_MIN_ROWS:
+        return 0
+    now = utc_now()
+    chunk_rows = []
+    for chunk_index, start_offset in enumerate(range(0, total_rows, METADATA_CHUNK_SIZE)):
+        end_offset = min(start_offset + METADATA_CHUNK_SIZE, total_rows)
+        chunk_rows.append(
+            (
+                species.id,
+                chunk_index,
+                start_offset,
+                end_offset,
+                "pending",
+                end_offset - start_offset,
+                0,
+                now,
+                now,
+            )
+        )
+    with get_sqlite_connection() as db:
+        db.executemany(
+            """
+            INSERT OR IGNORE INTO metadata_chunks (
+                species_id, chunk_index, start_offset, end_offset,
+                status, total_rows, completed_rows, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            chunk_rows,
+        )
+        db.commit()
+        row = db.execute(
+            "SELECT COUNT(*) AS total FROM metadata_chunks WHERE species_id = ?",
+            (species.id,),
+        ).fetchone()
+    created_count = int(row["total"] or 0) if row is not None else 0
+    logging.info(
+        "Prepared %s metadata helper chunks for %s (%s rows).",
+        created_count,
+        species.species_name,
+        total_rows,
+    )
+    return created_count
+
+
+def ensure_metadata_chunks_for_active_builds() -> None:
+    with get_sqlite_connection() as db:
+        rows = db.execute(
+            """
+            SELECT s.*
+            FROM species AS s
+            LEFT JOIN (
+                SELECT species_id, COUNT(*) AS chunk_count
+                FROM metadata_chunks
+                GROUP BY species_id
+            ) AS c ON c.species_id = s.id
+            WHERE s.metadata_status = 'building'
+              AND s.status = 'ready'
+              AND s.taxon_rank = 'genus'
+              AND s.tsv_path IS NOT NULL
+              AND COALESCE(s.genome_count, 0) >= ?
+              AND COALESCE(c.chunk_count, 0) = 0
+            ORDER BY COALESCE(s.metadata_progress_total, s.genome_count, 2147483647) DESC
+            LIMIT 6
+            """,
+            (METADATA_CHUNK_MIN_ROWS,),
+        ).fetchall()
+    for row in rows:
+        if row["tsv_path"] and not Path(str(row["tsv_path"])).exists():
+            continue
+        species = row_to_species(row)
+        try:
+            ensure_metadata_chunks_for_species(species)
+        except Exception:
+            logging.exception("Failed to prepare metadata helper chunks for %s.", species.species_name)
+
+
+def release_stale_metadata_chunk_claims_for_dead_workers(db: sqlite3.Connection) -> int:
+    rows = db.execute(
+        """
+        SELECT id, claimed_by
+        FROM metadata_chunks
+        WHERE status = 'running'
+          AND claimed_by IS NOT NULL
+        """
+    ).fetchall()
+    stale_ids = [
+        int(row["id"])
+        for row in rows
+        if row["claimed_by"] and not worker_heartbeat_is_live(str(row["claimed_by"]))
+    ]
+    if not stale_ids:
+        return 0
+    placeholders = ", ".join("?" for _ in stale_ids)
+    now = utc_now()
+    cursor = db.execute(
+        f"""
+        UPDATE metadata_chunks
+        SET status = 'pending',
+            claimed_by = NULL,
+            claimed_at = NULL,
+            error = 'Stale metadata helper claim from a dead worker was reset.',
+            updated_at = ?
+        WHERE id IN ({placeholders})
+        """,
+        (now, *stale_ids),
+    )
+    return int(cursor.rowcount or 0)
+
+
+def claim_next_metadata_chunk(worker_name: str) -> sqlite3.Row | None:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        release_stale_metadata_chunk_claims_for_dead_workers(db)
+        now = utc_now()
+        db.execute(
+            """
+            UPDATE metadata_chunks
+            SET status = 'done',
+                completed_rows = total_rows,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                error = NULL,
+                updated_at = ?
+            WHERE status = 'pending'
+              AND end_offset <= (
+                    SELECT COALESCE(metadata_progress_completed, 0)
+                    FROM species
+                    WHERE species.id = metadata_chunks.species_id
+                )
+            """,
+            (now,),
+        )
+        row = db.execute(
+            """
+            SELECT c.*
+            FROM metadata_chunks AS c
+            JOIN species AS s ON s.id = c.species_id
+            WHERE c.status = 'pending'
+              AND s.metadata_status = 'building'
+              AND s.status = 'ready'
+              AND s.taxon_rank = 'genus'
+              AND s.tsv_path IS NOT NULL
+              AND c.start_offset >= COALESCE(s.metadata_progress_completed, 0) + ?
+            ORDER BY
+                COALESCE(s.metadata_progress_total, s.genome_count, 2147483647)
+                    - COALESCE(s.metadata_progress_completed, 0) ASC,
+                s.updated_at ASC,
+                c.species_id ASC,
+                c.chunk_index ASC
+            LIMIT 1
+            """,
+            (METADATA_CHUNK_PROGRESS_BUFFER_ROWS,),
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        cursor = db.execute(
+            """
+            UPDATE metadata_chunks
+            SET status = 'running',
+                claimed_by = ?,
+                claimed_at = ?,
+                error = NULL,
+                updated_at = ?
+            WHERE id = ?
+              AND status = 'pending'
+              AND claimed_by IS NULL
+            """,
+            (worker_name, now, now, row["id"]),
+        )
+        if int(cursor.rowcount or 0) != 1:
+            db.commit()
+            return None
+        db.commit()
+        return row
+
+
+def process_metadata_chunk(chunk: sqlite3.Row) -> None:
+    species = get_species_by_id(int(chunk["species_id"]))
+    if species is None:
+        return
+    now = utc_now()
+    try:
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE metadata_chunks
+                SET status = 'running',
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (now, chunk["id"]),
+            )
+            db.commit()
+        tsv_rows = load_filtered_taxon_tsv_rows(species)
+        total_rows = len(tsv_rows)
+        start_offset = max(0, int(chunk["start_offset"]))
+        end_offset = min(total_rows, max(start_offset, int(chunk["end_offset"])))
+        chunk_rows = tsv_rows[start_offset:end_offset]
+        logging.info(
+            "Metadata helper started %s chunk %s (%s-%s).",
+            species.species_name,
+            chunk["chunk_index"],
+            start_offset,
+            end_offset,
+        )
+        accessions = [metadata_row_accession(row) for row in chunk_rows]
+        stored_rows = load_taxon_metadata_rows_for_accessions(species.id, accessions)
+        rows_to_fetch = [
+            row
+            for row in chunk_rows
+            if (accession := metadata_row_accession(row)) and accession not in stored_rows
+        ]
+        if rows_to_fetch:
+            biosample_ids = [
+                biosample_id
+                for biosample_id in {metadata_row_biosample_accession(row) for row in rows_to_fetch}
+                if biosample_id
+            ]
+            cached_biosample_records, _stale_or_missing_biosamples = load_cached_biosample_records(biosample_ids)
+            biosample_records = dict(cached_biosample_records)
+            missing_biosample_ids = [
+                biosample_id
+                for biosample_id in biosample_ids
+                if biosample_id not in biosample_records
+            ]
+            fetched_records = fetch_uncached_biosample_records(missing_biosample_ids)
+            if fetched_records:
+                biosample_records.update(fetched_records)
+                save_biosample_cache_records(
+                    {
+                        biosample_id: (record, biosample_record_has_data(record))
+                        for biosample_id, record in fetched_records.items()
+                    }
+                )
+            enriched_rows = [
+                enrich_tsv_row_with_biosample_metadata(
+                    row,
+                    biosample_records.get(metadata_row_biosample_accession(row)),
+                )
+                for row in rows_to_fetch
+            ]
+            upsert_taxon_metadata_rows(species.id, enriched_rows, refreshed_at=now)
+            with get_sqlite_connection() as db:
+                db.execute(
+                    """
+                    UPDATE metadata_chunks
+                    SET updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (utc_now(), chunk["id"]),
+                )
+                db.commit()
+
+        stored_total = min(count_taxon_metadata_rows(species.id), total_rows)
+        update_taxon_metadata_progress(species.id, total=total_rows, completed=stored_total)
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE metadata_chunks
+                SET status = 'done',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_rows = ?,
+                    error = NULL,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (len(chunk_rows), utc_now(), chunk["id"]),
+            )
+            db.commit()
+        logging.info(
+            "Metadata helper completed %s chunk %s (%s-%s), fetched %s missing rows.",
+            species.species_name,
+            chunk["chunk_index"],
+            start_offset,
+            end_offset,
+            len(rows_to_fetch),
+        )
+    except Exception as exc:
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE metadata_chunks
+                SET status = 'failed',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    error = ?,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (str(exc)[:4000], utc_now(), chunk["id"]),
+            )
+            db.commit()
+        raise
+
+
+def claim_next_assembly_feature_backfill(worker_name: str) -> SpeciesRecord | None:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        stale_rows = db.execute(
+            """
+            SELECT id, assembly_backfill_claimed_by
+            FROM species
+            WHERE assembly_backfill_status = 'running'
+              AND assembly_backfill_claimed_by IS NOT NULL
+            """
+        ).fetchall()
+        for stale_row in stale_rows:
+            claimed_by = str(stale_row["assembly_backfill_claimed_by"] or "")
+            if claimed_by and worker_heartbeat_is_live(claimed_by):
+                continue
+            db.execute(
+                """
+                UPDATE species
+                SET assembly_backfill_status = 'pending',
+                    assembly_backfill_claimed_by = NULL,
+                    assembly_backfill_claimed_at = NULL,
+                    assembly_backfill_error = NULL,
+                    updated_at = ?
+                WHERE id = ?
+                  AND assembly_backfill_status = 'running'
+                """,
+                (utc_now(), stale_row["id"]),
+            )
+        row = db.execute(
+            """
+            SELECT *
+            FROM species
+            WHERE assembly_backfill_status = 'pending'
+              AND status = 'ready'
+              AND metadata_clean_path IS NOT NULL
+              AND metadata_status = 'ready'
+              AND assembly_backfill_claimed_at IS NULL
+            ORDER BY
+                CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
+                CASE WHEN genome_count IS NULL THEN 1 ELSE 0 END,
+                COALESCE(genome_count, 2147483647) ASC,
+                assembly_backfill_requested_at ASC,
+                updated_at ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        claimed_at = utc_now()
+        cursor = db.execute(
+            """
+            UPDATE species
+            SET assembly_backfill_status = 'running',
+                assembly_backfill_claimed_by = ?,
+                assembly_backfill_claimed_at = ?,
+                updated_at = ?
+            WHERE id = ?
+              AND assembly_backfill_status = 'pending'
+              AND assembly_backfill_claimed_at IS NULL
+            """,
+            (worker_name, claimed_at, claimed_at, row["id"]),
+        )
+        if int(cursor.rowcount or 0) != 1:
+            db.commit()
+            return None
+        db.commit()
+        claimed = get_species_by_id(int(row["id"]), db)
         assert claimed is not None
         return claimed
 
@@ -5276,6 +10239,123 @@ def sync_species_record(species: SpeciesRecord) -> None:
         save_species(current)
 
 
+def merge_assembly_features_into_metadata_rows(
+    stored_rows: dict[str, dict[str, Any]],
+    refreshed_tsv_rows: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    refreshed_by_accession = {
+        metadata_row_accession(row): row
+        for row in refreshed_tsv_rows
+        if metadata_row_accession(row)
+    }
+    merged_rows: list[dict[str, Any]] = []
+    for accession, stored_row in stored_rows.items():
+        merged = dict(stored_row)
+        refreshed = refreshed_by_accession.get(accession)
+        if refreshed:
+            for column in SPECIES_TSV_COLUMNS:
+                value = refreshed.get(column)
+                if value not in (None, ""):
+                    merged[column] = normalize_json_scalar(value)
+        for column in SPECIES_TSV_COLUMNS:
+            merged.setdefault(column, None)
+        merged_rows.append(merged)
+    merged_rows.sort(key=lambda row: str(row.get("Assembly Accession") or ""))
+    return merged_rows
+
+
+def backfill_species_assembly_features(species: SpeciesRecord) -> None:
+    try:
+        current = load_species(species.id)
+        if current.status != "ready" or not current.metadata_clean_path or not Path(current.metadata_clean_path).exists():
+            raise RuntimeError("Taxon metadata is not ready for assembly feature backfill.")
+        if taxon_has_assembly_feature_columns(current):
+            now = utc_now()
+            with get_sqlite_connection() as db:
+                db.execute(
+                    """
+                    UPDATE species
+                    SET assembly_backfill_status = 'done',
+                        assembly_backfill_last_built_at = ?,
+                        assembly_backfill_claimed_by = NULL,
+                        assembly_backfill_claimed_at = NULL,
+                        assembly_backfill_error = NULL,
+                        updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (now, now, current.id),
+                )
+                db.commit()
+            return
+
+        refreshed_rows, taxon_id = fetch_species_dataset_rows(current)
+        output_path = species_tsv_path(current.slug)
+        write_species_tsv(refreshed_rows, output_path)
+
+        stored_rows = load_taxon_metadata_rows(current.id)
+        if not stored_rows and current.metadata_clean_path:
+            clean_path = Path(current.metadata_clean_path)
+            if clean_path.exists():
+                clean_frame = pd.read_csv(clean_path, dtype=str).fillna("")
+                for row in clean_frame.to_dict("records"):
+                    accession = metadata_row_accession(row)
+                    if accession:
+                        stored_rows[accession] = row
+        if not stored_rows:
+            raise RuntimeError("No stored metadata rows are available to merge assembly features.")
+        merged_rows = merge_assembly_features_into_metadata_rows(stored_rows, refreshed_rows)
+        if not merged_rows:
+            raise RuntimeError("No metadata rows matched refreshed assembly accessions.")
+
+        refreshed_at = utc_now()
+        save_taxon_metadata_rows(current.id, merged_rows, refreshed_at=refreshed_at)
+        metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(current.slug, merged_rows)
+
+        latest = load_species(current.id)
+        latest.tsv_path = str(output_path)
+        latest.taxon_id = taxon_id or latest.taxon_id
+        latest.genome_count = latest.genome_count or clean_count
+        latest.metadata_path = metadata_path
+        latest.metadata_clean_path = clean_path
+        now = utc_now()
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE species
+                SET tsv_path = ?,
+                    taxon_id = ?,
+                    genome_count = COALESCE(genome_count, ?),
+                    metadata_path = ?,
+                    metadata_clean_path = ?,
+                    assembly_backfill_status = 'done',
+                    assembly_backfill_last_built_at = ?,
+                    assembly_backfill_claimed_by = NULL,
+                    assembly_backfill_claimed_at = NULL,
+                    assembly_backfill_error = NULL,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (str(output_path), taxon_id or latest.taxon_id, clean_count, metadata_path, clean_path, now, now, current.id),
+            )
+            db.commit()
+    except Exception as exc:
+        now = utc_now()
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE species
+                SET assembly_backfill_status = 'failed',
+                    assembly_backfill_claimed_by = NULL,
+                    assembly_backfill_claimed_at = NULL,
+                    assembly_backfill_error = ?,
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (str(exc), now, species.id),
+            )
+            db.commit()
+
+
 def species_parent_genus_name(species: SpeciesRecord) -> str | None:
     if species.taxon_rank != "species":
         return None
@@ -5289,6 +10369,9 @@ def write_filtered_metadata_file(source_path: Path, output_path: Path, organism_
     output_path.parent.mkdir(parents=True, exist_ok=True)
     count = 0
     delimiter = "\t" if source_path.suffix.lower() == ".tsv" else ","
+    target_name = normalize_species_name(organism_name)
+    target_parts = target_name.split()
+    target_genus = target_parts[1] if target_parts[:1] == ["Candidatus"] and len(target_parts) > 1 else (target_parts[0] if target_parts else None)
     with source_path.open("r", encoding="utf-8", newline="") as src_handle:
         reader = csv.DictReader(src_handle, delimiter=delimiter)
         fieldnames = reader.fieldnames or []
@@ -5296,7 +10379,9 @@ def write_filtered_metadata_file(source_path: Path, output_path: Path, organism_
             writer = csv.DictWriter(dest_handle, fieldnames=fieldnames, delimiter=delimiter)
             writer.writeheader()
             for row in reader:
-                if normalize_species_name(str(row.get("Organism Name") or "")) != organism_name:
+                organism_name_value = normalize_species_name(str(row.get("Organism Name") or ""))
+                canonical_name = canonical_species_from_organism_name(organism_name_value, target_genus)
+                if organism_name_value != target_name and canonical_name != target_name:
                     continue
                 writer.writerow(row)
                 count += 1
@@ -5320,7 +10405,11 @@ def derive_species_metadata_from_genus(species: SpeciesRecord) -> tuple[str, str
         filtered_rows = [
             row
             for row in stored_rows.values()
-            if normalize_species_name(str(row.get("Organism Name") or "")) == species.species_name
+            if (
+                normalize_species_name(str(row.get("Organism Name") or "")) == species.species_name
+                or canonical_species_from_organism_name(str(row.get("Organism Name") or ""), genus_name)
+                == species.species_name
+            )
         ]
         if filtered_rows:
             save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now())
@@ -5340,13 +10429,200 @@ def derive_species_metadata_from_genus(species: SpeciesRecord) -> tuple[str, str
     return str(updated_path), str(clean_path), int(genus.id), clean_count
 
 
-def write_taxon_metadata_outputs(slug: str, rows: list[dict[str, Any]]) -> tuple[str, str, int]:
+def ensure_species_from_genus_metadata(species_name: str, source_taxon_id: int) -> SpeciesRecord:
+    normalized = normalize_species_name(species_name)
+    genus = load_species(source_taxon_id)
+    if genus.taxon_rank != "genus":
+        raise ValueError("The source taxon must be a genus.")
+    if not species_search_name(normalized).startswith(f"{species_search_name(genus.species_name)} "):
+        raise ValueError("The selected species does not belong to the source genus.")
+    if not genus.metadata_path or not genus.metadata_clean_path:
+        raise ValueError("Source genus metadata is not ready.")
+
+    species = create_species(normalized, taxon_rank="species", assembly_source=genus.assembly_source)
+    if (
+        species.status == "ready"
+        and species.tsv_path
+        and Path(species.tsv_path).exists()
+        and species.metadata_status == "ready"
+        and species.metadata_clean_path
+        and Path(species.metadata_clean_path).exists()
+    ):
+        return species
+
+    output_path = species_tsv_path(species.slug)
+    updated_count = write_filtered_metadata_file(Path(genus.metadata_path), output_path, normalized)
+    derived = derive_species_metadata_from_genus(species)
+    if updated_count <= 0 or derived is None:
+        raise ValueError("No matching genomes were found in the source genus metadata.")
+
+    metadata_path, clean_path, source_taxon_id, clean_count = derived
+    latest = load_species(species.id)
+    latest.tsv_path = str(output_path)
+    latest.status = "ready"
+    latest.genome_count = clean_count
+    latest.metadata_status = "ready"
+    latest.metadata_path = metadata_path
+    latest.metadata_clean_path = clean_path
+    latest.metadata_source_taxon_id = source_taxon_id
+    latest.metadata_last_built_at = utc_now()
+    latest.metadata_error = None
+    latest.refresh_requested = False
+    latest.metadata_refresh_requested = False
+    latest.claimed_by = None
+    latest.claimed_at = None
+    latest.metadata_claimed_by = None
+    latest.metadata_claimed_at = None
+    latest.updated_at = latest.metadata_last_built_at
+    save_species(latest)
+    return latest
+
+
+def save_species_metadata_from_genus_rows(
+    species: SpeciesRecord,
+    genus: SpeciesRecord,
+    filtered_rows: list[dict[str, Any]],
+) -> SpeciesRecord:
+    if not filtered_rows:
+        raise ValueError("No matching genomes were found in the source genus metadata.")
+    save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now())
+    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, filtered_rows)
+    latest = load_species(species.id)
+    latest.tsv_path = metadata_path
+    latest.status = "ready"
+    latest.genome_count = clean_count
+    latest.metadata_status = "ready"
+    latest.metadata_path = metadata_path
+    latest.metadata_clean_path = clean_path
+    latest.metadata_source_taxon_id = genus.id
+    latest.metadata_last_built_at = utc_now()
+    latest.metadata_error = None
+    latest.refresh_requested = False
+    latest.metadata_refresh_requested = False
+    latest.claimed_by = None
+    latest.claimed_at = None
+    latest.metadata_claimed_by = None
+    latest.metadata_claimed_at = None
+    latest.updated_at = latest.metadata_last_built_at
+    save_species(latest)
+    return latest
+
+
+def expand_species_catalog_from_genus_metadata(limit: int | None = None) -> dict[str, int]:
+    with get_sqlite_connection() as db:
+        rows = db.execute(
+            """
+            SELECT source_taxon_id, source_taxon_name, species_name, genome_count
+            FROM metadata_species_search
+            ORDER BY source_taxon_name COLLATE NOCASE ASC, genome_count DESC, species_name COLLATE NOCASE ASC
+            """
+        ).fetchall()
+
+    candidates: dict[tuple[int, str], dict[str, Any]] = {}
+    for row in rows:
+        source_taxon_id = int(row["source_taxon_id"])
+        source_taxon_name = str(row["source_taxon_name"])
+        canonical_name = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
+        if not canonical_name:
+            continue
+        key = (source_taxon_id, canonical_name)
+        entry = candidates.setdefault(
+            key,
+            {
+                "source_taxon_id": source_taxon_id,
+                "source_taxon_name": source_taxon_name,
+                "species_name": canonical_name,
+                "genome_count": 0,
+            },
+        )
+        entry["genome_count"] += int(row["genome_count"] or 0)
+
+    created = 0
+    updated = 0
+    skipped = 0
+    failed = 0
+    processed = 0
+    ordered_candidates = sorted(
+        candidates.values(),
+        key=lambda item: (str(item["source_taxon_name"]).lower(), -int(item["genome_count"]), str(item["species_name"]).lower()),
+    )
+    candidates_by_genus: dict[int, list[dict[str, Any]]] = defaultdict(list)
+    for candidate in ordered_candidates:
+        candidates_by_genus[int(candidate["source_taxon_id"])].append(candidate)
+
+    for source_taxon_id, genus_candidates in sorted(
+        candidates_by_genus.items(),
+        key=lambda item: str(item[1][0]["source_taxon_name"]).lower() if item[1] else "",
+    ):
+        if limit is not None and processed >= limit:
+            break
+        try:
+            genus = load_species(source_taxon_id)
+            genus_rows = load_taxon_metadata_rows(genus.id)
+            rows_by_canonical: dict[str, list[dict[str, Any]]] = defaultdict(list)
+            for row in genus_rows.values():
+                canonical_name = canonical_species_from_organism_name(str(row.get("Organism Name") or ""), genus.species_name)
+                if canonical_name:
+                    rows_by_canonical[canonical_name].append(row)
+        except Exception:
+            failed += len(genus_candidates)
+            logging.exception("Failed to load genus metadata for species expansion: %s.", source_taxon_id)
+            continue
+
+        for candidate in genus_candidates:
+            if limit is not None and processed >= limit:
+                break
+            species_name = str(candidate["species_name"])
+            existing = get_taxon_by_name(species_name, "species")
+            if (
+                existing is not None
+                and existing.status == "ready"
+                and existing.metadata_status == "ready"
+                and existing.metadata_clean_path
+                and Path(existing.metadata_clean_path).exists()
+            ):
+                skipped += 1
+                continue
+            filtered_rows = rows_by_canonical.get(species_name, [])
+            if not filtered_rows:
+                failed += 1
+                continue
+            try:
+                was_existing = existing is not None
+                species = create_species(species_name, taxon_rank="species", assembly_source=genus.assembly_source)
+                save_species_metadata_from_genus_rows(species, genus, filtered_rows)
+                if was_existing:
+                    updated += 1
+                else:
+                    created += 1
+                processed += 1
+            except Exception:
+                failed += 1
+                logging.exception("Failed to derive species catalog entry for %s.", species_name)
+    return {
+        "candidate_total": len(ordered_candidates),
+        "processed": processed,
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "failed": failed,
+    }
+
+
+def write_taxon_metadata_outputs(
+    slug: str,
+    rows: list[dict[str, Any]],
+    *,
+    normalize_rows: bool = True,
+) -> tuple[str, str, int]:
     if not rows:
         raise RuntimeError("No metadata rows are available to write.")
     taxon_dir = metadata_taxon_dir(slug)
     shutil.rmtree(taxon_dir, ignore_errors=True)
     metadata_output_dir = taxon_dir / "metadata_output"
     metadata_output_dir.mkdir(parents=True, exist_ok=True)
+    if normalize_rows:
+        rows = [ensure_managed_metadata_schema(row) for row in rows]
     df = pd.DataFrame(rows)
 
     updated_path = metadata_output_dir / "ncbi_dataset_updated.tsv"
@@ -5376,10 +10652,9 @@ def write_taxon_metadata_outputs(slug: str, rows: list[dict[str, Any]]) -> tuple
     return str(updated_path), str(clean_path), clean_count
 
 
-def run_taxon_metadata_pipeline(species: SpeciesRecord) -> tuple[str, str, int | None, int]:
+def load_filtered_taxon_tsv_rows(species: SpeciesRecord) -> list[dict[str, Any]]:
     if not species.tsv_path:
         raise RuntimeError("Managed TSV path is missing for metadata build.")
-
     df = load_data(species.tsv_path)
     df, _filter_summary = filter_data(df, None, ["all"])
     if "Assembly Accession" not in df.columns:
@@ -5387,12 +10662,23 @@ def run_taxon_metadata_pipeline(species: SpeciesRecord) -> tuple[str, str, int |
     df = df.drop_duplicates(subset=["Assembly Accession"], keep="first").copy()
     if "Assembly BioSample Accession" not in df.columns:
         df["Assembly BioSample Accession"] = pd.NA
+    return df.to_dict(orient="records")
+
+
+def run_taxon_metadata_pipeline(species: SpeciesRecord) -> tuple[str, str, int | None, int]:
+    tsv_rows = load_filtered_taxon_tsv_rows(species)
 
     stored_rows = load_taxon_metadata_rows(species.id)
+    tsv_accessions = {
+        str(row.get("Assembly Accession") or "").strip()
+        for row in tsv_rows
+        if str(row.get("Assembly Accession") or "").strip()
+    }
+    resumed_row_total = count_taxon_metadata_rows_for_accessions(species.id, tsv_accessions)
     ordered_rows: list[tuple[str, dict[str, Any]]] = []
     new_tsv_rows: list[dict[str, Any]] = []
 
-    for row in df.to_dict(orient="records"):
+    for row in tsv_rows:
         accession = str(row.get("Assembly Accession") or "").strip()
         if not accession:
             continue
@@ -5407,18 +10693,116 @@ def run_taxon_metadata_pipeline(species: SpeciesRecord) -> tuple[str, str, int |
         for biosample_id in {metadata_row_biosample_accession(row) for row in new_tsv_rows}
         if biosample_id
     ]
-    biosample_records = fetch_biosample_metadata_records(biosample_ids)
+    cached_biosample_records, _stale_or_missing_biosamples = load_cached_biosample_records(biosample_ids)
+    biosample_records = dict(cached_biosample_records)
+    total_rows = len(ordered_rows)
+    completed_rows = max(0, min(resumed_row_total, total_rows))
+    update_taxon_metadata_progress(species.id, total=total_rows, completed=completed_rows)
     current_rows: list[dict[str, Any]] = []
+    refreshed_at = utc_now()
+    newly_persisted_rows = 0
+    last_logged_checkpoint = 0
+
+    def log_metadata_checkpoint(force: bool = False) -> None:
+        nonlocal last_logged_checkpoint
+        if not newly_persisted_rows:
+            return
+        checkpoint = newly_persisted_rows // 100
+        if force or checkpoint > last_logged_checkpoint:
+            last_logged_checkpoint = checkpoint
+            logging.info(
+                "Checkpointed %s new metadata rows for %s (%s/%s rows assembled).",
+                newly_persisted_rows,
+                species.species_name,
+                completed_rows,
+                total_rows,
+            )
+
+    def persist_new_rows(rows: list[dict[str, Any]]) -> None:
+        nonlocal completed_rows, newly_persisted_rows
+        if not rows:
+            return
+
+        accessions = [metadata_row_accession(row) for row in rows]
+        recently_stored_rows = load_taxon_metadata_rows_for_accessions(species.id, accessions)
+        rows_to_fetch: list[dict[str, Any]] = []
+        stored_hit_count = 0
+        for row in rows:
+            accession = metadata_row_accession(row)
+            stored_row = recently_stored_rows.get(accession)
+            if stored_row is not None:
+                current_rows.append(merge_tsv_record_with_stored_metadata(row, stored_row))
+                stored_hit_count += 1
+            else:
+                rows_to_fetch.append(row)
+        if stored_hit_count:
+            completed_rows = max(completed_rows, min(total_rows, completed_rows + stored_hit_count))
+        if not rows_to_fetch:
+            update_taxon_metadata_progress(species.id, total=total_rows, completed=completed_rows)
+            return
+
+        first_accession = metadata_row_accession(rows_to_fetch[0])
+        update_taxon_metadata_progress(
+            species.id,
+            total=total_rows,
+            completed=completed_rows,
+            current_accession=first_accession or None,
+        )
+
+        missing_biosample_ids = [
+            biosample_id
+            for biosample_id in (metadata_row_biosample_accession(row) for row in rows_to_fetch)
+            if biosample_id and biosample_id not in biosample_records
+        ]
+        fetched_records = fetch_uncached_biosample_records(missing_biosample_ids)
+        if fetched_records:
+            biosample_records.update(fetched_records)
+            save_biosample_cache_records(
+                {
+                    biosample_id: (record, biosample_record_has_data(record))
+                    for biosample_id, record in fetched_records.items()
+                }
+            )
+
+        enriched_rows: list[dict[str, Any]] = []
+        for row in rows_to_fetch:
+            biosample_id = metadata_row_biosample_accession(row)
+            enriched_row = enrich_tsv_row_with_biosample_metadata(row, biosample_records.get(biosample_id))
+            current_rows.append(enriched_row)
+            enriched_rows.append(enriched_row)
+
+        saved_count = upsert_taxon_metadata_rows(species.id, enriched_rows, refreshed_at=refreshed_at)
+        completed_rows += saved_count
+        newly_persisted_rows += saved_count
+        update_taxon_metadata_progress(species.id, total=total_rows, completed=completed_rows)
+        log_metadata_checkpoint()
+
+    pending_new_rows: list[dict[str, Any]] = []
     for row_type, row in ordered_rows:
         if row_type == "stored":
+            persist_new_rows(pending_new_rows)
+            pending_new_rows = []
             current_rows.append(row)
             continue
-        biosample_id = metadata_row_biosample_accession(row)
-        current_rows.append(enrich_tsv_row_with_biosample_metadata(row, biosample_records.get(biosample_id)))
+        pending_new_rows.append(row)
+        if METADATA_FETCH_WORKERS <= 1 or len(pending_new_rows) >= METADATA_FETCH_BATCH_SIZE:
+            persist_new_rows(pending_new_rows)
+            pending_new_rows = []
+    persist_new_rows(pending_new_rows)
+    if newly_persisted_rows and newly_persisted_rows % 100:
+        log_metadata_checkpoint(force=True)
 
-    refreshed_at = utc_now()
-    save_taxon_metadata_rows(species.id, current_rows, refreshed_at=refreshed_at)
-    updated_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, current_rows)
+    upsert_taxon_metadata_rows(species.id, current_rows, refreshed_at=refreshed_at)
+    stored_rows = load_taxon_metadata_rows(species.id)
+    final_rows = [
+        merge_tsv_record_with_stored_metadata(row, stored_rows[accession])
+        for row in tsv_rows
+        if (accession := metadata_row_accession(row)) and accession in stored_rows
+    ]
+    update_taxon_metadata_progress(species.id, total=total_rows, completed=len(final_rows))
+    if len(final_rows) < total_rows:
+        raise RuntimeError(f"Metadata build incomplete after helper merge: {len(final_rows)}/{total_rows} rows are stored.")
+    updated_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, final_rows)
     return str(updated_path), str(clean_path), None, clean_count
 
 
@@ -5439,75 +10823,76 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
         return
     current = load_species(species.id)
     try:
-        if current.metadata_claim_token != species.metadata_claim_token:
-            return
-        if current.status != "ready" or not current.tsv_path or not Path(current.tsv_path).exists():
-            current.metadata_status = "failed"
-            current.metadata_error = "Taxon TSV is not ready for metadata build."
-            current.metadata_claimed_by = None
-            current.metadata_claimed_at = None
-            save_species(current)
-            return
-        if current.taxon_rank == "species":
-            genus_name = species_parent_genus_name(current)
-            if genus_name:
-                genus = get_taxon_by_name(genus_name, "genus")
-                if (
-                    genus is not None
-                    and genus.status == "ready"
-                    and genus.tsv_path
-                    and Path(genus.tsv_path).exists()
-                    and genus.metadata_status in {"pending", "building"}
-                ):
-                    current.metadata_status = "pending"
-                    current.metadata_refresh_requested = True
-                    current.metadata_claimed_by = None
-                    current.metadata_claimed_at = None
-                    current.metadata_first_claimed_at = None
-                    current.metadata_attempt_count = 0
-                    current.metadata_error = "Waiting for parent genus metadata to be ready."
-                    current.updated_at = utc_now()
-                    save_species(current)
+        with maintain_worker_heartbeat(current.metadata_claimed_by or species.metadata_claimed_by):
+            if current.metadata_claim_token != species.metadata_claim_token:
+                return
+            if current.status != "ready" or not current.tsv_path or not Path(current.tsv_path).exists():
+                current.metadata_status = "failed"
+                current.metadata_error = "Taxon TSV is not ready for metadata build."
+                current.metadata_claimed_by = None
+                current.metadata_claimed_at = None
+                save_species(current)
+                return
+            if current.taxon_rank == "species":
+                genus_name = species_parent_genus_name(current)
+                if genus_name:
+                    genus = get_taxon_by_name(genus_name, "genus")
+                    if (
+                        genus is not None
+                        and genus.status == "ready"
+                        and genus.tsv_path
+                        and Path(genus.tsv_path).exists()
+                        and genus.metadata_status in {"pending", "building"}
+                    ):
+                        current.metadata_status = "pending"
+                        current.metadata_refresh_requested = True
+                        current.metadata_claimed_by = None
+                        current.metadata_claimed_at = None
+                        current.metadata_first_claimed_at = None
+                        current.metadata_attempt_count = 0
+                        current.metadata_error = "Waiting for parent genus metadata to be ready."
+                        current.updated_at = utc_now()
+                        save_species(current)
+                        return
+            try:
+                derived = derive_species_metadata_from_genus(current)
+                if derived is not None:
+                    metadata_path, clean_path, source_taxon_id, clean_count = derived
+                else:
+                    metadata_path, clean_path, source_taxon_id, clean_count = run_taxon_metadata_pipeline(current)
+                latest = load_species(species.id)
+                if latest.metadata_claim_token != species.metadata_claim_token:
                     return
-        try:
-            derived = derive_species_metadata_from_genus(current)
-            if derived is not None:
-                metadata_path, clean_path, source_taxon_id, clean_count = derived
-            else:
-                metadata_path, clean_path, source_taxon_id, clean_count = run_taxon_metadata_pipeline(current)
-            latest = load_species(species.id)
-            if latest.metadata_claim_token != species.metadata_claim_token:
-                return
-            latest.metadata_status = "ready"
-            latest.metadata_path = metadata_path
-            latest.metadata_clean_path = clean_path
-            latest.metadata_last_built_at = utc_now()
-            latest.metadata_error = None
-            latest.metadata_refresh_requested = False
-            latest.metadata_claimed_by = None
-            latest.metadata_claimed_at = None
-            latest.metadata_first_claimed_at = None
-            latest.metadata_attempt_count = 0
-            latest.metadata_source_taxon_id = source_taxon_id
-            latest.genome_count = latest.genome_count or clean_count
-            latest.updated_at = latest.metadata_last_built_at
-            save_species(latest)
-        except Exception as exc:
-            latest = load_species(species.id)
-            if latest.metadata_claim_token != species.metadata_claim_token:
-                return
-            latest.updated_at = utc_now()
-            has_existing_metadata = bool(latest.metadata_path and Path(latest.metadata_path).exists())
-            if latest.metadata_attempt_count < METADATA_MAX_AUTO_RETRIES:
-                latest.metadata_status = "pending"
-                latest.metadata_error = f"{exc} (auto-retrying {latest.metadata_attempt_count}/{METADATA_MAX_AUTO_RETRIES})"
-            else:
-                latest.metadata_status = "ready" if has_existing_metadata else "failed"
-                latest.metadata_error = str(exc)
-            latest.metadata_refresh_requested = False
-            latest.metadata_claimed_by = None
-            latest.metadata_claimed_at = None
-            save_species(latest)
+                latest.metadata_status = "ready"
+                latest.metadata_path = metadata_path
+                latest.metadata_clean_path = clean_path
+                latest.metadata_last_built_at = utc_now()
+                latest.metadata_error = None
+                latest.metadata_refresh_requested = False
+                latest.metadata_claimed_by = None
+                latest.metadata_claimed_at = None
+                latest.metadata_first_claimed_at = None
+                latest.metadata_attempt_count = 0
+                latest.metadata_source_taxon_id = source_taxon_id
+                latest.genome_count = latest.genome_count or clean_count
+                latest.updated_at = latest.metadata_last_built_at
+                save_species(latest)
+            except Exception as exc:
+                latest = load_species(species.id)
+                if latest.metadata_claim_token != species.metadata_claim_token:
+                    return
+                latest.updated_at = utc_now()
+                has_existing_metadata = bool(latest.metadata_path and Path(latest.metadata_path).exists())
+                if latest.metadata_attempt_count < METADATA_MAX_AUTO_RETRIES:
+                    latest.metadata_status = "pending"
+                    latest.metadata_error = f"{exc} (auto-retrying {latest.metadata_attempt_count}/{METADATA_MAX_AUTO_RETRIES})"
+                else:
+                    latest.metadata_status = "ready" if has_existing_metadata else "failed"
+                    latest.metadata_error = str(exc)
+                latest.metadata_refresh_requested = False
+                latest.metadata_claimed_by = None
+                latest.metadata_claimed_at = None
+                save_species(latest)
     finally:
         try:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
@@ -5923,7 +11308,7 @@ def finalize_integrated_sequence_job(
         latest.status = "cancelled"
     else:
         latest.status = "completed" if return_code == 0 else "failed"
-    if latest.status == "completed":
+    if latest.status in {"completed", "cancelled"}:
         try:
             organize_sequence_outputs(latest)
         except Exception as exc:
@@ -5962,6 +11347,7 @@ def launch_integrated_sequence_job(job: JobRecord) -> None:
     root_logger.addHandler(file_handler)
     root_logger.setLevel(min(previous_level, logging.INFO) if previous_level else logging.INFO)
     return_code = 0
+    cancellation_honored = False
 
     try:
         with contextlib.redirect_stdout(log_handle), contextlib.redirect_stderr(log_handle):
@@ -5969,13 +11355,16 @@ def launch_integrated_sequence_job(job: JobRecord) -> None:
                 namespace,
                 input_path=job.input_path,
                 output_folder=job.output_dir,
+                cancellation_requested=lambda: is_cancel_requested(job.id),
             )
-        if is_cancel_requested(job.id):
-            append_job_log(
-                job,
-                f"[{utc_now()}] Cancellation was requested while integrated sequence downloading was running. "
-                "The current implementation completes the download before finalizing the job.\n",
-            )
+    except SequenceDownloadCancelled:
+        return_code = 1
+        cancellation_honored = True
+        append_job_log(
+            job,
+            f"[{utc_now()}] Cancellation honored. Stopped submitting new downloads, saved partial outputs, "
+            "and wrote the current failed/missing accession report.\n",
+        )
     except Exception as exc:
         return_code = 1
         append_job_log(job, f"[{utc_now()}] Integrated sequence download failed: {exc}\n")
@@ -5987,7 +11376,7 @@ def launch_integrated_sequence_job(job: JobRecord) -> None:
         log_handle.write(f"\n[{utc_now()}] Job finished with return code {return_code}\n")
         log_handle.close()
 
-    finalize_integrated_sequence_job(job, return_code=return_code, cancellation_honored=False)
+    finalize_integrated_sequence_job(job, return_code=return_code, cancellation_honored=cancellation_honored)
 
 
 def request_job_cancellation(job: JobRecord) -> JobRecord:
@@ -6067,13 +11456,46 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "sync", "metadata"}:
-                with get_sqlite_connection() as db:
-                    metadata_build_schedule_hours = metadata_build_hours(db)
-                    metadata_refresh_schedule_hours = metadata_refresh_hours(db)
-                schedule_due_metadata_builds(metadata_build_schedule_hours, metadata_refresh_schedule_hours)
+                ensure_metadata_chunks_for_active_builds()
                 metadata_species = claim_next_species_metadata_build(worker_name)
                 if metadata_species is not None:
-                    build_species_metadata_record(metadata_species)
+                    with maintain_worker_heartbeat(worker_name):
+                        build_species_metadata_record(metadata_species)
+                    continue
+                metadata_chunk = claim_next_metadata_chunk(worker_name)
+                if metadata_chunk is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_metadata_chunk(metadata_chunk)
+                    continue
+                if metadata_species is None:
+                    with get_sqlite_connection() as db:
+                        metadata_build_schedule_hours = metadata_build_hours(db)
+                        metadata_refresh_schedule_hours = metadata_refresh_hours(db)
+                    schedule_due_metadata_builds(metadata_build_schedule_hours, metadata_refresh_schedule_hours)
+                    ensure_metadata_chunks_for_active_builds()
+                    metadata_species = claim_next_species_metadata_build(worker_name)
+                    if metadata_species is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            build_species_metadata_record(metadata_species)
+                        continue
+                    metadata_chunk = claim_next_metadata_chunk(worker_name)
+                    if metadata_chunk is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            process_metadata_chunk(metadata_chunk)
+                        continue
+
+            if WORKER_MODE == "assembly-backfill":
+                backfill_species = claim_next_assembly_feature_backfill(worker_name)
+                if backfill_species is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        backfill_species_assembly_features(backfill_species)
+                    continue
+
+            if WORKER_MODE in {"all", "standardization"}:
+                standardization_task = claim_next_standardization_refresh_task(worker_name)
+                if standardization_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        apply_current_standardization_to_taxon(standardization_task)
                     continue
 
             if WORKER_MODE in {"all", "sync", "jobs"}:
@@ -6459,7 +11881,9 @@ def list_metadata_claims(limit: int = 12) -> list[dict[str, Any]]:
     rows = get_db().execute(
         """
         SELECT id, species_name, taxon_rank, genome_count, metadata_status,
-               metadata_claimed_by, metadata_claimed_at, metadata_error
+               metadata_claimed_by, metadata_claimed_at, metadata_error,
+               metadata_progress_total, metadata_progress_completed,
+               metadata_progress_current_accession
         FROM species
         WHERE metadata_status = 'building'
            OR metadata_claimed_at IS NOT NULL
@@ -6492,6 +11916,8 @@ def list_metadata_claims(limit: int = 12) -> list[dict[str, Any]]:
                 "age_seconds": age_seconds,
                 "age_label": format_elapsed_brief(age_seconds),
                 "error": str(row["metadata_error"]) if row["metadata_error"] else None,
+                "progress": summarize_metadata_build_progress(row["metadata_progress_total"], row["metadata_progress_completed"]),
+                "current_accession": str(row["metadata_progress_current_accession"]) if row["metadata_progress_current_accession"] else None,
             }
         )
     return items
@@ -6700,7 +12126,7 @@ def login() -> Any:
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        username = normalize_username(request.form.get("username") or "")
+        username = normalize_username(request.form.get("login_identifier") or request.form.get("username") or "")
         password = request.form.get("password") or ""
         user = get_user_by_username(username)
         if user is not None and check_password_hash(user["password_hash"], password):
@@ -6797,26 +12223,120 @@ def index() -> str:
     user = g.current_user
     assert user is not None
     jobs = list_jobs_for_user(int(user["id"]))
-    taxa = list_available_species()
-    taxa_json = [
-        {
-            "id": item.id,
-            "species_name": item.species_name,
-            "taxon_rank": item.taxon_rank,
-            "genome_count": item.genome_count or 0,
-            "assembly_source": item.assembly_source,
-        }
-        for item in taxa
-    ]
     return render_template(
         "index_dashboard.html",
         jobs=jobs,
         modes=MODES,
-        taxa=taxa,
-        taxa_json=taxa_json,
         home_metrics=build_public_home_metrics(),
         taxon_recent_hours=TAXON_RECENT_HOURS,
         taxon_very_old_hours=TAXON_VERY_OLD_HOURS,
+    )
+
+
+@app.route("/api/taxa/search")
+def api_taxa_search() -> Any:
+    user = g.current_user
+    assert user is not None
+    query = normalize_species_name(request.args.get("q") or "")
+    if len(query) < 2:
+        return app.response_class(json.dumps({"results": []}), mimetype="application/json")
+
+    search = species_search_name(query)
+    like_value = f"%{search}%"
+    starts_value = f"{search}%"
+    rows = get_db().execute(
+        """
+        SELECT id, species_name, taxon_rank, genome_count, assembly_source
+        FROM species
+        WHERE status = 'ready'
+          AND tsv_path IS NOT NULL
+          AND lower(species_name) LIKE ?
+        ORDER BY
+            CASE WHEN lower(species_name) LIKE ? THEN 0 ELSE 1 END,
+            COALESCE(genome_count, 0) DESC,
+            species_name COLLATE NOCASE ASC
+        LIMIT 8
+        """,
+        (like_value, starts_value),
+    ).fetchall()
+    results = [
+        {
+            "id": int(row["id"]),
+            "species_name": str(row["species_name"]),
+            "taxon_rank": str(row["taxon_rank"]),
+            "genome_count": int(row["genome_count"] or 0),
+            "assembly_source": str(row["assembly_source"] or "all"),
+            "source": "catalog",
+        }
+        for row in rows
+    ]
+    seen_names = {species_search_name(item["species_name"]) for item in results}
+
+    metadata_rows = get_db().execute(
+        """
+        SELECT source_taxon_id, source_taxon_name, species_name, genome_count
+        FROM metadata_species_search
+        WHERE search_name LIKE ?
+        ORDER BY
+            CASE WHEN search_name LIKE ? THEN 0 ELSE 1 END,
+            genome_count DESC,
+            species_name COLLATE NOCASE ASC
+        LIMIT 8
+        """,
+        (like_value, starts_value),
+    ).fetchall()
+    for row in metadata_rows:
+        name = str(row["species_name"])
+        key = species_search_name(name)
+        if key in seen_names:
+            continue
+        results.append(
+            {
+                "id": None,
+                "species_name": name,
+                "taxon_rank": "species",
+                "genome_count": int(row["genome_count"] or 0),
+                "assembly_source": "all",
+                "source": "genus_metadata",
+                "source_taxon_id": int(row["source_taxon_id"]),
+                "source_taxon_name": str(row["source_taxon_name"]),
+                "requires_prepare": True,
+            }
+        )
+        seen_names.add(key)
+        if len(results) >= 8:
+            break
+
+    return app.response_class(json.dumps({"results": results}), mimetype="application/json")
+
+
+@app.route("/api/taxa/prepare-metadata-species", methods=["POST"])
+def api_prepare_metadata_species() -> Any:
+    user = g.current_user
+    assert user is not None
+    species_name = request.form.get("species_name") or ""
+    source_taxon_raw = request.form.get("source_taxon_id") or ""
+    try:
+        source_taxon_id = int(source_taxon_raw)
+        species = ensure_species_from_genus_metadata(species_name, source_taxon_id)
+    except Exception as exc:
+        return app.response_class(
+            json.dumps({"error": str(exc)}),
+            status=400,
+            mimetype="application/json",
+        )
+    return app.response_class(
+        json.dumps(
+            {
+                "id": species.id,
+                "species_name": species.species_name,
+                "taxon_rank": species.taxon_rank,
+                "genome_count": species.genome_count or 0,
+                "assembly_source": species.assembly_source,
+                "source": "catalog",
+            }
+        ),
+        mimetype="application/json",
     )
 
 
@@ -6900,9 +12420,124 @@ def admin_metadata() -> str:
     require_admin()
     return render_template(
         "admin_metadata.html",
-        taxa=list_all_species(),
+        taxa=list_recent_metadata_taxa(100),
         metadata_dashboard=build_metadata_dashboard(),
         **admin_common_context("metadata"),
+    )
+
+
+@app.route("/admin/refinement")
+def admin_refinement() -> str:
+    require_admin()
+    limit = parse_optional_int(request.args.get("limit"))
+    filters = refinement_filters_from_mapping(request.args)
+    dashboard = build_refinement_dashboard(limit or 50, filters=filters)
+    return render_template(
+        "admin_refinement.html",
+        refinement=dashboard,
+        **admin_common_context("refinement"),
+    )
+
+
+@app.route("/admin/refinement/approve", methods=["POST"])
+def admin_refinement_approve() -> Any:
+    user = require_admin()
+    limit = parse_optional_int(request.form.get("limit")) or 50
+    filters = refinement_filters_from_mapping(request.form)
+    try:
+        save_approved_standardization_rule(
+            source_column=(request.form.get("source_column") or "").strip(),
+            original_value=(request.form.get("original_value") or "").strip(),
+            category=(request.form.get("category") or "").strip(),
+            destination=(request.form.get("destination") or "").strip(),
+            proposed_value=(request.form.get("proposed_value") or "").strip(),
+            ontology_id=(request.form.get("ontology_id") or "").strip(),
+            method=(request.form.get("method") or "manual_review").strip(),
+            confidence=(request.form.get("item_confidence") or request.form.get("confidence") or "medium").strip(),
+            note=(request.form.get("note") or "").strip(),
+            approved_by=str(user["username"]),
+        )
+    except ValueError as exc:
+        flash(str(exc), "error")
+    else:
+        flash("Standardization rule approved. Future metadata standardization can use this mapping.", "success")
+        filters["status"] = "all"
+    return redirect(
+        url_for(
+            "admin_refinement",
+            limit=limit,
+            source=filters["source"],
+            status=filters["status"],
+            confidence=filters["confidence"],
+            min_count=filters["min_count"],
+        )
+    )
+
+
+@app.route("/admin/refinement/bulk-approve", methods=["POST"])
+def admin_refinement_bulk_approve() -> Any:
+    user = require_admin()
+    limit = parse_optional_int(request.form.get("limit")) or 50
+    filters = refinement_filters_from_mapping(request.form)
+    mode = (request.form.get("approval_mode") or "selected").strip()
+    if mode == "high_confidence_visible":
+        payloads = visible_high_confidence_refinement_payloads(filters, limit)
+    else:
+        payloads = request.form.getlist("rule")
+    summary = approve_refinement_rule_payloads(payloads, str(user["username"]))
+    if summary["approved"]:
+        flash(
+            f"Approved {summary['approved']} standardization rules. "
+            f"Skipped {summary['skipped']}; failed {summary['failed']}.",
+            "success" if summary["failed"] == 0 else "error",
+        )
+        filters["status"] = "all"
+    else:
+        flash("No eligible standardization rules were selected or visible.", "error")
+    return redirect(
+        url_for(
+            "admin_refinement",
+            limit=limit,
+            source=filters["source"],
+            status=filters["status"],
+            confidence=filters["confidence"],
+            min_count=filters["min_count"],
+        )
+    )
+
+
+@app.route("/admin/refinement/export.csv")
+def admin_refinement_export() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.args.get("limit"))
+    filters = refinement_filters_from_mapping(request.args)
+    dashboard = build_refinement_dashboard(limit or 200, sample_rows=500000, filters=filters)
+    rows: list[dict[str, Any]] = []
+    for section in dashboard["sections"]:
+        rows.extend(section["items"])
+    output = StringIO()
+    fieldnames = [
+        "source_column",
+        "value",
+        "count",
+        "category",
+        "destination",
+        "proposed_value",
+        "ontology_id",
+        "method",
+        "confidence",
+        "suggestion_score",
+        "action",
+        "note",
+    ]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow(row)
+    return app.response_class(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=fetchm_refinement_review.csv"},
     )
 
 
@@ -7171,6 +12806,84 @@ def admin_reset_stale_metadata_failures() -> Any:
     require_admin()
     reset_count = reset_stale_metadata_failures()
     flash(f"Reset {reset_count} stale metadata failures caused by worker restarts.", "success")
+    return redirect(url_for("admin_metadata"))
+
+
+@app.route("/admin/metadata/refine-host-standardization", methods=["POST"])
+def admin_refine_host_standardization() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is None:
+        limit = 25
+    limit = max(1, min(limit, 500))
+    summary = refine_ready_host_standardization(limit)
+    flash(
+        f"Host refinement complete for {summary['refined']} taxa. "
+        f"Skipped {summary['skipped']} already-refined taxa; {summary['failed']} failed.",
+        "success" if summary["failed"] == 0 else "error",
+    )
+    return redirect(url_for("admin_metadata"))
+
+
+@app.route("/admin/metadata/standardization-refresh", methods=["POST"])
+def admin_queue_standardization_refresh() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is not None:
+        limit = max(1, min(limit, 10000))
+    dry_run = request.form.get("dry_run") == "1"
+    rank_scope = request.form.get("rank_scope") or "genus"
+    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=dry_run, rank_scope=rank_scope)
+    if dry_run:
+        flash(
+            f"Current standardization dry run ({summary['rank_scope']}): "
+            f"{summary['eligible']} ready taxa eligible, about {summary['estimated_rows']} rows in scope, "
+            f"{summary['skipped']} skipped because files are missing.",
+            "success",
+        )
+    else:
+        flash(
+            f"Queued current standardization refresh ({summary['rank_scope']}): "
+            f"{summary['queued']} taxa queued, {summary['running']} already running, "
+            f"{summary['skipped']} skipped because files are missing.",
+            "success",
+        )
+    return redirect(url_for("admin_metadata"))
+
+
+@app.route("/admin/metadata/backfill-assembly-features", methods=["POST"])
+def admin_queue_assembly_feature_backfill() -> Any:
+    require_admin()
+    queued = 0
+    skipped = 0
+    for species in list_all_species():
+        if species.status != "ready" or species.metadata_status != "ready":
+            skipped += 1
+            continue
+        if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
+            skipped += 1
+            continue
+        if taxon_has_assembly_feature_columns(species):
+            skipped += 1
+            continue
+        request_assembly_feature_backfill(species)
+        queued += 1
+    flash(f"Queued assembly-feature backfill for {queued} taxa. Skipped {skipped} taxa already complete or not ready.", "success")
+    return redirect(url_for("admin_metadata"))
+
+
+@app.route("/admin/metadata/expand-species-catalog", methods=["POST"])
+def admin_expand_species_catalog() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit") if hasattr(request, "form") else None)
+    summary = expand_species_catalog_from_genus_metadata(limit=limit)
+    flash(
+        "Expanded species catalog from genus metadata: "
+        f"{summary['created']} created, {summary['updated']} updated, "
+        f"{summary['skipped']} already ready, {summary['failed']} failed "
+        f"from {summary['candidate_total']} canonical candidates.",
+        "success" if summary["failed"] == 0 else "error",
+    )
     return redirect(url_for("admin_metadata"))
 
 

@@ -26,7 +26,17 @@ local_settings.py
 
 # FetchM Web runtime data and local state
 fetchm_webapp/.env
+fetchm_webapp/data
 fetchm_webapp/data/
+
+# Generated standardization review/audit outputs. Keep rule CSVs in
+# fetchm_webapp/standardization/ and Markdown notes, but do not version bulky
+# generated review tables.
+fetchm_webapp/standardization/review/**/*.csv
+fetchm_webapp/standardization/review/**/*.tsv
+fetchm_webapp/standardization/review/**/*.txt
+fetchm_webapp/standardization/review/**/*.log
+fetchm_webapp/standardization/*.before_*.csv
 
 # FetchM Web local backups / variant scratch files
 fetchm_webapp/static/styles.backup.css

@@ -209,6 +209,14 @@
           </button>
         </div>
 
+        {% if sequence_dashboard.active_filters_summary %}
+          <div class="sequence-active-filter-chips" aria-label="Applied filters">
+            {% for item in sequence_dashboard.active_filters_summary %}
+              <span class="sequence-active-filter-chip">{{ item }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+
         <div class="sequence-filter-advanced-row">
           <details class="sequence-filter-advanced">
             <summary class="sequence-filter-advanced-label">Advanced</summary>

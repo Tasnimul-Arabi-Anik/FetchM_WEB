@@ -45,6 +45,38 @@
         <strong>{{ metadata_dashboard.totals.failed_total or 0 }}</strong>
         <span>Failed builds</span>
       </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.assembly_backfill_pending_total or 0 }}</strong>
+        <span>Assembly backfill queued</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.assembly_backfill_running_total or 0 }}</strong>
+        <span>Assembly backfill running</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.totals.assembly_backfill_done_total or 0 }}</strong>
+        <span>Assembly backfill done</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.standardization_refresh.pending or 0 }}</strong>
+        <span>Standardization queued</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.standardization_refresh.running or 0 }}</strong>
+        <span>Standardization running</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.standardization_refresh.done or 0 }}</strong>
+        <span>Standardization done</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.standardization_refresh.failed or 0 }}</strong>
+        <span>Standardization failed</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ metadata_dashboard.standardization_refresh.deferred or 0 }}</strong>
+        <span>Standardization deferred</span>
+      </div>
     </div>
     <div class="metrics-grid top-gap">
       {% for row in metadata_dashboard.rank_breakdown %}
@@ -84,7 +116,128 @@
       <form action="{{ url_for('admin_reset_stale_metadata_failures') }}" method="post">
         <button type="submit" class="ghost">Reset restart-only failures</button>
       </form>
+      <form action="{{ url_for('admin_queue_assembly_feature_backfill') }}" method="post">
+        <button type="submit" class="ghost">Backfill assembly features</button>
+      </form>
     </div>
+    <div class="hint-block top-gap">
+      <strong>Current standardization refresh</strong>
+      <p>Apply the latest approved dictionaries and in-code normalization to every ready taxon. This rewrites only managed metadata rows and output files; original metadata values remain unchanged.</p>
+      <div class="action-row top-gap">
+        <form action="{{ url_for('admin_queue_standardization_refresh') }}" method="post" class="inline-form">
+          <input type="hidden" name="dry_run" value="1">
+          <label>
+            <span>Scope</span>
+            <select name="rank_scope">
+              <option value="genus" selected>Genus only</option>
+              <option value="species">Species only</option>
+              <option value="all">All taxa</option>
+            </select>
+          </label>
+          <label>
+            <span>Limit</span>
+            <input type="number" name="limit" min="1" max="10000" placeholder="all">
+          </label>
+          <button type="submit" class="ghost">Check affected taxa</button>
+        </form>
+        <form action="{{ url_for('admin_queue_standardization_refresh') }}" method="post" class="inline-form">
+          <label>
+            <span>Scope</span>
+            <select name="rank_scope">
+              <option value="genus" selected>Genus only</option>
+              <option value="species">Species only</option>
+              <option value="all">All taxa</option>
+            </select>
+          </label>
+          <label>
+            <span>Limit</span>
+            <input type="number" name="limit" min="1" max="10000" placeholder="all">
+          </label>
+          <button type="submit">Apply current standardization</button>
+        </form>
+      </div>
+      {% if metadata_dashboard.standardization_refresh.recent %}
+        <div class="table-scroll top-gap">
+          <table>
+            <thead>
+              <tr>
+                <th>Taxon</th>
+                <th>Status</th>
+                <th>Rows</th>
+                <th>Worker</th>
+                <th>Updated</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task in metadata_dashboard.standardization_refresh.recent %}
+                <tr>
+                  <td>{{ task.species_name }} <span class="muted">({{ task.taxon_rank }})</span></td>
+                  <td><span class="status {{ 'completed' if task.status == 'done' else 'running' if task.status == 'running' else 'failed' if task.status == 'failed' else 'queued' }}">{{ task.status }}</span></td>
+                  <td>{{ task.updated_rows or 0 }} / {{ task.total_rows or 0 }}</td>
+                  <td>{{ task.claimed_by or 'not claimed' }}</td>
+                  <td>{{ task.completed_at or task.claimed_at or task.requested_at }}</td>
+                </tr>
+                {% if task.error %}
+                  <tr>
+                    <td colspan="5" class="danger-text">{{ task.error }}</td>
+                  </tr>
+                {% endif %}
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </div>
+    <div class="hint-block top-gap">
+      <strong>Host refinement</strong>
+      <p>Host refinement keeps the original <code>Host</code> field unchanged and adds <code>Host_SD</code>, <code>Host_TaxID</code>, <code>Host_SD_Method</code>, and <code>Host_SD_Confidence</code>. Unmapped values are copied into <code>Host_SD</code> for traceability.</p>
+      <form action="{{ url_for('admin_refine_host_standardization') }}" method="post" class="inline-form top-gap">
+        <label>
+          <span>Taxa to refine now</span>
+          <input type="number" name="limit" min="1" max="500" value="25">
+        </label>
+        <button type="submit">Refine host metadata</button>
+      </form>
+    </div>
+    <div class="metrics-grid top-gap">
+      <div class="metric-card metric-wide">
+        <strong>{{ metadata_dashboard.host_refinement.reviewed_distinct_values }}</strong>
+        <span>Host values reviewed in the latest {{ metadata_dashboard.host_refinement.sample_rows }}-row sample</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>{{ metadata_dashboard.host_refinement.mapped_top_rows }}</strong>
+        <span>Rows covered by current host rules in the reviewed values</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>{{ metadata_dashboard.host_refinement.unmapped_top_rows }}</strong>
+        <span>Rows still needing dictionary review in the reviewed values</span>
+      </div>
+    </div>
+    <details class="top-gap">
+      <summary>Review top unmapped host values</summary>
+      <div class="table-scroll top-gap">
+        <table>
+          <thead>
+            <tr>
+              <th>Host value</th>
+              <th>Rows</th>
+              <th>Current Host_SD</th>
+              <th>Method</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in metadata_dashboard.host_refinement.top_unmapped %}
+              <tr>
+                <td>{{ row.host }}</td>
+                <td>{{ row.count }}</td>
+                <td>{{ row.host_sd }}</td>
+                <td>{{ row.method }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
     <div class="hint-block top-gap">
       <strong>Build behavior</strong>
       <p>Build missing controls first-time metadata generation for taxa that do not have metadata yet. Refresh existing controls scheduled rebuilds for taxa that already have metadata. Genus metadata is built directly from the managed taxon TSV. Species metadata first tries to derive from an already-built genus dataset; if that is unavailable, it falls back to a direct metadata build for that species TSV. Managed builds now write only <code>ncbi_dataset_updated.tsv</code> and a comprehensive <code>ncbi_clean.csv</code> under the selected taxon directory.</p>
@@ -127,6 +280,16 @@
             <div class="job-meta">Attempts: {{ item.attempt_count }}</div>
             <div class="job-meta">Current age: {{ item.claimed_age_label }}</div>
             <div class="job-meta">Total age: {{ item.total_age_label }}</div>
+            <div class="job-progress-inline top-gap">
+              <strong>{{ item.progress.headline }}</strong>
+              <span>{{ item.progress.percent }}%</span>
+            </div>
+            <div class="progress-track" aria-hidden="true">
+              <div class="progress-fill" style="width: {{ item.progress.percent }}%"></div>
+            </div>
+            {% if item.current_accession %}
+              <div class="job-meta">Current accession: {{ item.current_accession }}</div>
+            {% endif %}
             {% if item.source_taxon_id %}
               <div class="job-meta">Derived from taxon ID: {{ item.source_taxon_id }}</div>
             {% endif %}
@@ -145,7 +308,8 @@
   </section>
 
   <section class="panel">
-    <h2>Taxa</h2>
+    <h2>Recent Metadata Taxa</h2>
+    <p class="lede">Showing the 100 most recently updated metadata records. Use Catalog for the full taxon list.</p>
     <div class="admin-list">
       {% for item in taxa %}
         <div class="admin-card">

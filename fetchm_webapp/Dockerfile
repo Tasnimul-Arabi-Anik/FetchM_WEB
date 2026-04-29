@@ -24,6 +24,12 @@ RUN curl -fsSL "https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/li
     -o /usr/local/bin/datasets \
  && chmod +x /usr/local/bin/datasets
 
+RUN curl -fsSL "https://github.com/shenwei356/taxonkit/releases/download/v0.20.0/taxonkit_linux_amd64.tar.gz" \
+    -o /tmp/taxonkit.tar.gz \
+ && tar -xzf /tmp/taxonkit.tar.gz -C /usr/local/bin taxonkit \
+ && chmod +x /usr/local/bin/taxonkit \
+ && rm -f /tmp/taxonkit.tar.gz
+
 COPY fetchm_webapp/requirements.txt /tmp/webapp-requirements.txt
 
 RUN pip install --no-cache-dir -r /tmp/webapp-requirements.txt \

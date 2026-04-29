@@ -12,6 +12,7 @@ services:
       FETCHM_WEBAPP_DEBUG: "0"
     volumes:
       - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker:
@@ -24,8 +25,11 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-2:
@@ -38,8 +42,11 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-3:
@@ -52,8 +59,11 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-4:
@@ -66,8 +76,300 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-worker-5:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-worker-6:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-assembly-backfill-worker:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: assembly-backfill
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-2:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-3:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-4:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-5:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-6:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-7:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-8:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-9:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-10:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-11:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-12:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-13:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-14:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-15:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-standardization-worker-16:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: standardization
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-job-worker:

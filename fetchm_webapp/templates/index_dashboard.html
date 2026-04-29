@@ -10,23 +10,20 @@
       </div>
     </header>
 
-    <section class="fetchm-intro-stack">
-      <div class="fetchm-intro-card fetchm-intro-card-primary">
-        <p class="fetchm-intro-lead">FetchM retrieves bacterial metadata from NCBI, standardizes key metadata fields, performs comprehensive analyses, and supports metadata-driven comparative genomics.</p>
+    <section class="fetchm-hero-grid fetchm-hero-grid-compact">
+      <div class="fetchm-intro-card fetchm-intro-card-primary fetchm-intro-card-inline">
+        <p class="fetchm-intro-lead">FetchM retrieves bacterial metadata from NCBI, standardizes key fields, supports live metadata analysis, and enables metadata-driven sequence download.</p>
       </div>
-      <div class="fetchm-intro-card fetchm-intro-card-secondary">
-        <ol class="fetchm-intro-steps">
-          <li>Select your target species or genus</li>
-          <li>Run metadata analysis to better understand the genomic resources</li>
-          <li>Open sequence download options with much higher flexibility</li>
-        </ol>
+      <div class="fetchm-hero-inline-stats" aria-label="Catalog summary">
+        <span class="fetchm-inline-stat"><strong>{{ home_metrics.species_total }}</strong> Species</span>
+        <span class="fetchm-inline-stat"><strong>{{ home_metrics.genus_total }}</strong> Genera</span>
+        <span class="fetchm-inline-stat"><strong>{{ home_metrics.genome_total }}</strong> Genomes</span>
       </div>
     </section>
 
     <section class="fetchm-workflow-card">
       <div class="selection-copy fetchm-selection-head">
         <strong>Species or genus</strong>
-        <span>Begin with your organism of interest</span>
       </div>
 
       <label class="taxon-search selection-search fetchm-search-field">
@@ -60,6 +57,7 @@
           <div>
             <p class="eyebrow">Support</p>
             <h3>Feedback or Report</h3>
+            <p class="fetchm-feedback-note">Your feedback helps refine FetchM for real research use. Report anything unclear, missing, or broken.</p>
           </div>
           <span class="job-meta">{{ home_metrics.open_reports }} open reports</span>
         </div>
@@ -70,38 +68,13 @@
           <span>Message</span>
           <textarea name="message" rows="4" placeholder="Describe the issue, missing feature, or confusing result."></textarea>
         </label>
-        <button type="submit" class="ghost">Send problem report</button>
+        <button type="submit" class="ghost">Provide feedback or report a problem</button>
       </form>
-    </section>
-
-    <section class="fetchm-stats-grid" aria-label="Catalog summary">
-      <article class="fetchm-stat-card">
-        <div class="fetchm-stat-icon" aria-hidden="true">Sp</div>
-        <div>
-          <strong>{{ home_metrics.species_total }}</strong>
-          <span>Species</span>
-        </div>
-      </article>
-      <article class="fetchm-stat-card">
-        <div class="fetchm-stat-icon" aria-hidden="true">Ge</div>
-        <div>
-          <strong>{{ home_metrics.genus_total }}</strong>
-          <span>Genera</span>
-        </div>
-      </article>
-      <article class="fetchm-stat-card">
-        <div class="fetchm-stat-icon" aria-hidden="true">Gn</div>
-        <div>
-          <strong>{{ home_metrics.genome_total }}</strong>
-          <span>Genomes</span>
-        </div>
-      </article>
     </section>
 
     <section class="fetchm-citation-card">
       <div class="fetchm-citation-head">
         <h3>Citation</h3>
-        <p>Make the research visible and citable</p>
       </div>
       <div class="fetchm-citation-body">
         Anik TA. FetchM: Streamlining Genome and Metadata Integration for Microbial Comparative Genomics. <em>bioRxiv</em>, 2025.
@@ -110,7 +83,7 @@
   </section>
 </main>
 <script>
-  const taxa = {{ taxa_json|tojson }};
+  const taxa = [];
   let activeView = "selection";
   const taxonSearchInput = document.getElementById("taxon-search-input");
   const taxonSearchResults = document.getElementById("taxon-search-results");
@@ -126,6 +99,8 @@
 
   const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
   const MAX_SEARCH_RESULTS = 8;
+  let latestSearchToken = 0;
+  let searchDebounce = null;
 
   function normalizeQuery(value) {
     return value.trim().toLowerCase();
@@ -150,6 +125,15 @@
     return items.slice(0, MAX_SEARCH_RESULTS).map((entry) => entry.item);
   }
 
+  async function fetchRankedMatches(query, token) {
+    const response = await fetch(`/api/taxa/search?q=${encodeURIComponent(query)}`, {
+      headers: { "Accept": "application/json" },
+    });
+    if (!response.ok || token !== latestSearchToken) return null;
+    const payload = await response.json();
+    return payload.results || [];
+  }
+
   function hideResults() {
     taxonSearchResults.hidden = true;
     taxonSearchResults.innerHTML = "";
@@ -165,16 +149,44 @@
     dashboardWarning.hidden = false;
   }
 
-  function chooseTaxon(selected) {
+  function rememberTaxon(taxon) {
+    if (!taxon || !taxon.species_name) return;
+    if (!taxaByName.has(taxon.species_name)) {
+      taxa.push(taxon);
+    }
+    taxaByName.set(taxon.species_name, taxon);
+  }
+
+  async function chooseTaxon(selected) {
+    if (selected.requires_prepare) {
+      showWarning(`Preparing ${selected.species_name} from ${selected.source_taxon_name} metadata...`);
+      const formData = new FormData();
+      formData.append("species_name", selected.species_name);
+      formData.append("source_taxon_id", selected.source_taxon_id);
+      const response = await fetch("/api/taxa/prepare-metadata-species", {
+        method: "POST",
+        body: formData,
+        headers: { "Accept": "application/json" },
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        showWarning(payload.error || "Could not prepare that species from genus metadata.");
+        return;
+      }
+      selected = payload;
+    }
+    rememberTaxon(selected);
     taxonSearchInput.value = selected.species_name;
     refreshSelectionSummary();
     hideResults();
     hideWarning();
+    requestAnimationFrame(() => {
+      hideResults();
+      taxonSearchInput.blur();
+    });
   }
 
-  function renderResults() {
-    const query = normalizeQuery(taxonSearchInput.value);
-    const matches = rankedMatches(query);
+  function renderResultItems(matches, query) {
     if (!matches.length || !query) {
       hideResults();
       return;
@@ -184,11 +196,32 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "search-result";
-      button.innerHTML = `<strong>${item.species_name}</strong><span>${item.taxon_rank} · ${item.genome_count || 0} genomes</span>`;
+      const sourceLabel = item.source === "genus_metadata" && item.source_taxon_name
+        ? `species in ${item.source_taxon_name} metadata`
+        : item.taxon_rank;
+      button.innerHTML = `<strong>${item.species_name}</strong><span>${sourceLabel} · ${item.genome_count || 0} genomes</span>`;
+      button.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
       button.addEventListener("click", () => chooseTaxon(item));
       taxonSearchResults.appendChild(button);
     });
     taxonSearchResults.hidden = false;
+  }
+
+  function renderResults() {
+    const query = normalizeQuery(taxonSearchInput.value);
+    if (!query) {
+      hideResults();
+      return;
+    }
+    const token = ++latestSearchToken;
+    window.clearTimeout(searchDebounce);
+    searchDebounce = window.setTimeout(async () => {
+      const remoteMatches = await fetchRankedMatches(query, token);
+      if (remoteMatches === null) return;
+      renderResultItems(remoteMatches, query);
+    }, 160);
   }
 
   function syncProblemForm() {
@@ -252,6 +285,18 @@
     feedbackPanel.hidden = isOpen;
     feedbackToggle.setAttribute("aria-expanded", String(!isOpen));
   });
+
+  function openFeedbackPanel() {
+    feedbackPanel.hidden = false;
+    feedbackToggle.setAttribute("aria-expanded", "true");
+    feedbackPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === "#feedback-form") {
+      openFeedbackPanel();
+    }
+  });
   taxonSearchInput.addEventListener("input", () => {
     setActiveView("selection");
     refreshSelectionSummary();
@@ -268,6 +313,9 @@
       hideResults();
     }
   });
+  if (window.location.hash === "#feedback-form") {
+    openFeedbackPanel();
+  }
   setActiveView("selection");
   refreshSelectionSummary();
 </script>

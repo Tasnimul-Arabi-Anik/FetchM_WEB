@@ -7,8 +7,9 @@ import shutil
 import sqlite3
 import threading
 import time
-from typing import List, Optional, Set
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Callable, List, Optional, Set
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import FIRST_COMPLETED, wait
 
 import pandas as pd
 import requests
@@ -447,11 +448,20 @@ def download_single_row(
         return str(assembly_accession)
 
 
+class SequenceDownloadCancelled(RuntimeError):
+    """Raised when a caller-requested cancellation stops sequence downloading."""
+
+    def __init__(self, failed_accessions: List[str]):
+        super().__init__("Sequence download cancelled")
+        self.failed_accessions = failed_accessions
+
+
 def run_sequence_downloads(
     args: argparse.Namespace,
     *,
     input_path: Optional[str] = None,
     output_folder: Optional[str] = None,
+    cancellation_requested: Optional[Callable[[], bool]] = None,
 ) -> List[str]:
     input_file = input_path or args.input
     output_dir = output_folder or args.outdir
@@ -481,31 +491,66 @@ def run_sequence_downloads(
 
     directory_cache = AssemblyDirectoryCache(os.path.join(output_dir, DIRECTORY_CACHE_FILENAME))
     failed_accessions = []
+    cancelled = False
     try:
         with ThreadPoolExecutor(max_workers=max(1, args.download_workers)) as executor:
-            futures = [
-                executor.submit(
-                    download_single_row,
-                    row,
-                    output_dir,
-                    args.retries,
-                    args.retry_delay,
-                    directory_cache,
+            row_iter = iter(df.iterrows())
+            futures = set()
+            total_rows = len(df)
+            progress = tqdm(total=total_rows, desc="Downloading genome FASTA files")
+
+            def cancellation_is_requested() -> bool:
+                return bool(cancellation_requested and cancellation_requested())
+
+            def submit_next() -> bool:
+                if cancellation_is_requested():
+                    return False
+                try:
+                    _, row = next(row_iter)
+                except StopIteration:
+                    return False
+                futures.add(
+                    executor.submit(
+                        download_single_row,
+                        row,
+                        output_dir,
+                        args.retries,
+                        args.retry_delay,
+                        directory_cache,
+                    )
                 )
-                for _, row in df.iterrows()
-            ]
-            for future in tqdm(as_completed(futures), total=len(futures), desc="Downloading genome FASTA files"):
-                failed_accession = future.result()
-                if failed_accession:
-                    failed_accessions.append(failed_accession)
+                return True
+
+            for _ in range(max(1, args.download_workers)):
+                if not submit_next():
+                    cancelled = cancellation_is_requested()
+                    break
+
+            try:
+                while futures:
+                    done, futures = wait(futures, return_when=FIRST_COMPLETED)
+                    for future in done:
+                        failed_accession = future.result()
+                        progress.update(1)
+                        if failed_accession:
+                            failed_accessions.append(failed_accession)
+                        if cancellation_is_requested():
+                            cancelled = True
+                        elif not cancelled:
+                            submit_next()
+                    if cancelled:
+                        executor.shutdown(wait=True, cancel_futures=True)
+                        break
+            finally:
+                progress.close()
     finally:
         directory_cache.close()
 
     unique_failed_accessions = sorted(set(failed_accessions))
-    success_count = len(set(get_expected_accessions(df))) - len(unique_failed_accessions)
-    logging.info("Sequence downloading completed. Downloaded %s sequences.", success_count)
     missing_accessions = report_download_status(df, output_dir)
     failure_report = sorted(set(unique_failed_accessions) | set(missing_accessions))
+    success_count = len(set(get_expected_accessions(df))) - len(failure_report)
+    logging.info("Sequence downloading completed. Downloaded %s sequences.", max(0, success_count))
     failed_path = write_failed_accessions(output_dir, failure_report)
     if unique_failed_accessions:
         logging.warning(
@@ -517,6 +562,9 @@ def run_sequence_downloads(
         logging.warning("Wrote failed or missing accessions to %s", failed_path)
     else:
         logging.info("No failed or missing accessions. Wrote an empty failure list to %s", failed_path)
+    if cancelled:
+        logging.warning("Sequence downloading cancelled. Partial outputs remain in %s", output_dir)
+        raise SequenceDownloadCancelled(failure_report)
     return failure_report
 
 

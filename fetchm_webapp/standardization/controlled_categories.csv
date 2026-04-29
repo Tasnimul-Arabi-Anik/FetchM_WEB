@@ -1,0 +1,991 @@
+synonym,destination,category,ontology_id,note
+soil,Environment_Medium_SD,soil,ENVO:00001998,ENVO environmental material
+sediment,Environment_Medium_SD,sediment,ENVO:00002007,ENVO environmental material
+water,Environment_Medium_SD,water,ENVO:00002006,ENVO environmental material
+wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,ENVO environmental material
+waste water,Environment_Medium_SD,wastewater,ENVO:00002001,spelling variant
+seawater,Environment_Medium_SD,seawater,ENVO:00002149,ENVO environmental material
+sea water,Environment_Medium_SD,seawater,ENVO:00002149,spelling variant
+freshwater,Environment_Medium_SD,freshwater,ENVO:00002011,ENVO environmental material
+fresh water,Environment_Medium_SD,freshwater,ENVO:00002011,spelling variant
+environment,Environment_Medium_SD,environmental sample,ENVO:00010483,broad environmental sample
+environmental,Environment_Medium_SD,environmental sample,ENVO:00010483,broad environmental sample
+stool,Sample_Type_SD,feces/stool,UBERON:0001988,sample material
+feces,Sample_Type_SD,feces/stool,UBERON:0001988,sample material
+faeces,Sample_Type_SD,feces/stool,UBERON:0001988,spelling variant
+fecal,Sample_Type_SD,feces/stool,UBERON:0001988,sample material
+faecal,Sample_Type_SD,feces/stool,UBERON:0001988,spelling variant
+stool swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+fecal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+faecal swab,Sample_Type_SD,feces/stool-associated swab,,spelling variant
+rectal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+rectum swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+swab rectum,Sample_Type_SD,feces/stool-associated swab,,word-order variant
+stool/rectal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+rectal swab/stool,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+anal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+perianal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+perirectal swab,Sample_Type_SD,feces/stool-associated swab,,swab-derived feces/stool-associated sample
+nasal swab,Sample_Type_SD,nasal swab,,anatomical swab
+nose swab,Sample_Type_SD,nasal swab,,synonym
+NP swab,Sample_Type_SD,nasopharyngeal swab,,abbreviation
+np swab,Sample_Type_SD,nasopharyngeal swab,,abbreviation
+nasopharyngeal swab,Sample_Type_SD,nasopharyngeal swab,,anatomical swab
+oropharyngeal swab,Sample_Type_SD,oropharyngeal swab,,anatomical swab
+throat swab,Sample_Type_SD,throat swab,,anatomical swab
+wound swab,Sample_Type_SD,wound swab,,anatomical/clinical swab
+SWAB_WOUND,Sample_Type_SD,wound swab,,format variant
+swab wound,Sample_Type_SD,wound swab,,word-order variant
+pus swab,Sample_Type_SD,wound/pus swab,,clinical swab
+vaginal swab,Sample_Type_SD,vaginal swab,,anatomical swab
+urethral swab,Sample_Type_SD,urethral swab,,anatomical swab
+cloacal swab,Sample_Type_SD,cloacal swab,,anatomical swab
+skin swab,Sample_Type_SD,skin swab,,anatomical swab
+ear swab,Sample_Type_SD,ear swab,,anatomical swab
+eye swab,Sample_Type_SD,eye swab,,anatomical swab
+environmental swab,Sample_Type_SD,environmental swab,,environmental swab
+environmental swab sponge,Sample_Type_SD,environmental swab,,environmental swab
+carcass swab,Sample_Type_SD,carcass swab,,food/animal processing swab
+drag swab,Sample_Type_SD,drag swab,,environmental/field swab
+urine,Sample_Type_SD,urine,UBERON:0001088,sample material
+blood,Sample_Type_SD,blood,UBERON:0000178,sample material
+sputum,Sample_Type_SD,sputum,UBERON:0007311,sample material
+saliva,Sample_Type_SD,saliva,UBERON:0001836,sample material
+shucked,Sample_Type_SD,processed shellfish tissue,,processing/source term
+food,Sample_Type_SD,food,,BioSample-style sample/source category
+meat,Sample_Type_SD,meat,,BioSample-style sample/source category
+seafood,Sample_Type_SD,seafood,,BioSample-style sample/source category
+milk,Sample_Type_SD,milk,,sample/source category
+dairy milk,Sample_Type_SD,milk,,synonym
+Milk,Sample_Type_SD,milk,,capitalization variant from host-field review
+Bulk Milk,Sample_Type_SD,milk,,host-field misplaced sample/source value
+Raw milk,Sample_Type_SD,milk,,host-field misplaced sample/source value
+cows milk,Sample_Type_SD,milk,,host-field misplaced sample/source value
+fermented milk,Sample_Type_SD,milk,,host-field misplaced sample/source value
+Milk powder,Sample_Type_SD,milk powder,,host-field misplaced dairy product
+dairy product,Sample_Type_SD,dairy product,,host-field misplaced sample/source value
+milk product,Sample_Type_SD,dairy product,,host-field misplaced sample/source value
+milk products,Sample_Type_SD,dairy product,,host-field misplaced sample/source value
+Milk product,Sample_Type_SD,dairy product,,capitalization variant from host-field review
+patient clinical,Sample_Type_SD,patient/clinical,,clinical sample/source category
+clinical patient,Sample_Type_SD,patient/clinical,,word-order variant
+mixed culture,Sample_Type_SD,mixed culture,,culture sample/source category
+mix_culture,Sample_Type_SD,mixed culture,,format variant
+bacterial culture,Sample_Type_SD,bacterial culture,,culture sample/source category
+Bacterial culture,Sample_Type_SD,bacterial culture,,capitalization variant
+bacteria culture,Sample_Type_SD,bacterial culture,,synonym
+Bacterial Culture,Sample_Type_SD,bacterial culture,,capitalization variant
+bacterial cell culture,Sample_Type_SD,bacterial culture,,culture sample/source category
+pure culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+Pure culture,Sample_Type_SD,pure/single culture,,capitalization variant
+pure cultures of bacteria,Sample_Type_SD,pure/single culture,,single-organism culture category
+pure culture of bacteria,Sample_Type_SD,pure/single culture,,single-organism culture category
+pure bacterial culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+Pure culture,Sample_Type_SD,pure/single culture,,host-field misplaced sample/source value
+pure culture one microbial species,Sample_Type_SD,pure/single culture,,single-organism culture category
+Bacterial strain, pure culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+bacterial pure culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+isolated pure culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+pure isolate culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+axenic culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+monoculture,Sample_Type_SD,pure/single culture,,single-organism culture category
+culture,Sample_Type_SD,culture,,host-field misplaced broad culture term
+Cell culture collection,Sample_Type_SD,cell culture,,host-field misplaced sample/source value
+Grown in Blood agar culture medium,Sample_Type_SD,blood agar culture medium,,host-field misplaced culture medium
+Grown in Blood agar culture medium.,Sample_Type_SD,blood agar culture medium,,punctuation variant
+Grown in chocolate agar culture medium,Sample_Type_SD,chocolate agar culture medium,,host-field misplaced culture medium
+HayFlick modified culture medium,Sample_Type_SD,culture medium,,host-field misplaced culture medium
+Bacterial Monoculture,Sample_Type_SD,pure/single culture,,single-organism culture category
+bacterial monoisolate,Sample_Type_SD,pure/single culture,,single-organism culture category
+Monoisolate,Sample_Type_SD,pure/single culture,,single-organism culture category
+single culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+strain culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+cultured isolate,Sample_Type_SD,pure/single culture,,single-organism culture category
+microbial isolate culture,Sample_Type_SD,pure/single culture,,single-organism culture category
+cell culture,Sample_Type_SD,cell culture,,cell culture category
+Cell culture,Sample_Type_SD,cell culture,,capitalization variant
+microbial culture,Sample_Type_SD,microbial culture,,microbial culture category
+microbe culture,Sample_Type_SD,microbial culture,,synonym
+unicyanobacterial culture,Sample_Type_SD,unicyanobacterial culture,,culture sample/source category
+Leaf tissue,Sample_Type_SD,leaf tissue,,capitalization variant
+leaf tissue,Sample_Type_SD,leaf tissue,,sample material
+Saline water,Sample_Type_SD,saline water,,capitalization variant
+saline water,Sample_Type_SD,saline water,,sample/source category
+marine sediment,Environment_Medium_SD,marine sediment,,environment/source category
+sediment,Environment_Medium_SD,sediment,ENVO:00002007,host-field misplaced environmental source
+Sediment,Environment_Medium_SD,sediment,ENVO:00002007,capitalization variant from host-field review
+Tidal flat sediment,Environment_Medium_SD,tidal flat sediment,,host-field misplaced environmental source
+tidal flat sediment,Environment_Medium_SD,tidal flat sediment,,host-field misplaced environmental source
+salt marsh sediment,Environment_Medium_SD,salt marsh sediment,,host-field misplaced environmental source
+Pond sediment,Environment_Medium_SD,pond sediment,,host-field misplaced environmental source
+sediment of Yellow River,Environment_Medium_SD,river sediment,,host-field misplaced environmental source
+activated sludge,Environment_Medium_SD,activated sludge,,host-field misplaced wastewater/sludge source
+sludge,Environment_Medium_SD,sludge,,host-field misplaced environmental source
+Sludge,Environment_Medium_SD,sludge,,capitalization variant from host-field review
+aerobic activated sludge from the secondary sedimentation tank of WWTP of NB production plant,Environment_Medium_SD,activated sludge,,host-field misplaced wastewater/sludge source
+estuarine water,Environment_Medium_SD,estuarine water,,environment/source category
+Surface seawater,Environment_Medium_SD,seawater,ENVO:00002149,host-field misplaced environmental source
+Surface,Sample_Type_SD,surface,,host-field misplaced broad surface sample
+communal hospital surface,Sample_Type_SD,healthcare facility surface,,host-field misplaced environmental surface
+hospital communal surface,Sample_Type_SD,healthcare facility surface,,host-field misplaced environmental surface
+surface within hospital,Sample_Type_SD,healthcare facility surface,,host-field misplaced environmental surface
+hosptial surface,Sample_Type_SD,healthcare facility surface,,typo variant from host-field review
+manure,Sample_Type_SD,manure,,host-field misplaced sample/source value
+livestock manure compost,Sample_Type_SD,manure compost,,host-field misplaced agricultural source
+salted seafood,Sample_Type_SD,seafood,,host-field misplaced sample/source value
+blood,Sample_Type_SD,blood,UBERON:0000178,host-field misplaced sample material
+gut,Sample_Type_SD,gut content,,host-field misplaced anatomical sample
+intestinal,Sample_Type_SD,gut content,,host-field misplaced anatomical sample
+Gut of Protaetia brevitarsis seulensis (larva),Sample_Type_SD,gut content,,host-field misplaced gut-content sample
+Gut of wasp,Sample_Type_SD,gut content,,host-field misplaced gut-content sample
+Milk thistle,Sample_Type_SD,plant material,,host-field misplaced plant/source value
+Guangdong Microbial Culture Collection Center (GDMCC),Isolation_Source_SD,culture collection,,host-field misplaced administrative source
+Oyster Pond,Environment_Medium_SD,Oyster pond,,capitalization normalization
+oyster pond,Environment_Medium_SD,Oyster pond,,capitalization normalization
+seawater,Environment_Medium_SD,seawater,ENVO:00002149,ChatGPT suggestion reviewed source term
+Seawater,Environment_Medium_SD,seawater,ENVO:00002149,capitalization variant
+Sea water,Environment_Medium_SD,seawater,ENVO:00002149,spacing/capitalization variant
+sea water,Environment_Medium_SD,seawater,ENVO:00002149,spacing variant
+Bathing seawater,Environment_Medium_SD,seawater,ENVO:00002149,ChatGPT suggestion reviewed source term
+groundwater,Environment_Medium_SD,groundwater,ENVO:01001004,ChatGPT suggestion reviewed source term
+Freshwater,Environment_Medium_SD,freshwater,ENVO:00002011,capitalization variant
+soild,Environment_Medium_SD,soil,ENVO:00001998,typo variant from ChatGPT suggestion review
+soil7,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil11,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil45,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil46,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil153,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil186,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+soil195,Environment_Medium_SD,soil,ENVO:00001998,soil label variant from ChatGPT suggestion review
+metagenomic assembly,Sample_Type_SD,metagenomic assembly,,manual context recovery review 2026-04-28
+raw intact chicken,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+ground turkey,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+comminuted chicken,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+comminuted beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+chicken breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+soil biome [ENVO:01001044],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+clinical,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+Comminuted Turkey,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+single cell,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+infant feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+marine,Environment_Medium_SD,marine,,manual context recovery review 2026-04-28
+Nonintact Chicken,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+single cell amplified by WGA-X; Bigelow Laboratory Dock,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Ground Beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+water sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+soil metagenome,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Chicken Breasts,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+Coastal bare tidal sandflat sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+metagenome assembly,Sample_Type_SD,metagenomic assembly,,manual context recovery review 2026-04-28
+water [ENVO:00002006],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+stream sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+dairy calf feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+whole blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+permafrost soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Peripheral Blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+rhizosphere soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+antarctic soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil [ENVO:00001998],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+water kefir,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"saline water (ENVO:00002010), including plankton (ENVO:xxxxxxxx)",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+active layer soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Water from Urban Wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+boneless beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Urban Wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+water filtration membrane,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+feces of wild boar,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+mangrove wetland sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+"Feces, Gull (Larus spp.)",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Soil from Natural Forests,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Wastewater influent,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+sediment metagenome,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+wastewater metagenome,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+forest soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Blood Derived Normal,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+Waste Water [ENVO:00002001],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Animal-Cattle-Beef Cow (cecal),Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+hotspring water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+microbial mat|sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+cattle feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+"Municipal wastewater, Sand Island WWTP",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+water deer,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+agricultural soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Fecal microbiome of Nelore,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Fecal microbiome of Bos indicus,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Feces of Bos indicus,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"Human, Stool",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+paddy soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+cattle fecal samples,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Clinical or host-associated pathogen,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+Coastal bare tidal mudflat sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water metagenome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+coastal sea water [ENVO_00002150],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Calf fecal composite,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+water column,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+peat soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+hypersaline soda lake sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water buffalo,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Mine wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+soil sample,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil adjacent to human cadaver hip,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+non tidal fresh water river,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+Glacier foreland soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"sugarcane leaf, stem, root and rhizosphere soil",Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+peat soil [ENVO:00005774],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+water river,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+Grassland soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+hot spring sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+poultry farm soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Sediment from Urban Saltwater,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+surface soil [ENVO:02000059],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Suwannee river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+ant-built patch material,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+well water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+clinical sample,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+antartic soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+water (Dead-end ultrafiltration (DEUF)),Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+finished ground turkey,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+water canal,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Soil from Natural Grassland formations,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil [ENVO:00001998] |sphagnum bog [ENVO:00002268],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+river sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+fecal material,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+saline water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Active sludge of wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+burned soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"Soil from Natural Bogs, mires and fens",Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+drinking water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Chicken feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Cooling tower water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+sanitary water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Wastewater influent sample,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+fecal incubation,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+wastewater outflow,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+single cell amplified by WGA-X; Equitorial atlantic,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+freswater water column,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Soil from Natural Dunes,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sediments,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+raw ground beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+mangrove sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+canine feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+geothermal water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Bacterial strain, pure culture",Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+human feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Permeable sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+non-axenic culture inoculated from ocean water sample,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+water stream,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+single cell amplified by WGA-X; Southern Atlantic,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+lake sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+saline lake sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Feral swine feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Turkey Ground Turkey,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+human clinical specimen,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+stool (Odocoileus hemionus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+stool (Cervus canadensis),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab sponge powder infant formula manufacturing facility,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Soil from Natural Temperate heath and scrub,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Sediment from Urban Other,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+agricultural field [ENVO:00000100]|tropical climate [ENVO:01000204]|aerobic soil [ENVO:00002256],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+low severity burned soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+desert soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Shallow water biome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Shallow water sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+bovine feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+clinical specimen,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+full-scale hybrid biological wastewater treatment system,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+steppe soil[ENVO:00005777]|soil organic matter[ENVO:04000008],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Recurrent Blood Derived Cancer - Bone Marrow,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+high severity burned soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Medicalfacilities Wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+sewage water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+WWTP wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+deep sea water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+drinking water treatment plant,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Soil from Agriculture Fields,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil biome,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+mosquito larval water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+treated wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+swimming pool water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Freshwater sample from downstream of wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Pig stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Wastewater effluent sample,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Raw beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+full-scale industrial wastewater treatment plants sludge,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+animal-cattle-beef cow,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Isolated from feces from dairy calf,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+sediment stream,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+driking water system,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+TURKEY CLINICAL LESION,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+sewage sand island waste water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+mangrove soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Intertidal sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+wastewater biome,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Hosptial waste water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+urine (Canis lupus familaris),Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+permafrost active layer soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+estuary water column,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Estuarine surface sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+shoreline | intertidal zone | water current,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+single cell amplified by WGA-X; Juan De Fuca ridge,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+water from electronic waste dumpsite,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Hospital hot water tap,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Intertidal sediment [ENVO:00002179],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Soil from Subterranean Urban,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+stream water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"wastewater, influent",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+G_DNA_Stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+animal feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+wastewater inflow,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Sediment layer of the Laguna Lejia terrace,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+fresh feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+coastal sea water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+lake sediment biome (ENVO:00000546),Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+soil biome [ENVO:00001998],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+dry soil [ENVO:00005748],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+non tidal fresh water creek,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+riparian sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+deep sea sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Primary Blood Derived Cancer - Peripheral Blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+skinless boneless chicken breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+Beef (ground meat),Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Agriculture soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Mangrove rhizosphere sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Soil NFGNB,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+canine urine,Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+human stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Feces [UBERON:0001988],Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+coastal sea water [ENVO:00002150],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+ballast water metagenome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+wastewater influent[ENVO:00002018],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+soil from cropland,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+alpine spring water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Blood_Blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+"Sediment, Baltic Sea",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Soil from Natural Coastal,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+oil-contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"single cell amplified by WGA-X; Water column (0.8~3.0 um), Mercer Subglacial Lake",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+mineral soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+urine (Canis lupus familiaris),Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+marine hydrothermal sulfide sediment TVG12,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Soil from Urban Greenspaces,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sediment; water,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Primary Blood Derived Cancer - Bone Marrow,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+Water from Urban Biogas,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Calve, feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Sediment from Natural Saltwater,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+municipal wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+feces on street,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+brackish water [ENVO:00002019],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+sediment [ENVO:00002007],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+poultry farm surface soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Advanced Water Purification Facility,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+farm soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Waste water system,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Bulk soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"single cell amplified by WGA-X; Water column (0.2~0.8 um), Mercer Subglacial Lake",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+human clinical,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+Agriculture soil | napiergrass,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+water samples from lakes and estuaries along the Chattahoochee River collected between June/2010 and December/2014,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Toilet/hopper water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Tibetan lacustrine sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+deep-sea sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water sample,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"single cell amplified by WGA-X; Water column (>3.0 um), Mercer Subglacial Lake",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Feces (Canis lupus familiaris),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+clinical isolates,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+non-axenic culture from freshwater,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+saline spring sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+granular activated carbon biofilter from drinking water treatment plant (DWTP),Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Pooled sheep fecal samples collected from floor of farm,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+feedlot cattle feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+post-treatment wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+microbial mat from hydrothermal sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+surface sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+"Commercial building tap, chloraminated drinking water",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Chloraminated water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+soil_material,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Drinking water treatment plant (DWTP),Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+pure culture strain,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+stool (Bos taurus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+ground turkey breast,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+feces (Bos taurus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+rinse water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+non tidal fresh water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Sink P Trap water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+rice paddy soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+fresh water [ENVO_00002011],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+sediment soil,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+feces (Canis lupus familaris),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+stool (Odocoileus virginianus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+farm environmental swab sponge,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+wastewater effluent[ENVO:00002018],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+ocean water from marine abyssalpelagic zone,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+sugarcane dry straw soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+garden soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+wastewater sludge anaerobic digester phosphite (DPO) enrichment,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+wastewater sludge,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+chicken breast tenderloin,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+Freshwater sample from upstream of wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Potable Water Dispenser (PWD) Ambient (bag) from International Space Station,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+open water wetland biomat,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+municipal wastewater effluent impacted river,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Sediment Traps under Sea-Ice from the Central Arctic Ocean,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+sediment; water metagenome,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+PCB contaminated wastewater treatment lagoon sediment microcosms,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+water filter,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+little river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+whole chicken breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+preprocessing plant water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Water from Urban Drinking water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+saline water [ENVO:00002010],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+waste water treatment plant,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Cold Tap Water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Tap water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+bulk soil from sugarcane field,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+untreated waste water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Fattening pig, feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+blood [ENVO:02000020],Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+wastewater biomass,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+bioreactor microbiome|wastewater biome,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+"Brackish water, Black Sea St. 307",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Human gut stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+coking plant industrial wasteland soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+tidal brackish river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+thawed Antarctic sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Antarctic_sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+coastal sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+wetland soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"Blood, NOS",Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+feces livestock,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Wastewater treatment plant [ENVO:00002272],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Wastewater sample,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+water gallon,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+saline soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Urban Drinking water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Animal-Swine-Feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+single cell amplified from river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+Salt water- Puget Sound,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Almond orchard soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+cold water geyser|geyser eruption,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+primary_g_Stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+marine hydrothermal sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water irrigation canal,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Korean adult feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+rhizosphere soil from sugare cane field,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil scat,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Pooled cattle fecal samples collected from floor of farm,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Process water/wastewater (pig slaughterhouse),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Human fecal samples,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Vacuum-packaged beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+sediment core,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+"cattle feces, cows",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Soil surface,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Diarrheal stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+sediment pond,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+bottom sediment:Undecane degraded enrichment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Underground water [ENVO:00005792],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+boneless skinless chicken breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+wastewater from WWTP,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Influent Wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Process water/wastewater (poultry slaughterhouse),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Clinical lesion,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+Retail ground turkey,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+Shoreline Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil [ENVO_00001998],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+landfill soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Pelagic sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+environmental swab from poultry bedding,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Pooled sediment sample collected from floor of cattle farm,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water dam,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+spring water [ENVO:03600065],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Microcosm inoculated with Labrador Shelf sediment and amended with petroleum hydrocarbons,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+fresh river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+single cell culture,Sample_Type_SD,cell culture,,manual context recovery review 2026-04-28
+single cell amplified by WGA-X; Northern Atlantic,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+healthcare wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+offshore sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+cave sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+rhizospheric soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil organic matter[ENVO:04000008],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+cold water mass biome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+clinical isolate,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+beef trim,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+farm water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+rodent feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Soil swabs from a 2001 outbreak-associated almond orchard,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Brackish sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+10 sea water samples from phytoplankton spring bloom collected during Heincke cruise HE327,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+beach sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Ocean water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+wastewater treatment plant [ENVO:00002043],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+aquarium water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+fecal stool,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+sea water [ENVO_00002149],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+brackish water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Surface of a polyethylene microplastic particle present in tank 6 of a marine aquarium containing stony-coral fragments and water maintained at 26 degree C,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Water from Natural Saltwater,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+soil; water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+human feces in bioreactor,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Water puddle,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+microbial pure culture,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Ground Turkey (Breasts),Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+sea floor sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Sediment from Subterranean Saltwater,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+soil; water metagenome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Antarctic lake sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Acid sulfate soil from rice cultivation,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+river bed soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+oil-polluted soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+maybe soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+yak feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+lake sediment [ENVO:00000546],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+anaerobically digested sample from wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+drinking water system-before chlorination,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+clay soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Whole_Blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+roast beef sandwich,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Wastewater pump station,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+stool (Antilocapra americana),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Raw wastewater from aircraft arriving at an international German airport,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Pooled soil sample collected from floor of pig farm,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+water irrigation,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+near-shore sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Xenic protist cell culture,Sample_Type_SD,cell culture,,manual context recovery review 2026-04-28
+salt marsh; non-axenic culture containing Coleofasciculus sp. DSM 104237,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+PE_soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+swab environmental swab sponge,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+stool (Canis lupus familiaris),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"sediment, water and sewage treatment plant",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+hypersaline pool; non-axenic culture containing Coleofasciculus sp. DSM 104233,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Biochar-amended Oxisol soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+botanical soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+landfill soil; PE,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+drinking water system-raw water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+sediment from cryoconite holes,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+cryoconite sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Coastal Water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+deepsea sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+1 Liter Bulk water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Water(Aquaculture),Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+creek sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+stool (Castor canadensis),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+thin sliced chicken breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+Beef from wild market,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+agricultural soil; 12C-CH4 incubated pH 4.5 or pH 7.5; selected DNA (low %GC) through ClCs fractionation,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sludge from phenol fed wastewater aerobic bioreactor,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+sea sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+human blood monocytes,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+sterile water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+environmental swab from ready to eat facility,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+bovine soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+single cell amplified by MDA,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+Fecal/pre-slaughter,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+sediment[ENVO:00002007],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+ocean water sample from Hawaii Ocean Time-series (HOT) cruises,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+estuarine sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+hydrothermally-influenced sediment[ENVO:01001821],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Salar de Ascotan water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+enrichment from estuary sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+chemostat inoculated with river sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+bacterial strain culture,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Dairy - wash water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Pig (baby) - fecal,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+soil [ENVO:00002003],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Ground Turkey (patties),Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+Pooled pig fecal samples collected from floor of farm,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Chicken Chicken Breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+spontaneous urine,Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+Environnement:water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Water column of Rimov Reservoir, Czechia",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+tidal fresh water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+drinking water system-WM,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+bottom sediment:PAH degraded enrichment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+glacier surface soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"single cell amplified by WGA-X; Sediment (2~4 cm), Mercer Subglacial Lake",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+salt water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+20 years wild ginseng rhizosphere soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Ground Turkey Patties,Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+poultry environmental swab,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+environmental swab sponge collected aseptically from manure belt,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+"Water of the Aral Sea, 100 m from the shore",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+acid mine drainage sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+South China Sea surficial sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+South China Sea sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Sediment fermented pearl millet (Pennisetum glaucum) slurry,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+native outdoor hot spring sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+field soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Spring water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Wastewater (Primary Effluent),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+bottom water sediment:oil degraded enrichment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+sediment biome,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+drinking water distribution system,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+wastewater/sludge,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Canine Urine (Canis lupus familiaris),Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+environmental swab sponge drain produce area,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Porcine: Feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"Raw wastewater from three airplanes arriving from Singapore, Mombasa and Canada",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+beef hide before wash,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Pooled sediment sample collected from floor of pig farm,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+"Water/River, Environment, Water",Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+"riparian sediment at a depth of 70 cm, 90 cm, 110 cm",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Feces of three-weeks old elephant,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Sediment sample,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Salar de Ascotan soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+hydrothermal vent sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water biome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Wastewater (Final Effluent),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+alpine soil [ENVO:00005741],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+aerobically stored beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+environmental swab and sponge stick,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+ground turkey (Meleagris gallopavo),Sample_Type_SD,turkey meat,,manual context recovery review 2026-04-28
+"Human, Feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"water, Baltic Sea",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Pig feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab production facility,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Beef Cattle,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+water fresh stream,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+chicken field feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+sediment of a thermal stream,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+LokiAmp MDA-amplified sample from Loki's castle hydrothermal vent sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+intertidal; non-axenic culture containing Coleofasciculus sp. DSM 104239,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Blood/muscle,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+Wastewater from Ravoahangy Andrianavalona University Hospital of Antananarivo city,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+forestry [ENVO:01001432]|soil [ENVO:00002003],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+wind flat; non-axenic culture containing Coleofasciculus sp. DSM 104231,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+potable water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+environmental swab sponge sink interior,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+poultry soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Pooled soil sample collected from floor of poultry farm,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"Wastewater, outlet",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Terrestrial Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+swine feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Swab fecal,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"chlorinated drinking water, site 1",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+ocean sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+farm dam sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+farmland soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+opened bottled water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+intertidal; non-axenic culture containing Coleofasciculus sp. DSM 104232,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Retail beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+labscale reactor inoculated with raw wastewater from Harnasch polder wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Single Cell Isolate,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+feces young chicken,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+fecal composite of dairy cows,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+feline feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+oconee river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+georgia coast water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+toilet water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+intertidal beach sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Sludge; Wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+biofilm clogging water pumps in ice machines,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+creosote contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Sugary water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Water Kefir Grain,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Brackish water, Black Sea St. 301",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Shallow soil patches nearby Vellozia epidendroides specimens,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+drinking water treatment plant [ENVO:03600004],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Union Glacier soil, Rossman summit",Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Retail ground beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Dairy - fecal,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+pipe water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+environmental swab sponge dairy facility blue cheese,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+environmental swabs,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+chicken breast (Gallus gallus),Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+cat and dog feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+water cistern,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+livestock feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+household water source,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Water column of Lake Zurich, Switzerland",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Potable Water Dispenser (PWD) Ambient (MCD) from International Space Station,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+lagoon; non-axenic culture containing Coleofasciculus sp. DSM 104238,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+bottom sediment:Nonane degraded enrichment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water from beech tree-hole,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+puddle of water[ENVO:01000871],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+water from hydrothermal vent,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"River water sample from the Mahananda River near Suryasen Park, influenced by wastewater discharge",Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+UBERON:feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+aerobic granular sludge sequencing batch reactor fed with glycerol; inoculum derived from raw wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Water column in the Pearl River Estuary,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+single cell amplified by MDA; marine sediments,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+oil contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"single cell amplified by WGA-X; Water column (<0.2 um), Mercer Subglacial Lake",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Human blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+environmental swab sponge dairy case,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+environmental swab sponge drain deli,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+feces (Ursus americanus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+beef (Bos taurus),Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Poultry/Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+feces mink mustelidae,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+feces parrot,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Water from Svartan River,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Feces, Gull (Leucophaeus pipixcan)",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+beef hide after wash,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Pooled soil sample collected from floor of cattle farm,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+raw or partially cooked beef with bone,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+"water, ditch",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+soil[ENVO:00001998],Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+subarctic sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Fresh water; Aquatic,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+pasture soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Feces of six-years-old elephant,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+creosote-contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+produced water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+mangroves; non-axenic culture containing Coleofasciculus chthonoplastes DSM 104236,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Salt lake soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+drinking water system-DS1,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+bulk soil in field: waste rock at Westwood site with vegetation,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+thermophilic sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Arctic soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Middle part of the water column of temporary meltwater pond,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Wastewater (Sewage),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Wyoming Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Stream bed soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Beach Water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+feces from Phil the wombat,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+landscaping soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+clinical/host-associated,Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+Marinated minced beef meatballs,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Poultry drinking water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+dog feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab glofe of dairy farm worker,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+"Water/River, Environment, River (Thames River)",Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+laboratory derived mutant; originally from soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"chlorinated drinking water, site 4",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+bay water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+B horizon soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+salt lake sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+wetland sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+petroleum-contaminated soil collected near the petroleum pumping and storage warehouse at the Henryk Arctowski Polish Antarctic Station,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sandy soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Loki non-amplified sample from Loki's castle hydrothermal vent sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+sediment permeated by saline water,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+coastal soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+mine service water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Soil from forest,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Soil; sparse vegitation,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Soil from Natural NA,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+rearing water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+rare earth elements-acid mine drainage (REEs-AMD) contaminated river water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+hospital hot water network,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+water at point of use,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+marine; non-axenic culture containing Coleofasciculus sp. DSM 104254,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+bottom sediment samples (0-5 cm depth) from the lower Don River,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+rhizosphere soil of rice,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+environmental swab sponge distribution center,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Rhizosphere sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+avian blood,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+irrigation ditch water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"calf, feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+wild boar feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+treated wastewater effluent,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+prewash water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Duck feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+feces animal,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Beef from supermarket,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+top soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+drinking water system-PB2,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+chernozem soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+"disinfectant-free drinking water, site 5",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+water| sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Inner Fjord sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+tannery wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+hypersaline lagoon sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+salt marsh; non-axenic culture containing Coleofasciculus sp. DSM 104253,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+ginseng soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Wastewater from River Mahananda,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Industrial wastewater [ENVO: 01000964],Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+petroleum contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+pure cultures,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+brackish; non-axenic culture containing Coleofasciculus sp. DSM 104234,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+drinking water system-finished water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+mineral water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Eastern Tropical North Pacific Oxygen Minimum Zone Sea Water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+feces (Felis catus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Beef processing facility,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Andriantany community wastewater channel,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+deep-sea water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Small water puddle,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+crude oil-contaminated soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Zebrafish tank water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+MAP minced beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+pine forrest soil between two spruce trees,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+building system - drinking water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+deep soil layers,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+roasted beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+beef marrow bone,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+environmental swab type of facility unknown,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+fermented spicy beef sausage,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+acid mine water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+seawater at sediment depth,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water influent,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"Incoming wastewater from a wastewater treatment plant, after removal of large particulate matter",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Isolated from feces from dairy cow,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab veterinary clinic,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Beef ground beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Raw wastewater influent sample from the Panama City Wastewater Treatment Plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Industrial fresh-cut produce wash water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Raw Chicken Breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+pigeon feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+blood meal,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+environmental swab sponge from shoe cover farm worker,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+feces avian,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+soil from field,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+minced beef,Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+"Animal, feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab from market,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+"Autotrophic, nitrogen-fixing enrichment from a sediment sample",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+terrigenous sediment of marine hydrothermal vent,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+drinking water system-PR,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+drinking water system-DS3,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+black soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+riparian sediment at a depth of 110 cm,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+sediment trap from marine abyssalpelagic zone,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+tundra soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+high Arctic cold saline sulfur spring anaerobic sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+anaerobic sediment [ENVO:00002045],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+marine sediment; non-axenic culture containing Coleofasciculus chthonoplastes DSM 104242,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+Host; Plant root; Root nodule; Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+shoreline [ENVO:00000486]|brackish water body [ENVO:01001321],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Oxisol Soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+hypersaline pond; non-axenic culture containing Coleofasciculus sp. DSM 104241,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+"granules from the full-scale anammox reactor of Dokhaven-Sluisjesdijk wastewater treatment plant, further enriched at TU Delft in a chemostat over two months prior to sampling",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Water samples,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+EBPR bioreactors wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+soil adjacent to cadaver decomposition,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sediment in ELVs dismantling site; transfer 14.0 in DhZhu medium with mix-carbon source,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+water spring,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+water well [ENVO:01000002],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Pig (sow) - fecal,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Remnant water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+hot springs sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+single cell amplified by MDA; Dewar Creek hot spring,Sample_Type_SD,single cell,,manual context recovery review 2026-04-28
+Soil; rocky/sandy,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Microscale soil grain,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+compost soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+sandy soil contaminated with hydrocarbons for 50 years,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+healthcare wastewater (sewage),Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Melt water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+mineral spring [ENVO:00000125]| underground water body [ENVO:00000061],Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Tap water/shower,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Flushed hot water supplied to thermostatic mixing valve in public shower - women,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+"sludge from two different bioreactors, each one run at a different temprature (R1 at 35 C, R2 at 25 C), artificial municipal wastewater",Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+lab-scale wastewater treatment,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+water from a pond,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+environmental swab sponge floor,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Feces (Felis catus domesticus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Water from Hjalmaren Lake,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Treated effluent water collected at a wastewater treatment plant,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+"Feces, Bald Eagle (Haliaeetus leucocephalus)",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+cow feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+bos taurus feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+biome of soil in China,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+environmental swab bib of dairy farm worker,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+feces (Equus caballus),Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+environmental swab horse hospital,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Animal-Beefcattle-Feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Environmental Swab-Farm,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+environmental swab from distribution center,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+drinking water system-DS2,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+riparian sediment at a depth of 70 cm,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+pure cell culture,Sample_Type_SD,cell culture,,manual context recovery review 2026-04-28
+Bashi Channel surficial sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Bashi Channel sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+riparian sediment at a depth of 50 cm,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Fjord Sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Arctic Fjord sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+Genomic assembly,Sample_Type_SD,metagenomic assembly,,manual context recovery review 2026-04-28
+saline-alkali soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+River's water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Aquatic; Fresh water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+thermophilic sediment from neutral hot spring,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+environmental swab sponge dairy powder manufacturing facility,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+Full-scale methanogenic bioreactor treating purified terephthalic acid process wastewater,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+cold seep sediment,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+"disinfectant-free drinking water, site 1",Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+coastal; non-axenic culture containing Coleofasciculus chthonoplastes DSM 104244,Sample_Type_SD,pure/single culture,,manual context recovery review 2026-04-28
+ginseng cultivating soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+lake sediment [ENVO_00000546],Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+feces from wild bird,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+wet soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Blood serum,Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+bulk soil in field: waste rock at Westwood site,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Sediment from the hot spring,Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+clinical isolate from CHUGA (Grenoble),Sample_Type_SD,clinical sample,,manual context recovery review 2026-04-28
+Ornithogenic soil,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Lomas Bayas Desert Soil Beside Boulder,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+soil / grassland,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Rizosphere soil sample,Environment_Medium_SD,soil,ENVO:00001998,manual context recovery review 2026-04-28
+Potable bulk water,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Drinking water from distribution plants,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+environmental swab sponge floor dry aisle,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+river_water,Environment_Medium_SD,river water,,manual context recovery review 2026-04-28
+waste water from culvert,Environment_Medium_SD,wastewater,ENVO:00002001,manual context recovery review 2026-04-28
+Ground Beef (patties),Sample_Type_SD,beef,,manual context recovery review 2026-04-28
+Split Chicken Breast,Sample_Type_SD,chicken meat,,manual context recovery review 2026-04-28
+environmental swab lairage,Sample_Type_SD,environmental swab,,manual context recovery review 2026-04-28
+"cattle feces, juveniles",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Water from irrigation pond,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Wild bird feces,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+"pig, feces",Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+fecal boot swab,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+midstream urine,Sample_Type_SD,urine,,manual context recovery review 2026-04-28
+blood (Bos taurus),Sample_Type_SD,blood,UBERON:0000178,manual context recovery review 2026-04-28
+"10 single cells amplified by MDA; cell type akinete, from sediment",Environment_Medium_SD,sediment,ENVO:00002007,manual context recovery review 2026-04-28
+drinking water metagenome,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+water from subtropical river stream,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+brackish water collected from the surface of the Baltic Sea,Environment_Medium_SD,water,ENVO:00002006,manual context recovery review 2026-04-28
+Stool specimen,Sample_Type_SD,feces/stool,,manual context recovery review 2026-04-28
+Subsurface shale,Environment_Medium_SD,subsurface shale,,host-field non-host/geologic routing review 2026-04-28
+subsurface shale,Environment_Medium_SD,subsurface shale,,host-field non-host/geologic routing review 2026-04-28
+P-trap,Sample_Type_SD,trap sample,,host-field non-host/source routing review 2026-04-28
+P trap,Sample_Type_SD,trap sample,,host-field non-host/source routing review 2026-04-28
+U-Bend,Sample_Type_SD,trap sample,,host-field non-host/source routing review 2026-04-28
+land crag,Environment_Medium_SD,land crag,,host-field non-host/geologic routing review 2026-04-28
+natural / free-living,Environment_Medium_SD,natural/free-living,,host-field non-host/environment routing review 2026-04-28
+natural / free living,Environment_Medium_SD,natural/free-living,,host-field non-host/environment routing review 2026-04-28
+non-host associated,Sample_Type_SD,metadata descriptor/non-source,,host-field descriptor routing review 2026-04-28
+non host associated,Sample_Type_SD,metadata descriptor/non-source,,host-field descriptor routing review 2026-04-28
+Environmental,Environment_Medium_SD,environmental sample,ENVO:00010483,host-field non-host/environment routing review 2026-04-28
+Environment,Environment_Medium_SD,environmental sample,ENVO:00010483,host-field non-host/environment routing review 2026-04-28
+environmental waters,Environment_Medium_SD,water,ENVO:00002006,host-field non-host/environment routing review 2026-04-28
+WATER,Environment_Medium_SD,water,ENVO:00002006,host-field non-host/environment routing review 2026-04-28
+"Dairy Farm, Water",Environment_Medium_SD,water,ENVO:00002006,host-field non-host/environment routing review 2026-04-28
+"Dairy Farm, Faecal",Sample_Type_SD,feces/stool,UBERON:0001988,host-field non-host/sample routing review 2026-04-28
+Hospital environment,Environment_Medium_SD,healthcare facility,,host-field non-host/environment routing review 2026-04-28
+ICU environment,Environment_Medium_SD,healthcare facility,,host-field non-host/environment routing review 2026-04-28
+laboratory,Environment_Medium_SD,laboratory,,host-field non-host/environment routing review 2026-04-28
+In vitro,Sample_Type_SD,metadata descriptor/non-source,,host-field descriptor routing review 2026-04-28
+shrimp,Sample_Type_SD,seafood,,host-field food/source routing review 2026-04-28
+Shrimp,Sample_Type_SD,seafood,,host-field food/source routing review 2026-04-28
+"Dairy Farm, Bootsock",Sample_Type_SD,bootsock/environmental swab,,conservative host-review source routing; rows=38
+foods,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=21
+Enviroment,Environment_Medium_SD,environmental material,,conservative host-review source routing; rows=19
+"Bootsock, Great Harwood",Sample_Type_SD,bootsock/environmental swab,,conservative host-review source routing; rows=18
+anaerobic digestate,Environment_Medium_SD,environmental material,,conservative host-review source routing; rows=17
+Raw almond,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=16
+strawberry,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=13
+cantaloupe delicious variety,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=13
+Shrimp without shell and head,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=12
+"Bootsock, Blencathra",Sample_Type_SD,bootsock/environmental swab,,conservative host-review source routing; rows=11
+cantaloupe,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=10
+Enviromental,Environment_Medium_SD,environmental material,,conservative host-review source routing; rows=9
+Turf,Environment_Medium_SD,environmental material,,conservative host-review source routing; rows=9
+PDI flour,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=9
+Kimchi,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=9
+spinach,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=8
+river,Environment_Medium_SD,environmental material,,conservative host-review source routing; rows=8
+Vegetable,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=7
+vegetable,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=7
+isolation source,Isolation_Source_SD,source/sample material,,conservative host-review source routing; rows=7
+papaya,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=7
+Strawberry,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=6
+Almond,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=5
+Cantaloupe,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=4
+Spinach,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=4
+"Bootsock, Urban Park",Sample_Type_SD,bootsock/environmental swab,,conservative host-review source routing; rows=4
+pen shell,Isolation_Source_SD,food/food product,,conservative host-review source routing; rows=4

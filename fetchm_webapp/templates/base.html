@@ -13,11 +13,12 @@
         <div class="topbar-actions">
           <a class="tag ghost-link" href="{{ url_for('index') }}"><strong>Home</strong></a>
           <a class="tag ghost-link" href="{{ url_for('user_jobs') }}"><strong>Track Jobs</strong></a>
-          {% if session.get("user_id") %}
+          <a class="tag ghost-link" href="{{ url_for('index') }}#feedback-form"><strong>Feedback / Report</strong></a>
+          {% if g.current_user %}
             {% if g.get("is_admin") %}
               <a class="ghost-link" href="{{ url_for('admin_dashboard') }}">Admin</a>
             {% endif %}
-            <div class="tag">{{ session.get("username") }}</div>
+            <div class="tag">{{ g.current_user["username"] }}</div>
             <form action="{{ url_for('logout') }}" method="post">
               <button type="submit" class="ghost">Log out</button>
             </form>

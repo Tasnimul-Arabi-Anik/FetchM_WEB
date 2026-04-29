@@ -32,11 +32,11 @@
         <div class="metrics-grid">
           <div class="metric-card">
             <strong>{{ backfill.genome_totals.catalog_genomes_total or 0 }}</strong>
-            <span>Genomes in managed TSV catalog</span>
+            <span>Unique genome accessions represented</span>
           </div>
           <div class="metric-card">
             <strong>{{ backfill.genome_totals.metadata_genomes_total or 0 }}</strong>
-            <span>Genomes covered by metadata</span>
+            <span>Unique genomes covered by metadata</span>
           </div>
           <div class="metric-card">
             <strong>{{ backfill.genome_totals.metadata_taxa_ready_total or 0 }}</strong>
@@ -44,7 +44,7 @@
           </div>
           <div class="metric-card">
             <strong>{{ backfill.genome_totals.metadata_stored_rows_total or 0 }}</strong>
-            <span>Stored assembly metadata rows</span>
+            <span>Taxon-scoped metadata rows</span>
           </div>
         </div>
         <div class="metrics-grid top-gap">
@@ -56,12 +56,12 @@
           <div class="metric-card metric-wide">
             <strong>2. TSV Catalog</strong>
             <span>Build missing: {{ catalog_policies[backfill.catalog_build_policy].label }} | Refresh existing: {{ catalog_policies[backfill.catalog_refresh_policy].label }}</span>
-            <span>{{ backfill.taxa_totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.catalog_genomes_total or 0 }} genomes currently represented</span>
+            <span>{{ backfill.taxa_totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.catalog_genomes_total or 0 }} unique genome accessions currently represented</span>
           </div>
           <div class="metric-card metric-wide">
             <strong>3. Metadata</strong>
             <span>Build missing: {{ metadata_policies[metadata_dashboard.metadata_build_policy].label }} | Refresh existing: {{ metadata_policies[metadata_dashboard.metadata_refresh_policy].label }}</span>
-            <span>{{ metadata_dashboard.totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.metadata_genomes_total or 0 }} genomes with metadata coverage</span>
+            <span>{{ metadata_dashboard.totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.metadata_genomes_total or 0 }} unique genomes with metadata coverage</span>
           </div>
         </div>
         <div class="metrics-grid top-gap">
@@ -296,6 +296,16 @@
                   </div>
                   <div class="job-meta">{{ taxon_ranks[item.taxon_rank].label }} • {{ item.genome_count }} genomes</div>
                   <div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div>
+                  <div class="job-progress-inline top-gap">
+                    <strong>{{ item.progress.headline }}</strong>
+                    <span>{{ item.progress.percent }}%</span>
+                  </div>
+                  <div class="progress-track" aria-hidden="true">
+                    <div class="progress-fill" style="width: {{ item.progress.percent }}%"></div>
+                  </div>
+                  {% if item.current_accession %}
+                    <div class="job-meta">Current accession: {{ item.current_accession }}</div>
+                  {% endif %}
                   {% if item.error %}
                     <div class="job-meta">{{ item.error }}</div>
                   {% endif %}

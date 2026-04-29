@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Metadata Refinement</h1>
+      <p class="lede">Review high-frequency metadata values before adding or backfilling standardized mappings.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">approval workflow</span>
+      <div class="job-meta">{{ refinement.totals.values_reviewed }} values reviewed</div>
+      <div class="job-meta">{{ refinement.totals.review_candidates }} candidates</div>
+      <div class="job-meta">{{ refinement.totals.approved_rules }} approved</div>
+      <div class="job-meta">{{ refinement.totals.ambiguous_values }} ambiguous</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Review Scope</h2>
+        <p class="muted">This page samples the latest {{ refinement.sample_rows }} metadata rows. Approving a candidate saves a reusable standardization rule while keeping original metadata unchanged.</p>
+      </div>
+      <div class="action-row">
+        <form method="get" action="{{ url_for('admin_refinement') }}" class="inline-form">
+          <label>
+            <span>Values per column</span>
+            <input type="number" name="limit" min="10" max="200" value="{{ refinement.limit_per_column }}">
+          </label>
+          <label>
+            <span>Column</span>
+            <select name="source">
+              <option value="all" {% if refinement.filters.source == 'all' %}selected{% endif %}>All columns</option>
+              {% for option in refinement.source_options %}
+                <option value="{{ option.value }}" {% if refinement.filters.source == option.value %}selected{% endif %}>{{ option.label }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option value="review" {% if refinement.filters.status == 'review' %}selected{% endif %}>Needs approval</option>
+              <option value="all" {% if refinement.filters.status == 'all' %}selected{% endif %}>All visible</option>
+              <option value="approved" {% if refinement.filters.status == 'approved' %}selected{% endif %}>Approved</option>
+              <option value="ambiguous" {% if refinement.filters.status == 'ambiguous' %}selected{% endif %}>Ambiguous</option>
+              <option value="missing" {% if refinement.filters.status == 'missing' %}selected{% endif %}>Missing</option>
+            </select>
+          </label>
+          <label>
+            <span>Confidence</span>
+            <select name="confidence">
+              <option value="all" {% if refinement.filters.confidence == 'all' %}selected{% endif %}>Any</option>
+              <option value="high" {% if refinement.filters.confidence == 'high' %}selected{% endif %}>High</option>
+              <option value="medium" {% if refinement.filters.confidence == 'medium' %}selected{% endif %}>Medium</option>
+              <option value="none" {% if refinement.filters.confidence == 'none' %}selected{% endif %}>None</option>
+            </select>
+          </label>
+          <label>
+            <span>Min rows</span>
+            <input type="number" name="min_count" min="0" value="{{ refinement.filters.min_count }}">
+          </label>
+          <button type="submit" class="ghost">Update</button>
+        </form>
+        <a class="button-like" href="{{ url_for('admin_refinement_export', limit=refinement.limit_per_column, source=refinement.filters.source, status=refinement.filters.status, confidence=refinement.filters.confidence, min_count=refinement.filters.min_count) }}">Export CSV</a>
+      </div>
+    </div>
+
+    <div class="metrics-grid top-gap">
+      <div class="metric-card">
+        <strong>{{ refinement.totals.values_reviewed }}</strong>
+        <span>Distinct values shown</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.rows_represented }}</strong>
+        <span>Rows represented</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.review_candidates }}</strong>
+        <span>Review candidates</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.approved_rules }}</strong>
+        <span>Approved rules shown</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.missing_values }}</strong>
+        <span>Missing/absent values</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.ambiguous_values }}</strong>
+        <span>Ambiguous values</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.visible_items }}</strong>
+        <span>Visible after filters</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ refinement.totals.selectable_items }}</strong>
+        <span>Selectable candidates</span>
+      </div>
+    </div>
+
+    <div class="hint-block top-gap">
+      <strong>Interpretation rule</strong>
+      <p>Host organism terms should map to <code>Host_SD</code> and optionally <code>Host_TaxID</code>. Environmental/sample-source terms should map to MIxS/BioSample-style fields such as <code>Environment_Medium_SD</code>, <code>Sample_Type_SD</code>, or <code>Isolation_Source_SD</code>. Original metadata values remain unchanged.</p>
+    </div>
+
+    <form id="bulk-approve-form" method="post" action="{{ url_for('admin_refinement_bulk_approve') }}" class="action-row top-gap">
+      <input type="hidden" name="limit" value="{{ refinement.limit_per_column }}">
+      <input type="hidden" name="source" value="{{ refinement.filters.source }}">
+      <input type="hidden" name="status" value="{{ refinement.filters.status }}">
+      <input type="hidden" name="confidence" value="{{ refinement.filters.confidence }}">
+      <input type="hidden" name="min_count" value="{{ refinement.filters.min_count }}">
+      <button type="submit" class="button-like" name="approval_mode" value="selected">Approve selected</button>
+      <button type="submit" class="ghost" name="approval_mode" value="high_confidence_visible">Approve visible high-confidence</button>
+      <span class="muted">{{ refinement.totals.selectable_items }} eligible candidates in the current view</span>
+    </form>
+  </section>
+
+  {% for section in refinement.sections %}
+    <section class="panel">
+      <div class="section-head-row">
+        <div>
+          <h2>{{ section.label }}</h2>
+          <p class="muted">Primary destination: <code>{{ section.primary_destination }}</code></p>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Original value</th>
+              <th>Rows</th>
+              <th>Category</th>
+              <th>Destination</th>
+              <th>Proposed value</th>
+              <th>TaxID/Ontology</th>
+              <th>Method</th>
+              <th>Score</th>
+              <th>Confidence</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in section["items"] %}
+              <tr>
+                <td>
+                  {% if item.selectable %}
+                    <input type="checkbox" form="bulk-approve-form" name="rule" value="{{ item.rule_payload }}">
+                  {% else %}
+                    <span class="muted">-</span>
+                  {% endif %}
+                </td>
+                <td>{{ item.value }}</td>
+                <td>{{ item.count }}</td>
+                <td>{{ item.category }}</td>
+                <td>{% if item.destination %}<code>{{ item.destination }}</code>{% else %}<span class="muted">none</span>{% endif %}</td>
+                <td>{{ item.proposed_value }}</td>
+                <td>{{ item.ontology_id }}</td>
+                <td>{{ item.method }}</td>
+                <td>{% if item.suggestion_score %}{{ item.suggestion_score }}{% else %}<span class="muted">-</span>{% endif %}</td>
+                <td>{{ item.confidence }}</td>
+                <td>
+                  {% if item.is_approved %}
+                    <span class="status completed">approved</span>
+                    {% if item.approved_by %}<div class="job-meta">{{ item.approved_by }}</div>{% endif %}
+                  {% elif item.action == 'review' %}
+                    <form method="post" action="{{ url_for('admin_refinement_approve') }}" class="inline-form">
+                      <input type="hidden" name="limit" value="{{ refinement.limit_per_column }}">
+                      <input type="hidden" name="source" value="{{ refinement.filters.source }}">
+                      <input type="hidden" name="status" value="{{ refinement.filters.status }}">
+                      <input type="hidden" name="confidence" value="{{ refinement.filters.confidence }}">
+                      <input type="hidden" name="min_count" value="{{ refinement.filters.min_count }}">
+                      <input type="hidden" name="source_column" value="{{ item.source_column }}">
+                      <input type="hidden" name="original_value" value="{{ item.value }}">
+                      <input type="hidden" name="category" value="{{ item.category }}">
+                      <input type="hidden" name="destination" value="{{ item.destination }}">
+                      <input type="hidden" name="proposed_value" value="{{ item.proposed_value }}">
+                      <input type="hidden" name="ontology_id" value="{{ item.ontology_id }}">
+                      <input type="hidden" name="method" value="{{ item.method }}">
+                      <input type="hidden" name="item_confidence" value="{{ item.confidence }}">
+                      <input type="hidden" name="note" value="{{ item.note }}">
+                      <button type="submit" class="ghost">Approve</button>
+                    </form>
+                  {% else %}
+                    <span class="status {% if item.action == 'ignore' %}completed{% else %}failed{% endif %}">
+                      {{ item.action }}
+                    </span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if section["items"] %}
+        <div class="action-row top-gap">
+          <button type="submit" form="bulk-approve-form" class="button-like" name="approval_mode" value="selected">Approve selected</button>
+          <span class="muted">Approved rows remain visible after approval by switching the view to All visible.</span>
+        </div>
+      {% endif %}
+    </section>
+  {% endfor %}
+</main>
+{% endblock %}

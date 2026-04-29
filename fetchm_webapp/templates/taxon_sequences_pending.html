@@ -36,6 +36,19 @@
           Metadata is not ready yet for sequence filtering.
         {% endif %}
       </p>
+      {% if species.metadata_progress_total %}
+        {% set metadata_progress_percent = ((species.metadata_progress_completed or 0) * 100 / species.metadata_progress_total) | round(0, 'common') | int %}
+        <div class="job-progress-inline top-gap">
+          <strong>{{ species.metadata_progress_completed or 0 }} / {{ species.metadata_progress_total }} rows assembled</strong>
+          <span>{{ metadata_progress_percent }}%</span>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" style="width: {{ metadata_progress_percent }}%"></div>
+        </div>
+        {% if species.metadata_progress_current_accession %}
+          <div class="job-meta">Current accession: {{ species.metadata_progress_current_accession }}</div>
+        {% endif %}
+      {% endif %}
     </div>
 
     <div class="launch-actions">
