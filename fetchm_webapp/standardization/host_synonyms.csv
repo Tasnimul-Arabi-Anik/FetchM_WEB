@@ -5854,3 +5854,574 @@ Vitis,Vitis,3603,medium,broad plant host review 2026-04-29; rank=genus
 Euonymous,Euonymus,4306,medium,spelling variant; plant host review 2026-04-29; rank=genus
 Hypnales,Hypnales,13798,medium,broad moss host review 2026-04-29; rank=order
 Heterotermes,Heterotermes,127378,medium,broad termite host review 2026-04-29; rank=genus
+Bathyopsurus nybelini specimen AT50-02-018,bathyopsurus nybelini,3120861,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Edessa sp.,edessa,1225063,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Coffea,coffea,13442,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Acanthamoeba,acanthamoeba,5754,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Skeletonema marinoi strain RO5AC,skeletonema marinoi,267567,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sedum,sedum,3784,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+carrot,carrot,4039,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+macaque,macaque,9539,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ginger,ginger,94328,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Chimpanzee,chimpanzee,9598,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Bradypus,bradypus,9353,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Leobordea sp.,leobordea,1096780,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Oxytropis sp.,oxytropis,20802,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ulva,ulva,3118,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+rook,rook,75140,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Ostrich,ostrich,8801,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Golden Threadfin Bream,golden threadfin bream,450225,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+okapi,okapi,86973,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+common eider,common eider,76058,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+king eider,king eider,203439,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Agile Gibbon,agile gibbon,9579,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Dasyurus sp.,dasyurus,9278,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Poa,poa,4544,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Glycine,glycine,3846,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Fuchsia,fuchsia,13069,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Oenothera,oenothera,3939,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Erysimum,erysimum,65352,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cardinal,cardinal,405018,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Seriola,seriola,8160,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Philodendron,philodendron,71613,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Corylus,corylus,13450,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Calathea sp.,calathea,4622,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Populus,populus,3689,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+ferret,ferret,9669,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Chrysanthemum,chrysanthemum,13422,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aster,aster,41479,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Asterionellopsis glacialis strain A3,asterionellopsis glacialis,33640,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Skeletonema marinoi strain ST54,skeletonema marinoi,267567,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+mule,mule,319699,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tamarix,tamarix,63084,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mimosa,mimosa,21013,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Triticum,triticum,4564,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Loxodonta,loxodonta,9784,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Calendula sp.,calendula,41495,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+black locust,black locust,35938,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+ginseng,ginseng,4054,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Capybara,capybara,10149,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Lysiloma sp.,lysiloma,138058,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Acacia,acacia,3808,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+geese,geese,8842,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sargassum,sargassum,3015,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phaseolus,phaseolus,3883,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Kalanchoe,kalanchoe,23012,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phalaenopsis,phalaenopsis,36459,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+yellow yam,yellow yam,29710,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+reindeer,reindeer,9870,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Crassostrea,crassostrea,6564,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phocoena,phocoena,9741,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Metapenaeus,metapenaeus,32277,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Springhaas,springhaas,10023,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Microtus oeconomus (root vole),microtus oeconomus,2162900,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tabanus,tabanus,7206,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Azolla,azolla,39630,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+eggplant,eggplant,4111,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Spathiphyllum,spathiphyllum,78381,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cyclamen,cyclamen,59973,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gracilaria,gracilaria,2774,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Membranipora sp.,membranipora,95169,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Delphinium sp.,delphinium,46246,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Rhododendron,rhododendron,4346,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Petunia,petunia,4101,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Heuchera,heuchera,3794,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cormorant,cormorant,9209,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Colobus,colobus,9570,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sesame,sesame,4182,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cocoa,cocoa,3641,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tilia,tilia,64580,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+pomfret,pomfret,497160,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Haliotis,haliotis,6452,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Iberis sp.,iberis,190883,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cassava,cassava,3983,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Fusarium oxysporum f. sp. cucumerinum,fusarium oxysporum f. sp. cucumerinum,5508,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Diplacus (Mimulus) aurantiacus (Phrymaceae),diplacus aurantiacus,68869,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pandanus sp.,pandanus,4725,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Discus,discus,84399,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Oreochromis,oreochromis,8139,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Channa,channa,33789,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Turbo,turbo,63672,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Clematis,clematis,3452,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Euonymus,euonymus,4306,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Impatiens,impatiens,35939,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gaillardia,gaillardia,55623,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Yarrow,yarrow,756482,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Lantana,lantana,87005,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Porites,porites,46719,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Favia sp.,favia,44303,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+sea,sea,2798467,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cenchrus,cenchrus,4583,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Capsicum,capsicum,4071,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Rhizopus,rhizopus,4842,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Salix,salix,40685,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Usnea,usnea,86620,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Apis sp.,apis,7459,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Microtus sp.,microtus,10053,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Enterolobium,enterolobium,54877,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Argyrolobium,argyrolobium,49794,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Arachis,arachis,3817,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Turbinaria sp. (in: brown algae),turbinaria sp.,2010983,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Gladiolus,gladiolus,49747,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cacopsylla melanoneura isolate AO3-2,cacopsylla melanoneura,428564,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cacopsylla melanoneura isolate AO3-1,cacopsylla melanoneura,428564,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cacopsylla pyricola isolate PC38,cacopsylla pyricola,191317,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cacopsylla picta isolate AT1-55A,cacopsylla picta,1522058,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cacopsylla picta isolate AT2-62B,cacopsylla picta,1522058,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cacopsylla melanoneura isolate Cmel3_AO1,cacopsylla melanoneura,428564,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Lacusa sp.,lacusa,3446328,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Libanissum sp.,libanissum,1897843,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Indogaetulia sp.,indogaetulia,1308458,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Idiosystatus sp.,idiosystatus,1585362,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ctena sp.,ctena,102298,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Budgerigar,budgerigar,13146,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+sanderling,sanderling,279936,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Curlew Sandpiper,curlew sandpiper,217133,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+dandelion,dandelion,50225,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cyclocephala,cyclocephala,465218,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Seminavis robusta strain 85A,seminavis robusta,568900,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Prunus,prunus,3754,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+clivia,clivia,16048,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+muscari,muscari,16161,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Radish,radish,3726,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+speckled teal,speckled teal,75845,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Microtermes,microtermes,201585,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Haliaeetus,haliaeetus,8968,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Artibeus sp.,artibeus,9416,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Habromys sp.,habromys,56318,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Trichechus,trichechus,9776,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+caribou,caribou,9870,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Delphinus,delphinus,9727,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sooty Oystercatcher,sooty oystercatcher,2448686,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+South American Coati (Nasua nasua),south american coati,9651,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+chamois,chamois,34869,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Lynx,lynx,13124,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Suaeda,suaeda,46108,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cynomys,cynomys,45478,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Euplotes,euplotes,5935,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Castor sp.,castor,10184,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Himantormia,himantormia,235503,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Salicornia,salicornia,46104,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Psoroma,psoroma,176449,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Olives,olives,4145,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cuscuta,cuscuta,4128,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+sugar glider,sugar glider,34899,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+fall armyworm,fall armyworm,7108,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Caragana,caragana,20483,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paulinella,paulinella,39716,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cicer sp.,cicer,3826,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ononis sp.,ononis,58889,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+mugwort,mugwort,4220,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+pineapple,pineapple,4615,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Elaeagnus,elaeagnus,36776,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Hyacinthus,hyacinthus,82024,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Zantedeschia,zantedeschia,69720,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+oat,oat,50455,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Agriotes,agriotes,292457,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cyclops,cyclops,263416,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ulmus sp.,ulmus,24735,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Broccoli,broccoli,36774,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Macropus,macropus,9312,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aglaonema,aglaonema,174181,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Alexandrium,alexandrium,2924,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Heliconia,heliconia,4653,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Apodemus,apodemus,10128,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paracimex,paracimex,1551626,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+rape,rape,3708,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+flamingo,flamingo,435638,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+amoeba,amoeba,5774,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Protopolybia sp.,protopolybia,91392,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+solitary wasp,solitary wasp,7437,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Red Turpentine Beetle,red turpentine beetle,77173,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+montipora,montipora,46703,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aiptasia,aiptasia,12922,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Metopus strain FRESH26,metopus,5964,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+gilthead seabream (fish),gilthead seabream,8175,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Litopenaeus sp.,litopenaeus,133894,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Brugia malayi strain TRS,brugia malayi,6279,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Nasonia giraulti strain VA19008,nasonia giraulti,7426,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Dieffenbachia sp.,dieffenbachia,42195,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Dieffenbachia,dieffenbachia,42195,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+zinnia,zinnia,19013,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cistus sp.,cistus,69451,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Meriones,meriones,10046,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Pudu,pudu,163860,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+chiton,chiton,256107,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Morinda citrifolia (noni),morinda citrifolia,43522,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Bamboos,bamboos,4581,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Agama (lizzard),agama,52207,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Trachemys scripta elegans (Red-eared slider),trachemys scripta elegans,31138,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Epilobium,epilobium,13054,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Acipenser ruthenus x Huso huso,acipenser ruthenus x huso huso,328639,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Mikrogeophagus ramirezi (Ramirezi),mikrogeophagus ramirezi,284740,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Hypostomus,hypostomus,36713,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gonocephalum,gonocephalum,302817,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Pentas,pentas,25384,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Androsace sp.,androsace,85163,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+reticulated python,reticulated python,1496311,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sepiola robusta (bobtail squid),sepiola robusta,70197,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Isochrysis,isochrysis,37098,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gastrodia,gastrodia,91200,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+american lobster,american lobster,6706,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+pomelo,pomelo,37334,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Ixora,ixora,25227,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Callyspongia,callyspongia,178537,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Brachiaria sp.,brachiaria,59786,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+oats,oats,4498,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Epinephelus lanceolatus x Epinephelus fuscoguttatus,epinephelus lanceolatus x epinephelus fuscoguttatus,1074816,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+pink bollworm,pink bollworm,13191,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+carnation,carnation,3570,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pyropia,pyropia,1094566,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Populus davidiana x Populus alba var. pyramidalis (PdPap),populus davidiana x populus alba var. pyramidalis,1550601,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Ovis,ovis,9935,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+lucerne,lucerne,3879,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+luffa,luffa,3669,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ucides sp.,ucides,184467,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Notodonta sp.,notodonta,214280,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Fusarium,fusarium,5506,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+black bass,black bass,225391,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Papio,papio,9554,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+catalpa,catalpa,13406,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cauliflower,cauliflower,3715,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Farfantepenaeus sp.,farfantepenaeus,133894,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Rhizomys,rhizomys,53274,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tamiasciurus hudsonicus (American red squirrel),tamiasciurus hudsonicus,10009,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Apodemus sp. (small mammals),apodemus,10128,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Peromyscus yucatanicus (Yucatan deer mouse),peromyscus yucatanicus,943123,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pteronotus parnellii (insectivorous bat),pteronotus parnellii,59476,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+white spruce,white spruce,3330,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+black lemur,black lemur,30602,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Mouflon,mouflon,9938,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Dolichotis,dolichotis,29090,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Scaptotrigona,scaptotrigona,28655,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lamproblatta sp.,lamproblatta,1080992,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cosmozosteria sp.,cosmozosteria,1556080,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mediastinia sp.,mediastinia,2283766,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Melanozosteria sp.,melanozosteria,36978,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Methana sp.,methana,1556148,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Platyzosteria sp.,platyzosteria,221120,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aegypius,aegypius,8958,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Centrosema sp.,centrosema,167616,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Chamaecrista,chamaecrista,53853,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lupinus,lupinus,3869,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+ligustrum,ligustrum,13596,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stegophylla sp.,stegophylla,527942,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Acyrthosiphon pisum strain LSR1,acyrthosiphon pisum,7029,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Plectrocnemia,plectrocnemia,161769,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paramecium,paramecium,5884,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cacopsylla melanoneura isolate Cmel22_AO2,cacopsylla melanoneura,428564,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tettigades sp.,tettigades,1445914,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Raivuna sp.,raivuna,130535,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Quilessa sp.,quilessa,390119,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Vietanna sp.,vietanna,3090815,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Pitambara sp.,pitambara,3081122,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Miasa sp.,miasa,3446300,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paralasonia sp.,paralasonia,3446342,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Waltheria sp.,waltheria,93803,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Elaeagnus sp.,elaeagnus,36776,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paulownia,paulownia,39251,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phoenix,phoenix,4719,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Planchonia careya (Cocky Apple),planchonia careya,1382142,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Melaleuca sp.,melaleuca,164925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Melaleuca sp. (Weeping Teatree),melaleuca,164925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cleome sp.,cleome,25782,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+"Bemisia tabaci (Mediterranean species), strain QHC-VLC",bemisia tabaci,7038,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+"Petrasma pervernicosa (Kuroda, 1948)",petrasma pervernicosa,642806,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Calyptogena magnifica (giant clam),calyptogena magnifica,3122228,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sinoxylon,sinoxylon,295663,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Trogoxylon,trogoxylon,1552108,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Discomorpha sp.,discomorpha,111239,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Parachirida sp.,parachirida,111265,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cistudinella sp.,cistudinella,325183,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Agroiconota sp.,agroiconota,111206,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stolas sp.,stolas,111279,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sclerolinum sp.,sclerolinum,167798,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sebastiscus marmoratus (Rockfish),sebastiscus marmoratus,41446,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Vulpes,vulpes,9625,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+cockatiel,cockatiel,13180,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+guava,guava,120290,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pyrola,pyrola,13650,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Morelia viridis (Green Tree Python),morelia viridis,129333,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tulipa sp.,tulipa,13305,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Xylocopa virginica,xylocopa virginica,28638,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sapajus libidinosus,sapajus libidinosus,1126382,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+peacock,peacock,171585,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+common loon,common loon,37039,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+round goby,round goby,47308,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Skeletonema,skeletonema,2842,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Calamagrostis sp.,calamagrostis,15376,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Marah sp.,marah,48241,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Dianthus,dianthus,3569,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aglaonema sp.,aglaonema,174181,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stemonitis,stemonitis,137616,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+snakehead,snakehead,215402,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Morone chrysops x Morone saxatilis,morone chrysops x morone saxatilis,45352,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Channa sp. (snakehead),channa sp.,94222,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Koehlermetra sp.,koehlermetra,1320717,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Bambusa,bambusa,4581,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Jerusalem artichoke (Helianthus tuberosus L.),jerusalem artichoke,4233,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+barber pole worm,barber pole worm,6289,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Turnip,turnip,51350,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+lime,lime,159033,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Grampus griseus (risso's dolphin),grampus griseus,83653,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sterna trudeaui (snowy-crowned tern),sterna trudeaui,297827,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Quince,quince,36610,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pyracantha sp.,pyracantha,144561,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+ruddy shelduck,ruddy shelduck,45639,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Amaranthus cruentus (red amaranth),amaranthus cruentus,117272,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pagodroma nivea (snow petrel),pagodroma nivea,52126,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Calonectris sp.,calonectris,52121,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Proechimys sp,proechimys,10162,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Eastern Bongo,eastern bongo,2878564,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Nyctomys sp.,nyctomys,56226,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+grey heron,grey heron,30390,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Phalacrocorax sp.,phalacrocorax,9207,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Anthochaera sp.,anthochaera,266337,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Falco,falco,8952,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Eleutherodactylus johnstonei (whistling frog),eleutherodactylus johnstonei,350008,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+walrus,walrus,9707,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+panda,panda,212257,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Crotalus,crotalus,8728,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Caspian Tern,caspian tern,425641,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Podiceps sp.,podiceps,37049,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ocelot,ocelot,32538,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+lama,lama,9839,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Nasua nasua (South American Coati),nasua nasua,9651,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Striped owl (Asio clamator),striped owl,555335,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+muntjak,muntjak,9888,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cygnus,cygnus,8867,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cephalophus,cephalophus,9954,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+bontebok,bontebok,37171,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+gerenuk,gerenuk,69311,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Starling,starling,9172,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Mastacembelus,mastacembelus,94234,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Coturnix sp.,coturnix,9090,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Jaguar,jaguar,9690,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Notomys,notomys,184395,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Holothuria edulis (sea cucumber),holothuria edulis,206668,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+muskrat,muskrat,10060,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+forsythia,forsythia,55182,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sylvilagus,sylvilagus,9987,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Uroteuthis (Photololigo) edulis,uroteuthis edulis,55720,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cheilosporum sp.,cheilosporum,48612,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Columba,columba,8931,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+bharal,bharal,59542,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Dipsosaurus dorsalis (desert iguana),dipsosaurus dorsalis,51217,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+black mangrove,black mangrove,41378,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Puccinellia,puccinellia,13648,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+beluga whale,beluga whale,9749,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Alnus,alnus,3515,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+coypu,coypu,10157,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Psittacus,psittacus,13239,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Psammochloa,psammochloa,375998,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Fennec,fennec,68732,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Neotropic Cormorant,neotropic cormorant,37046,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Acaciella,acaciella,468125,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cynopterus,cynopterus,9399,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Camellia,camellia,4441,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Heterocephalus glaber (naked mole rat),heterocephalus glaber,10181,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Chinchilla,chinchilla,10151,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+swordfish,swordfish,8245,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Scarlet Tanager,scarlet tanager,62086,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tamias sp.,tamias,13712,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Common Tern,common tern,108405,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Chrysothamnus sp.,chrysothamnus,71038,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Chauliognathus,chauliognathus,194351,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Caragana sp.,caragana,20483,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Melolobium sp.,melolobium,76402,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+timber rattlesnake,timber rattlesnake,35024,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Antilope,antilope,59524,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ulmus,ulmus,24735,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stereocaulon,stereocaulon,50938,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Hydra,hydra,6083,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Epichloe,epichloe,5112,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Scopalina,scopalina,85794,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Biemna sp.,biemna,344323,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+black tea,black tea,4442,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Vinca,vinca,60092,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Linnemannia gamsii strain:NVP60,linnemannia gamsii,64522,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Podila clonocystis strain:AM1000,podila clonocystis,979688,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Podila verticillata strain:TTC192,podila verticillata,78898,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Linnemannia gamsii strain:AD045,linnemannia gamsii,64522,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Podila epicladia strain:AD058,podila epicladia,979697,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Linnemannia elongata strain:AM980,linnemannia elongata,310910,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+European robin (Erithacus rubecula),european robin,37610,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Striped Bass,striped bass,34816,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Oryx sp.,oryx,9957,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+pipefish,pipefish,1095086,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+trumpetfish,trumpetfish,150449,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+python,python,37579,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Dasyatis americana (Southern stingray),dasyatis americana,2484686,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Phytophthora infestans (heat-killed),phytophthora infestans,4787,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Octopus,octopus,6643,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Odobenus sp.,odobenus,9706,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Galega,galega,47100,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Rosa,rosa,3764,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Daphnia cucullata (water flea),daphnia cucullata,42851,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Nocaracris sp.,nocaracris,1468425,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phaeoceros,phaeoceros,87755,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Azolla sp.,azolla,39630,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+sweet gum,sweet gum,4400,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Dendrobium,dendrobium,37818,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+oilseed rape,oilseed rape,3708,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+jackfruit,jackfruit,3489,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Taurocerus sp.,taurocerus,2709344,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Apterostigma,apterostigma,34696,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Guar,guar,3832,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+honeydew,honeydew,357961,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Verbena,verbena,22002,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mormidea sp.,mormidea,631403,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Leucaena,leucaena,3865,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+bluespotted cornetfish,bluespotted cornetfish,215343,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+"Zostera sp. (Coastal, Eelgrass )",zostera sp.,3237882,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+little owl,little owl,126797,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Konjac,konjac,78372,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Calla,calla,45006,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Dolichos,dolichos,3839,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ornithogalum,ornithogalum,51466,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lactuca,lactuca,4235,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Calathea,calathea,4622,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Delphinium,delphinium,46246,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Kale,kale,3713,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Hyacinthus sp.,hyacinthus,82024,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Zantedeschia sp. (colored calla lily),zantedeschia,69720,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+tapioca,tapioca,3983,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Raphanus,raphanus,3725,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cannabis,cannabis,3482,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+''Penicillium bilaiae,penicillium bilaiae,69765,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Trachurus japonicus,trachurus japonicus,83875,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+melanothamnus,melanothamnus,1917068,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Spatoglossum,spatoglossum,157006,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Padina,padina,157004,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+northern snakehead,northern snakehead,215402,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sapindus,sapindus,57654,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Microcosmus,microcosmus,341085,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Leptasterias sp.,leptasterias,43054,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tubulipora sp.,tubulipora,365324,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Hapalochlaena,hapalochlaena,61715,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Muricea sp.,muricea,44192,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Psammogorgia sp.,psammogorgia,1458683,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mnemiopsis,mnemiopsis,27922,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+falcons,falcons,8952,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Sesamum sp.,sesamum,4181,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paratetilla sp.,paratetilla,885877,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Myoxocephalus thompsonii (Deepwater Sculpin),myoxocephalus thompsonii,304292,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Hemp,hemp,1678924,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Pangasius,pangasius,8000,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Morchella,morchella,5193,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Vicia,vicia,3904,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lithobius,lithobius,7551,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+basil,basil,39350,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Hydra oligactis strain St.-Petersburg,hydra oligactis,6088,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+cocoyam,cocoyam,4460,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Peas,peas,3888,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cottus cognatus (slimy sculpin),cottus cognatus,147210,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Bluespot mullet (Valamugil seheli),bluespot mullet,1111465,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Mandevilla,mandevilla,52836,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phalaris,phalaris,15740,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Limonium sp.,limonium,46093,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Aesculus sp.,aesculus,43363,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lachnagrostis filiformis (Pacific bent grass),lachnagrostis filiformis,989471,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Sesbania,sesbania,3894,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gliricidia sp.,gliricidia,167660,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Apricot,apricot,36596,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Brachypodium,brachypodium,15367,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lavatera,lavatera,61659,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Salvia,salvia,21880,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Scabiosa,scabiosa,87007,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Anthemis,anthemis,99027,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Verbascum,verbascum,39257,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Amblyomma variegatum (cattle tick),amblyomma variegatum,34610,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Tadorna,tadorna,8888,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mytilus,mytilus,6548,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tsitsikamma,tsitsikamma,910370,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stercorarius,stercorarius,54057,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Mustela,mustela,9665,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Molothrus,molothrus,84832,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Didelphis,didelphis,9266,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ateles,ateles,9506,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Dorcopsis,dorcopsis,69267,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tragelaphus,tragelaphus,9944,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+tegu,tegu,8531,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Crocodylus,crocodylus,8500,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Anas,anas,8835,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Panthera sp.,panthera,9688,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Nycticorax,nycticorax,8900,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Emu,emu,8790,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+alligator,alligator,8495,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+ball python,ball python,51751,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Trichoglossus,trichoglossus,176048,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+bongo,bongo,69297,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Procyon sp.,procyon,9653,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+plaice,plaice,8262,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Didemnum,didemnum,107394,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ircinia sp.,ircinia,275431,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+garlic,garlic,4682,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Astragalus,astragalus,20400,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Haematopota sp. (horse fly parasite),haematopota,124311,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tabanus nigrovittatus (horsefly),tabanus nigrovittatus,692535,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cantharis,cantharis,41098,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+pawpaw,pawpaw,12953,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Lesser Yellowlegs,lesser yellowlegs,161739,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Diamond firetail (Stagonopleura guttata),diamond firetail,247740,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Meerkat,meerkat,37032,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Notomys alexis (Spinifex hopping mouse),notomys alexis,184396,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Barramundi,barramundi,8187,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cucurbita,cucurbita,3660,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Euherdmania,euherdmania,2795861,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Duckweed,duckweed,4469,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Botryocladia,botryocladia,38326,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Phragmites,phragmites,15745,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Gorgonia sp.,gorgonia,204383,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Polymastia,polymastia,283513,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Forcepia sp.,forcepia,1342706,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Stemona tuberosa (earthnut),stemona tuberosa,167572,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Daucus carota subsp. sativus (carrot),daucus carota subsp. sativus,79200,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Microhodotermes viator (southern harvester termite),microhodotermes viator,70922,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Helianthus microcephalus (DL),helianthus microcephalus,73298,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Caesalpinia,caesalpinia,53845,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tacca sp.,tacca,44981,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Rorippa sp.,rorippa,50495,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Alexandrium lusitanicum (non-axenic dinoflagellate),alexandrium lusitanicum,2938,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Leptocimex,leptocimex,1707219,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tedania,tedania,278975,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Testudo,testudo,86974,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Niviventer,niviventer,69082,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Cavia,cavia,10140,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+pearl gentian grouper,pearl gentian grouper,1074816,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Toxotes,toxotes,270536,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+fugu,fugu,31032,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Bunodactis sp. (Actiniaria),bunodactis,200526,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+pollack,pollack,185739,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Trachurus japonicus (Japanese horse mackerel),trachurus japonicus,83875,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Holocentrus sp.,holocentrus,94925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Tethya,tethya,34493,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Manilkara zapota (Sapodilla),manilkara zapota,3741,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Photinus,photinus,7053,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Nasonia vitripennis strain LabII,nasonia vitripennis,7425,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Nasonia vitripennis strain V12.1,nasonia vitripennis,7425,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Celsia sp.,celsia,39257,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+common ragweed (Ambrosia artemisiifolia),common ragweed,4212,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Cheiranthus,cheiranthus,65352,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+nectarine,nectarine,323851,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Watercress,watercress,65948,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Eruca sp.,eruca,19151,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Paeonia,paeonia,13625,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Clitoria sp.,clitoria,43365,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Grapefruit,grapefruit,37656,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+syngonium,syngonium,201273,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Xanthosoma,xanthosoma,15105,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Alangium sp.,alangium,16896,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Begonia,begonia,3681,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Caladium,caladium,174189,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Blepharis sp.,blepharis,210325,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ionidium sp.,ionidium,97457,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Heliotropium sp.,heliotropium,21621,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Matthiola sp.,matthiola,3723,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lavandula,lavandula,39169,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ambrosia,ambrosia,4211,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Myoporum sp.,myoporum,57115,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Vinca sp. (Periwinkle),vinca,60092,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Ochotona,ochotona,9977,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+Lepus,lepus,9980,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
+village weaver,village weaver,135448,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.

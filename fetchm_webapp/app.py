@@ -2577,6 +2577,18 @@ def load_external_standardization_rules() -> None:
         else:
             HOST_SYNONYMS[synonym] = (canonical, taxid)
 
+    for row in load_standardization_csv(STANDARDIZATION_DIR / "host_negative_rules.csv"):
+        synonym = normalize_standardization_lookup(row.get("synonym"))
+        decision = normalize_standardization_lookup(row.get("decision"))
+        if not synonym:
+            continue
+        if decision in {"missing", "absent"}:
+            STANDARDIZATION_MISSING_TOKENS.add(synonym)
+        elif decision in {"not_identifiable", "not identifiable"}:
+            HOST_NOT_IDENTIFIABLE_TOKENS.add(synonym)
+        elif decision in {"non_host_source", "non host source", "source"}:
+            NON_HOST_SOURCE_HINTS.add(synonym)
+
     for row in load_standardization_csv(STANDARDIZATION_DIR / "controlled_categories.csv"):
         synonym = normalize_standardization_lookup(row.get("synonym"))
         category = (row.get("category") or "").strip()

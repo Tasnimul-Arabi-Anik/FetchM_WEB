@@ -500,3 +500,20 @@ Date: 2026-04-28
   - `chicken` -> `Gallus gallus` / 9031, rank `species`, class `Aves`, order `Galliformes`.
   - `Botaurus` -> `Botaurus` / 110660, rank `genus`, class `Aves`, order `Pelecaniformes`, family `Ardeidae`, genus `Botaurus`.
   - `human stool` context recovery populates `Host_SD=Homo sapiens`, `Host_Anatomical_Site_SD=feces/stool`, and `Sample_Type_SD=feces/stool`.
+
+## AI-Reviewed Host Import
+
+Date: 2026-04-29
+
+- External AI review of `remaining_host_review_detailed.csv` added `ai_recommendation` and `ai_review_note` columns.
+- Imported only conservative decisions into permanent rule files:
+  - `approve_direct` and `approve_genus_level` -> `standardization/host_synonyms.csv`.
+  - `approve_blank` and `apply_only_if_host_empty` -> `standardization/host_negative_rules.csv`.
+  - `manual_review` and `do_not_apply` were intentionally not imported.
+- Imported rule counts:
+  - Positive host rules added: 571 unique values.
+  - Negative host/non-host/not-identifiable rules added: 168 unique values.
+- Safety checks after import:
+  - `Coffea`, `Bathyopsurus nybelini specimen AT50-02-018`, and `village weaver` map to Host_SD/TaxID.
+  - AI-rejected microbial value `Pseudomonas` remains `review_needed` instead of becoming a host mapping.
+  - Lab/person/source values such as `N. Ennis, Tisa lab UNH`, `Instituto de Productos Lacteos de Asturias (IPLA)-CSIC`, and `Morbier Cheese` are treated as non-host source values.
