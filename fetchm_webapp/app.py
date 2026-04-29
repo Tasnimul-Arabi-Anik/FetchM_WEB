@@ -2614,12 +2614,22 @@ def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> No
     destination = str(rule.get("destination") or "").strip()
     proposed_value = str(rule.get("proposed_value") or "").strip()
     ontology_id = str(rule.get("ontology_id") or "").strip()
+    method = str(rule.get("method") or "").strip().lower()
     confidence = str(rule.get("confidence") or "").strip().lower()
     normalized_value = normalize_standardization_lookup(rule.get("normalized_value") or rule.get("original_value"))
-    if not normalized_value or not destination or not proposed_value:
+    if not normalized_value or not destination:
         return
 
     if destination == "Host_SD":
+        if not proposed_value:
+            if method == "missing":
+                STANDARDIZATION_MISSING_TOKENS.add(normalized_value)
+            elif method == "non_host_source":
+                NON_HOST_SOURCE_HINTS.add(normalized_value)
+            elif method == "not_identifiable":
+                HOST_NOT_IDENTIFIABLE_TOKENS.add(normalized_value)
+            clear_standardization_runtime_caches()
+            return
         if not ontology_id:
             return
         target = HOST_SYNONYMS if confidence == "high" else HOST_BROAD_SYNONYMS
@@ -6617,7 +6627,13 @@ def save_approved_standardization_rule(
     approved_by: str,
 ) -> None:
     normalized_value = normalize_standardization_lookup(original_value)
-    if not source_column or not normalized_value or not destination or not proposed_value:
+    method = method.strip()
+    empty_host_rule = (
+        destination == "Host_SD"
+        and proposed_value == ""
+        and method in {"missing", "non_host_source", "not_identifiable"}
+    )
+    if not source_column or not normalized_value or not destination or (not proposed_value and not empty_host_rule):
         raise ValueError("source column, original value, destination, and proposed value are required")
     db = get_db()
     approved_at = utc_now()
@@ -6665,6 +6681,7 @@ def save_approved_standardization_rule(
             "destination": destination,
             "proposed_value": proposed_value,
             "ontology_id": ontology_id,
+            "method": method,
             "confidence": confidence,
         }
     )
@@ -6860,6 +6877,197 @@ def visible_high_confidence_refinement_payloads(filters: Mapping[str, Any], limi
             if item.get("selectable") and item.get("confidence") == "high":
                 payloads.append(serialize_refinement_rule(item))
     return payloads
+
+
+HOST_CURATION_DECISIONS = {
+    "all",
+    "non_host_source",
+    "missing",
+    "taxonomy_candidate",
+    "broad_host",
+    "ambiguous",
+}
+
+
+def host_curation_source_path() -> Path | None:
+    candidates = [
+        DATA_DIR / "host_manual_review_suggestions.csv",
+        STANDARDIZATION_DIR / "host_manual_review_suggestions.csv",
+        BASE_DIR / "standardization" / "host_manual_review_suggestions.csv",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+    return None
+
+
+def host_curation_read_rows() -> list[dict[str, Any]]:
+    source_path = host_curation_source_path()
+    if source_path is None:
+        return []
+    rows: list[dict[str, Any]] = []
+    with source_path.open(newline="", encoding="utf-8") as handle:
+        reader = csv.DictReader(handle)
+        for raw in reader:
+            raw_host = (raw.get("raw_host") or raw.get("host") or raw.get("value") or "").strip()
+            if not raw_host:
+                continue
+            decision = normalize_standardization_lookup(raw.get("decision") or raw.get("review_decision") or "ambiguous")
+            if decision in {"review_needed", "needs_review", "manual_review", "unmapped"}:
+                decision = "ambiguous"
+            if decision not in HOST_CURATION_DECISIONS:
+                decision = "ambiguous"
+            count = parse_optional_int(raw.get("count") or raw.get("total_rows") or raw.get("affected_rows")) or 0
+            proposed_host = (
+                raw.get("proposed_host")
+                or raw.get("proposed_host_sd")
+                or raw.get("host_standardized")
+                or ""
+            ).strip()
+            taxid = (raw.get("taxid") or raw.get("proposed_taxid") or raw.get("ontology_id") or "").strip()
+            confidence = (raw.get("confidence") or ("medium" if decision == "broad_host" else "none")).strip().lower()
+            note = (raw.get("note") or raw.get("review_note") or "").strip()
+            approved_rule = approved_refinement_rule(get_db(), "Host", raw_host, "Host_SD")
+            rows.append(
+                {
+                    "raw_host": raw_host,
+                    "count": count,
+                    "decision": decision,
+                    "proposed_host": proposed_host,
+                    "taxid": taxid,
+                    "confidence": confidence,
+                    "note": note,
+                    "is_approved": approved_rule is not None,
+                    "approved_by": approved_rule["approved_by"] if approved_rule else "",
+                    "approved_at": approved_rule["approved_at"] if approved_rule else "",
+                }
+            )
+    rows.sort(key=lambda item: (-int(item.get("count") or 0), str(item.get("raw_host") or "").lower()))
+    return rows
+
+
+def host_curation_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
+    decision = normalize_standardization_lookup(values.get("decision") or "all")
+    status = normalize_standardization_lookup(values.get("status") or "unapproved")
+    query = str(values.get("q") or "").strip()
+    limit = parse_optional_int(values.get("limit")) or 200
+    return {
+        "decision": decision if decision in HOST_CURATION_DECISIONS else "all",
+        "status": status if status in {"all", "approved", "unapproved"} else "unapproved",
+        "q": query,
+        "limit": max(25, min(limit, 2000)),
+    }
+
+
+def host_curation_row_visible(row: Mapping[str, Any], filters: Mapping[str, Any]) -> bool:
+    if filters["decision"] != "all" and row.get("decision") != filters["decision"]:
+        return False
+    if filters["status"] == "approved" and not row.get("is_approved"):
+        return False
+    if filters["status"] == "unapproved" and row.get("is_approved"):
+        return False
+    query = str(filters.get("q") or "").lower()
+    if query and query not in str(row.get("raw_host") or "").lower() and query not in str(row.get("proposed_host") or "").lower():
+        return False
+    return True
+
+
+def build_host_curation_dashboard(filters: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    active_filters = host_curation_filters_from_mapping(filters or {})
+    all_rows = host_curation_read_rows()
+    summary = {
+        "total": len(all_rows),
+        "non_host_source": 0,
+        "missing": 0,
+        "taxonomy_candidate": 0,
+        "broad_host": 0,
+        "ambiguous": 0,
+        "approved": 0,
+        "visible": 0,
+    }
+    for row in all_rows:
+        decision = row.get("decision")
+        if decision in summary:
+            summary[decision] += 1
+        if row.get("is_approved"):
+            summary["approved"] += 1
+    visible_rows = [row for row in all_rows if host_curation_row_visible(row, active_filters)]
+    summary["visible"] = len(visible_rows)
+    return {
+        "source_path": str(host_curation_source_path() or ""),
+        "filters": active_filters,
+        "summary": summary,
+        "rows": visible_rows[: active_filters["limit"]],
+        "total_visible_before_limit": len(visible_rows),
+    }
+
+
+def save_host_curation_decision(row: Mapping[str, Any], action: str, approved_by: str) -> None:
+    raw_host = str(row.get("raw_host") or "").strip()
+    proposed_host = str(row.get("proposed_host") or "").strip()
+    taxid = str(row.get("taxid") or "").strip()
+    note = str(row.get("note") or "").strip()
+    if action == "exact":
+        if not proposed_host or not taxid:
+            raise ValueError("Exact host approval requires proposed host and taxid.")
+        save_approved_standardization_rule(
+            source_column="Host",
+            original_value=raw_host,
+            category="taxonomy_candidate",
+            destination="Host_SD",
+            proposed_value=proposed_host,
+            ontology_id=taxid,
+            method="manual_host_curation",
+            confidence="high",
+            note=note,
+            approved_by=approved_by,
+        )
+        return
+    if action == "broad":
+        if not proposed_host or not taxid:
+            raise ValueError("Broad host approval requires proposed host and taxid.")
+        save_approved_standardization_rule(
+            source_column="Host",
+            original_value=raw_host,
+            category="broad_host",
+            destination="Host_SD",
+            proposed_value=proposed_host,
+            ontology_id=taxid,
+            method="manual_broad_host_curation",
+            confidence="medium",
+            note=note,
+            approved_by=approved_by,
+        )
+        return
+    if action == "non_host_source":
+        save_approved_standardization_rule(
+            source_column="Host",
+            original_value=raw_host,
+            category="non_host_source",
+            destination="Host_SD",
+            proposed_value="",
+            ontology_id="",
+            method="non_host_source",
+            confidence="none",
+            note=note,
+            approved_by=approved_by,
+        )
+        return
+    if action == "missing":
+        save_approved_standardization_rule(
+            source_column="Host",
+            original_value=raw_host,
+            category="missing",
+            destination="Host_SD",
+            proposed_value="",
+            ontology_id="",
+            method="missing",
+            confidence="none",
+            note=note,
+            approved_by=approved_by,
+        )
+        return
+    raise ValueError("Unsupported host curation action.")
 
 
 def taxon_needs_host_refinement(species_id: int) -> bool:
@@ -12573,6 +12781,119 @@ def admin_refinement_export() -> Any:
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment; filename=fetchm_refinement_review.csv"},
     )
+
+
+@app.route("/admin/host-curation")
+def admin_host_curation() -> str:
+    require_admin()
+    dashboard = build_host_curation_dashboard(request.args)
+    return render_template(
+        "admin_host_curation.html",
+        host_curation=dashboard,
+        **admin_common_context("standardization"),
+    )
+
+
+@app.route("/admin/host-curation/approve", methods=["POST"])
+def admin_host_curation_approve() -> Any:
+    user = require_admin()
+    filters = host_curation_filters_from_mapping(request.form)
+    row = {
+        "raw_host": request.form.get("raw_host") or "",
+        "proposed_host": request.form.get("proposed_host") or "",
+        "taxid": request.form.get("taxid") or "",
+        "note": request.form.get("note") or "",
+    }
+    action = normalize_standardization_lookup(request.form.get("action") or "")
+    if action == "ignore":
+        flash("Host value left for later review.", "success")
+    else:
+        try:
+            save_host_curation_decision(row, action, str(user["username"]))
+        except ValueError as exc:
+            flash(str(exc), "error")
+        else:
+            flash("Host curation rule approved.", "success")
+            filters["status"] = "all"
+    return redirect(
+        url_for(
+            "admin_host_curation",
+            decision=filters["decision"],
+            status=filters["status"],
+            q=filters["q"],
+            limit=filters["limit"],
+        )
+    )
+
+
+@app.route("/admin/host-curation/bulk-approve", methods=["POST"])
+def admin_host_curation_bulk_approve() -> Any:
+    user = require_admin()
+    action = normalize_standardization_lookup(request.form.get("bulk_action") or "")
+    filters = host_curation_filters_from_mapping(request.form)
+    if action not in {"non_host_source", "missing"}:
+        flash("Bulk approval is only allowed for non-host source and missing decisions.", "error")
+        return redirect(
+            url_for(
+                "admin_host_curation",
+                decision=filters["decision"],
+                status=filters["status"],
+                q=filters["q"],
+                limit=filters["limit"],
+            )
+        )
+    dashboard = build_host_curation_dashboard({**filters, "decision": action, "status": "unapproved"})
+    approved = 0
+    failed = 0
+    for row in dashboard["rows"]:
+        if row.get("decision") != action:
+            continue
+        try:
+            save_host_curation_decision(row, action, str(user["username"]))
+        except ValueError:
+            failed += 1
+            continue
+        approved += 1
+    flash(
+        f"Bulk approved {approved} {action.replace('_', ' ')} host rules. Failed {failed}.",
+        "success" if failed == 0 else "error",
+    )
+    return redirect(url_for("admin_host_curation", decision=action, status="all", limit=filters["limit"]))
+
+
+@app.route("/admin/host-curation/export.csv")
+def admin_host_curation_export() -> Any:
+    require_admin()
+    filters = host_curation_filters_from_mapping(request.args)
+    dashboard = build_host_curation_dashboard(filters)
+    output = StringIO()
+    fieldnames = ["raw_host", "count", "decision", "proposed_host", "taxid", "confidence", "note", "is_approved"]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for row in dashboard["rows"]:
+        writer.writerow(row)
+    label = filters["decision"] if filters["decision"] != "all" else "host_curation"
+    return app.response_class(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={label}_review.csv"},
+    )
+
+
+@app.route("/admin/host-curation/apply", methods=["POST"])
+def admin_host_curation_apply() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is not None:
+        limit = max(1, min(limit, 10000))
+    rank_scope = request.form.get("rank_scope") or "genus"
+    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope=rank_scope)
+    flash(
+        f"Queued standardization refresh after host curation ({summary['rank_scope']}): "
+        f"{summary['queued']} taxa queued, {summary['running']} already running, {summary['skipped']} skipped.",
+        "success",
+    )
+    return redirect(url_for("admin_host_curation"))
 
 
 @app.route("/admin/jobs")

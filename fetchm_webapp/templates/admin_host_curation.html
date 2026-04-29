@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .curation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .curation-actions form {
+    margin: 0;
+  }
+  .curation-actions button {
+    padding: 7px 10px;
+    white-space: nowrap;
+  }
+  .curation-actions .danger-action {
+    border-color: #d97706;
+    color: #92400e;
+  }
+  .standardization-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .standardization-tabs a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 12px;
+    text-decoration: none;
+  }
+  .standardization-tabs a.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+</style>
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin · Standardization</p>
+      <h1>Host Curation</h1>
+      <p class="lede">Review unresolved host values, approve conservative host rules, and keep ambiguous rows out of automatic standardization.</p>
+      <div class="standardization-tabs">
+        <a href="{{ url_for('admin_refinement') }}">General refinement</a>
+        <a href="{{ url_for('admin_host_curation') }}" class="active">Host curation</a>
+      </div>
+    </div>
+    <div class="status-box">
+      <span class="status running">manual control</span>
+      <div class="job-meta">{{ host_curation.summary.total }} unresolved values</div>
+      <div class="job-meta">{{ host_curation.summary.visible }} visible</div>
+      <div class="job-meta">{{ host_curation.summary.approved }} approved</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Review Source</h2>
+        {% if host_curation.source_path %}
+          <p class="muted"><code>{{ host_curation.source_path }}</code></p>
+        {% else %}
+          <p class="muted">No <code>host_manual_review_suggestions.csv</code> file was found in the app data or standardization directory.</p>
+        {% endif %}
+      </div>
+      <div class="action-row">
+        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='taxonomy_candidate', status='unapproved', limit=host_curation.filters.limit) }}">Export taxonomy candidates</a>
+        <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision='ambiguous', status='unapproved', limit=host_curation.filters.limit) }}">Export ambiguous review</a>
+      </div>
+    </div>
+
+    <div class="metrics-grid top-gap">
+      <div class="metric-card"><strong>{{ host_curation.summary.total }}</strong><span>Total unresolved host values</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.non_host_source }}</strong><span>Non-host source</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.missing }}</strong><span>Missing</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.taxonomy_candidate }}</strong><span>Taxonomy candidates</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.broad_host }}</strong><span>Broad host</span></div>
+      <div class="metric-card"><strong>{{ host_curation.summary.ambiguous }}</strong><span>Ambiguous</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Controls</h2>
+        <p class="muted">Exact host approval requires a proposed host and TaxID. Bulk approval is restricted to missing and non-host source decisions.</p>
+      </div>
+    </div>
+    <div class="action-row top-gap">
+      <form method="get" action="{{ url_for('admin_host_curation') }}" class="inline-form">
+        <label>
+          <span>Decision</span>
+          <select name="decision">
+            {% for option in ['all', 'non_host_source', 'missing', 'taxonomy_candidate', 'broad_host', 'ambiguous'] %}
+              <option value="{{ option }}" {% if host_curation.filters.decision == option %}selected{% endif %}>{{ option.replace('_', ' ') }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Status</span>
+          <select name="status">
+            {% for option in ['unapproved', 'all', 'approved'] %}
+              <option value="{{ option }}" {% if host_curation.filters.status == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Search</span>
+          <input type="search" name="q" value="{{ host_curation.filters.q }}" placeholder="raw or proposed host">
+        </label>
+        <label>
+          <span>Limit</span>
+          <input type="number" name="limit" min="25" max="2000" value="{{ host_curation.filters.limit }}">
+        </label>
+        <button type="submit" class="ghost">Update</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_host_curation_bulk_approve') }}" class="inline-form">
+        <input type="hidden" name="limit" value="{{ host_curation.filters.limit }}">
+        <button type="submit" name="bulk_action" value="non_host_source" class="ghost">Bulk approve non-host source</button>
+        <button type="submit" name="bulk_action" value="missing" class="ghost">Bulk approve missing</button>
+      </form>
+      <form method="post" action="{{ url_for('admin_host_curation_apply') }}" class="inline-form">
+        <input type="hidden" name="rank_scope" value="genus">
+        <input type="hidden" name="limit" value="">
+        <button type="submit" class="button-like">Apply approved host rules</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Host Review Table</h2>
+        <p class="muted">Showing {{ host_curation.rows|length }} of {{ host_curation.total_visible_before_limit }} visible rows.</p>
+      </div>
+      <a class="button-like ghost" href="{{ url_for('admin_host_curation_export', decision=host_curation.filters.decision, status=host_curation.filters.status, q=host_curation.filters.q, limit=host_curation.filters.limit) }}">Export current view</a>
+    </div>
+    <div class="table-scroll top-gap">
+      <table>
+        <thead>
+          <tr>
+            <th>raw_host</th>
+            <th>affected rows</th>
+            <th>suggested decision</th>
+            <th>proposed host</th>
+            <th>taxid</th>
+            <th>confidence</th>
+            <th>note</th>
+            <th>actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in host_curation.rows %}
+            <tr>
+              <td>{{ row.raw_host }}</td>
+              <td>{{ row.count }}</td>
+              <td>{{ row.decision.replace('_', ' ') }}</td>
+              <td>{{ row.proposed_host }}</td>
+              <td>{{ row.taxid }}</td>
+              <td>{{ row.confidence }}</td>
+              <td>{{ row.note }}</td>
+              <td>
+                {% if row.is_approved %}
+                  <span class="status completed">approved</span>
+                  {% if row.approved_by %}<div class="job-meta">{{ row.approved_by }}</div>{% endif %}
+                {% else %}
+                  <div class="curation-actions">
+                    {% for action, label in [
+                      ('exact', 'Approve exact host'),
+                      ('broad', 'Approve broad host'),
+                      ('non_host_source', 'Mark non-host source'),
+                      ('missing', 'Mark missing'),
+                      ('ignore', 'Ignore')
+                    ] %}
+                      <form method="post" action="{{ url_for('admin_host_curation_approve') }}">
+                        <input type="hidden" name="decision" value="{{ host_curation.filters.decision }}">
+                        <input type="hidden" name="status" value="{{ host_curation.filters.status }}">
+                        <input type="hidden" name="q" value="{{ host_curation.filters.q }}">
+                        <input type="hidden" name="limit" value="{{ host_curation.filters.limit }}">
+                        <input type="hidden" name="raw_host" value="{{ row.raw_host }}">
+                        <input type="hidden" name="proposed_host" value="{{ row.proposed_host }}">
+                        <input type="hidden" name="taxid" value="{{ row.taxid }}">
+                        <input type="hidden" name="note" value="{{ row.note }}">
+                        <button type="submit" name="action" value="{{ action }}" class="ghost {% if action in ['non_host_source', 'missing'] %}danger-action{% endif %}">{{ label }}</button>
+                      </form>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr>
+              <td colspan="8" class="muted">No rows match the current filters.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}
