@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .standardization-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .standardization-tabs a {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 8px 12px;
+    text-decoration: none;
+  }
+  .standardization-tabs a.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+</style>
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin · Standardization</p>
+      <h1>Geography Curation</h1>
+      <p class="lede">Review country recovery candidates and confirm continent/subcontinent integrity after active geography rules.</p>
+      <div class="standardization-tabs">
+        <a href="{{ url_for('admin_refinement') }}">General refinement</a>
+        <a href="{{ url_for('admin_host_curation') }}">Host curation</a>
+        <a href="{{ url_for('admin_geography_curation') }}" class="active">Geography</a>
+        <a href="{{ url_for('admin_collection_date_curation') }}">Collection date</a>
+      </div>
+    </div>
+    <div class="status-box">
+      <span class="status running">current audit</span>
+      <div class="job-meta">{{ geography_curation.summary.pending_total }} pending candidates</div>
+      <div class="job-meta">{{ geography_curation.summary.country_present_and_mapped }} mapped rows</div>
+      <div class="job-meta">{{ geography_curation.summary.country_missing_or_unmapped }} missing/unmapped rows</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Geography Audit</h2>
+        <p class="muted"><code>{{ geography_curation.source_path }}</code></p>
+      </div>
+      <div class="action-row">
+        <a class="button-like ghost" href="{{ url_for('admin_geography_curation_export', status=geography_curation.filters.status, limit=geography_curation.filters.limit) }}">Export current view</a>
+        <form method="post" action="{{ url_for('admin_geography_curation_apply') }}" class="inline-form">
+          <button type="submit" class="button-like">Apply approved geography rules</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="metrics-grid top-gap">
+      <div class="metric-card"><strong>{{ geography_curation.summary.rows_scanned }}</strong><span>Rows scanned</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.country_present_and_mapped }}</strong><span>Country mapped rows</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.country_missing_or_unmapped }}</strong><span>Country missing/unmapped rows</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.recoverable_total }}</strong><span>Recoverable candidates</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.pending_total }}</strong><span>Pending candidates</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.resolved_total }}</strong><span>Already resolved candidates</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.raw_country_values }}</strong><span>Raw country values</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.resolved_raw_values }}</strong><span>Recognized raw values</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.missing_raw_values }}</strong><span>Missing raw values</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.unresolved_raw_values }}</strong><span>Unresolved raw values</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.continent_mismatches }}</strong><span>Continent mismatches</span></div>
+      <div class="metric-card"><strong>{{ geography_curation.summary.subcontinent_mismatches }}</strong><span>Subcontinent mismatches</span></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div>
+        <h2>Country Recovery Candidates</h2>
+        <p class="muted">Showing {{ geography_curation.rows|length }} of {{ geography_curation.total_visible_before_limit }} candidates.</p>
+      </div>
+      <form method="get" action="{{ url_for('admin_geography_curation') }}" class="inline-form">
+        <label>
+          <span>Status</span>
+          <select name="status">
+            {% for option in ['pending', 'all', 'resolved'] %}
+              <option value="{{ option }}" {% if geography_curation.filters.status == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Limit</span>
+          <input type="number" name="limit" min="25" max="2000" value="{{ geography_curation.filters.limit }}">
+        </label>
+        <button type="submit" class="ghost">Update</button>
+      </form>
+    </div>
+
+    <div class="table-scroll top-gap">
+      <table>
+        <thead>
+          <tr>
+            <th>Rows</th>
+            <th>Source column</th>
+            <th>Evidence</th>
+            <th>Suggested country</th>
+            <th>Live country</th>
+            <th>Status</th>
+            <th>Note</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in geography_curation.rows %}
+            <tr>
+              <td>{{ row.count }}</td>
+              <td>{{ row.source_column }}</td>
+              <td>{{ row.source_value }}</td>
+              <td>{{ row.suggested_value }}</td>
+              <td>{{ row.live_value }}</td>
+              <td>{{ row.status }}</td>
+              <td>{{ row.note }}</td>
+              <td>
+                {% if row.status == 'pending' %}
+                  <form method="post" action="{{ url_for('admin_geography_curation_approve') }}" class="inline-form">
+                    <input type="hidden" name="source_value" value="{{ row.source_value }}">
+                    <input type="hidden" name="suggested_value" value="{{ row.suggested_value }}">
+                    <input type="hidden" name="note" value="{{ row.note }}">
+                    <input type="hidden" name="status" value="{{ geography_curation.filters.status }}">
+                    <button type="submit" class="ghost">Approve</button>
+                  </form>
+                {% else %}
+                  <span class="status completed">resolved</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="8" class="muted">No geography candidates match the current filters.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

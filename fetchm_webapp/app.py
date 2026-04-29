@@ -3659,15 +3659,15 @@ def reviewed_collection_year(value: Any) -> str | None:
 
 
 def load_reviewed_collection_date_rules() -> None:
-    path = STANDARDIZATION_DIR / "collection_date_reviewed_rules.csv"
-    if not path.exists():
-        return
     current_year = datetime.now(timezone.utc).year
-    for row in load_standardization_csv(path):
-        source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
-        year = str(row.get("year") or "").strip()
-        if source_value and re.fullmatch(r"(?:19|20)\d{2}", year) and 1900 <= int(year) <= current_year:
-            REVIEWED_COLLECTION_DATE_VALUES[source_value] = year
+    for path in [STANDARDIZATION_DIR / "collection_date_reviewed_rules.csv", DATA_DIR / "collection_date_reviewed_rules.csv"]:
+        if not path.exists():
+            continue
+        for row in load_standardization_csv(path):
+            source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
+            year = str(row.get("year") or "").strip()
+            if source_value and re.fullmatch(r"(?:19|20)\d{2}", year) and 1900 <= int(year) <= current_year:
+                REVIEWED_COLLECTION_DATE_VALUES[source_value] = year
 
 
 load_reviewed_collection_date_rules()
@@ -3812,14 +3812,14 @@ REVIEWED_SECONDARY_GEO_VALUES = {
 
 
 def load_reviewed_secondary_geo_rules() -> None:
-    path = STANDARDIZATION_DIR / "geography_reviewed_rules.csv"
-    if not path.exists():
-        return
-    for row in load_standardization_csv(path):
-        source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
-        country = str(row.get("country") or "").strip()
-        if source_value and country in COUNTRY_MAPPING:
-            REVIEWED_SECONDARY_GEO_VALUES[source_value] = country
+    for path in [STANDARDIZATION_DIR / "geography_reviewed_rules.csv", DATA_DIR / "geography_reviewed_rules.csv"]:
+        if not path.exists():
+            continue
+        for row in load_standardization_csv(path):
+            source_value = re.sub(r"\s+", " ", str(row.get("source_value") or "")).strip().lower()
+            country = str(row.get("country") or "").strip()
+            if source_value and country in COUNTRY_MAPPING:
+                REVIEWED_SECONDARY_GEO_VALUES[source_value] = country
 
 
 load_reviewed_secondary_geo_rules()
@@ -7264,6 +7264,231 @@ def save_host_curation_decision(row: Mapping[str, Any], action: str, approved_by
         )
         return
     raise ValueError("Unsupported host curation action.")
+
+
+def read_csv_dicts(path: Path) -> list[dict[str, str]]:
+    if not path.exists():
+        return []
+    with path.open(newline="", encoding="utf-8") as handle:
+        return [dict(row) for row in csv.DictReader(handle)]
+
+
+def read_metric_csv(path: Path) -> dict[str, int]:
+    metrics: dict[str, int] = {}
+    for row in read_csv_dicts(path):
+        key = str(row.get("metric") or "").strip()
+        value = parse_optional_int(row.get("value")) or 0
+        if key:
+            metrics[key] = value
+    return metrics
+
+
+def append_review_rule(path: Path, fieldnames: list[str], row: Mapping[str, str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    exists = path.exists() and path.stat().st_size > 0
+    with path.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
+        if not exists:
+            writer.writeheader()
+        writer.writerow({field: row.get(field, "") for field in fieldnames})
+
+
+def geography_review_dir() -> Path:
+    return DATA_DIR / "geography_review"
+
+
+def collection_date_review_dir() -> Path:
+    return DATA_DIR / "collection_date_review"
+
+
+def geography_curation_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    review_files = [
+        geography_review_dir() / "country_missing_recoverable_primary.csv",
+        geography_review_dir() / "country_missing_recoverable_other_columns.csv",
+        geography_review_dir() / "geography_secondary_review_queue.csv",
+    ]
+    for path in review_files:
+        for row in read_csv_dicts(path):
+            source_value = str(row.get("example_value") or "").strip()
+            suggested_country = str(row.get("suggested_country") or "").strip()
+            if not source_value or not suggested_country:
+                continue
+            key = (source_value.lower(), suggested_country)
+            if key in seen:
+                continue
+            seen.add(key)
+            live_country = reviewed_secondary_geo_country(source_value) or normalize_country_candidate(source_value)
+            status = "resolved" if live_country == suggested_country else "pending"
+            rows.append(
+                {
+                    "count": parse_optional_int(row.get("count")) or 0,
+                    "source_column": str(row.get("source_column") or "").strip(),
+                    "source_value": source_value,
+                    "suggested_value": suggested_country,
+                    "live_value": live_country or "",
+                    "status": status,
+                    "decision": "recoverable_country",
+                    "note": str(row.get("review_note") or "").strip(),
+                }
+            )
+    rows.sort(key=lambda item: (-int(item.get("count") or 0), str(item.get("source_value") or "").lower()))
+    return rows
+
+
+def build_geography_curation_dashboard(filters: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    filters = filters or {}
+    status = normalize_standardization_lookup(filters.get("status") or "pending")
+    if status not in {"pending", "all", "resolved"}:
+        status = "pending"
+    limit = max(25, min(parse_optional_int(filters.get("limit")) or 200, 2000))
+    metrics = read_metric_csv(geography_review_dir() / "geography_audit_summary.csv")
+    raw_rows = read_csv_dicts(geography_review_dir() / "country_raw_values.csv")
+    rows = geography_curation_rows()
+    visible_rows = [row for row in rows if status == "all" or row["status"] == status]
+    missing_raw = 0
+    resolved_raw = 0
+    unresolved_raw = 0
+    raw_represented_rows = 0
+    for row in raw_rows:
+        count = parse_optional_int(row.get("count")) or 0
+        raw_represented_rows += count
+        raw_country = row.get("raw_country")
+        if metadata_value_is_missing(raw_country):
+            missing_raw += 1
+        elif normalize_country_candidate(raw_country):
+            resolved_raw += 1
+        else:
+            unresolved_raw += 1
+    pending_rows = [row for row in rows if row["status"] == "pending"]
+    resolved_rows = [row for row in rows if row["status"] == "resolved"]
+    return {
+        "filters": {"status": status, "limit": limit},
+        "source_path": str(geography_review_dir()),
+        "summary": {
+            "files_scanned": metrics.get("files_scanned", 0),
+            "rows_scanned": metrics.get("rows_scanned", 0),
+            "country_present_and_mapped": metrics.get("country_present_and_mapped", 0),
+            "country_missing_or_unmapped": metrics.get("country_missing_or_unmapped", 0),
+            "recoverable_total": len(rows),
+            "pending_total": len(pending_rows),
+            "resolved_total": len(resolved_rows),
+            "pending_rows_represented": sum(int(row.get("count") or 0) for row in pending_rows),
+            "raw_country_values": len(raw_rows),
+            "raw_country_rows": raw_represented_rows,
+            "resolved_raw_values": resolved_raw,
+            "missing_raw_values": missing_raw,
+            "unresolved_raw_values": unresolved_raw,
+            "continent_mismatches": metrics.get("continent_mismatch_when_country_known", 0),
+            "subcontinent_mismatches": metrics.get("subcontinent_mismatch_when_country_known", 0),
+        },
+        "rows": visible_rows[:limit],
+        "total_visible_before_limit": len(visible_rows),
+    }
+
+
+def collection_date_curation_rows() -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    review_files = [
+        collection_date_review_dir() / "collection_date_recoverable_primary.csv",
+        collection_date_review_dir() / "collection_date_recoverable_secondary.csv",
+        collection_date_review_dir() / "collection_date_secondary_review_queue.csv",
+    ]
+    for path in review_files:
+        for row in read_csv_dicts(path):
+            source_value = str(row.get("example_value") or "").strip()
+            suggested_year = str(row.get("suggested_year") or "").strip()
+            if not source_value or not suggested_year:
+                continue
+            key = (source_value.lower(), suggested_year)
+            if key in seen:
+                continue
+            seen.add(key)
+            live = reviewed_collection_year(source_value) or standardize_collection_year_value(source_value)
+            status = "resolved" if live == suggested_year else "pending"
+            rows.append(
+                {
+                    "count": parse_optional_int(row.get("count")) or 0,
+                    "source_column": str(row.get("source_column") or "").strip(),
+                    "source_value": source_value,
+                    "suggested_value": suggested_year,
+                    "live_value": live or "",
+                    "status": status,
+                    "decision": "recoverable_year",
+                    "note": str(row.get("review_note") or row.get("recovery_status") or "").strip(),
+                }
+            )
+    rows.sort(key=lambda item: (-int(item.get("count") or 0), str(item.get("source_value") or "").lower()))
+    return rows
+
+
+def build_collection_date_curation_dashboard(filters: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    filters = filters or {}
+    status = normalize_standardization_lookup(filters.get("status") or "pending")
+    if status not in {"pending", "all", "resolved"}:
+        status = "pending"
+    limit = max(25, min(parse_optional_int(filters.get("limit")) or 200, 2000))
+    metrics = read_metric_csv(collection_date_review_dir() / "collection_date_audit_summary.csv")
+    comprehensive_rows = read_csv_dicts(DATA_DIR / "collection_date_comprehensive_review.csv")
+    review_rows = collection_date_curation_rows()
+    visible_rows = [row for row in review_rows if status == "all" or row["status"] == status]
+    status_counts: dict[str, int] = {}
+    status_rows: dict[str, int] = {}
+    for row in comprehensive_rows:
+        review_status = str(row.get("review_status") or "unknown").strip() or "unknown"
+        count = parse_optional_int(row.get("count")) or 0
+        status_counts[review_status] = status_counts.get(review_status, 0) + 1
+        status_rows[review_status] = status_rows.get(review_status, 0) + count
+    pending_rows = [row for row in review_rows if row["status"] == "pending"]
+    resolved_rows = [row for row in review_rows if row["status"] == "resolved"]
+    return {
+        "filters": {"status": status, "limit": limit},
+        "source_path": str(collection_date_review_dir()),
+        "summary": {
+            "files_scanned": metrics.get("files_scanned", 0),
+            "rows_scanned": metrics.get("rows_scanned", 0),
+            "collection_date_present_and_mapped": metrics.get("collection_date_present_and_mapped", 0),
+            "collection_date_missing_or_unmapped": metrics.get("collection_date_missing_or_unmapped", 0),
+            "recoverable_total": len(review_rows),
+            "pending_total": len(pending_rows),
+            "resolved_total": len(resolved_rows),
+            "pending_rows_represented": sum(int(row.get("count") or 0) for row in pending_rows),
+            "raw_values": len(comprehensive_rows),
+            "standardized_values": status_counts.get("standardized", 0),
+            "standardized_rows": status_rows.get("standardized", 0),
+            "missing_values": status_counts.get("missing", 0),
+            "missing_rows": status_rows.get("missing", 0),
+            "review_status_counts": status_counts,
+            "review_status_rows": status_rows,
+        },
+        "rows": visible_rows[:limit],
+        "total_visible_before_limit": len(visible_rows),
+    }
+
+
+def save_geography_curation_rule(source_value: str, country: str, note: str) -> None:
+    if not source_value.strip() or country not in COUNTRY_MAPPING:
+        raise ValueError("Geography approval requires source value and a recognized country.")
+    append_review_rule(
+        DATA_DIR / "geography_reviewed_rules.csv",
+        ["source_value", "country", "note"],
+        {"source_value": source_value.strip(), "country": country.strip(), "note": note.strip()},
+    )
+    REVIEWED_SECONDARY_GEO_VALUES[re.sub(r"\s+", " ", source_value).strip().lower()] = country.strip()
+
+
+def save_collection_date_curation_rule(source_value: str, year: str, note: str) -> None:
+    current_year = datetime.now(timezone.utc).year
+    if not source_value.strip() or not re.fullmatch(r"(?:19|20)\d{2}", year) or not (1900 <= int(year) <= current_year):
+        raise ValueError("Collection date approval requires source value and a valid year.")
+    append_review_rule(
+        DATA_DIR / "collection_date_reviewed_rules.csv",
+        ["source_value", "year", "note"],
+        {"source_value": source_value.strip(), "year": year.strip(), "note": note.strip()},
+    )
+    REVIEWED_COLLECTION_DATE_VALUES[re.sub(r"\s+", " ", source_value).strip().lower()] = year.strip()
 
 
 def taxon_needs_host_refinement(species_id: int) -> bool:
@@ -13090,6 +13315,122 @@ def admin_host_curation_apply() -> Any:
         "success",
     )
     return redirect(url_for("admin_host_curation"))
+
+
+@app.route("/admin/geography-curation")
+def admin_geography_curation() -> str:
+    require_admin()
+    return render_template(
+        "admin_geography_curation.html",
+        geography_curation=build_geography_curation_dashboard(request.args),
+        **admin_common_context("standardization"),
+    )
+
+
+@app.route("/admin/geography-curation/approve", methods=["POST"])
+def admin_geography_curation_approve() -> Any:
+    require_admin()
+    try:
+        save_geography_curation_rule(
+            request.form.get("source_value") or "",
+            request.form.get("suggested_value") or "",
+            request.form.get("note") or "Reviewed from admin geography curation.",
+        )
+    except ValueError as exc:
+        flash(str(exc), "error")
+    else:
+        flash("Geography curation rule approved.", "success")
+    return redirect(url_for("admin_geography_curation", status=request.form.get("status") or "pending"))
+
+
+@app.route("/admin/geography-curation/export.csv")
+def admin_geography_curation_export() -> Any:
+    require_admin()
+    dashboard = build_geography_curation_dashboard(request.args)
+    output = StringIO()
+    fieldnames = ["count", "source_column", "source_value", "suggested_value", "live_value", "status", "decision", "note"]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for row in dashboard["rows"]:
+        writer.writerow(row)
+    return app.response_class(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=geography_curation_review.csv"},
+    )
+
+
+@app.route("/admin/geography-curation/apply", methods=["POST"])
+def admin_geography_curation_apply() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is not None:
+        limit = max(1, min(limit, 10000))
+    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope="genus")
+    flash(
+        f"Queued geography-aware standardization refresh: {summary['queued']} taxa queued, "
+        f"{summary['running']} already running, {summary['skipped']} skipped.",
+        "success",
+    )
+    return redirect(url_for("admin_geography_curation"))
+
+
+@app.route("/admin/collection-date-curation")
+def admin_collection_date_curation() -> str:
+    require_admin()
+    return render_template(
+        "admin_collection_date_curation.html",
+        collection_date_curation=build_collection_date_curation_dashboard(request.args),
+        **admin_common_context("standardization"),
+    )
+
+
+@app.route("/admin/collection-date-curation/approve", methods=["POST"])
+def admin_collection_date_curation_approve() -> Any:
+    require_admin()
+    try:
+        save_collection_date_curation_rule(
+            request.form.get("source_value") or "",
+            request.form.get("suggested_value") or "",
+            request.form.get("note") or "Reviewed from admin collection-date curation.",
+        )
+    except ValueError as exc:
+        flash(str(exc), "error")
+    else:
+        flash("Collection-date curation rule approved.", "success")
+    return redirect(url_for("admin_collection_date_curation", status=request.form.get("status") or "pending"))
+
+
+@app.route("/admin/collection-date-curation/export.csv")
+def admin_collection_date_curation_export() -> Any:
+    require_admin()
+    dashboard = build_collection_date_curation_dashboard(request.args)
+    output = StringIO()
+    fieldnames = ["count", "source_column", "source_value", "suggested_value", "live_value", "status", "decision", "note"]
+    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
+    writer.writeheader()
+    for row in dashboard["rows"]:
+        writer.writerow(row)
+    return app.response_class(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=collection_date_curation_review.csv"},
+    )
+
+
+@app.route("/admin/collection-date-curation/apply", methods=["POST"])
+def admin_collection_date_curation_apply() -> Any:
+    require_admin()
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is not None:
+        limit = max(1, min(limit, 10000))
+    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope="genus")
+    flash(
+        f"Queued collection-date standardization refresh: {summary['queued']} taxa queued, "
+        f"{summary['running']} already running, {summary['skipped']} skipped.",
+        "success",
+    )
+    return redirect(url_for("admin_collection_date_curation"))
 
 
 @app.route("/admin/jobs")
