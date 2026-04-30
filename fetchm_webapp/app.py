@@ -8186,14 +8186,14 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
                     tuple(chunk),
                 )
             db.commit()
-        active_chunk_row = db.execute(
+        pending_chunk_row = db.execute(
             """
             SELECT COUNT(*) AS total
             FROM standardization_refresh_chunks
-            WHERE status IN ('pending', 'running')
+            WHERE status = 'pending'
             """
         ).fetchone()
-        if int(active_chunk_row["total"] or 0) > 0:
+        if int(pending_chunk_row["total"] or 0) > 0:
             return None
         db.execute("BEGIN IMMEDIATE")
         row = db.execute(
