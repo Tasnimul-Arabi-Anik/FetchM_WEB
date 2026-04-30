@@ -180,12 +180,28 @@ def main() -> None:
                         suggested_counts[(field, raw_value, normalized, destination, category, confidence, note)] += 1
 
     coverage_rows = [
-        [field, total_rows, values["raw"], ratio(values["raw"], total_rows), values["standardized"], ratio(values["standardized"], total_rows)]
+        [
+            field,
+            total_rows,
+            values["raw"],
+            ratio(values["raw"], total_rows),
+            values["standardized"],
+            ratio(values["standardized"], total_rows),
+            ratio(values["standardized"], values["raw"]),
+        ]
         for field, values in coverage.items()
     ]
     write_csv(
         output_dir / "field_coverage_summary.csv",
-        ["field", "rows_scanned", "raw_present", "raw_present_percent", "standardized_present", "standardized_present_percent"],
+        [
+            "field",
+            "rows_scanned",
+            "raw_present",
+            "raw_present_percent_all_rows",
+            "standardized_present",
+            "standardized_present_percent_all_rows",
+            "standardized_present_percent_same_field_raw_present_rows",
+        ],
         coverage_rows,
     )
     write_csv(
@@ -195,7 +211,7 @@ def main() -> None:
     )
     write_csv(
         output_dir / "suggested_high_confidence_rules.csv",
-        ["count", "source_field", "raw_value", "normalized_value", "destination", "category", "confidence", "note"],
+        ["count", "source_column", "raw_value", "normalized_value", "destination", "category", "confidence", "note"],
         [[count, *key] for key, count in suggested_counts.most_common(args.top)],
     )
     write_csv(output_dir / "file_errors.csv", ["taxon", "path", "error"], file_errors)
@@ -211,13 +227,16 @@ def main() -> None:
         "",
         "## Coverage",
         "",
-        "| Field | Raw present | Standardized present |",
-        "|---|---:|---:|",
+        "The raw-present denominator is calculated from the same raw field group only. Values above 100% mean the standardized column was also recovered from other metadata fields.",
+        "",
+        "| Field | Raw present / all rows | Standardized / all rows | Standardized / same-field raw-present rows |",
+        "|---|---:|---:|---:|",
     ]
     for field, values in coverage.items():
         markdown.append(
             f"| {field} | {values['raw']:,} ({ratio(values['raw'], total_rows)}%) | "
-            f"{values['standardized']:,} ({ratio(values['standardized'], total_rows)}%) |"
+            f"{values['standardized']:,} ({ratio(values['standardized'], total_rows)}%) | "
+            f"{ratio(values['standardized'], values['raw'])}% |"
         )
     markdown.extend(
         [

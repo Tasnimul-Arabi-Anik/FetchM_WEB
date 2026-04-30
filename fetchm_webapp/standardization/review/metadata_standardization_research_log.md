@@ -591,3 +591,42 @@ Recommended next steps for reviewers:
 4. Compare `suspicious_source_like_mapped_hosts.csv` against the previous `20260430_100615` audit; expected improvement is fewer marine/water/culture false Host_SD mappings.
 5. Review `suggested_high_confidence_rules.csv` from the focused audit and add only deterministic rules to `controlled_categories.csv`.
 6. Use embeddings such as BGE-small only after deterministic rules plateau, and only as a review-assistance layer for ambiguous long-tail text, not for automatic approval.
+
+## Source/Sample/Environment Rule Finalization Pass
+
+Date: 2026-04-30
+
+- Completed a refinement-only pass before any new standardization refresh.
+- Confirmed source/sample/environment rules are not stored only in SQLite. Production rules are also represented in `standardization/controlled_categories.csv`.
+- Expanded `standardization/controlled_categories.csv` to a richer reviewable schema:
+  - `source_column`, `original_value`, `normalized_value`, `destination`, `proposed_value`, `broad_value`, `ontology_id`, `method`, `confidence`, `status`, and `note` are now available while retaining the legacy `synonym`/`category` fields used by the loader.
+- Updated the loader so approved/active controlled-category rows can be read from either the legacy columns or the richer review columns.
+- Disabled 16 risky source/sample/environment rules by marking them `needs_review` instead of deleting them:
+  - 5 host-only values were removed from active source/sample/environment routing.
+  - 11 healthcare/facility values were removed from `Sample_Type_SD` routing so `hospital`, `ICU`, and related values resolve to `Isolation_Source_SD=healthcare facility` rather than a sample type.
+- Validation examples after refinement:
+  - `blood` -> `Sample_Type_SD=blood`.
+  - `urine` -> `Sample_Type_SD=urine`.
+  - `stool` and `feces` -> `Sample_Type_SD=feces/stool`.
+  - `sputum` -> `Sample_Type_SD=sputum`.
+  - `wound swab` -> `Sample_Type_SD=wound swab` when the exact rule is used; existing broader wound/skin/pus swab rules remain available for broader variants.
+  - `soil` -> `Environment_Medium_SD=soil`.
+  - `sediment` -> `Environment_Medium_SD=sediment`.
+  - `wastewater`/`sewage` -> `Environment_Medium_SD=sewage` or `wastewater` depending on the exact rule path; both are retained as wastewater/sewage controlled environmental-medium classes.
+  - `seawater` -> `Environment_Medium_SD=seawater`.
+  - `hospital` and `ICU` -> `Isolation_Source_SD=healthcare facility`.
+  - `chicken meat` -> `Sample_Type_SD=chicken meat` with food-source context; `retail meat` -> `Sample_Type_SD=meat` and `Isolation_Source_SD=meat product`.
+  - Host-only values such as `human` and `patient` no longer create source/sample/environment values; they remain host mappings when appropriate.
+- Re-ran the source/sample/environment audit without running standardization:
+  - Report: `standardization/review/source_sample_environment_audit/20260430_131955/source_sample_environment_audit.md`.
+  - Genus metadata files scanned: 5,066.
+  - Rows scanned: 2,596,841.
+  - File errors: 0.
+  - `Isolation_Source_SD`: 1,489,208 rows (57.35% of all rows; 85.81% of same-field raw-present rows).
+  - `Sample_Type_SD`: 1,579,301 rows (60.82% of all rows; 633.15% of same-field raw-present rows because values are also recovered from other fields).
+  - `Environment_Medium_SD`: 455,568 rows (17.54% of all rows; 398.61% of same-field raw-present rows because values are also recovered from other fields).
+- Reviewed required audit files:
+  - `suspicious_source_like_mapped_hosts.csv` is now dominated by true host-context phrases such as human feces, dairy calf feces, water deer, and water buffalo; remaining culture/source false positives such as `bacteria culture -> Bacteria` should be corrected on the next approved standardization refresh.
+  - `source_like_unmapped_hosts_for_review.csv` is mostly expected non-host material/context values such as food, wastewater, environment, soil, stool, water, seafood, and hospital environment.
+  - `suggested_high_confidence_rules.csv` contains useful deterministic suggestions, but Host Disease-derived suggestions were treated cautiously and not bulk-promoted into production rules.
+- No standardization refresh was started during this pass.

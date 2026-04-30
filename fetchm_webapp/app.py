@@ -2822,6 +2822,22 @@ def apply_core_standardization_overrides() -> None:
         }
     )
     SAMPLE_TYPE_SYNONYMS.pop("fish", None)
+    for facility_key in (
+        "hospital",
+        "intensive care unit",
+        "nursing home",
+        "icu",
+        "hospital icu",
+        "healthcare facility",
+    ):
+        SAMPLE_TYPE_SYNONYMS.pop(facility_key, None)
+    SAMPLE_TYPE_SYNONYMS.update(
+        {
+            "wound swab": "wound swab",
+            "swab wound": "wound swab",
+            "swab_wound": "wound swab",
+        }
+    )
     ENVIRONMENT_MEDIUM_SYNONYMS.update(
         {
             "river water": "river water",
@@ -2888,10 +2904,13 @@ def load_external_standardization_rules() -> None:
             NON_HOST_SOURCE_HINTS.add(synonym)
 
     for row in load_standardization_csv(STANDARDIZATION_DIR / "controlled_categories.csv"):
-        synonym = normalize_standardization_lookup(row.get("synonym"))
-        category = (row.get("category") or "").strip()
+        synonym = normalize_standardization_lookup(row.get("synonym") or row.get("original_value") or row.get("normalized_value"))
+        category = (row.get("category") or row.get("proposed_value") or "").strip()
         destination = (row.get("destination") or "").strip()
         ontology_id = (row.get("ontology_id") or "").strip()
+        status = normalize_standardization_lookup(row.get("status") or "approved")
+        if status and status not in {"approved", "active"}:
+            continue
         if not synonym or not category:
             continue
         if ontology_id:
