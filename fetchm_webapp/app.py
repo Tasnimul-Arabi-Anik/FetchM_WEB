@@ -3875,6 +3875,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             row.get("BioSample Location Type"),
             row.get("Isolation Source"),
             row.get("Sample Type"),
+            host_as_context,
         ],
         ENVIRONMENT_LOCAL_SYNONYMS,
     )

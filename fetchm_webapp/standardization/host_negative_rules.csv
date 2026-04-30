@@ -6,8 +6,8 @@ deep sea water,non_host_source,Post-audit correction 2026-04-30: marine water/so
 deep-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
 brackish water,non_host_source,Post-audit correction 2026-04-30: water/source material
 baltic sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
-sewage plant,non_host_source,Post-audit correction 2026-04-30: wastewater facility/source context
-bacteria culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
+sewage plant,non_host_source,Post-audit correction 2026-04-30: wastewater facility/source context; batch1 reviewed source/environment descriptor; block from Host_SD
+bacteria culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor; batch1 reviewed non-host culture/lab artifact; block from Host_SD
 bacterial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
 microbial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
 "N. Ennis, Tisa lab UNH",non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
@@ -203,7 +203,7 @@ Nasonia vitripennis LabII strain,non_host_source,Cluster instruction says non-ho
 Amaru Indians,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
 Pseudomonas,not_identifiable,"targeted host review 2026-04-30; bacterial self/source term, not eukaryotic host in bacterial metadata; blocked from host and secondary source routing 2026-04-30"
 Synechococcus,not_identifiable,"targeted host review 2026-04-30; microbial term, not host; blocked from host and secondary source routing 2026-04-30"
-Grown in Blood agar culture medium.,non_host_source,targeted host review 2026-04-30; culture medium descriptor
+Grown in Blood agar culture medium.,non_host_source,targeted host review 2026-04-30; culture medium descriptor; batch1 reviewed non-host culture/lab artifact; block from Host_SD
 Prof. Gail Preston,not_identifiable,"targeted host review 2026-04-30; person name, not host"
 Zhang Yuzhong,not_identifiable,"targeted host review 2026-04-30; person name, not host"
 Yuping Zhang,not_identifiable,"targeted host review 2026-04-30; person name, not host"
@@ -211,9 +211,65 @@ Wen-Jun Li,not_identifiable,"targeted host review 2026-04-30; person name, not h
 Istituto di Microbiologia Universita' Cattolica del Sacro Cuore,not_identifiable,targeted host review 2026-04-30; institution/lab descriptor
 Laboratorio de Estudios Ecogenomicos UAEM,not_identifiable,targeted host review 2026-04-30; institution/lab descriptor
 Envirnment,non_host_source,targeted host review 2026-04-30; misspelled environment/source term
-communal hospital surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
-hospital communal surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
+communal hospital surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term; batch1 reviewed source/environment descriptor; block from Host_SD
+hospital communal surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term; batch1 reviewed source/environment descriptor; block from Host_SD
 Leptospirosis,not_identifiable,"targeted host review 2026-04-30; disease term, not host; blocked from host and secondary source routing 2026-04-30"
 Apheresis platelet concentrate-Preservative solution,non_host_source,targeted host review 2026-04-30; clinical product/source descriptor
-TOPO10F',not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30
-XLOLR,not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30
+TOPO10F',not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30; batch1 reviewed vector/construct label; block from Host_SD and source routing
+XLOLR,not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30; batch1 reviewed vector/construct label; block from Host_SD and source routing
+Pure culture of bacteria,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+bacteria pure culture,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+bacteria cell culture,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+Grown in chocolate agar culture medium,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+culture,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+Pure culture,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+Cell culture collection,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+bacterial extracellular vesicles,non_host_source,batch1 reviewed non-host culture/lab artifact; block from Host_SD
+DH5a,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+MC1061/P3,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+XL1-MFR Blue,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+XL10-gold,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+ElectroTen Blue cells,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+HeLa229 cell line,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+MRC-5 infected cells,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+cell lines,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+mammalian cells,non_host_source,batch1 reviewed lab strain/cell-line artifact; block from Host_SD
+synthetic construct,not_identifiable,batch1 reviewed vector/construct label; block from Host_SD and source routing
+CDC,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+BGSC database,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Microbiology Section,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Guangdong Microbial Culture Collection Center (GDMCC),not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Laboratorio de Biologia Molecular Aplicada,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+INMI RAS,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+GEUS Denmark,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Shungui Zhou,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Valeria Souza,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Xiao-Hua Zhang,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Xinqing Zhao,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Professor Qiao,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Ye Lin Seo,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+TAWAF ALI SHAH,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Qiu dongru,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Yun Tian,not_identifiable,batch1 reviewed person/institution/database label; block from Host_SD
+Dust,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+wetland,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+surface within hospital,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+hosptial surface,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+environmental surface,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+surface of hospital environment,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+venous catheters,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+Pathogen.env,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+Environnment,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+envirnomental,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+patient environment,non_host_source,batch1 reviewed source/environment descriptor; block from Host_SD
+no hosts,missing,batch1 reviewed missing/not-provided host token
+no applicable,missing,batch1 reviewed missing/not-provided host token
+not aplicable,missing,batch1 reviewed missing/not-provided host token
+Nil,missing,batch1 reviewed missing/not-provided host token
+untold,missing,batch1 reviewed missing/not-provided host token
+missed,missing,batch1 reviewed missing/not-provided host token
+mssing,missing,batch1 reviewed missing/not-provided host token
+Not reported,missing,batch1 reviewed missing/not-provided host token
+host,missing,batch1 reviewed missing/not-provided host token
+Please add your host name HERE,missing,batch1 reviewed missing/not-provided host token
+Others - Please add your host name HERE,missing,batch1 reviewed missing/not-provided host token

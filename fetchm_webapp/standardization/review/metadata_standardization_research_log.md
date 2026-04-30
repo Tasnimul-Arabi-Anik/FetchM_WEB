@@ -772,3 +772,28 @@ Date: 2026-04-30
   - 0 duplicate approved keys.
   - 0 conflicting approved keys.
   - 20 intentionally retained suspicious approved rows.
+
+## Targeted Host Curation Batches 1-3
+
+Date: 2026-04-30
+
+- Applied the first three targeted curation batches from the post-audit review files without rewriting the standardization pipeline.
+- Batch 1 added reviewed negative host rules for lab/culture artifacts, cell-line/vector labels, person/institution/database labels, missing/not-provided tokens, and source/environment descriptors that should not become `Host_SD` or `Host_TaxID`.
+- Batch 1 also added controlled-category routes for selected non-host descriptors, including culture media, cell culture, healthcare facility surfaces, dust, wetland, venous catheter descriptors, environment typos, `sewage plant`, and `patient environment`.
+- Fixed a local-environment context gap so explicit non-host source values recovered from the `Host` field can also populate `Environment_Local_Scale_SD` when an approved controlled-category rule exists.
+- Batch 2 added reviewed `Homo sapiens` synonym/typo rules for human descriptors such as `Homosapines`, `humen being`, `Hu`, patient sample phrases, and human material phrases.
+- Batch 3 added reviewed livestock/domestic animal rules for pig/swine (`Sus scrofa`), cattle (`Bos taurus`), sheep (`Ovis aries`), goat (`Capra hircus`), horse (`Equus caballus`), donkey typo (`Equus asinus`), dog (`Canis lupus familiaris`), and cat typo (`Felis catus`).
+- Local TaxonKit was used to verify the host TaxIDs before adding the synonym rules.
+- Controlled-category audit after the batch:
+  - 6,793 total rows.
+  - 6,693 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
+- Representative smoke tests in the running web container:
+  - `bacteria culture` and `Pure culture of bacteria` are blocked from `Host_SD` and route to culture sample context.
+  - `sewage plant` is blocked from `Host_SD` and routes to wastewater/sewage treatment plant context.
+  - `patient environment` is blocked from `Host_SD`, routes to healthcare facility context, and no longer falls through to wastewater.
+  - `Homosapines` maps to `Homo sapiens` / 9606.
+  - `Piggle`, `Calve`, `Shepp`, and `Felix catus domesticus` map to the reviewed livestock/domestic animal hosts.
+- A genus standardization refresh is required before these curated rules are reflected in all stored managed metadata outputs and post-refresh quality audit metrics.

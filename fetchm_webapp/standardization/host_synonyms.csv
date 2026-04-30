@@ -5409,13 +5409,13 @@ Allium fistulosum L.,Allium fistulosum,35875,high,manual fuzzy review 2026-04-28
 Botaurus,Botaurus,110660,high,manual genus-level host review 2026-04-28; rejected fuzzy Bos taurus match
 chicken,Gallus gallus,9031,high,manual context recovery review 2026-04-28
 human,Homo sapiens,9606,high,manual context recovery review 2026-04-28
-bovine,Bos taurus,9913,high,manual context recovery review 2026-04-28
+bovine,Bos taurus,9913,high,manual context recovery review 2026-04-28; batch3 reviewed cattle synonym
 pig,Sus scrofa,9823,high,manual context recovery review 2026-04-28
 Homo sapiens,Homo sapiens,9606,high,manual context recovery review 2026-04-28
-cattle,Bos taurus,9913,high,manual context recovery review 2026-04-28
-cow,Bos taurus,9913,high,manual context recovery review 2026-04-28
+cattle,Bos taurus,9913,high,manual context recovery review 2026-04-28; batch3 reviewed cattle synonym
+cow,Bos taurus,9913,high,manual context recovery review 2026-04-28; batch3 reviewed cattle synonym
 dog,Canis lupus familiaris,9615,high,manual context recovery review 2026-04-28
-swine,Sus scrofa,9823,high,manual context recovery review 2026-04-28
+swine,Sus scrofa,9823,high,manual context recovery review 2026-04-28; batch3 reviewed pig/swine synonym
 horse,Equus caballus,9796,high,manual context recovery review 2026-04-28
 Chroicocephalus,Chroicocephalus,1129741,high,post-audit TaxonKit genus-level review 2026-04-28
 Hordeum vulgare Golden Promise,Hordeum vulgare,4513,high,post-audit cultivar mapped to species 2026-04-28
@@ -5760,7 +5760,7 @@ termite,Termitoidae,1912919,medium,broad termite host review 2026-04-29; rank=ep
 Termite,Termitoidae,1912919,medium,broad termite host review 2026-04-29; rank=epifamily
 D. labrax,Dicentrarchus labrax,13489,medium,fish abbreviation review 2026-04-29; rank=species
 Euclayptus,Eucalyptus,3932,medium,spelling variant; plant host review 2026-04-29; rank=genus
-lamb,Ovis aries,9940,medium,common host age phrase review 2026-04-29; rank=species
+lamb,Ovis aries,9940,high,common host age phrase review 2026-04-29; rank=species; batch3 reviewed sheep synonym
 Blackbird,Turdidae,9183,medium,broad bird host review 2026-04-29; rank=family
 sorghum,Sorghum bicolor,4558,medium,common plant host review 2026-04-29; rank=species
 moss,Bryophyta,3208,medium,broad plant host review 2026-04-29; rank=phylum
@@ -6746,3 +6746,84 @@ Crustacean,Crustacea,197562,medium,targeted host review 2026-04-30; broad crusta
 duckling,Duck,8839,medium,targeted host review 2026-04-30; juvenile duck host context
 Anopheles gambiae lab colony,Anopheles gambiae,7165,high,"targeted host review 2026-04-30; lab colony is context, host remains mosquito species"
 Capy C,Hydrochoerus hydrochaeris,10149,medium,targeted host review 2026-04-30; capybara shorthand
+Homosapines,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+humen being,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+people,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+Hu,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+"Hu, 0-24 months",Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+"Hu, 2-2� Yrs",Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+old farmer,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+firefighter nasal,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+dental student nasal,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+ethnic Koreans living in China,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+de-identified patient sample,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+patient sample,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+Human clinical faeces,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human blood,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+Human urine,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human saliva metagenome,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human skin metagenome,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human skin swab,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human breast milk,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human milk,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+Human milk sample,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human left ventricle apex tissue,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+human blood monocytes,Homo sapiens,9606,high,batch2 reviewed Homo sapiens typo/descriptor
+Piggle,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Piglets,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Poricne,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+porcine,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Marcassin,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig1,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig2,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig3,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig4,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig5,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig6,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig7,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig8,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig9,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig10,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig11,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig12,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig13,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig14,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig15,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig16,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig18,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig19,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig20,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig21,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig22,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig23,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig25,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig26,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig27,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig28,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig29,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig30,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig31,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig32,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig33,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig34,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig36,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig37,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig38,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig39,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig40,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig41,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Pig42,Sus scrofa,9823,high,batch3 reviewed pig/swine synonym
+Taurus,Bos taurus,9913,high,batch3 reviewed cattle synonym
+Calve,Bos taurus,9913,high,batch3 reviewed cattle synonym
+calf,Bos taurus,9913,high,batch3 reviewed cattle synonym
+dairy herd,Bos taurus,9913,high,batch3 reviewed cattle synonym
+Shepp,Ovis aries,9940,high,batch3 reviewed sheep synonym
+sheep,Ovis aries,9940,high,batch3 reviewed sheep synonym
+ewe,Ovis aries,9940,high,batch3 reviewed sheep synonym
+ovin,Ovis aries,9940,high,batch3 reviewed sheep synonym
+goat,Capra hircus,9925,high,batch3 reviewed goat synonym
+Foal,Equus caballus,9796,high,batch3 reviewed horse synonym
+Soliped,Equus caballus,9796,medium,batch3 reviewed broad horse-related synonym; medium confidence
+Equusa fricanusasinus,Equus asinus,9793,high,batch3 reviewed donkey typo
+Puppy,Canis lupus familiaris,9615,high,batch3 reviewed dog synonym
+Felix catus domesticus,Felis catus,9685,high,batch3 reviewed cat typo
