@@ -1089,6 +1089,7 @@ button.danger {
 .sequence-panel-stack {
   display: grid;
   gap: 14px;
+  min-width: 0;
 }
 
 .sequence-filter-toolbar {
@@ -1096,6 +1097,8 @@ button.danger {
   flex-wrap: wrap;
   gap: 6px 8px;
   align-items: center;
+  max-width: 100%;
+  overflow: visible;
 }
 
 .sequence-active-filter-chips {
@@ -1150,6 +1153,13 @@ button.danger {
   box-shadow: none;
   text-decoration: none;
   margin: 0;
+  max-width: 100%;
+}
+
+.sequence-filter-trigger span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sequence-filter-trigger.is-active {
@@ -1304,14 +1314,19 @@ button.danger {
 .sequence-floating-shell {
   position: relative;
   min-height: 0;
+  width: 100%;
+  min-width: 0;
 }
 
 .sequence-floating-panel {
-  position: absolute;
+  position: static;
   top: 0;
   left: 0;
   z-index: 20;
-  width: min(300px, 100%);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 4px;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.98);
@@ -1400,6 +1415,7 @@ button.danger {
   display: grid;
   gap: 16px;
   padding: 0 20px 20px;
+  min-width: 0;
 }
 
 .sequence-note-left {
@@ -1438,12 +1454,13 @@ button.danger {
   max-height: 220px;
   overflow: auto;
   padding: 4px;
+  min-width: 0;
 }
 
 .sequence-chip-grid-vertical {
   display: grid;
-  grid-template-columns: 1fr;
-  max-height: 340px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  max-height: 320px;
 }
 
 .sequence-chip {
@@ -1451,10 +1468,11 @@ button.danger {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.86);
   cursor: pointer;
+  min-width: 0;
 }
 
 .sequence-chip input {
@@ -1464,6 +1482,17 @@ button.danger {
 
 .sequence-chip span {
   font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sequence-more-filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: min(980px, 100%);
+  padding-top: 10px;
 }
 
 .sequence-chip small {

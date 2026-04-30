@@ -9958,15 +9958,19 @@ def build_sequence_filter_groups(frame: pd.DataFrame, species: SpeciesRecord) ->
         fields: list[dict[str, Any]] = []
         for key in group["fields"]:
             config = SEQUENCE_FILTER_FIELDS[key]
+            options = build_sequence_filter_option_list(frame, config["column"])
+            if not options:
+                continue
             fields.append(
                 {
                     "key": key,
                     "label": config["label"],
                     "column": config["column"],
-                    "options": build_sequence_filter_option_list(frame, config["column"]),
+                    "options": options,
                 }
             )
-        groups.append({"key": group["key"], "label": group["label"], "fields": fields})
+        if fields:
+            groups.append({"key": group["key"], "label": group["label"], "fields": fields})
     return groups
 
 
@@ -10046,28 +10050,38 @@ def build_taxon_sequence_dashboard(species: SpeciesRecord, source: Any | None = 
         "subcontinent",
         "country",
         "host_sd",
-        "host",
-        "host_rank",
-        "host_class",
-        "host_genus",
-        "host_disease_sd",
-        "host_disease",
-        "host_health_state_sd",
         "isolation_source_sd",
-        "isolation_source",
         "sample_type_sd",
-        "sample_type",
-        "isolation_site_sd",
-        "environment_broad_sd",
-        "environment_broad",
         "environment_local_sd",
-        "environment_local",
         "environment_medium_sd",
-        "environment_medium",
         "assembly_level",
     ]
     primary_filter_keys = [key for key in primary_filter_keys if key in filter_field_map]
-    advanced_filter_keys = []
+    advanced_filter_keys = [
+        key
+        for key in [
+            "host",
+            "host_rank",
+            "host_class",
+            "host_order",
+            "host_family",
+            "host_genus",
+            "host_species",
+            "host_confidence",
+            "host_method",
+            "host_disease_sd",
+            "host_disease",
+            "host_health_state_sd",
+            "isolation_source",
+            "sample_type",
+            "isolation_site_sd",
+            "environment_broad_sd",
+            "environment_broad",
+            "environment_local",
+            "environment_medium",
+        ]
+        if key in filter_field_map and key not in primary_filter_keys
+    ]
     sequence_lengths = metadata_numeric_series(filtered_frame, "Assembly Stats Total Sequence Length")
     estimated_total_bp = int(sequence_lengths.sum()) if not sequence_lengths.empty else 0
     estimated_compressed_bytes = int(estimated_total_bp * 0.32) if estimated_total_bp else 0

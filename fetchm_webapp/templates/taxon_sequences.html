@@ -62,6 +62,60 @@
     box-shadow: none !important;
     text-decoration: none;
     cursor: pointer;
+    max-width: 100%;
+  }
+
+  .sequence-filter-trigger span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sequence-filter-toolbar {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .sequence-filter-picker,
+  .sequence-floating-shell,
+  .sequence-floating-panel,
+  .sequence-accordion-body,
+  .sequence-chip-grid {
+    min-width: 0;
+  }
+
+  .sequence-floating-shell {
+    width: 100%;
+  }
+
+  .sequence-floating-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 4px !important;
+  }
+
+  .sequence-chip-grid-vertical {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    max-height: 320px;
+  }
+
+  .sequence-chip {
+    min-width: 0;
+    border-radius: 12px;
+  }
+
+  .sequence-chip span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sequence-more-filter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: min(980px, 100%);
+    padding-top: 10px;
   }
 
   button.sequence-filter-trigger.is-active,
@@ -230,6 +284,16 @@
                 <span>Match any filter</span>
               </label>
             </div>
+            {% if sequence_dashboard.advanced_filter_keys %}
+              <div class="sequence-more-filter-grid" aria-label="More sequence filters">
+                {% for key in sequence_dashboard.advanced_filter_keys %}
+                  {% set field = sequence_dashboard.filter_field_map[key] %}
+                  <button type="button" class="sequence-filter-trigger" data-sequence-panel="{{ key }}">
+                    <span>{{ field.label }}</span>
+                  </button>
+                {% endfor %}
+              </div>
+            {% endif %}
           </details>
         </div>
 
