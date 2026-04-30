@@ -335,6 +335,7 @@
 
     <section class="panel">
       <h2>Host Taxonomic Structure</h2>
+      {% set has_host_lineage_plot = analysis.plots.host_rank_bar or analysis.plots.host_superkingdom_bar or analysis.plots.host_phylum_bar or analysis.plots.host_class_bar or analysis.plots.host_order_bar or analysis.plots.host_family_bar or analysis.plots.host_genus_bar or analysis.plots.host_species_bar %}
       {% if analysis.plots.host_rank_bar %}
         <div class="plot-shell">{{ analysis.plots.host_rank_bar.html|safe }}</div>
       {% endif %}
@@ -359,7 +360,11 @@
       {% if analysis.plots.host_species_bar %}
         <div class="plot-shell top-gap">{{ analysis.plots.host_species_bar.html|safe }}</div>
       {% endif %}
-      <p class="figure-caption">Host lineage fields make broad host labels such as bird, mammal, or plant analyzable without forcing all values to species level.</p>
+      {% if has_host_lineage_plot %}
+        <p class="figure-caption">Host lineage fields make broad host labels such as bird, mammal, or plant analyzable without forcing all values to species level.</p>
+      {% else %}
+        <p class="empty">Host taxonomic structure will appear once standardized host lineage fields are available for this taxon.</p>
+      {% endif %}
     </section>
 
     <section class="panel">
