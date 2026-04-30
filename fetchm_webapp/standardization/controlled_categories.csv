@@ -6948,3 +6948,56 @@ disease,Host_Health_State_SD,diseased,,post-audit high-value standardization rul
 alive,Host_Health_State_SD,alive,,post-audit high-value standardization rule 2026-04-30
 Exacerbation,Host_Health_State_SD,exacerbation,,post-audit high-value standardization rule 2026-04-30
 scleroderma,Host_Health_State_SD,diseased,,post-audit high-value standardization rule 2026-04-30
+sterile site,Isolation_Site_SD,sterile body site,,source/sample/environment refinement 2026-04-30
+normally sterile site,Isolation_Site_SD,sterile body site,,source/sample/environment refinement 2026-04-30
+Sterile Site,Isolation_Site_SD,sterile body site,,source/sample/environment refinement 2026-04-30
+hospital,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+Hospital,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+Intensive Care Unit,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+intensive care unit,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+ICU,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+Hospital_ICU,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+Nursing home,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+long term care facility,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+long-term care facility,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+healthcare facility,Isolation_Source_SD,healthcare facility,,source/sample/environment refinement 2026-04-30
+pathogen.cl,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+Assembly,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+assembly,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+other,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+diverse,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+bacteria,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30
+screening,Sample_Type_SD,surveillance sample,,source/sample/environment refinement 2026-04-30
+Screening,Sample_Type_SD,surveillance sample,,source/sample/environment refinement 2026-04-30
+surveillance,Sample_Type_SD,surveillance sample,,source/sample/environment refinement 2026-04-30
+Surveillance,Sample_Type_SD,surveillance sample,,source/sample/environment refinement 2026-04-30
+screening swab,Sample_Type_SD,surveillance swab,,source/sample/environment refinement 2026-04-30
+Screening swab,Sample_Type_SD,surveillance swab,,source/sample/environment refinement 2026-04-30
+surveillance swabs,Sample_Type_SD,surveillance swab,,source/sample/environment refinement 2026-04-30
+Rectal screening,Sample_Type_SD,rectal swab,,source/sample/environment refinement 2026-04-30
+Nasal Surveillance,Sample_Type_SD,nasal swab,,source/sample/environment refinement 2026-04-30
+Esputum,Sample_Type_SD,sputum,,source/sample/environment refinement 2026-04-30
+BALF,Sample_Type_SD,bronchoalveolar lavage fluid,,source/sample/environment refinement 2026-04-30
+spore release from mature blade,Sample_Type_SD,spore release material,,source/sample/environment refinement 2026-04-30
+fluff,Sample_Type_SD,fluff/lint material,,source/sample/environment refinement 2026-04-30
+biofilm from sulfidic cave,Environment_Medium_SD,biofilm,,source/sample/environment refinement 2026-04-30
+biofilm from cave,Environment_Medium_SD,biofilm,,source/sample/environment refinement 2026-04-30
+cave biofilm,Environment_Medium_SD,biofilm,,source/sample/environment refinement 2026-04-30
+cleanroom floor,Environment_Medium_SD,built environment surface,,source/sample/environment refinement 2026-04-30
+clean room floor,Environment_Medium_SD,built environment surface,,source/sample/environment refinement 2026-04-30
+air,Environment_Medium_SD,air,,source/sample/environment refinement 2026-04-30
+terrestrial,Environment_Broad_Scale_SD,terrestrial environment,,source/sample/environment refinement 2026-04-30
+anthropogenic,Environment_Broad_Scale_SD,anthropogenic environment,,source/sample/environment refinement 2026-04-30
+Agricultural,Environment_Broad_Scale_SD,agricultural environment,,source/sample/environment refinement 2026-04-30
+agricultural,Environment_Broad_Scale_SD,agricultural environment,,source/sample/environment refinement 2026-04-30
+glacier,Environment_Medium_SD,glacier,,source/sample/environment refinement 2026-04-30
+cold seep,Environment_Local_Scale_SD,cold seep,,source/sample/environment refinement 2026-04-30
+anthropogenic terrestrial biome [ENVO:01000219],Environment_Broad_Scale_SD,anthropogenic terrestrial biome,ENVO:01000219,source/sample/environment refinement 2026-04-30
+mammary gland,Isolation_Site_SD,mammary gland,,source/sample/environment refinement 2026-04-30
+Right-Cubital-Fossa,Isolation_Site_SD,cubital fossa,,source/sample/environment refinement 2026-04-30
+abdomen,Isolation_Site_SD,abdomen,,source/sample/environment refinement 2026-04-30
+genitourinary tract,Isolation_Site_SD,genitourinary tract,,source/sample/environment refinement 2026-04-30
+stem,Isolation_Site_SD,plant stem,,source/sample/environment refinement 2026-04-30
+healthy people,Host_Health_State_SD,healthy/no disease reported,,source/sample/environment refinement 2026-04-30
+Non-hospitalized person,Host_Health_State_SD,non-hospitalized,,source/sample/environment refinement 2026-04-30
+Host-associated strain,Sample_Type_SD,metadata descriptor/non-source,,source/sample/environment refinement 2026-04-30

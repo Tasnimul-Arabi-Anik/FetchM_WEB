@@ -1,4 +1,15 @@
 synonym,decision,note
+sea,non_host_source,Post-audit correction 2026-04-30: ambiguous marine/source word was over-mapped to a Lepidoptera genus; keep out of Host_SD unless manually curated with stronger context.
+sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
+seawater,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
+deep sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
+deep-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
+brackish water,non_host_source,Post-audit correction 2026-04-30: water/source material, not host.
+baltic sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
+sewage plant,non_host_source,Post-audit correction 2026-04-30: wastewater facility/source context, not host.
+bacteria culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
+bacterial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
+microbial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
 "N. Ennis, Tisa lab UNH",non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
 Instituto de Productos Lacteos de Asturias (IPLA)-CSIC,non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
 Chiu-Chung Young,non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.

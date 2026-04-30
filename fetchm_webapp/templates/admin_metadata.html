@@ -62,8 +62,9 @@
         <span>Standardization queued</span>
       </div>
       <div class="metric-card">
-        <strong>{{ metadata_dashboard.standardization_refresh.running or 0 }}</strong>
-        <span>Standardization running</span>
+        <strong>{{ metadata_dashboard.standardization_refresh.active or 0 }}</strong>
+        <span>Standardization active</span>
+        <span>{{ metadata_dashboard.standardization_refresh.running_chunks or 0 }} chunks running, {{ metadata_dashboard.standardization_refresh.chunking or 0 }} taxa chunking</span>
       </div>
       <div class="metric-card">
         <strong>{{ metadata_dashboard.standardization_refresh.done or 0 }}</strong>

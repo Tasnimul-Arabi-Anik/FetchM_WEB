@@ -2023,6 +2023,8 @@ E_COLI_CONTEXT_LABEL = "Escherichia coli/lab bacterial culture"
 MICROBIAL_SELF_DESCRIPTOR_TERMS = (
     "acinetobacter",
     "bacillus",
+    "bacteria",
+    "bacterium",
     "campylobacter",
     "clostridioides",
     "clostridium",
@@ -2035,6 +2037,8 @@ MICROBIAL_SELF_DESCRIPTOR_TERMS = (
     "lactobacillus",
     "legionella",
     "listeria",
+    "microbe",
+    "microbial",
     "mycobacterium",
     "neisseria",
     "pseudomonas",
@@ -2132,7 +2136,8 @@ HOST_CONTEXT_SOURCE_DOMINANT_PATTERN = re.compile(
     r"production environment|factory|food plant|milk powder plant|"
     r"environmental swab|environmental sponge|swab sponge|sponge powder|"
     r"air sample|drag swab|field|patient room|infant formula|powdered infant formula|"
-    r"drinking water|freshwater|saline water|seawater|marine water|lake water|river water|"
+    r"drinking water|freshwater|saline water|seawater|sea\s*water|marine water|lake water|river water|"
+    r"brackish water|deep[-\s]*sea water|sea[-\s]*surface|surface water|marine aquarium|microplastic|"
     r"soil|sediment|rhizosphere|plankton|plant environment|poultry environment|"
     r"environmental donor|environmental sample|environmental waters"
     r")\b",
@@ -2160,6 +2165,14 @@ LAB_MICROBIAL_HOST_CONTEXT_PATTERN = re.compile(
     r"vaccine[\s-]*strain|atcc[\s-]*strain|microbial[\s-]*community[\s-]*standard[\s-]*strain|"
     r"zymobiomics[\s-]*microbial[\s-]*community[\s-]*standard[\s-]*strain"
     r")\b",
+    re.IGNORECASE,
+)
+
+SEAFOOD_SOURCE_CONTEXT_PATTERN = re.compile(
+    r"\b(?:frozen|raw|retail|market|product|meat|fillet|block|food|sauce|processed|dried|smoked|shucked)\b"
+    r".*\b(?:fish|trout|salmon|scallop|shrimp|prawn|oyster|mussel|clam|shellfish|seafood)\b|"
+    r"\b(?:fish|trout|salmon|scallop|shrimp|prawn|oyster|mussel|clam|shellfish|seafood)\b"
+    r".*\b(?:frozen|raw|retail|market|product|meat|fillet|block|food|sauce|processed|dried|smoked|shucked)\b",
     re.IGNORECASE,
 )
 
@@ -2193,6 +2206,8 @@ def context_host_recovery_blocked(field_name: str, value: Any) -> bool:
     if not cleaned:
         return True
     if field_name in {"Environment Medium", "Environment (Local Scale)", "Environment (Broad Scale)"}:
+        return True
+    if SEAFOOD_SOURCE_CONTEXT_PATTERN.search(cleaned):
         return True
     if re.search(
         r"\b(?:"
@@ -3187,6 +3202,13 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
         }
     cleaned = clean_host_lookup_text(original)
     if microbial_self_descriptor_context(cleaned) is not None:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "non_host_source",
+            "Host_SD_Confidence": "none",
+        }
+    if SEAFOOD_SOURCE_CONTEXT_PATTERN.search(cleaned):
         return {
             "Host_SD": "",
             "Host_TaxID": "",
@@ -6788,9 +6810,18 @@ def build_metadata_dashboard() -> dict[str, Any]:
     standardization_refresh = {
         "pending": 0,
         "running": 0,
+        "chunking": 0,
+        "finalizing": 0,
         "done": 0,
         "failed": 0,
         "deferred": 0,
+        "active": 0,
+        "pending_chunks": 0,
+        "running_chunks": 0,
+        "done_chunks": 0,
+        "failed_chunks": 0,
+        "chunk_total_rows": 0,
+        "chunk_updated_rows": 0,
         "total_rows": 0,
         "updated_rows": 0,
         "recent": [],
@@ -6800,6 +6831,25 @@ def build_metadata_dashboard() -> dict[str, Any]:
         standardization_refresh[status] = int(row["total"] or 0)
         standardization_refresh["total_rows"] += int(row["total_rows"] or 0)
         standardization_refresh["updated_rows"] += int(row["updated_rows"] or 0)
+    chunk_rows = db.execute(
+        """
+        SELECT status, COUNT(*) AS total, SUM(total_rows) AS total_rows, SUM(updated_rows) AS updated_rows
+        FROM standardization_refresh_chunks
+        GROUP BY status
+        """
+    ).fetchall()
+    for row in chunk_rows:
+        status = str(row["status"])
+        key = f"{status}_chunks"
+        if key in standardization_refresh:
+            standardization_refresh[key] = int(row["total"] or 0)
+        standardization_refresh["chunk_total_rows"] += int(row["total_rows"] or 0)
+        standardization_refresh["chunk_updated_rows"] += int(row["updated_rows"] or 0)
+    standardization_refresh["active"] = (
+        int(standardization_refresh["running"] or 0)
+        + int(standardization_refresh["finalizing"] or 0)
+        + int(standardization_refresh["running_chunks"] or 0)
+    )
     recent_standardization = db.execute(
         """
         SELECT
@@ -8425,14 +8475,14 @@ def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: st
         db.execute("BEGIN IMMEDIATE")
         task_row = db.execute(
             """
-            SELECT s.*, t.id AS task_id
+            SELECT s.*, t.id AS task_id, t.status AS task_status
             FROM standardization_refresh_tasks t
             JOIN species s ON s.id = t.species_id
             WHERE t.id = ?
             """,
             (task_id,),
         ).fetchone()
-        if task_row is None or str(task_row["status"]) != "chunking":
+        if task_row is None or str(task_row["task_status"]) != "chunking":
             db.commit()
             return False
         chunk_status = {

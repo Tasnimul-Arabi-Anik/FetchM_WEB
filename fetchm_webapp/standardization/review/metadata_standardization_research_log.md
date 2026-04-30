@@ -547,3 +547,47 @@ Date: 2026-04-29
 - Approved blank/non-host values present in clustered file: 23.
 - Newly added blank/non-host rules after decision-normalization correction: 23.
 - Undetermined values still left unresolved with no production rule: 960.
+
+## Post-Audit Host And Source/Sample/Environment Refinement
+
+Date: 2026-04-30
+
+- A post-standardization genus audit scanned 5,066 clean metadata files and 2,596,647 rows with 0 file errors.
+- Key quality metrics from `standardization/review/quality_audit/20260430_100615/`:
+  - Host TaxID mapped rows: 1,559,323 (60.05%).
+  - Host context-recovered rows: 162,473.
+  - Host rows still requiring review: 1,341.
+  - Source-like host values mapped to a host and requiring spot-check: 19,009.
+  - Source-like host values still unmapped/routed as source context: 4,448.
+  - Country present: 2,260,930 (87.07%) with 0 country-continent and 0 country-subcontinent mismatches.
+  - Collection year present: 2,168,602 (83.52%).
+  - `Sample_Type_SD` present: 1,578,165 (60.78%).
+  - `Isolation_Source_SD` present: 1,489,498 (57.36%).
+  - `Environment_Medium_SD` present: 416,607 (16.04%).
+- The audit exposed several source-as-host false positives. Conservative corrections were added:
+  - Removed unsafe `sea -> sea / 2798467` host synonym, because common marine phrases such as `Baltic Sea water` and seafood product labels were being over-mapped to a Lepidoptera genus.
+  - Added negative host rules for `sea`, `sea water`, `seawater`, `deep sea water`, `deep-sea water`, `brackish water`, `baltic sea water`, `sewage plant`, `bacteria culture`, `bacterial culture`, and `microbial culture`.
+  - Added source-dominant blockers for marine water, brackish/deep-sea water, surface water, marine aquarium, microplastic, and seafood product contexts.
+  - Expanded microbial self-descriptor detection for `bacteria`, `bacterium`, `microbe`, and `microbial` when paired with culture/isolate/strain language.
+- Validation controls after the fix:
+  - `Baltic Sea water`, `sea water`, `bacteria culture`, and `frozen sea trout` now return blank `Host_SD` with `Host_SD_Method=non_host_source`.
+  - `human feces` still maps to `Homo sapiens` / 9606.
+  - `water deer` still maps to `Hydropotes inermis` / 9883.
+- Added a focused source/sample/environment audit utility:
+  - `tools/audit_source_sample_environment_metadata.py`
+  - It produces field-level coverage, high-count values by field, and deterministic high-confidence rule suggestions for `Isolation Source`, `Isolation Site`, `Sample Type`, `Environment Medium`, `Environment (Broad Scale)`, `Environment (Local Scale)`, `Host Disease`, and `Host Health State`.
+- Added a conservative deterministic rule batch to `standardization/controlled_categories.csv` for high-frequency source/sample/environment gaps, including sterile body sites, healthcare facilities, screening/surveillance samples, metadata descriptors, sputum/BALF, biofilm, cleanroom surfaces, anthropogenic/agricultural environments, glacier/cold seep, mammary gland, cubital fossa, abdomen, genitourinary tract, plant stem, and selected health-state labels.
+- Avoided over-generalized rules such as mapping broad `human`, `patient`, `Infants`, or `Companion animal` values into `Sample_Type_SD`; these are host/context values and need more precise source/sample evidence before routing.
+- A corrected genus standardization refresh was requeued after stopping the old-rule run:
+  - 5,066 genus tasks pending/active.
+  - 33,020 species-level tasks remain deferred.
+  - The next audit should be run only after this corrected refresh completes.
+
+Recommended next steps for reviewers:
+
+1. Wait until genus standardization status has 5,066 `done`, 0 `pending`, 0 `running`, 0 `chunking`, and 0 `failed`.
+2. Run `python tools/audit_standardization_quality.py --output-dir standardization/review/quality_audit --top 1000`.
+3. Run `python tools/audit_source_sample_environment_metadata.py --output-dir standardization/review/source_sample_environment_audit --top 2000`.
+4. Compare `suspicious_source_like_mapped_hosts.csv` against the previous `20260430_100615` audit; expected improvement is fewer marine/water/culture false Host_SD mappings.
+5. Review `suggested_high_confidence_rules.csv` from the focused audit and add only deterministic rules to `controlled_categories.csv`.
+6. Use embeddings such as BGE-small only after deterministic rules plateau, and only as a review-assistance layer for ambiguous long-tail text, not for automatic approval.
