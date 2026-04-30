@@ -735,3 +735,40 @@ Date: 2026-04-30
   - Microbial/person/cell/disease labels such as `Pseudomonas`, `Synechococcus`, `Leptospirosis`, `TOPO10F'`, and `XLOLR` are blocked from both `Host_SD` and secondary source routing.
   - Generic `Food` now remains `Isolation_Source_SD=food/food product` and `Sample_Type_SD=food`, instead of being over-specific as a pork/meat product.
 - A new genus standardization refresh is required before these targeted rule refinements appear in all managed metadata outputs.
+
+### Post-targeted-refinement standardization audit
+
+- Genus standardization refresh completed successfully after the targeted rule and routing fixes:
+  - 5,066 genus tasks done.
+  - 0 pending/running/failed genus tasks.
+  - 2,599,200 total rows processed by task counters.
+  - 2,596,889 rows updated by task counters.
+  - 6 chunk jobs completed for large taxa.
+- Post-refresh quality audit: `standardization/review/quality_audit/20260430_163024/`.
+  - Genus metadata files scanned: 5,066.
+  - Rows scanned: 2,596,890.
+  - File errors: 0.
+  - Host TaxID mapped rows: 1,558,196 (60.0%).
+  - Host context-recovered rows: 160,127.
+  - Host rows still requiring review: 1,139.
+  - Source-like mapped host rows needing spot-check: 18,159.
+  - Source-like unmapped host rows needing routing/review: 4,439.
+  - `Sample_Type_SD`: 1,553,621 rows (59.83%).
+  - `Isolation_Source_SD`: 1,488,358 rows (57.31%).
+  - `Environment_Medium_SD`: 458,393 rows (17.65%).
+  - Country present: 2,261,154 rows (87.07%).
+  - Collection year present: 2,168,791 rows (83.51%).
+  - Country-continent mismatch rows: 0.
+  - Country-subcontinent mismatch rows: 0.
+- Post-refresh source/sample/environment audit: `standardization/review/source_sample_environment_audit/20260430_163025/`.
+  - `Isolation Source`: 1,488,358 standardized rows; 85.76% of same-field raw-present rows.
+  - `Sample Type`: 1,553,621 standardized rows; 622.86% of same-field raw-present rows because values are recovered from multiple fields.
+  - `Environment Medium`: 458,393 standardized rows; 401.09% of same-field raw-present rows because values are recovered from multiple fields.
+  - `Environment (Broad Scale)`: 574,408 standardized rows; 380.63% of same-field raw-present rows.
+  - `Environment (Local Scale)`: 369,631 standardized rows; 328.76% of same-field raw-present rows.
+- Controlled-category rule audit remains clean after the completed refresh:
+  - 6,760 total rows.
+  - 6,660 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
