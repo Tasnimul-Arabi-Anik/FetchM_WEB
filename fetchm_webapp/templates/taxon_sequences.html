@@ -3,6 +3,19 @@
 <style>
   .sequence-page {
     font-size: 1.12rem;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: clip;
+  }
+
+  .sequence-page .panel,
+  .sequence-page .metric-card,
+  .sequence-page form {
+    min-width: 0;
+  }
+
+  .sequence-page .section-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .sequence-page .eyebrow {
@@ -73,6 +86,7 @@
   .sequence-filter-toolbar {
     max-width: 100%;
     overflow: visible;
+    align-items: flex-start;
   }
 
   .sequence-filter-picker,
@@ -127,8 +141,8 @@
 
   .sequence-filter-actions {
     margin-top: 2px;
-    display: grid !important;
-    grid-template-columns: 1fr auto 1fr !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
     align-items: center !important;
     gap: 12px !important;
     width: 100%;
@@ -136,16 +150,19 @@
 
   .sequence-filter-actions-left {
     display: flex !important;
+    flex: 1 1 180px !important;
     justify-content: flex-start !important;
   }
 
   .sequence-filter-actions-center {
     display: flex !important;
-    justify-content: flex-end !important;
+    flex: 1 1 160px !important;
+    justify-content: center !important;
   }
 
   .sequence-filter-actions-right {
     display: flex !important;
+    flex: 1 1 260px !important;
     justify-content: flex-end !important;
   }
 
@@ -178,10 +195,11 @@
 
   .sequence-output-row {
     width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
   }
 
   .launch-actions-inline {
-    width: 100% !important;
+    width: auto !important;
     justify-content: flex-end !important;
     margin-left: auto !important;
   }
@@ -218,6 +236,32 @@
     background:
       radial-gradient(circle at center, var(--accent) 0 4px, transparent 5px),
       #fff;
+  }
+
+  .sequence-table-shell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+  }
+
+  .sequence-table {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  @media (max-width: 760px) {
+    .sequence-page .section-heading,
+    .sequence-output-row {
+      grid-template-columns: 1fr !important;
+    }
+
+    .sequence-filter-actions-left,
+    .sequence-filter-actions-center,
+    .sequence-filter-actions-right,
+    .launch-actions-inline {
+      justify-content: flex-start !important;
+    }
   }
 </style>
 <main class="layout sequence-page">

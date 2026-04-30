@@ -145,6 +145,7 @@ pre {
   border-radius: 22px;
   padding: 24px;
   box-shadow: var(--shadow);
+  min-width: 0;
 }
 
 .hero {
@@ -307,7 +308,7 @@ button.danger {
 }
 
 .metrics-grid-sequence-top {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   align-items: stretch;
 }
 
@@ -318,8 +319,8 @@ button.danger {
 .metrics-grid-sequence-top .metric-card strong {
   font-size: 1.05rem;
   gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  white-space: normal;
 }
 
 .metrics-grid-sequence-top .metric-card strong span {
@@ -1077,7 +1078,7 @@ button.danger {
 }
 
 .sequence-dashboard-grid {
-  grid-template-columns: minmax(340px, 0.88fr) minmax(0, 1.12fr);
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .sequence-filter-accordion-grid {
@@ -1250,11 +1251,12 @@ button.danger {
   gap: 12px;
   align-items: start;
   width: 100%;
+  min-width: 0;
 }
 
 .sequence-options-box-output {
-  min-width: min(460px, 100%);
-  width: fit-content;
+  min-width: 0;
+  width: min(460px, 100%);
 }
 
 .sequence-range-grid-compact {
@@ -1278,7 +1280,7 @@ button.danger {
   align-items: flex-start;
   justify-content: flex-end;
   padding-top: 1px;
-  width: 100%;
+  width: auto;
   margin-left: auto;
 }
 
@@ -1567,21 +1569,24 @@ button.danger {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .sequence-filter-actions-left {
   display: flex;
+  flex: 1 1 180px;
   justify-content: flex-start;
 }
 
 .sequence-filter-actions-center {
   display: flex;
+  flex: 1 1 160px;
   justify-content: center;
 }
 
 .sequence-filter-actions-right {
   display: flex;
+  flex: 1 1 260px;
   justify-content: flex-end;
 }
 
@@ -1622,6 +1627,9 @@ button.danger {
 }
 
 .sequence-table-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -1629,9 +1637,9 @@ button.danger {
 }
 
 .sequence-table {
-  width: 100%;
+  width: max-content;
   border-collapse: collapse;
-  min-width: 920px;
+  min-width: 100%;
 }
 
 .sequence-table th,
