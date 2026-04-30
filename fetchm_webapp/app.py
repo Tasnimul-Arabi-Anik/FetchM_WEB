@@ -1162,6 +1162,21 @@ SECONDARY_STANDARDIZATION_COLUMNS = [
     "Isolation_Source_SD_Detail",
     "Isolation_Source_SD_Method",
     "Isolation_Source_Ontology_ID",
+    "Isolation_Site_SD",
+    "Isolation_Site_SD_Broad",
+    "Isolation_Site_SD_Detail",
+    "Isolation_Site_SD_Method",
+    "Isolation_Site_Ontology_ID",
+    "Environment_Broad_Scale_SD",
+    "Environment_Broad_Scale_SD_Broad",
+    "Environment_Broad_Scale_SD_Detail",
+    "Environment_Broad_Scale_SD_Method",
+    "Environment_Broad_Scale_Ontology_ID",
+    "Environment_Local_Scale_SD",
+    "Environment_Local_Scale_SD_Broad",
+    "Environment_Local_Scale_SD_Detail",
+    "Environment_Local_Scale_SD_Method",
+    "Environment_Local_Scale_Ontology_ID",
     "Environment_Medium_SD",
     "Environment_Medium_SD_Broad",
     "Environment_Medium_SD_Detail",
@@ -1172,6 +1187,16 @@ SECONDARY_STANDARDIZATION_COLUMNS = [
     "Sample_Type_SD_Detail",
     "Sample_Type_SD_Method",
     "Sample_Type_Ontology_ID",
+    "Host_Disease_SD",
+    "Host_Disease_SD_Broad",
+    "Host_Disease_SD_Detail",
+    "Host_Disease_SD_Method",
+    "Host_Disease_Ontology_ID",
+    "Host_Health_State_SD",
+    "Host_Health_State_SD_Broad",
+    "Host_Health_State_SD_Detail",
+    "Host_Health_State_SD_Method",
+    "Host_Health_State_Ontology_ID",
 ]
 
 HOST_SYNONYMS = {
@@ -1590,6 +1615,56 @@ SAMPLE_TYPE_SYNONYMS = {
     "p-trap": "trap sample",
 }
 
+ISOLATION_SOURCE_SYNONYMS = {
+    "clinical": "clinical sample",
+    "clinical sample": "clinical sample",
+    "clinical material": "clinical sample",
+    "clinical specimen": "clinical sample",
+    "sterile site": "sterile body site",
+    "normally sterile site": "sterile body site",
+    "hospital": "healthcare facility",
+    "intensive care unit": "healthcare facility",
+    "nursing home": "healthcare facility",
+    "food": "food/food product",
+    "foods": "food/food product",
+    "food product": "food/food product",
+    "ready to eat food": "ready-to-eat food",
+    "rte food": "ready-to-eat food",
+    "milk": "milk",
+    "dairy milk": "milk",
+    "dairy": "dairy food",
+    "cheese": "dairy food",
+    "yogurt": "dairy food",
+    "yoghurt": "dairy food",
+    "meat": "meat product",
+    "beef": "beef/meat product",
+    "pork": "pork/meat product",
+    "poultry": "poultry",
+    "chicken meat": "poultry meat/product",
+    "turkey meat": "turkey meat/product",
+    "seafood": "seafood/aquatic food product",
+    "fish product": "seafood/aquatic food product",
+    "shrimp product": "seafood/aquatic food product",
+    "oyster product": "seafood/aquatic food product",
+    "shellfish product": "seafood/aquatic food product",
+    "vegetable": "plant/produce food product",
+    "vegetables": "plant/produce food product",
+    "fruit": "plant/produce food product",
+    "produce": "plant/produce food product",
+    "spinach": "plant/produce food product",
+    "lettuce": "plant/produce food product",
+    "cantaloupe": "plant/produce food product",
+    "papaya": "plant/produce food product",
+    "strawberry": "plant/produce food product",
+    "almond": "plant/produce food product",
+    "kimchi": "fermented food",
+    "root": "plant-associated material",
+    "rhizosphere": "plant-associated material",
+    "leaf": "plant-associated material",
+    "leaf tissue": "plant-associated material",
+    "nodule": "plant-associated material",
+}
+
 ENVIRONMENT_MEDIUM_SYNONYMS = {
     "soil": "soil",
     "sediment": "sediment",
@@ -1627,6 +1702,206 @@ ENVIRONMENT_MEDIUM_SYNONYMS = {
     "estuarine water": "estuarine water",
     "estuarine open water surface layer": "estuarine water",
     "oyster pond": "Oyster pond",
+}
+
+ISOLATION_SITE_SYNONYMS = {
+    "blood": "blood",
+    "blood culture": "blood",
+    "urine": "urine",
+    "sputum": "sputum",
+    "respiratory": "respiratory tract",
+    "respiratory tract": "respiratory tract",
+    "tracheal aspirate": "tracheal aspirate",
+    "tracheal secretion": "tracheal aspirate",
+    "bronchoalveolar lavage": "bronchoalveolar lavage fluid",
+    "bronchoalveolar lavage fluid": "bronchoalveolar lavage fluid",
+    "balf": "bronchoalveolar lavage fluid",
+    "nasopharynx": "nasopharynx/oropharynx",
+    "nasopharyngeal": "nasopharynx/oropharynx",
+    "oropharynx": "nasopharynx/oropharynx",
+    "oropharyngeal": "nasopharynx/oropharynx",
+    "pharynx": "nasopharynx/oropharynx",
+    "pharyngeal": "nasopharynx/oropharynx",
+    "throat": "nasopharynx/oropharynx",
+    "nose": "nasal site",
+    "nasal": "nasal site",
+    "nares": "nasal site",
+    "nasal cavity": "nasal site",
+    "oral": "oral cavity",
+    "oral cavity": "oral cavity",
+    "dental plaque": "dental plaque",
+    "saliva": "saliva",
+    "skin": "skin",
+    "wound": "wound",
+    "abscess": "abscess",
+    "pus": "pus",
+    "liver abscess": "liver abscess",
+    "pleural fluid": "pleural fluid",
+    "bodily fluid": "body fluid",
+    "fluid": "body fluid",
+    "urethra": "urethra/penis",
+    "urethral": "urethra/penis",
+    "penis": "urethra/penis",
+    "penis urethra": "urethra/penis",
+    "vagina": "vaginal site",
+    "vaginal": "vaginal site",
+    "cervix": "cervix",
+    "ectocervical mucosa": "cervix",
+    "intestine": "gut content",
+    "intestinal tract": "gut content",
+    "gastrointestinal tract": "gut content",
+    "gut": "gut content",
+    "gut content": "gut content",
+    "intestinal content": "gut content",
+    "cecum": "gut content",
+    "cecal content": "gut content",
+    "caecum": "gut content",
+    "caecal content": "gut content",
+    "stomach": "stomach",
+    "gastric biopsy": "gastric biopsy",
+    "rumen": "rumen",
+    "manure": "manure",
+    "feces": "feces/stool",
+    "faeces": "feces/stool",
+    "stool": "feces/stool",
+    "liver": "liver",
+    "brain": "brain",
+    "kidney": "kidney",
+    "spleen": "spleen",
+    "bone": "bone",
+    "eye": "eye",
+    "ear": "ear",
+    "placenta": "placenta",
+    "lymph node": "lymph node",
+    "root": "root",
+    "rhizosphere": "rhizosphere",
+    "leaves": "leaf tissue",
+    "leaf": "leaf tissue",
+    "leaf tissue": "leaf tissue",
+    "plant": "plant-associated material",
+    "nodule": "root nodule",
+}
+
+ENVIRONMENT_BROAD_SYNONYMS = {
+    "human-associated": "host-associated environment",
+    "host-associated": "host-associated environment",
+    "animal-associated": "host-associated environment",
+    "plant-associated": "plant-associated environment",
+    "plant associated": "plant-associated environment",
+    "rhizosphere": "plant-associated environment",
+    "root": "plant-associated environment",
+    "soil": "terrestrial environment",
+    "terrestrial": "terrestrial environment",
+    "freshwater": "freshwater environment",
+    "fresh water": "freshwater environment",
+    "river": "freshwater environment",
+    "lake": "freshwater environment",
+    "pond": "freshwater environment",
+    "marine": "marine environment",
+    "sea": "marine environment",
+    "seawater": "marine environment",
+    "estuary": "estuarine environment",
+    "estuarine": "estuarine environment",
+    "wastewater": "wastewater/sewage",
+    "sewage": "wastewater/sewage",
+    "activated sludge": "wastewater/sewage",
+    "food": "food-associated environment",
+    "food product": "food-associated environment",
+    "dairy": "food-associated environment",
+    "meat": "food-associated environment",
+    "seafood": "food-associated environment",
+    "clinical": "clinical/host-associated material",
+    "patient clinical": "clinical/host-associated material",
+    "hospital": "healthcare-associated environment",
+    "healthcare": "healthcare-associated environment",
+    "laboratory": "laboratory environment",
+    "built environment": "built environment",
+    "air": "air/built environment",
+    "sediment": "aquatic sediment environment",
+    "geologic": "geologic/extreme environment",
+    "hydrothermal": "geologic/extreme environment",
+    "hot spring": "geologic/extreme environment",
+}
+
+ENVIRONMENT_LOCAL_SYNONYMS = {
+    "river": "river",
+    "stream": "stream",
+    "lake": "lake",
+    "pond": "pond",
+    "canal": "canal",
+    "irrigation canal": "irrigation canal",
+    "estuary": "estuary",
+    "hot spring": "hot spring",
+    "groundwater": "groundwater",
+    "surface layer": "surface water layer",
+    "hospital": "healthcare facility",
+    "hospital environment": "healthcare facility",
+    "icu": "intensive care unit",
+    "intensive care unit": "intensive care unit",
+    "nursing home": "long-term care facility",
+    "long term care facility": "long-term care facility",
+    "farm": "farm",
+    "dairy farm": "dairy farm",
+    "poultry farm": "poultry farm",
+    "food processing facility": "food processing facility",
+    "food processing environment": "food processing facility",
+    "food-contact surface": "food-contact surface",
+    "non-food-contact surface": "non-food-contact surface",
+    "cleanroom": "cleanroom",
+    "cleanroom floor": "cleanroom floor",
+    "laboratory": "laboratory",
+    "cave": "cave",
+    "cold seep": "cold seep",
+    "glacier": "glacier",
+    "subsurface shale": "subsurface shale",
+}
+
+HOST_DISEASE_SYNONYMS = {
+    "healthy": "healthy/no disease reported",
+    "healthy human": "healthy/no disease reported",
+    "normal": "healthy/no disease reported",
+    "none": "healthy/no disease reported",
+    "not applicable": "",
+    "diarrhea": "diarrheal disease",
+    "diarrhoea": "diarrheal disease",
+    "gastroenteritis": "gastroenteritis",
+    "colitis": "colitis",
+    "urinary tract infection": "urinary tract infection",
+    "uti": "urinary tract infection",
+    "pneumonia": "pneumonia",
+    "respiratory infection": "respiratory infection",
+    "wound infection": "wound infection",
+    "sepsis": "sepsis/bacteremia",
+    "bacteremia": "sepsis/bacteremia",
+    "bloodstream infection": "sepsis/bacteremia",
+    "meningitis": "meningitis",
+    "periodontitis": "periodontal disease",
+    "dental caries": "dental caries",
+    "cystic fibrosis": "cystic fibrosis",
+    "inflammatory bowel disease": "inflammatory bowel disease",
+    "ibd": "inflammatory bowel disease",
+    "crohn disease": "inflammatory bowel disease",
+    "ulcerative colitis": "inflammatory bowel disease",
+    "mastitis": "mastitis",
+    "listeriosis": "listeriosis",
+    "salmonellosis": "salmonellosis",
+    "campylobacteriosis": "campylobacteriosis",
+}
+
+HOST_HEALTH_STATE_SYNONYMS = {
+    "healthy": "healthy",
+    "healthy control": "healthy",
+    "normal": "healthy",
+    "asymptomatic": "asymptomatic",
+    "symptomatic": "symptomatic",
+    "diseased": "diseased",
+    "disease": "diseased",
+    "sick": "diseased",
+    "patient": "patient",
+    "hospitalized": "hospitalized",
+    "non hospitalized": "non-hospitalized",
+    "not hospitalized": "non-hospitalized",
+    "convalescent": "convalescent",
 }
 
 CONTROLLED_CATEGORY_ONTOLOGY_IDS = {
@@ -2600,10 +2875,20 @@ def load_external_standardization_rules() -> None:
             CONTROLLED_CATEGORY_ONTOLOGY_IDS[category] = ontology_id
         if destination == "Environment_Medium_SD":
             ENVIRONMENT_MEDIUM_SYNONYMS[synonym] = category
+        elif destination == "Environment_Broad_Scale_SD":
+            ENVIRONMENT_BROAD_SYNONYMS[synonym] = category
+        elif destination == "Environment_Local_Scale_SD":
+            ENVIRONMENT_LOCAL_SYNONYMS[synonym] = category
+        elif destination == "Isolation_Site_SD":
+            ISOLATION_SITE_SYNONYMS[synonym] = category
+        elif destination == "Host_Disease_SD":
+            HOST_DISEASE_SYNONYMS[synonym] = category
+        elif destination == "Host_Health_State_SD":
+            HOST_HEALTH_STATE_SYNONYMS[synonym] = category
         elif destination == "Sample_Type_SD":
             SAMPLE_TYPE_SYNONYMS[synonym] = category
         elif destination == "Isolation_Source_SD":
-            SAMPLE_TYPE_SYNONYMS[synonym] = category
+            ISOLATION_SOURCE_SYNONYMS[synonym] = category
     apply_core_standardization_overrides()
 
 
@@ -2641,8 +2926,20 @@ def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> No
         CONTROLLED_CATEGORY_ONTOLOGY_IDS[proposed_value] = ontology_id
     if destination == "Environment_Medium_SD":
         ENVIRONMENT_MEDIUM_SYNONYMS[normalized_value] = proposed_value
-    elif destination in {"Sample_Type_SD", "Isolation_Source_SD"}:
+    elif destination == "Environment_Broad_Scale_SD":
+        ENVIRONMENT_BROAD_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Environment_Local_Scale_SD":
+        ENVIRONMENT_LOCAL_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Isolation_Site_SD":
+        ISOLATION_SITE_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Host_Disease_SD":
+        HOST_DISEASE_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Host_Health_State_SD":
+        HOST_HEALTH_STATE_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Sample_Type_SD":
         SAMPLE_TYPE_SYNONYMS[normalized_value] = proposed_value
+    elif destination == "Isolation_Source_SD":
+        ISOLATION_SOURCE_SYNONYMS[normalized_value] = proposed_value
     clear_standardization_runtime_caches()
 
 
@@ -3101,10 +3398,20 @@ def metadata_synonym_context_items(synonyms: dict[str, str]) -> tuple[tuple[re.P
 
 def source_standardization_synonyms() -> dict[str, str]:
     global _SOURCE_STANDARDIZATION_SYNONYMS_CACHE
-    stamp = (len(SAMPLE_TYPE_SYNONYMS), len(ENVIRONMENT_MEDIUM_SYNONYMS))
+    stamp = (
+        len(ISOLATION_SOURCE_SYNONYMS),
+        len(SAMPLE_TYPE_SYNONYMS)
+        + len(ENVIRONMENT_MEDIUM_SYNONYMS)
+        + len(ISOLATION_SITE_SYNONYMS),
+    )
     if _SOURCE_STANDARDIZATION_SYNONYMS_CACHE is not None and _SOURCE_STANDARDIZATION_SYNONYMS_CACHE[:2] == stamp:
         return _SOURCE_STANDARDIZATION_SYNONYMS_CACHE[2]
-    combined = {**SAMPLE_TYPE_SYNONYMS, **ENVIRONMENT_MEDIUM_SYNONYMS}
+    combined = {
+        **SAMPLE_TYPE_SYNONYMS,
+        **ENVIRONMENT_MEDIUM_SYNONYMS,
+        **ISOLATION_SITE_SYNONYMS,
+        **ISOLATION_SOURCE_SYNONYMS,
+    }
     _SOURCE_STANDARDIZATION_SYNONYMS_CACHE = (stamp[0], stamp[1], combined)
     return combined
 
@@ -3468,6 +3775,50 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         source_standardization_synonyms(),
         standardize_isolation_source,
     )
+    isolation_site, isolation_site_method, isolation_site_ontology_id = first_standardized_concept(
+        [
+            row.get("Isolation Site"),
+            row.get("BioSample Isolation Site"),
+            row.get("BioSample Body Site"),
+            row.get("BioSample Organism Part"),
+            row.get("BioSample Tissue"),
+            row.get("BioSample Tissue Type"),
+            row.get("BioSample Host Tissue Sampled"),
+            row.get("Sample Type"),
+            row.get("Isolation Source"),
+        ],
+        ISOLATION_SITE_SYNONYMS,
+    )
+    environment_broad, environment_broad_method, environment_broad_ontology_id = first_standardized_concept(
+        [
+            row.get("Environment (Broad Scale)"),
+            row.get("BioSample ENV Broad Scale"),
+            row.get("BioSample ENV Biome"),
+            row.get("BioSample Environment Biome"),
+            row.get("BioSample Biome"),
+            row.get("BioSample Metagenome Source"),
+            row.get("Environment Medium"),
+            row.get("Isolation Source"),
+            row.get("Sample Type"),
+            host_as_context,
+        ],
+        ENVIRONMENT_BROAD_SYNONYMS,
+    )
+    environment_local, environment_local_method, environment_local_ontology_id = first_standardized_concept(
+        [
+            row.get("Environment (Local Scale)"),
+            row.get("BioSample ENV Local Scale"),
+            row.get("BioSample ENV Feature"),
+            row.get("BioSample Environment Feature"),
+            row.get("BioSample Feature"),
+            row.get("BioSample Collection Site"),
+            row.get("BioSample Sample Site"),
+            row.get("BioSample Location Type"),
+            row.get("Isolation Source"),
+            row.get("Sample Type"),
+        ],
+        ENVIRONMENT_LOCAL_SYNONYMS,
+    )
     environment_medium, environment_method, environment_ontology_id = first_standardized_concept(
         [
             row.get("Environment Medium"),
@@ -3490,12 +3841,47 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             host_sample_method,
             host_sample_ontology_id,
         )
+    host_disease, host_disease_method, host_disease_ontology_id = first_standardized_concept(
+        [
+            row.get("Host Disease"),
+            row.get("BioSample Host Disease"),
+            row.get("BioSample Disease"),
+            row.get("BioSample Study Disease"),
+            row.get("BioSample Disease State"),
+        ],
+        HOST_DISEASE_SYNONYMS,
+    )
+    host_health_state, host_health_state_method, host_health_state_ontology_id = first_standardized_concept(
+        [
+            row.get("Host Health State"),
+            row.get("BioSample Host Health State"),
+            row.get("BioSample Health State"),
+            row.get("BioSample Health Status"),
+            row.get("BioSample Host Health"),
+        ],
+        HOST_HEALTH_STATE_SYNONYMS,
+    )
     return {
         "Isolation_Source_SD": isolation_source,
         "Isolation_Source_SD_Broad": broad_standardization_category(isolation_source),
         "Isolation_Source_SD_Detail": isolation_source,
         "Isolation_Source_SD_Method": isolation_method,
         "Isolation_Source_Ontology_ID": isolation_ontology_id,
+        "Isolation_Site_SD": isolation_site,
+        "Isolation_Site_SD_Broad": broad_standardization_category(isolation_site),
+        "Isolation_Site_SD_Detail": isolation_site,
+        "Isolation_Site_SD_Method": isolation_site_method,
+        "Isolation_Site_Ontology_ID": isolation_site_ontology_id,
+        "Environment_Broad_Scale_SD": environment_broad,
+        "Environment_Broad_Scale_SD_Broad": broad_standardization_category(environment_broad),
+        "Environment_Broad_Scale_SD_Detail": environment_broad,
+        "Environment_Broad_Scale_SD_Method": environment_broad_method,
+        "Environment_Broad_Scale_Ontology_ID": environment_broad_ontology_id,
+        "Environment_Local_Scale_SD": environment_local,
+        "Environment_Local_Scale_SD_Broad": broad_standardization_category(environment_local),
+        "Environment_Local_Scale_SD_Detail": environment_local,
+        "Environment_Local_Scale_SD_Method": environment_local_method,
+        "Environment_Local_Scale_Ontology_ID": environment_local_ontology_id,
         "Environment_Medium_SD": environment_medium,
         "Environment_Medium_SD_Broad": broad_standardization_category(environment_medium),
         "Environment_Medium_SD_Detail": environment_medium,
@@ -3506,6 +3892,16 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         "Sample_Type_SD_Detail": sample_type,
         "Sample_Type_SD_Method": sample_type_method,
         "Sample_Type_Ontology_ID": sample_type_ontology_id,
+        "Host_Disease_SD": host_disease,
+        "Host_Disease_SD_Broad": broad_standardization_category(host_disease),
+        "Host_Disease_SD_Detail": host_disease,
+        "Host_Disease_SD_Method": host_disease_method,
+        "Host_Disease_Ontology_ID": host_disease_ontology_id,
+        "Host_Health_State_SD": host_health_state,
+        "Host_Health_State_SD_Broad": broad_standardization_category(host_health_state),
+        "Host_Health_State_SD_Detail": host_health_state,
+        "Host_Health_State_SD_Method": host_health_state_method,
+        "Host_Health_State_Ontology_ID": host_health_state_ontology_id,
     }
 
 
