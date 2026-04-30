@@ -1,0 +1,5067 @@
+taxon,rows,host_taxid_rows,host_review_needed_rows,country_rows,collection_year_rows,sample_type_rows,isolation_source_rows,environment_medium_rows
+Salmonella,615235,273230,57,573923,554900,298996,243472,107490
+Escherichia,399036,271815,109,378882,364792,248921,224245,77938
+Streptococcus,178172,163236,13,163449,159392,127544,138820,2153
+Campylobacter,154348,93624,5,145265,130668,95890,83782,26619
+Staphylococcus,142151,120214,24,126402,122246,87904,99029,2867
+Klebsiella,132067,117921,15,127185,121085,96151,101472,10600
+Listeria,75602,21563,11,69989,71870,54659,53896,22516
+Neisseria,65317,59805,1,57303,55775,44267,45898,63
+Pseudomonas,64104,47555,45,54817,50710,44158,50280,6130
+Acinetobacter,54799,47092,5,52243,50962,37510,44291,2193
+Shigella,54364,32006,0,50919,49723,29665,11914,11062
+Enterococcus,53749,42889,15,50418,46288,34054,37175,6437
+Vibrio,40004,16440,33,36264,35774,20866,23643,11596
+Clostridioides,24501,19053,4,18871,18254,18122,16985,13713
+Enterobacter,19773,14559,6,16656,16050,13966,13145,2446
+Bacillus,17789,5344,66,13452,13826,13260,11952,5878
+Streptomyces,15960,1527,64,8071,10409,3879,4416,3237
+Clostridium,12796,5958,3,7865,7523,6943,6651,3967
+Bacteroides,12322,7394,1,7294,6046,6519,5650,4228
+Mycobacterium,12203,7315,2,8122,7235,4458,5998,772
+Helicobacter,10712,7005,0,6849,4716,6248,7111,179
+Yersinia,10221,7355,24,8392,8524,7124,5469,985
+Legionella,9850,2293,3,8276,8287,7875,7263,3784
+Alistipes,9867,3323,0,3076,3198,3379,3504,1571
+Bifidobacterium,8323,5797,4,6002,5592,4350,3712,3933
+Burkholderia,8161,3457,8,5683,5143,4775,5267,2224
+Prevotella,7931,3016,0,2837,2983,3174,3542,1909
+Haemophilus,7808,6412,4,5702,5571,5289,5942,353
+Citrobacter,6955,4632,7,6176,5915,4943,4890,1664
+Xanthomonas,6340,5691,41,5837,5356,5414,3258,2330
+Lactobacillus,6069,2861,8,3445,2840,2990,2854,863
+Serratia,5947,3835,8,4692,4542,4167,4038,765
+Proteus,5816,4698,5,4866,4675,3978,4118,279
+Ruminococcus,5443,2380,1,2193,2313,2451,3216,1521
+Aeromonas,4770,2809,7,3828,3085,3371,3500,1662
+Corynebacterium,4684,3467,6,3551,3538,3202,3413,611
+Stenotrophomonas,4292,2273,9,3741,3513,3315,3303,633
+Phocaeicola,4145,2487,0,2466,1978,2185,1990,1515
+Cronobacter,3929,838,0,3692,3373,3782,3549,2012
+Collinsella,3712,1742,3,1641,1592,1617,2098,997
+Eubacterium,3658,1028,1,896,884,1024,1147,695
+Parabacteroides,3491,1568,1,1578,1390,1418,1369,932
+Pasteurella,3432,3242,3,3295,3272,2567,1569,73
+Faecalibacterium,3393,1534,2,1534,1408,1457,1546,1045
+Bordetella,3291,2656,1,2726,2652,1374,1863,49
+Duncaniella,3013,85,0,96,83,84,101,20
+Akkermansia,3016,1149,0,1126,1129,1124,1154,705
+Mycobacteroides,2717,1251,5,1325,1055,1225,1474,57
+Blautia,2678,1407,0,1404,1184,1321,1365,869
+Mannheimia,2509,2467,0,2444,2446,2392,2194,17
+Treponema,2411,1559,2,1408,1400,1519,1636,371
+Providencia,2383,1568,0,1974,1740,1298,1340,119
+Paenibacillus,2368,480,4,1576,1633,1499,1509,650
+Limosilactobacillus,2315,1207,3,1353,1331,1145,1069,504
+Flavobacterium,2390,548,2,1801,1657,1561,1662,1062
+Cutibacterium,2299,2174,0,2114,2069,604,838,180
+Rhizobium,2296,1602,21,1722,1442,1533,1411,772
+Acetatifactor,2296,220,0,262,209,230,260,185
+Bradyrhizobium,2155,707,5,1432,1258,1436,1106,667
+Muribaculum,2134,52,0,56,51,47,60,26
+Ligilactobacillus,2099,661,2,644,574,522,449,315
+Roseburia,2106,856,0,846,775,831,907,608
+Lactiplantibacillus,2025,818,7,1670,1644,1532,1566,398
+Lactococcus,1978,850,2,1563,1546,1458,1319,588
+Brucella,1858,1230,0,1325,1254,720,769,125
+Mesorhizobium,1821,1404,4,1654,1621,1676,1295,303
+Dorea,1795,441,0,437,350,404,439,295
+Odoribacter,1772,259,0,261,249,240,264,164
+Wolbachia,1764,982,7,774,653,971,1184,147
+Pantoea,1648,1051,9,1415,1344,1130,912,390
+Ralstonia,1621,923,10,1255,1262,1092,795,429
+Lacticaseibacillus,1615,777,3,1285,1261,1223,1240,267
+Microbacterium,1613,413,7,1091,1052,980,933,657
+Mediterraneibacter,1500,809,0,771,656,777,745,491
+Morganella,1437,1164,2,1237,1218,983,765,143
+Sphingomonas,1412,251,0,992,939,857,896,690
+Agathobacter,1381,922,0,947,860,970,991,634
+Prochlorococcus,1279,66,0,846,921,805,1130,866
+Faecousia,1354,792,0,805,799,813,806,730
+Francisella,1350,1089,19,1225,1140,651,445,97
+Oscillibacter,1335,258,1,248,240,247,319,162
+Shewanella,1273,447,2,1055,1058,970,962,610
+Candidatus Pelagibacter,1267,9,0,1139,1140,1122,1157,1131
+Veillonella,1265,650,0,639,590,607,725,496
+Fusobacterium,1257,718,0,459,466,506,723,181
+Leptospira,1222,767,11,977,852,696,634,320
+Desulfovibrio,1218,354,1,403,403,429,470,234
+Christensenella,1209,109,0,144,63,151,204,100
+Gemmiger,1229,825,1,860,806,853,876,456
+Segatella,1197,770,0,797,730,769,789,568
+Sutterella,1189,448,0,455,430,443,515,272
+Mycoplasmopsis,1157,1037,0,1047,1027,861,773,15
+Rhodococcus,1134,249,3,808,742,732,636,503
+Stutzerimonas,1123,80,0,1029,839,958,969,231
+Phascolarctobacterium,1121,544,0,531,533,538,592,308
+Micromonospora,1104,170,5,506,520,404,399,261
+Porphyromonas,1104,588,0,575,533,515,610,61
+Elizabethkingia,1091,917,0,973,915,924,749,33
+Nocardia,1075,282,2,608,540,431,408,172
+Pseudoalteromonas,1072,308,5,849,831,707,729,588
+Dialister,1033,535,0,530,470,555,597,395
+Leuconostoc,1011,223,1,738,682,722,723,220
+Glaesserella,1009,994,0,1002,892,974,749,0
+Chryseobacterium,999,313,1,639,588,597,566,257
+Actinomyces,995,327,0,311,224,262,361,130
+Synechococcus,1040,69,4,716,687,588,747,554
+Arthrobacter,925,231,3,715,592,611,599,410
+Sinorhizobium,917,505,0,515,394,506,421,94
+Priestia,922,330,2,737,801,750,667,408
+Psychrobacter,902,283,8,688,622,649,696,377
+Achromobacter,901,534,1,741,713,685,679,189
+Borreliella,896,776,2,791,803,445,541,2
+Lachnospira,895,522,0,522,481,503,524,353
+Ruegeria,869,769,0,817,817,334,312,189
+Agrobacterium,865,512,7,529,615,549,369,95
+Mailhella,866,58,0,35,53,55,63,25
+Kineothrix,865,12,0,15,13,12,14,13
+Mucispirillum,857,12,0,18,13,13,16,8
+Brevundimonas,855,83,0,620,557,632,644,384
+Marinobacter,851,169,3,612,599,604,601,445
+Mycolicibacterium,835,331,1,588,562,508,517,234
+Paraburkholderia,820,179,3,521,491,344,482,354
+Chlamydia,809,354,6,488,495,393,440,140
+Coprococcus,783,443,0,439,397,422,452,317
+Nocardioides,764,121,1,536,474,517,521,434
+Rothia,761,306,1,297,254,279,320,59
+Candidatus Planktophila,958,0,0,430,424,225,445,218
+Mycoplasmoides,748,570,0,587,596,561,587,1
+Aliarcobacter,743,403,0,642,624,497,431,195
+Pectobacterium,729,580,9,645,643,454,300,65
+Hungatella,724,155,0,171,95,153,170,137
+Butyricicoccus,715,140,0,139,141,139,152,114
+Anaerostipes,709,387,0,389,315,378,392,231
+Megasphaera,700,339,0,345,295,339,360,232
+Photobacterium,695,349,3,602,609,425,476,249
+Fusicatenibacter,689,397,0,414,374,417,432,236
+Micrococcus,686,286,0,440,456,440,401,144
+Nitrospira,685,25,0,574,493,585,577,526
+Pediococcus,683,254,0,568,532,546,544,259
+Novosphingobium,703,35,0,497,486,484,528,445
+Alteromonas,670,71,2,306,323,331,337,300
+Chitinophaga,663,33,0,189,178,140,245,115
+Turicibacter,660,334,0,328,330,96,79,283
+Oenococcus,659,10,1,557,596,123,390,23
+Sulfitobacter,657,251,0,423,433,368,351,358
+Sphingobacterium,651,173,0,486,428,482,475,156
+Erwinia,651,507,2,574,561,399,223,155
+Halomonas,641,55,0,457,459,442,441,370
+Parasutterella,641,194,0,184,185,182,186,87
+Enterocloster,642,379,0,376,257,365,374,279
+Kitasatospora,637,22,0,326,397,84,107,72
+Weissella,624,345,6,491,475,422,441,92
+Barnesiella,635,378,0,368,351,374,375,167
+Lachnoclostridium,618,167,0,159,135,184,214,86
+Bilophila,627,180,0,183,155,176,184,89
+Mammaliicoccus,610,430,0,564,556,495,415,79
+Paramuribaculum,603,57,0,57,56,58,59,16
+Candidatus Cryptobacteroides,600,518,0,569,553,573,569,440
+Eggerthella,581,297,0,276,256,248,272,132
+Thomasclavelia,572,244,0,240,164,225,225,130
+Moraxella,571,463,0,495,474,454,361,34
+Lysinibacillus,563,110,1,385,355,370,368,179
+Mycoplasma,560,361,0,348,329,294,286,23
+Methylobacterium,553,169,0,336,354,284,302,220
+Gardnerella,552,397,0,371,364,283,296,7
+Polynucleobacter,543,2,0,400,393,353,407,382
+Angelakisella,545,149,1,152,143,151,158,105
+Capnocytophaga,531,145,0,168,138,159,169,22
+Bartonella,530,408,1,423,409,350,341,12
+Polaribacter,530,43,2,341,338,337,341,301
+Faecalibaculum,529,8,0,9,7,9,11,4
+Rhodoferax,523,7,0,397,372,392,399,374
+Clavibacter,519,468,2,481,466,387,159,19
+Microcystis,516,11,0,437,421,425,450,424
+Ruthenibacterium,514,276,0,274,265,258,260,152
+Prevotellamassilia,505,156,0,158,146,151,161,137
+Alloprevotella,502,195,0,193,177,201,210,138
+Sphingobium,502,35,0,314,283,305,307,249
+Polaromonas,523,40,0,454,443,414,456,366
+Acetobacter,497,116,0,345,344,381,400,187
+Comamonas,497,119,2,374,335,331,305,209
+Sulfurimonas,491,124,0,430,427,404,348,380
+Leclercia,483,100,1,438,363,436,428,59
+Anaerotignum,486,161,0,143,166,173,185,94
+Flavonifractor,480,253,1,240,222,239,209,131
+Tenacibaculum,478,320,1,379,379,360,295,86
+Aerococcus,468,349,0,347,315,285,324,25
+Luminiphilus,468,4,0,305,301,300,310,292
+Variovorax,468,118,0,300,269,282,274,186
+Adlercreutzia,465,199,0,199,181,190,195,59
+Riemerella,465,453,1,452,451,386,337,1
+Limnohabitans,617,23,0,458,452,255,469,229
+Pedobacter,463,90,3,283,269,261,238,183
+Anaerotruncus,459,102,0,102,91,92,116,59
+Candidatus Thiodiazotropha,447,416,4,424,419,425,425,362
+Planktomarina,443,13,0,314,311,310,323,306
+Dysosmobacter,430,309,1,317,313,315,318,176
+Pseudolabrys,429,3,0,411,324,415,414,410
+Rickettsia,425,232,0,234,217,174,107,23
+Cupriavidus,423,127,3,269,259,267,262,142
+Brachyspira,415,287,0,272,246,250,181,82
+Butyricimonas,417,136,0,130,120,115,127,89
+Paracoccus,414,83,2,286,288,302,285,206
+Exiguobacterium,408,49,2,324,313,334,328,193
+Acidaminococcus,408,188,0,197,170,194,220,123
+Candidatus Actinomarina,398,46,0,180,171,149,312,142
+Erythrobacter,412,43,0,286,275,287,309,248
+Subdoligranulum,402,176,0,188,183,171,199,147
+Selenomonas,400,120,0,98,98,121,179,53
+Amycolatopsis,399,44,0,231,214,188,195,147
+Mucilaginibacter,423,56,0,282,245,275,297,183
+Brevibacillus,393,44,1,221,319,326,238,163
+Sulfurovum,392,31,0,335,326,329,350,277
+Ferruginibacter,389,6,0,330,303,332,332,315
+Paraprevotella,387,124,0,119,119,123,137,91
+Curtobacterium,385,171,2,299,282,148,195,124
+Brevibacterium,385,78,0,280,267,271,265,184
+Mesomycoplasma,383,347,2,344,343,313,255,0
+Levilactobacillus,382,135,1,265,266,239,262,61
+Candidatus Sulfotelmatobacter,376,4,0,372,301,374,373,370
+Latilactobacillus,376,107,0,261,231,256,250,56
+Gordonia,371,72,1,273,250,265,262,195
+Ruminiclostridium,367,123,0,125,140,153,168,90
+Dubosiella,379,18,0,19,5,19,22,15
+Sediminibacterium,540,17,0,389,378,215,394,192
+Acidovorax,365,51,1,231,204,211,235,162
+Solobacterium,363,135,0,100,149,158,186,55
+Peribacillus,362,60,0,243,256,218,182,136
+Edwardsiella,360,287,0,311,307,256,177,49
+Azospirillum,356,82,2,161,151,134,131,81
+Roseobacter,354,253,0,300,296,296,86,53
+Fibrobacter,351,145,0,96,146,170,205,60
+Microcoleus,351,11,0,333,301,328,343,245
+Kocuria,349,97,0,272,269,231,237,138
+Nostoc,349,110,0,299,226,294,276,44
+Phenylobacterium,347,11,0,292,250,297,296,280
+Metamycoplasma,343,246,0,250,246,132,180,1
+Phaeobacter,343,111,0,295,297,77,84,123
+Olsenella,341,103,1,110,116,118,159,95
+Nitrosomonas,340,3,0,268,231,250,263,240
+Turicimonas,337,11,0,8,9,7,10,6
+Coxiella,334,253,2,260,258,172,75,4
+Methylotenera,379,4,0,299,279,240,309,236
+Occallatibacter,336,29,0,258,196,267,269,230
+Xylella,332,273,8,314,254,206,195,115
+Aggregatibacter,331,235,0,227,196,89,187,7
+Nonomuraea,329,10,0,130,126,118,104,91
+Acidithiobacillus,327,3,0,308,298,287,299,201
+Erysipelothrix,321,218,1,235,232,255,85,16
+Amylibacter,320,7,0,280,278,279,278,272
+Rubrivivax,333,12,0,281,253,270,286,240
+Butyrivibrio,317,142,0,101,130,147,158,58
+Hydrogenophaga,316,11,0,247,245,247,253,231
+Agathobaculum,312,209,1,206,192,207,216,79
+Oribacterium,308,88,0,87,81,88,107,53
+Actinobacillus,307,225,0,209,207,218,79,18
+Holdemanella,309,194,0,200,178,188,190,137
+Catenibacterium,305,184,0,179,153,165,172,137
+Roseovarius,302,27,0,200,190,191,188,146
+Anaerobutyricum,301,151,0,150,144,144,155,95
+Carnobacterium,301,70,0,237,231,193,199,66
+Hyphomonas,300,11,0,165,168,211,218,193
+Gilliamella,298,225,0,230,230,214,147,1
+Cyanobium,297,2,0,202,165,198,203,190
+Atopobium,296,88,0,96,76,93,113,31
+Sphingopyxis,302,15,1,225,204,221,232,193
+Prescottella,292,64,0,267,220,258,235,152
+Leptotrichia,291,69,0,62,53,66,76,7
+Devosia,289,48,0,221,202,227,221,176
+Parasphingorhabdus,289,232,0,273,270,271,272,36
+Candidatus Phytoplasma,287,266,6,267,260,215,227,21
+Duodenibacillus,289,167,0,165,156,172,183,99
+Alcanivorax,284,5,0,153,152,218,228,203
+Marinomonas,284,145,1,230,231,222,230,90
+Candidatus Acidiferrum,280,1,0,272,117,275,275,275
+Candidatus Fimenecus,291,282,0,280,256,283,280,157
+Delftia,280,139,0,220,214,198,202,58
+Hyphomicrobium,276,10,0,199,177,221,231,196
+Pseudoxanthomonas,273,38,0,192,161,188,189,150
+Salinibacter,273,0,0,124,42,18,139,13
+Candidatus Scatosoma,273,258,0,265,264,267,265,251
+Janthinobacterium,270,76,1,226,204,187,187,118
+Massilia,272,46,1,206,201,222,204,112
+Dickeya,268,191,1,224,222,143,93,38
+Thiolapillus,269,245,0,268,268,210,82,265
+Dolichospermum,268,1,0,262,259,259,260,257
+Lentilactobacillus,268,57,2,210,199,174,215,96
+Megamonas,270,119,0,115,109,101,109,100
+Romboutsia,267,79,0,86,80,83,80,55
+Deinococcus,265,29,0,148,152,159,129,97
+Propionibacterium,265,49,0,137,129,107,128,52
+Nitratireductor,263,172,1,241,247,228,222,63
+Heyndrickxia,261,47,2,165,215,192,160,52
+Acutalibacter,257,84,0,80,78,82,80,42
+Maribacter,259,70,0,162,160,160,164,99
+Sphingomicrobium,257,4,0,249,139,253,248,251
+Pseudonocardia,254,60,0,182,159,181,166,124
+Cellulomonas,253,67,0,162,153,158,158,105
+Rhodanobacter,253,15,0,207,172,185,194,173
+Mitsuokella,252,125,0,127,117,123,127,101
+Succinivibrio,251,157,0,168,161,187,202,149
+Algoriphagus,274,17,0,215,210,185,224,164
+Aeromicrobium,249,46,0,183,179,177,181,142
+Brachybacterium,249,48,1,182,192,189,170,133
+Kingella,248,114,0,74,63,35,85,5
+Slackia,248,117,0,117,110,119,131,65
+Vreelandella,247,17,0,152,143,126,125,99
+Lysobacter,244,36,1,190,166,188,181,142
+Candidatus Methylopumilus,331,2,0,188,184,101,194,98
+Geobacillus,241,23,1,121,186,204,149,71
+Qipengyuania,242,28,0,150,148,117,120,121
+Rhodobacter,240,10,0,189,184,186,178,169
+Anaerococcus,239,130,0,127,123,120,150,92
+Rhodococcoides,239,196,1,223,57,194,167,21
+Hymenobacter,238,19,0,169,162,162,163,119
+Actinotignum,236,224,0,209,195,182,182,1
+Pseudolactococcus,234,55,0,199,193,203,207,91
+Winogradskyella,234,27,0,150,157,150,149,127
+Thiobacillus,233,2,0,198,177,192,203,159
+Peptoniphilus,230,134,0,122,112,108,141,90
+Rhodoluna,305,1,0,192,187,115,196,111
+Thermus,230,1,0,124,119,129,136,121
+Peptostreptococcus,229,105,0,93,90,92,83,48
+Candidatus Enterousia,227,214,0,217,217,219,217,213
+Trueperella,224,196,2,200,194,94,153,7
+Shimia,223,168,0,200,201,36,40,179
+Avibacterium,222,207,0,211,207,141,132,1
+Candidatus Kapaibacterium,222,11,0,199,175,206,211,192
+Pseudarthrobacter,221,22,0,140,140,97,108,91
+Vagococcus,221,147,0,188,198,204,162,77
+Candidatus Nanopelagicus,219,0,0,57,56,56,58,50
+Caulobacter,221,46,0,175,166,163,174,119
+Liberibacter,217,198,0,206,204,190,39,10
+Xenorhabdus,217,130,1,127,107,128,105,77
+Ferrovum,216,6,0,147,141,136,199,142
+Rhizomicrobium,216,1,0,196,58,198,198,189
+Nocardiopsis,204,37,1,128,123,93,94,72
+Allocoprococcus,214,163,0,163,133,151,148,122
+Apilactobacillus,212,87,0,90,90,79,72,2
+Candidatus Thioglobus,211,5,0,176,178,175,191,155
+Glutamicibacter,210,34,0,167,173,170,164,140
+Methyloceanibacter,208,2,0,177,127,185,185,172
+Colwellia,207,20,0,170,172,111,167,155
+Micavibrio,207,4,0,84,70,110,123,98
+Pseudanabaena,205,3,0,189,184,188,188,180
+Candidatus Accumulibacter,204,21,0,188,170,195,200,162
+Nonlabens,203,141,1,181,173,173,175,44
+Roseibium,203,90,0,134,144,121,130,48
+Candidatus Karelsulcia,202,157,23,193,168,184,149,2
+Gluconobacter,201,74,1,139,144,159,157,42
+Allobosea,200,61,0,150,142,138,142,84
+Gemmatimonas,221,3,0,129,125,110,130,105
+Actinomadura,199,35,0,115,123,109,98,66
+Hoylesella,199,65,0,54,48,52,64,14
+Kluyvera,199,107,1,155,148,140,134,67
+Roseomonas,199,53,1,174,173,167,152,118
+Aquiluna,198,6,0,134,132,135,138,131
+Hafnia,197,97,0,143,113,108,110,55
+Roseateles,196,37,0,158,147,151,148,121
+Sodaliphilus,196,118,0,145,140,146,146,114
+Gemella,195,75,0,68,61,69,72,11
+Photorhabdus,193,96,0,74,66,106,44,24
+Tannerella,193,111,0,118,103,111,120,9
+Ramlibacter,192,4,0,164,130,168,174,160
+Empedobacter,191,56,0,178,149,176,174,55
+Rikenella,194,15,0,27,20,26,28,16
+Sedimenticola,190,51,2,172,169,174,175,120
+Xylanibacter,190,36,0,36,36,37,37,12
+Candidatus Nanosyncoccus,189,172,0,172,170,174,174,169
+Cytobacillus,189,31,0,134,141,132,106,85
+Ornithobacterium,189,185,0,186,185,164,162,0
+Coprobacillus,188,104,0,98,97,94,101,102
+Candidatus Nitrotoga,255,3,0,220,220,154,223,151
+Draconibacterium,188,6,0,120,117,123,126,119
+Eisenbergiella,187,96,0,88,68,95,90,65
+Rathayibacter,187,153,2,170,160,133,26,9
+Candidatus Fonsibacter,186,0,0,106,103,106,106,104
+Candidatus Neomicrothrix,186,6,0,75,55,144,164,138
+Thalassospira,186,11,1,115,123,136,135,129
+Bdellovibrio,185,3,0,130,137,127,133,119
+Leucobacter,185,86,2,129,132,129,126,64
+Thauera,185,2,0,152,137,158,165,140
+Alcaligenes,184,52,0,156,154,144,147,87
+Buchnera,184,136,2,130,122,112,84,54
+Faecalimonas,184,126,0,125,114,115,114,116
+Paraclostridium,184,96,0,114,110,97,95,84
+Cetobacterium,183,154,0,156,154,146,147,53
+Idiomarina,182,3,0,100,92,117,121,112
+Succinatimonas,181,91,0,92,83,95,103,74
+Methylophaga,180,6,0,82,77,122,122,111
+Schaedlerella,180,13,0,12,8,12,12,10
+Paenarthrobacter,179,25,1,118,119,95,96,86
+Pandoraea,179,101,0,139,121,129,131,34
+Dietzia,178,54,0,136,136,123,117,65
+Myroides,178,138,0,154,150,149,148,48
+Paludibacter,180,9,0,125,103,116,130,100
+Tidjanibacter,177,98,0,66,98,107,103,65
+Actinoplanes,176,10,0,74,60,77,66,66
+Luteimonas,176,36,0,147,129,149,142,127
+Pseudosulfitobacter,176,166,0,171,171,7,7,169
+Sphaerochaeta,176,7,1,124,109,136,136,100
+Candidatus Thiodubiliella,175,172,0,172,172,81,101,171
+Gallionella,175,1,0,156,127,158,159,150
+Senegalimassilia,175,68,0,71,67,75,86,23
+Candidatus Kuenenia,174,0,0,35,31,32,45,28
+Sphingorhabdus,174,8,0,109,99,114,115,106
+Methylobacter,173,2,0,145,136,142,154,141
+Rahnella,173,59,0,123,112,98,93,46
+Bulleidia,170,54,0,55,52,52,58,45
+Thiomonas,171,3,0,151,147,141,160,145
+Agromyces,169,26,0,110,97,99,89,65
+Anaerolinea,169,0,0,57,55,59,61,56
+Planococcus,169,31,0,137,131,122,123,103
+Tetragenococcus,169,4,0,125,123,139,149,73
+Pirellula,205,0,0,149,148,113,160,107
+Aquimarina,167,32,2,43,54,52,46,27
+Caballeronia,164,83,0,132,127,71,75,20
+Elusimicrobium,167,6,0,7,7,5,18,1
+Lentilitoribacter,167,165,0,166,166,165,165,3
+Hominenteromicrobium,166,164,0,164,164,163,164,28
+Melissococcus,166,157,0,156,156,53,158,1
+Cryobacterium,165,3,0,156,143,147,131,114
+Ectopseudomonas,165,24,1,113,123,84,86,61
+Glaciecola,165,10,0,107,106,110,115,108
+Microvirga,164,34,0,144,135,148,141,123
+Aliivibrio,163,107,1,137,131,138,92,48
+Ottowia,163,18,0,104,93,115,109,92
+Spiroplasma,163,76,0,78,76,51,45,5
+Waltera,163,143,0,143,138,140,143,57
+Arcobacter,162,43,1,129,125,135,135,87
+Evtepia,162,135,0,139,135,142,141,64
+Ensifer,161,65,0,141,130,127,128,79
+Luteolibacter,186,17,0,137,135,105,136,93
+Mogibacterium,160,74,0,46,75,76,80,17
+Proteiniphilum,160,15,0,132,90,133,134,77
+Cellulosimicrobium,159,24,0,109,119,95,93,59
+Finegoldia,159,130,0,127,121,113,123,99
+Lawsonibacter,178,143,0,149,126,150,150,130
+Pseudoflavonifractor,159,62,0,53,65,41,52,44
+Candidatus Limnocylindrus,158,0,0,86,86,86,86,85
+Kosakonia,158,85,1,130,127,108,91,29
+Faecalibacillus,157,135,0,141,122,106,108,115
+Granulicatella,157,41,0,40,26,31,40,4
+Neobacillus,156,45,0,120,111,108,102,64
+Otoolea,157,103,0,98,87,94,83,55
+Leyella,154,89,0,82,80,89,91,56
+Schaalia,154,84,0,69,61,62,69,27
+Atlantibacter,153,20,0,139,137,137,138,24
+Chromobacterium,153,59,0,134,133,119,101,67
+Liquorilactobacillus,153,12,1,142,143,125,140,119
+Sporosarcina,153,45,1,116,114,126,120,66
+Acidimicrobium,155,6,0,36,27,34,117,31
+Yoonia,152,17,0,125,124,119,118,107
+Microbulbifer,151,27,0,126,127,67,66,100
+Spirosoma,151,16,0,55,53,65,88,41
+Thalassolituus,151,5,0,88,87,105,108,102
+Allosphingosinicella,150,4,0,147,50,146,144,138
+Plesiomonas,150,118,0,127,122,117,116,87
+Lachnoanaerobaculum,149,25,0,28,15,22,31,9
+Herbaspirillum,148,53,2,112,96,103,104,58
+Kribbella,148,5,0,79,59,34,38,35
+Companilactobacillus,147,29,2,90,102,84,90,27
+Opitutus,150,2,0,50,40,22,30,28
+Pontimonas,145,0,0,113,112,115,115,113
+Snodgrassella,145,126,0,106,126,96,57,8
+Virgibacillus,145,12,2,93,91,90,95,60
+Aquabacterium,142,5,1,105,87,106,110,97
+Thioalkalivibrio,142,1,0,64,60,62,62,54
+Anaerovibrio,140,67,1,71,76,84,90,67
+Candidatus Pseudothioglobus,140,4,0,100,101,97,97,100
+Leifsonia,140,32,0,99,89,77,78,55
+Salipiger,139,2,0,75,77,66,66,71
+Dechloromonas,138,6,0,92,81,91,94,89
+Reyranella,137,4,0,91,59,93,94,86
+Methylocystis,136,3,0,114,105,111,116,106
+Rheinheimera,136,4,0,96,87,95,96,84
+Geobacter,135,2,0,76,60,85,98,75
+Streptosporangium,135,5,2,53,43,31,40,28
+Aequorivita,134,7,0,82,73,96,102,91
+Rhizobacter,134,19,0,113,108,113,113,95
+Ureaplasma,134,51,0,55,54,54,63,9
+Acidiphilium,133,9,0,88,89,84,106,84
+Salinispora,133,0,0,109,107,106,108,116
+Sulfuricurvum,134,1,0,117,107,109,122,102
+Candidatus Saccharimonas,132,5,0,72,37,50,73,41
+Dyella,132,17,0,99,87,99,93,83
+Halioglobus,132,11,0,105,101,104,105,97
+Kaistella,131,46,0,116,114,117,107,38
+Thermomonas,131,9,0,115,100,110,112,101
+Gallibacterium,130,122,0,119,32,72,101,2
+Intestinimonas,130,70,0,69,64,69,66,46
+Alloalcanivorax,129,10,0,62,66,61,60,47
+Azonexus,129,14,0,117,95,118,123,105
+Giesbergeria,132,61,0,124,107,122,126,57
+Intestinibacter,129,85,0,85,76,74,81,67
+Candidatus Angelobacter,127,0,0,124,40,127,127,127
+Granulicella,127,5,0,75,68,73,79,67
+Lonsdalea,127,123,2,125,125,40,13,0
+Paraglaciecola,127,35,0,96,96,92,101,62
+Smithella,127,1,0,83,74,87,89,76
+Arenimonas,130,2,0,104,82,102,113,98
+Ilumatobacter,127,12,0,93,85,94,101,78
+Syntrophomonas,126,4,0,75,33,82,84,42
+Parvibaculum,125,28,0,96,99,105,104,63
+Prosthecobacter,125,2,0,75,70,73,76,64
+Gordonibacter,124,83,0,75,75,80,84,41
+Pseudobutyrivibrio,124,54,0,34,51,59,54,13
+Blastococcus,123,1,0,103,93,77,85,83
+Candidatus Avelusimicrobium,123,54,0,59,57,63,83,54
+Flagellimonas,123,17,1,73,76,64,66,51
+Candidatus Limimorpha,122,108,0,121,121,122,122,36
+Desulfobulbus,122,16,0,79,73,81,87,52
+Aquirufa,121,0,0,87,87,88,88,77
+Pseudooceanicola,121,5,1,77,78,74,73,73
+Rossellomorea,122,16,2,99,93,82,83,74
+Jeotgalibaca,120,109,2,115,115,119,114,8
+Lacrimispora,120,37,0,75,72,74,76,25
+Lelliottia,120,42,1,95,87,81,63,41
+Nitrospina,120,5,0,54,53,60,61,55
+Tateyamaria,120,45,0,74,73,71,71,33
+Chloracidobacterium,118,1,0,84,77,85,88,83
+Lutibacter,118,0,0,82,81,89,88,51
+Victivallis,118,34,0,38,38,39,45,22
+Dysgonomonas,117,53,0,67,63,77,86,49
+Mesotoga,117,1,0,100,95,107,112,80
+Oceanobacillus,117,26,1,57,76,79,70,40
+Parvimonas,117,53,0,42,41,36,47,9
+Xanthobacter,117,9,0,103,102,90,87,71
+Marinobacterium,116,7,1,80,75,80,77,72
+Methylorubrum,116,27,0,59,64,49,47,33
+Allomuricauda,115,37,1,60,79,66,72,52
+Lautropia,115,25,0,37,32,36,45,20
+Nitrosospira,115,1,0,82,69,79,84,75
+Sellimonas,115,63,0,59,50,56,54,43
+Leptospirillum,114,0,0,99,84,109,111,83
+Macrococcoides,114,88,1,106,104,105,100,6
+Roseivirga,114,15,0,63,63,69,71,63
+Leeuwenhoekiella,113,5,0,53,51,65,68,63
+Leptolyngbya,113,0,0,90,72,69,93,38
+Planktothrix,124,6,0,85,82,48,73,61
+Halopseudomonas,112,24,0,78,63,59,57,51
+Trichococcus,112,3,0,81,72,85,91,78
+Frankia,111,57,0,63,45,52,56,12
+Oxalobacter,111,51,0,49,50,50,61,33
+Porticoccus,111,8,0,60,61,59,63,57
+Ochrobactrum,110,41,0,89,73,66,75,41
+Sulfurospirillum,110,5,0,80,67,83,84,72
+Aestuariivirga,109,6,0,84,75,85,85,82
+Candidatus Limivicinus,109,88,0,103,101,104,103,67
+Dokdonella,108,6,0,94,83,98,94,90
+Methylomonas,112,5,0,93,89,78,81,70
+Vulcanococcus,107,0,0,93,90,93,95,93
+Borrelia,106,80,1,79,75,57,77,4
+Chthoniobacter,106,2,0,37,36,35,40,34
+Eshraghiella,106,60,0,57,55,58,62,50
+Fructilactobacillus,106,11,1,73,64,63,68,7
+Candidatus Cloacimonas,105,0,0,89,88,95,96,82
+Candidatus Limiplasma,105,69,0,78,78,83,79,34
+Paratractidigestivibacter,105,24,0,24,24,22,23,11
+Sulfobacillus,105,0,0,102,100,100,103,88
+Arcanobacterium,104,72,3,79,81,78,31,13
+Fervidobacterium,104,0,0,94,83,93,95,91
+Flavisolibacter,104,0,0,94,59,94,94,94
+Saccharopolyspora,104,13,0,55,54,47,53,32
+Candidatus Hodgkinia,103,103,0,103,81,95,89,0
+Castellaniella,103,26,0,83,77,83,82,48
+Cloacibacillus,103,35,0,37,36,31,36,23
+Pluralibacter,102,72,0,92,91,79,88,21
+Anoxybacillus,101,1,0,81,80,86,85,49
+Balneola,101,34,0,64,70,75,77,40
+Komagataeibacter,101,22,0,63,64,72,83,14
+Shinella,101,17,0,76,79,69,70,50
+Ferrimicrobium,100,0,0,95,93,94,94,90
+Lachnobacterium,100,22,0,23,21,23,35,19
+Niallia,100,39,0,65,71,82,79,28
+Succiniclasticum,100,22,0,35,33,34,80,7
+Wenzhouxiangella,99,2,1,81,78,83,83,72
+Anaeromassilibacillus,98,30,0,27,28,32,36,13
+Marmoricola,98,4,0,86,67,87,88,81
+Neorhizobium,98,48,0,81,73,61,44,21
+Pseudohongiella,98,3,0,34,32,36,41,33
+Saccharofermentans,98,76,0,92,92,92,93,60
+Tritonibacter,98,10,0,81,80,75,79,72
+Arsenophonus,97,85,3,83,63,78,71,0
+Candidatus Scatomorpha,97,67,0,59,59,70,59,3
+Pedosphaera,97,0,0,62,62,61,68,61
+Sedimentibacter,97,1,0,92,85,91,93,52
+Trebonia,97,1,0,93,56,94,94,93
+Chthonomonas,96,3,0,47,17,43,72,39
+Cycloclasticus,96,8,0,91,89,90,91,84
+Dyadobacter,96,8,0,69,59,65,67,58
+Piscirickettsia,96,94,0,95,93,81,23,16
+Vescimonas,96,59,0,59,58,59,59,59
+Acidocella,95,8,0,75,70,71,82,65
+Blattabacterium,95,90,0,70,68,83,75,1
+Janibacter,95,24,0,62,59,48,53,22
+Acidisphaera,94,0,0,92,91,93,93,92
+Candidatus Fimivicinus,94,93,0,92,92,93,92,14
+Henriciella,94,3,0,60,59,61,62,59
+Rubrobacter,94,1,0,86,58,88,88,85
+Thermoflexus,94,0,0,45,44,45,54,41
+Candidatus Ventricola,93,91,0,89,89,91,89,25
+Ginsengibacter,93,0,0,86,81,86,86,84
+Planctomyces,93,0,0,83,82,82,85,82
+Sorangium,93,3,0,81,80,87,88,79
+Caldimonas,92,2,0,86,67,84,84,81
+Corallococcus,92,8,0,72,68,69,71,70
+Gemmobacter,92,3,0,74,72,76,76,70
+Longicatena,92,77,0,77,54,66,67,47
+Mobiluncus,92,52,0,50,48,33,55,16
+Negativibacillus,92,57,0,54,50,56,56,28
+Geodermatophilus,91,4,0,68,61,30,34,49
+Candidatus Carsonella,90,85,1,81,80,76,17,1
+Pontibacter,90,2,0,58,60,65,60,54
+Shouchella,90,17,1,64,62,78,72,48
+Thermodesulfovibrio,90,1,0,64,62,67,70,63
+Acidiferrobacter,89,0,0,86,84,86,86,74
+Afipia,89,23,0,59,46,64,69,49
+Cobetia,90,18,2,62,66,61,61,46
+Dehalococcoides,89,0,0,64,57,67,74,51
+Ekhidna,89,67,0,75,75,73,73,10
+Flexilinea,89,4,0,33,34,40,40,25
+Limnobacter,89,5,0,54,47,64,66,60
+Usitatibacter,89,0,0,89,49,89,89,89
+Varibaculum,89,58,0,56,54,44,54,40
+Abiotrophia,88,13,0,14,8,13,17,2
+Puia,88,2,0,78,9,81,81,79
+Albidovulum,87,9,0,79,76,77,75,61
+Anaeromyxobacter,87,3,0,64,49,64,74,64
+Duganella,87,19,0,60,52,55,52,43
+Metabacillus,87,10,1,61,72,60,62,45
+Stomatobaculum,87,16,0,14,13,15,19,2
+Asaia,86,20,0,20,24,36,35,6
+Coprobacter,86,29,0,26,24,26,26,16
+Ignavibacterium,86,2,0,54,52,54,59,48
+Microbispora,86,13,0,41,41,38,44,24
+Rhodopirellula,87,22,1,64,61,60,71,41
+Zoogloea,86,2,0,74,64,74,79,68
+Halanaerobium,85,2,0,53,46,48,50,44
+Isoptericola,84,8,0,46,50,29,31,26
+Phyllobacterium,84,26,0,56,55,56,51,28
+Algibacter,83,22,0,53,55,51,49,27
+Candidatus Cybelea,83,0,0,82,56,83,83,83
+Candidatus Udaeobacter,83,0,0,75,24,78,78,78
+Methylocella,83,3,0,77,59,77,78,73
+Pyramidobacter,83,34,0,27,37,36,37,13
+Candidatus Puniceispirillum,82,0,0,67,67,69,71,67
+Desulfobacula,82,2,0,54,55,55,60,49
+Halobacillus,82,4,0,57,53,43,50,42
+Myxococcus,82,4,0,69,62,57,57,53
+Paracidovorax,82,61,4,65,58,22,52,22
+Sarcina,82,29,0,29,29,31,65,24
+Thiothrix,82,2,0,45,40,39,62,31
+Woeseia,82,1,0,68,68,67,67,65
+Eikenella,81,43,0,43,38,39,42,7
+Flavipsychrobacter,81,0,0,39,29,40,41,33
+Maricaulis,82,5,0,48,53,53,53,50
+Marinovum,81,4,0,61,61,58,59,49
+Cardiobacterium,80,12,0,15,7,9,16,4
+Chloroflexus,80,3,0,59,59,65,73,63
+Methylophilus,80,6,2,61,56,64,66,55
+Robiginitalea,80,8,0,65,64,65,65,52
+Emergencia,79,31,0,33,29,33,35,26
+Faecalitalea,79,48,0,33,36,45,23,9
+Niabella,79,9,0,67,63,67,68,64
+Parolsenella,79,28,1,23,22,26,34,12
+Pseudidiomarina,79,2,1,63,54,61,57,55
+Undibacterium,79,0,0,70,67,69,57,56
+Anaplasma,77,54,1,60,44,39,34,0
+Denitrificimonas,77,72,1,75,75,75,76,4
+Luteibacter,77,22,0,56,43,49,40,27
+Nesterenkonia,77,11,0,43,40,39,39,26
+Thermostichus,77,0,0,76,39,76,39,39
+Enorma,76,33,0,25,31,28,31,8
+Fluviicola,76,8,0,43,40,43,44,33
+Lentzea,76,5,0,39,36,29,33,28
+Loktanella,76,8,0,47,51,49,53,46
+Paenimyroides,76,67,1,73,73,72,73,8
+Robiginitomaculum,76,3,0,62,64,68,69,62
+Agrococcus,75,8,0,52,47,49,45,41
+Archangium,75,5,0,59,48,61,64,59
+Hellea,75,22,0,56,56,57,57,34
+Jatrophihabitans,75,3,0,48,23,48,48,46
+Neglectibacter,75,33,0,32,30,33,42,21
+Pelistega,75,72,0,71,71,70,68,3
+Tabrizicola,75,2,0,63,55,66,65,60
+Tardiphaga,75,35,0,71,69,70,68,36
+Terriglobus,75,5,0,17,14,14,19,13
+Aliiroseovarius,74,7,2,55,55,43,38,33
+Allobaculum,99,38,0,39,12,39,37,34
+Congzhengia,74,74,0,74,74,74,74,74
+Endozoicomonas,74,41,0,63,51,42,38,34
+Ileibacterium,83,12,0,14,4,12,15,11
+Piscinibacter,74,3,0,64,51,66,67,60
+Solibacillus,74,18,1,43,28,61,60,29
+Altererythrobacter,73,12,0,56,57,60,60,44
+Arenibacter,73,2,0,50,48,51,54,47
+Candidatus Limisoma,73,68,0,66,63,68,66,35
+Roseiarcus,73,2,0,71,36,71,70,70
+Roseibacillus,73,3,0,46,49,45,48,42
+Cellvibrio,72,9,0,46,35,46,48,37
+Christiangramia,72,5,1,53,50,52,56,44
+Frigoribacterium,72,30,0,53,43,32,36,25
+Halothiobacillus,72,1,0,59,58,48,60,53
+Propionivibrio,72,5,0,45,36,46,45,43
+Psychrobacillus,72,12,0,46,37,55,52,24
+Psychromonas,72,10,2,55,56,54,52,41
+Thalassotalea,72,17,0,47,48,43,38,28
+Blastomonas,71,3,0,59,58,62,62,57
+Enterovibrio,71,24,0,57,56,50,52,45
+Histophilus,71,69,0,69,68,59,51,1
+Marivita,71,36,0,57,57,27,27,55
+Rhodoblastus,71,1,0,63,56,61,61,58
+Rhodovulum,71,1,0,49,47,48,48,22
+Acholeplasma,70,27,0,30,27,41,34,12
+Aminobacterium,70,2,0,61,43,64,67,35
+Arachnia,70,18,0,38,27,40,44,22
+Celeribacter,70,3,0,49,49,39,43,43
+Leisingera,70,19,0,61,57,29,37,44
+Limimaricola,70,1,0,54,50,49,51,51
+Nakamurella,70,10,0,53,44,52,51,42
+Rhodopseudomonas,70,5,0,53,46,52,50,31
+Rodentibacter,70,46,0,47,39,45,31,3
+Rubripirellula,70,1,0,56,56,55,57,55
+Schlesneria,70,2,0,21,19,20,46,21
+Sideroxydans,70,8,0,59,54,56,63,43
+Spongiibacter,70,2,0,49,50,56,56,54
+Wujia,70,34,0,34,32,34,34,34
+Allobrachymonas,69,15,0,55,38,54,55,39
+Bergeyella,69,16,0,33,33,33,36,7
+Candidatus Coproplasma,69,26,0,18,18,26,18,10
+Demequina,69,6,0,32,32,34,32,18
+Desulfosporosinus,69,2,0,54,38,55,59,45
+Ellagibacter,69,61,1,62,60,61,64,19
+Faecalicoccus,69,38,0,28,35,30,22,13
+Hoeflea,57,4,0,42,42,39,38,30
+Oceanicaulis,69,7,0,37,38,46,48,36
+Asticcacaulis,70,8,0,56,45,45,54,42
+Cellulophaga,68,9,0,46,44,33,39,30
+Cohnella,68,13,0,42,51,53,43,31
+Conexibacter,68,6,0,37,25,35,47,31
+Faucicola,68,41,0,56,50,48,49,24
+Ferrithrix,68,0,0,21,20,18,29,18
+Meiothermus,68,1,0,53,46,54,62,44
+Merdibacter,69,26,0,23,20,26,28,15
+Metapseudomonas,68,17,0,57,54,30,31,35
+Methylovirgula,68,2,0,61,57,62,62,57
+Mycolicibacter,68,23,1,47,45,38,39,19
+Persephonella,68,0,0,64,63,63,64,56
+Raoultibacter,68,51,0,51,51,50,53,49
+Rectinema,68,0,0,67,66,67,67,64
+Simonsiella,68,64,0,63,63,63,64,1
+Thiomicrorhabdus,68,2,0,51,52,53,56,47
+Anderseniella,67,46,0,59,59,60,60,15
+Candidatus Methylomirabilis,67,0,0,58,27,58,60,52
+Edaphobacter,67,0,0,55,23,51,52,51
+Kineococcus,67,35,1,51,49,46,51,42
+Oliverpabstia,67,59,0,61,60,53,54,40
+Chlorobium,66,8,0,54,54,55,55,54
+Citromicrobium,66,2,0,25,49,29,29,53
+Holdemania,66,24,0,24,24,16,25,17
+Ornithinimicrobium,66,20,0,51,52,56,50,42
+Psychroserpens,66,6,1,40,48,43,44,40
+Rhodopila,66,5,0,25,11,26,38,23
+Candidatus Nanosynbacter,65,55,0,60,59,60,60,4
+Halobacteriovorax,65,5,0,57,57,21,18,51
+Ideonella,65,3,0,57,48,56,55,51
+Limnospira,65,1,0,54,46,52,55,45
+Melioribacter,65,0,0,28,25,27,28,26
+Mesonia,65,1,0,32,37,37,33,31
+Methylibium,65,4,0,49,44,48,51,45
+Methyloversatilis,69,4,0,46,39,39,45,37
+Modestobacter,65,3,0,54,51,32,47,36
+Pseudorhodobacter,65,2,0,42,38,41,44,37
+Salinivibrio,65,0,0,62,62,54,57,53
+Sulfuritalea,65,0,0,55,52,55,56,54
+Buttiauxella,64,17,0,46,34,40,39,25
+Candidatus Brevifilum,64,0,0,40,39,41,41,29
+Candidatus Scalindua,64,1,0,47,46,57,57,45
+Cereibacter,65,4,0,45,46,49,38,29
+Commensalibacter,64,37,0,36,36,37,19,2
+Crocosphaera,64,4,1,19,19,16,15,15
+Faecalicatena,64,48,0,41,35,39,40,26
+Marinoscillum,64,7,0,27,26,24,48,20
+Phycicoccus,64,21,1,57,51,54,54,41
+Pseudocoprococcus,64,28,0,26,22,23,25,26
+Pseudothermotoga,64,2,0,47,44,50,57,38
+Rhodoplanes,64,1,0,46,44,49,46,43
+Saccharothrix,64,3,0,31,37,33,29,27
+Alteriqipengyuania,63,0,0,34,34,32,31,32
+Bariatricus,63,38,0,40,34,34,39,31
+Mediterranea,63,27,0,23,28,25,27,13
+Caldithrix,62,0,0,49,48,43,49,21
+Candidatus Brocadia,62,0,0,51,50,51,54,46
+Fictibacillus,62,6,0,47,47,48,41,33
+Hylemonella,62,1,0,51,47,50,53,50
+Neptunomonas,62,7,1,42,40,33,37,32
+Sterolibacterium,62,2,0,19,15,19,47,17
+Allofournierella,61,36,0,28,29,35,31,11
+Georgenia,61,21,0,44,46,48,41,28
+Lancefieldella,61,12,0,14,11,15,18,4
+Lentibacter,61,4,0,31,30,28,34,28
+Noviherbaspirillum,61,5,0,48,29,47,51,45
+Pseudescherichia,61,12,0,52,56,56,50,6
+Sangeribacter,61,2,0,0,0,0,0,0
+Curvibacter,60,2,0,33,32,31,42,26
+Dactylosporangium,60,0,0,24,33,28,25,21
+Dokdonia,60,16,0,34,33,28,33,20
+Eudoraea,60,4,0,43,43,41,42,39
+Filifactor,60,32,0,32,32,31,33,3
+Fischerella,60,0,0,50,47,49,52,29
+Hallerella,60,8,0,8,7,9,9,6
+Kurthia,60,20,0,39,36,47,45,17
+Pseudoclavibacter,60,24,0,36,35,37,29,13
+Thermotoga,60,0,0,44,42,37,47,24
+Azoarcus,59,24,0,47,45,49,49,21
+Candidatus Acidulidesulfobacterium,59,0,0,59,59,59,59,56
+Candidatus Syntrophosphaera,59,0,0,57,52,57,58,56
+Mixta,59,23,0,51,51,51,47,13
+Singulisphaera,59,2,0,11,11,5,15,4
+Syntrophorhabdus,59,0,0,42,39,38,46,36
+Taylorella,59,56,0,49,48,52,42,0
+Terrisporobacter,59,32,0,41,35,42,45,33
+Tsukamurella,59,23,0,38,25,28,29,13
+Zymomonas,59,2,0,39,33,37,38,27
+Acetivibrio,58,14,0,41,39,40,43,32
+Butyribacter,58,43,0,45,43,43,43,21
+Candidatus Binatus,58,0,0,57,40,58,58,58
+Candidatus Onthoplasma,58,47,0,47,46,49,47,46
+Candidatus Saccharicenans,58,0,0,57,49,58,58,57
+Desulfuromonas,58,3,0,37,35,36,42,30
+Mariniblastus,58,4,0,51,51,51,51,44
+Muriicola,58,0,0,50,49,49,49,49
+Octadecabacter,58,3,0,50,47,44,49,46
+Parageobacillus,58,3,0,26,37,35,36,27
+Telluria,58,3,0,49,35,49,49,44
+Tissierella,58,13,0,37,35,36,37,24
+Aeriscardovia,57,48,0,5,49,50,50,2
+Alloscardovia,57,35,0,34,21,20,17,6
+Anabaena,57,1,0,40,22,42,39,26
+Bacteriovorax,57,1,0,24,23,25,24,23
+Desulfobacter,57,3,3,34,24,33,35,30
+Desulfomonile,57,2,0,14,10,12,44,10
+Glycomyces,57,2,1,29,28,33,33,26
+Pseudoduganella,57,6,0,40,41,42,37,32
+Pusillimonas,57,2,0,38,34,49,48,44
+Vampirovibrio,65,7,0,24,18,14,28,13
+Alicyclobacillus,56,8,0,41,38,39,39,23
+Brenneria,56,48,0,48,51,45,33,2
+Candidatus Gallimonas,56,9,0,6,6,10,12,4
+Desulfosarcina,56,5,0,35,33,39,39,36
+Formosa,56,7,0,29,30,26,37,19
+Fretibacterium,56,19,0,21,22,17,25,8
+Gaiella,56,1,0,55,29,56,56,55
+Helcococcus,56,47,0,47,44,16,44,3
+Methylococcus,56,0,0,25,23,25,37,21
+Nodularia,56,0,0,37,33,31,36,27
+Pararhodobacter,56,0,0,37,37,40,41,32
+Parvibacter,56,3,0,5,2,2,5,0
+Phycisphaera,56,6,0,22,22,22,26,22
+Pontiella,56,16,0,52,49,52,52,36
+Salegentibacter,56,2,0,33,28,34,33,28
+Salinibacterium,56,4,0,41,39,41,41,37
+Tessaracoccus,56,14,0,38,38,35,35,19
+Thermosynechococcus,56,3,0,50,50,25,27,46
+Zhongshania,56,3,0,46,45,47,46,45
+Arenicella,55,4,0,30,28,30,36,28
+Bauldia,55,7,0,41,32,40,40,30
+Candidatus Borkfalkia,55,25,0,16,16,26,16,5
+Candidatus Competibacter,55,0,0,46,39,52,52,47
+Candidatus Flemingiibacterium,55,50,0,50,50,50,52,50
+Croceibacterium,55,2,0,49,40,46,45,48
+Desulfocapsa,55,0,0,40,39,44,44,36
+Haliea,55,2,0,41,41,42,45,38
+Mageeibacillus,55,15,0,16,3,29,23,7
+Salinicoccus,55,11,0,25,28,33,28,14
+Salinimicrobium,55,1,1,35,32,35,31,34
+Schwartzia,55,35,0,10,34,34,34,2
+Sneathiella,55,8,0,39,42,40,41,33
+Aridibacter,54,0,0,53,52,53,53,53
+Ascidiaceihabitans,54,22,0,48,48,46,48,29
+Aureimonas,54,21,0,25,28,25,30,12
+Cloacibacterium,54,3,0,40,36,39,40,33
+Daejeonella,54,1,0,43,37,41,41,38
+Diaphorobacter,54,8,0,50,50,49,49,31
+Laribacter,54,50,0,52,47,7,7,6
+Macrococcus,54,42,0,50,50,52,49,6
+Malacoplasma,54,47,0,48,48,48,40,20
+Nannocystis,54,2,0,32,28,32,34,28
+Roseicyclus,54,3,0,28,30,29,30,21
+Sandarakinorhabdus,54,0,0,33,31,32,33,31
+Sediminicola,54,1,0,49,48,48,47,47
+Thermoanaerobacter,54,1,0,34,29,37,43,26
+Aneurinibacillus,53,6,0,19,39,37,24,21
+Aurantimonas,53,5,0,34,32,32,35,31
+Candidatus Electrothrix,53,3,0,45,45,45,48,34
+Cocleimonas,53,1,0,26,27,29,32,24
+Dermacoccus,53,10,0,43,36,36,39,18
+Enterorhabdus,53,7,0,7,7,7,7,3
+Longimicrobium,53,3,0,51,5,50,48,51
+Mesoflavibacter,53,4,0,24,26,23,22,22
+Metallibacterium,53,0,0,52,52,51,52,43
+Nitratifractor,53,0,0,35,34,34,35,32
+Ructibacterium,53,49,0,49,49,49,49,48
+Thiopseudomonas,53,9,0,34,22,40,40,17
+Chryseolinea,52,2,0,44,33,45,45,43
+Cryptobacterium,52,6,0,6,7,5,7,2
+Facklamia,52,34,0,32,27,29,31,3
+Granulosicoccus,52,18,0,35,36,42,41,29
+Mariniphaga,52,0,0,33,32,33,33,30
+Massiliimicrobium,52,16,0,10,15,13,15,6
+Mesocricetibacter,52,45,0,45,45,46,46,0
+Neomoorella,52,6,0,26,23,46,47,27
+Reinekea,52,10,0,36,36,34,35,28
+Rhodoglobus,52,1,0,43,42,42,42,41
+Sporolactobacillus,52,12,0,38,38,39,39,23
+Ureibacillus,52,4,0,28,26,43,37,21
+Ancylobacter,51,6,0,21,29,29,23,13
+Brochothrix,51,6,0,32,21,33,38,3
+Lacunisphaera,96,1,0,93,83,37,94,32
+Mesobacillus,51,3,0,41,40,33,36,28
+Propionicimonas,51,4,0,47,42,49,49,44
+Pseudodesulfovibrio,51,3,0,34,32,32,35,28
+Rudaea,51,2,0,45,25,49,49,42
+Thermodesulfatator,51,0,0,41,40,39,41,36
+Acetobacterium,50,2,0,37,33,36,37,33
+Allorhizobium,50,16,0,33,33,35,32,17
+Candidatus Stammera,50,13,1,50,50,50,37,0
+Cypionkella,53,0,0,43,44,42,44,39
+Dinoroseobacter,50,9,1,33,34,30,25,26
+Ehrlichia,50,38,0,38,35,26,15,0
+Fructobacillus,50,12,0,17,17,11,9,0
+Gimesia,50,3,0,40,40,29,29,38
+Haliscomenobacter,50,0,0,25,23,25,31,24
+Marivivens,50,5,0,40,41,38,40,37
+Phytobacter,50,24,0,37,37,33,36,13
+Acetomicrobium,49,2,0,39,34,41,43,33
+Aminobacter,49,10,1,28,26,23,21,15
+Anaerocolumna,49,6,0,37,35,34,35,20
+Bellilinea,49,3,0,35,31,45,48,25
+Calothrix,49,2,0,23,16,20,26,18
+Epilithonimonas,49,7,0,36,33,33,29,8
+Furfurilactobacillus,49,8,0,28,30,27,31,12
+Hydrogenimonas,49,0,0,42,43,43,43,38
+Marinosulfonomonas,49,0,0,33,34,37,37,34
+Nitratiruptor,49,0,0,40,38,38,39,38
+Promicromonospora,49,3,0,15,25,15,11,8
+Psychroflexus,49,1,0,35,34,33,36,27
+Rhodomicrobium,49,1,0,43,43,41,44,42
+Thiogranum,49,0,0,46,46,46,46,43
+Anaerobiospirillum,48,26,0,23,22,21,21,12
+Caldilinea,52,1,0,38,38,36,44,33
+Chromohalobacter,48,12,0,37,41,37,35,16
+Ditibartonella,48,20,0,20,20,19,9,0
+Petrimonas,48,7,0,37,36,42,43,25
+Roseiflexus,48,3,0,41,41,43,46,41
+Sodalis,48,37,0,39,34,37,31,0
+Actinacidiphila,47,7,0,27,24,16,22,14
+Actinomycetospora,47,8,1,28,26,27,25,19
+Aphanizomenon,47,0,0,44,34,44,45,43
+Azotobacter,47,2,0,21,30,24,21,21
+Candidatus Avispirillum,47,44,0,44,44,44,45,44
+Geothrix,61,1,0,56,46,43,56,41
+Lewinella,47,4,0,26,25,24,31,22
+Microlunatus,47,3,0,25,14,25,26,20
+Porphyrobacter,47,1,0,28,26,29,29,23
+Pseudocitrobacter,47,13,0,15,17,14,11,2
+Sagittula,47,3,0,31,32,31,30,28
+Secundilactobacillus,47,8,0,21,19,25,30,8
+Syntrophus,47,0,0,29,29,25,32,27
+Thalassovita,47,10,0,31,31,27,27,24
+Trinickia,47,11,0,33,29,32,32,28
+Alkalibacterium,46,1,0,31,29,30,33,24
+Candidatus Egerieisoma,46,42,0,42,42,43,42,39
+Candidatus Scatocola,46,37,0,35,35,40,38,6
+Candidatus Scybalocola (ex Gilroy et al. 2021),46,40,0,37,37,40,37,0
+Candidatus Sulfomarinibacter,46,0,0,46,46,46,46,46
+Chamaesiphon,46,0,0,42,41,41,42,41
+Coleofasciculus,46,0,1,39,29,39,40,21
+Dermatophilus,46,42,0,41,42,42,44,1
+Dolosigranulum,47,40,0,39,38,37,39,1
+Emticicia,46,1,0,30,29,30,31,27
+Maritimibacter,46,7,0,31,31,28,30,29
+Nostocoides,46,3,0,35,34,35,39,32
+Thermodesulfobacterium,46,1,0,41,36,42,43,32
+Cylindrospermopsis,45,0,0,44,41,40,42,41
+Dermabacter,45,36,0,32,28,33,31,10
+Hyphococcus,45,5,0,35,36,36,36,35
+Kandleria,45,26,0,3,4,33,13,3
+Kangiella,45,2,0,22,18,22,23,19
+Kordiimonas,45,8,0,26,26,26,24,18
+Neptuniibacter,45,6,0,34,34,22,23,31
+Phormidesmis,45,1,0,41,41,36,37,29
+Salinicola,45,20,1,37,37,36,28,9
+Coraliomargarita,44,2,0,17,16,17,20,14
+Jeotgalicoccus,44,10,0,22,17,22,23,15
+Lichenihabitans,44,2,0,5,4,4,4,2
+Litorivicinus,44,1,0,33,30,31,42,30
+Micropruina,44,7,0,33,28,33,37,29
+Nodosilinea,44,0,0,40,35,39,41,30
+Owenweeksia,44,2,0,22,22,22,23,22
+Planctomicrobium,44,3,0,13,12,10,13,12
+Ulvibacter,44,1,0,19,19,20,21,19
+Vogesella,44,5,0,25,27,27,24,21
+Aurantimicrobium,43,12,0,28,27,27,28,27
+Candidatus Caccovivens,43,28,0,27,26,28,27,26
+Candidatus Profftella,43,42,0,42,41,40,1,0
+Cedecea,43,29,0,20,31,28,21,4
+Endomicrobium,43,41,0,42,42,42,42,1
+Ewingella,43,7,0,21,20,38,21,13
+Gluconacetobacter,43,16,0,31,28,33,30,11
+Jannaschia,43,6,0,20,19,15,17,14
+Johnsonella,43,9,0,9,8,8,9,5
+Lentimicrobium,43,1,0,35,33,38,38,32
+Leptolinea,43,0,0,11,3,14,20,7
+Loigolactobacillus,43,9,0,28,33,38,37,14
+Lutimonas,43,0,0,43,43,42,42,40
+Mariprofundus,43,0,0,40,35,39,40,37
+Microcella,43,4,0,33,33,33,35,27
+Plantibacter,43,23,1,35,27,25,25,18
+Tepidimonas,43,5,0,40,35,32,33,33
+Thermoanaerobacterium,43,3,0,33,30,33,34,22
+Thioclava,43,2,0,35,38,35,37,35
+Billgrantia,42,6,0,36,35,33,34,26
+Boseongicola,42,17,0,33,33,33,18,16
+Candidatus Ornithomonoglobus,42,33,0,31,31,33,31,30
+Candidatus Tepidifontimicrobium,42,0,0,42,42,42,42,42
+Flavihumibacter,42,4,0,27,29,31,34,26
+Gallintestinimicrobium,42,40,0,40,39,38,40,35
+Lentimonas,42,2,0,30,30,30,38,30
+Litorivivens,42,0,0,41,41,41,41,41
+Methyloprofundus,42,1,0,37,36,39,39,31
+Orrella,42,2,0,38,39,39,39,38
+Pelotomaculum,42,1,0,29,24,28,33,20
+Pleurocapsa,42,2,0,16,16,15,20,10
+Segetibacter,42,2,0,39,30,39,39,38
+Aeribacillus,41,1,0,15,26,38,35,18
+Alicycliphilus,41,1,0,37,22,35,38,27
+Candidatus Tisiphia,41,4,0,5,5,5,5,0
+Desulfotignum,41,0,0,39,36,38,40,37
+Fannyhessea,41,30,0,27,27,15,18,2
+Fimbriiglobus,41,2,0,38,35,30,35,28
+Gillisia,41,1,1,31,24,30,32,30
+Litoreibacter,41,8,0,15,14,13,12,7
+Oerskovia,41,9,0,24,27,19,12,9
+Pauljensenia,41,35,0,41,31,29,28,7
+Pedococcus,41,12,0,34,23,33,34,20
+Pseudolysinimonas,41,0,0,35,26,36,36,36
+Spirochaeta,41,2,0,20,17,24,25,16
+Sulfuricella,41,0,0,31,26,31,32,20
+Syntrophobacter,41,0,0,27,27,26,27,26
+Williamsia,41,6,0,26,21,21,20,15
+Acidobacterium,40,0,0,22,22,23,23,22
+Actinokineospora,40,1,0,21,13,17,16,11
+Agitococcus,40,0,0,39,36,33,39,39
+Apibacter,40,30,0,30,30,30,7,4
+Aquipseudomonas,40,4,0,20,19,19,23,15
+Candidatus Fimisoma,40,34,0,33,33,34,33,10
+Candidatus Izemoplasma,40,0,0,40,40,39,40,29
+Fervidibacter,40,0,0,37,37,37,38,35
+Halarcobacter,40,12,0,28,27,28,25,18
+Hallella,40,26,0,28,25,23,26,25
+Mesoplasma,40,34,0,31,30,30,21,1
+Moritella,40,2,0,19,18,16,23,15
+Mycetocola,40,11,0,28,23,25,27,18
+Negativicoccus,40,32,0,31,30,29,33,30
+Olleya,40,5,0,24,24,19,23,23
+Paenisporosarcina,40,8,0,31,28,32,32,23
+Parafilimonas,40,1,0,23,18,23,31,23
+Pelolinea,40,0,0,13,10,13,14,10
+Phaeodactylibacter,40,2,0,27,26,27,28,22
+Phormidium,40,1,0,34,26,32,31,21
+Runella,41,1,0,32,27,30,33,28
+Sinomonas,40,8,0,27,27,30,30,22
+Sneathia,40,16,0,15,14,16,14,3
+Streptobacillus,40,32,0,32,24,30,5,0
+Synechocystis,40,1,0,31,25,29,27,15
+Terrabacter,40,15,0,23,26,26,25,11
+Terricaulis,40,1,0,25,25,25,25,19
+Wohlfahrtiimonas,40,35,0,37,35,27,19,5
+Acidipropionibacterium,39,8,0,32,33,29,27,22
+Amnibacterium,39,4,0,13,11,15,12,11
+Amphritea,39,7,0,27,27,26,30,21
+Candidatus Egerieousia,39,32,0,37,37,38,38,36
+Candidatus Sulfopaludibacter,39,1,0,10,7,11,12,10
+Desulfomicrobium,39,1,0,25,20,26,30,19
+Desulfuromusa,39,2,0,29,30,33,34,29
+Hydrotalea,39,1,0,38,36,31,36,32
+Methylobacillus,39,9,0,22,20,22,23,14
+Ponticoccus,39,36,0,38,38,4,4,39
+Sphaerisporangium,39,0,0,13,18,17,15,11
+Spiribacter,39,1,0,31,30,29,31,21
+Actinobaculum,38,16,0,13,12,13,15,6
+Candidatus Obscuribacter,38,0,0,36,32,36,36,31
+Candidatus Solibacter,38,0,0,30,22,30,30,30
+Candidatus Thermochlorobacter,38,1,0,38,38,38,38,37
+Fulvivirga,38,8,0,32,30,29,30,22
+Ghiorsea,38,0,0,36,37,37,37,37
+Gracilibacillus,38,8,0,20,22,23,21,10
+Magnetospirillum,38,1,0,27,23,27,35,24
+Mameliella,38,12,1,22,25,13,10,16
+Oleiphilus,38,1,0,32,32,32,31,30
+Pseudochrobactrum,38,10,0,23,22,23,26,11
+Pseudophaeobacter,38,9,0,32,34,32,32,25
+Pseudovibrio,38,18,0,24,23,19,22,20
+Saccharomonospora,38,2,0,27,23,21,27,18
+Salinisphaera,38,3,0,14,15,6,10,3
+Scardovia,38,16,0,18,14,13,20,5
+Sutcliffiella,38,1,0,32,30,25,25,30
+Caldimicrobium,37,1,0,30,29,31,32,28
+Candidatus Aphodosoma,37,34,0,36,36,36,36,36
+Candidatus Enterocola,37,28,0,34,34,34,34,31
+Citricoccus,37,1,0,19,22,18,16,15
+Crenothrix,37,0,0,3,3,2,13,2
+Fimbriimonas,37,1,0,17,14,18,19,15
+Gelidibacter,37,0,0,31,28,32,32,30
+Ignatzschineria,37,23,1,25,26,25,19,14
+Labrenzia,37,3,2,21,21,22,24,15
+Marvinbryantia,37,12,0,16,13,11,15,7
+Methylomarinum,37,0,0,16,15,20,20,13
+Oscillochloris,37,3,0,9,7,11,27,8
+Parapedobacter,37,14,0,23,25,26,24,24
+Patiriisocius,37,1,0,28,28,25,25,27
+Pilosibacter,37,33,0,36,35,33,35,27
+Sharpea,37,8,0,9,8,7,26,6
+Thiohalobacter,37,0,0,29,28,29,30,29
+Actinotalea,36,6,0,28,23,25,28,22
+Candidatus Arcticimaribacter,35,0,0,21,19,21,22,20
+Candidatus Darwinibacter,36,0,0,36,36,36,36,0
+Croceicoccus,36,1,0,25,24,20,22,22
+Gulosibacter,36,4,0,18,21,18,20,13
+Herminiimonas,36,2,0,26,26,28,28,16
+Lentihominibacter,43,36,0,37,30,37,37,36
+Mariniflexile,36,6,0,23,29,26,21,25
+Monoglobus,36,23,0,22,20,24,23,18
+Motiliproteus,36,2,0,34,33,34,33,32
+Nevskia,36,2,0,24,20,24,28,23
+Ohtaekwangia,36,0,0,8,3,9,8,8
+Oleispira,36,2,0,31,30,23,28,11
+Phocoenobacter,36,34,0,35,34,1,2,31
+Rufibacter,36,0,0,29,31,21,18,18
+Ruminobacter,36,10,0,18,21,22,27,7
+Terribacillus,36,6,0,15,19,25,22,7
+Azospira,35,1,0,25,22,26,26,19
+Caldicellulosiruptor,35,0,0,13,7,8,11,12
+Candidatus Kryptonium,22,0,0,14,14,15,15,15
+Candidatus Vidania,35,35,0,35,34,35,23,0
+Cohaesibacter,35,7,0,10,10,10,9,3
+Ferrovibrio,35,2,0,27,23,28,27,25
+Lacibacter,40,1,0,32,24,28,33,26
+Lacinutrix,35,4,0,18,16,18,20,16
+Lishizhenia,35,0,0,11,11,5,11,3
+Oceanisphaera,35,3,0,28,29,28,26,26
+Ornithinibacter,35,0,0,33,24,33,33,33
+Pelagibacterium,35,0,0,23,20,18,21,15
+Reichenbachiella,35,22,0,30,29,27,28,7
+Roseitalea,35,5,0,18,33,31,31,25
+Steroidobacter,35,4,0,21,13,22,26,21
+Thermoactinomyces,35,0,0,21,26,29,26,17
+Thermohalobaculum,35,0,0,33,29,33,33,32
+Candidatus Coprenecus,34,23,0,17,17,25,17,16
+Hominimerdicola,43,25,0,17,6,24,21,15
+Pannonibacter,34,9,0,25,23,21,23,18
+Pararhizobium,34,10,0,26,24,25,23,13
+Petrotoga,34,1,0,22,21,24,25,16
+Pseudorhodoplanes,34,1,0,30,23,30,30,24
+Roseinatronobacter,34,2,0,30,25,28,26,18
+Advenella,33,6,0,22,20,22,22,18
+Alishewanella,33,0,0,26,23,22,25,21
+Amaricoccus,33,4,0,29,18,28,29,26
+Anaeroplasma,33,19,0,20,19,20,21,18
+Ancrocorticia,33,2,0,23,23,24,24,21
+Candidatus Nasuia,33,14,18,32,31,31,10,0
+Candidatus Neoarthromitus,33,8,0,7,6,7,9,4
+Enhydrobacter,33,2,0,19,7,16,26,6
+Gloeomargarita,33,0,0,33,33,33,33,32
+Methylosinus,33,5,0,17,12,13,24,12
+Mucinivorans,33,32,0,32,32,32,33,32
+Nitrobacter,33,0,0,25,23,23,23,23
+Oligella,33,15,0,12,7,14,13,2
+Paeniglutamicibacter,33,3,0,17,17,17,13,10
+Parvularcula,33,0,0,18,19,22,22,18
+Schleiferilactobacillus,33,1,0,28,28,26,29,18
+Silicimonas,33,17,0,31,31,31,31,12
+Sphaerotilus,33,1,0,19,14,18,17,13
+Sphingosinicella,33,1,0,17,16,16,16,11
+Stappia,33,5,0,20,21,16,18,18
+Streptacidiphilus,33,2,2,19,16,24,13,10
+Taibaiella,33,10,0,21,19,22,23,19
+Thermosipho,33,0,0,27,15,28,28,22
+Thiomicrospira,33,0,0,28,24,28,28,13
+Tistrella,33,0,0,9,26,11,11,24
+Zobellia,33,7,1,23,22,9,15,10
+Zwartia,33,0,0,9,8,7,9,9
+Actinophytocola,32,1,0,23,13,25,25,23
+Actinosynnema,32,3,0,16,18,11,11,7
+Agarivorans,32,18,0,20,21,12,17,12
+Candidatus Endomicrobiellum,32,28,0,28,28,28,27,0
+Candidatus Shikimatogenerans,32,30,1,32,32,28,27,0
+Defluviicoccus,32,13,0,27,27,27,20,13
+Defluviitoga,32,0,0,28,28,29,31,27
+Desulfitobacterium,32,2,0,20,13,20,24,18
+Fermentimonas,32,2,0,30,26,31,29,23
+Guyparkeria,32,2,0,31,30,26,28,26
+Hydrogenovibrio,32,0,0,24,16,21,24,21
+Moellerella,32,6,0,19,18,14,17,2
+Neomegalonema,32,7,0,11,9,12,19,5
+Nisaea,32,15,0,24,25,24,26,8
+Rouxiella,32,14,0,26,27,24,16,10
+Spirillospora,32,1,0,14,13,11,14,13
+Tolumonas,32,0,0,19,17,19,22,19
+Xanthomarina,32,0,0,22,18,24,24,23
+Aureispira,31,5,0,11,11,12,15,7
+Candidatus Acidulidesulfobacter,31,0,0,31,31,31,31,29
+Candidatus Midichloria,31,21,0,21,20,20,10,0
+Collimonas,31,1,0,20,18,20,20,14
+Gilvibacter,31,23,0,27,28,28,28,5
+Halorhodospira,31,0,0,27,26,24,27,12
+Herbiconiux,31,15,0,26,25,22,15,9
+Malaciobacter,31,10,0,28,26,25,22,15
+Marinilactibacillus,31,1,0,19,19,19,18,13
+Moorena,31,3,0,28,28,28,28,25
+Novacetimonas,31,5,0,20,21,21,28,5
+Orientia,31,20,0,16,12,6,9,0
+Parafannyhessea,31,17,0,20,19,20,22,15
+Pigmentiphaga,31,7,0,22,21,20,22,17
+Rhodohalobacter,31,0,0,15,15,14,14,12
+Robinsoniella,31,15,0,11,9,12,11,9
+Silvibacterium,31,1,0,27,22,28,28,28
+Sphaerospermopsis,31,0,0,29,26,28,28,28
+Thermogutta,31,1,0,23,23,24,29,22
+Thermopetrobacter,31,0,0,31,30,30,30,28
+Trichodesmium,31,1,0,26,28,28,28,25
+Ventrimonas,31,15,0,14,14,14,14,5
+Winkia,31,31,0,29,20,14,14,6
+Yaniella,31,2,0,27,25,29,28,19
+Zunongwangia,31,5,0,14,16,20,19,15
+Alkaliphilus,30,2,0,19,18,18,19,13
+Anaerofilum,30,10,0,7,8,10,8,6
+Bermanella,30,5,0,27,27,21,26,26
+Bombilactobacillus,30,23,0,23,26,20,14,1
+Candidatus Aegiribacteria,30,0,0,17,16,29,30,16
+Candidatus Alloenteromonas,30,26,0,26,23,27,26,16
+Candidatus Onthomorpha,30,30,0,29,29,30,29,29
+Candidatus Scatavimonas,30,23,0,25,25,26,25,0
+Chelatococcus,30,3,1,20,20,21,18,12
+Cyclobacterium,30,1,0,18,17,18,19,11
+Desulfofustis,30,0,0,19,16,22,22,16
+Frisingicoccus,30,26,0,28,26,27,27,17
+Halalkalibacter,30,1,0,15,18,19,15,11
+Kaistia,30,3,0,18,12,15,13,10
+Magnetovibrio,30,3,0,23,21,23,23,23
+Maridesulfovibrio,30,3,0,15,11,11,14,10
+Mesosutterella,30,22,0,26,26,26,26,12
+Paenalcaligenes,30,12,0,20,16,19,13,14
+Planktotalea,30,2,0,19,17,19,19,16
+Prauserella,30,5,0,18,16,13,7,3
+Propioniciclava,30,7,0,24,23,23,24,19
+Pseudoruminococcus,30,24,0,24,23,23,24,17
+Psychrosphaera,30,2,0,19,19,13,19,17
+Rhizorhabdus,30,3,0,24,26,25,22,18
+Rosenbergiella,30,28,0,28,28,20,27,0
+Sporomusa,30,6,0,12,7,19,20,16
+Sulfuriferula,30,0,0,24,23,21,24,17
+Tyzzerella,30,15,0,8,14,18,20,5
+Candidatus Blochmanniella,29,27,0,27,26,22,6,1
+Candidatus Enterosoma,29,28,0,27,24,28,27,25
+Candidatus Marisimplicoccus,29,6,0,16,17,16,16,16
+Candidatus Merdousia,29,27,0,26,23,27,26,15
+Candidatus Onthovivens,29,26,0,27,26,28,28,25
+Candidatus Palauibacter,29,9,0,9,9,9,0,0
+Desulfotomaculum,29,2,0,15,12,24,27,10
+Desulfurobacterium,29,0,0,24,23,22,26,19
+Flavitalea,29,0,0,27,17,27,27,26
+Knoellia,29,4,0,18,22,15,11,16
+Lapillicoccus,29,0,0,27,17,26,26,26
+Marivirga,29,0,0,20,17,14,20,13
+Martelella,29,3,0,22,19,22,22,14
+Oceanococcus,29,0,0,28,28,28,28,28
+Paractinoplanes,29,4,0,10,12,12,11,6
+Plantactinospora,29,4,1,18,23,22,15,15
+Pseudogracilibacillus,29,5,0,25,14,26,25,22
+Sulfurihydrogenibium,29,0,0,25,24,26,26,25
+Turneriella,29,0,0,24,24,24,25,23
+Ursidibacter,29,29,0,29,29,29,29,0
+Alsobacter,28,2,0,10,10,10,13,9
+Anaerorhabdus,28,23,0,27,27,27,27,26
+Arcicella,29,0,0,27,23,23,23,22
+Bizionia,28,6,0,18,20,21,18,12
+Caldibacillus,28,10,0,26,21,23,24,12
+Caldifermentibacillus,28,6,0,4,10,26,26,6
+Candidatus Enterenecus,38,25,0,21,11,25,21,21
+Candidatus Williamhamiltonella,28,16,0,14,13,13,9,3
+Carboxylicivirga,28,3,0,11,18,10,10,8
+Catellatospora,28,1,0,7,10,10,7,6
+Dellaglioa,28,20,0,25,26,26,26,0
+Dictyoglomus,28,1,0,25,25,26,26,24
+Ferrimonas,28,4,0,21,17,7,10,18
+Fuerstiella,28,7,0,27,27,26,27,23
+Gracilimonas,28,1,0,19,20,22,22,19
+Lentibacillus,28,1,1,12,14,6,9,4
+Marinicella,28,2,0,12,14,14,15,12
+Merdimonas,28,9,0,8,8,7,7,7
+Nioella,28,3,0,14,15,14,13,11
+Okeania,28,1,0,25,25,25,25,24
+Peptoanaerobacter,28,9,0,5,4,4,8,5
+Rickettsiella,28,5,0,16,16,16,17,11
+Rugosibacter,28,0,0,28,27,28,28,28
+Rummeliibacillus,28,5,0,22,20,22,23,12
+Saccharicrinis,28,2,0,8,8,8,9,7
+Sanguibacter,28,9,0,16,15,14,15,7
+Schinkia,28,0,0,2,27,27,5,6
+Siminovitchia,28,1,0,19,18,24,23,15
+Sinimarinibacterium,28,0,0,15,16,14,15,15
+Thermomicrobium,28,0,0,22,22,26,27,25
+Verminephrobacter,28,23,0,25,24,2,24,23
+Absicoccus,27,13,1,15,14,14,14,13
+Actibacterium,27,1,0,18,17,18,17,16
+Actinoallomurus,27,1,0,13,13,14,16,13
+Algimonas,27,1,0,2,3,2,2,1
+Alteraurantiacibacter,27,1,0,20,21,22,17,20
+Auritidibacter,27,14,0,19,18,16,19,2
+Candidatus Avoscillospira,27,10,0,6,6,10,6,6
+Candidatus Bipolaricaulis,27,0,0,26,25,26,27,23
+Candidatus Cardinium,27,21,0,21,15,12,8,0
+Candidatus Fermentibacter,27,1,0,25,24,26,27,24
+Candidatus Promineifilum,27,0,0,25,17,26,27,25
+Candidatus Sabulitectum,27,0,0,25,24,27,27,24
+Catonella,27,10,0,13,8,10,13,0
+Crocinitomix,27,1,0,18,18,17,22,15
+Desulfatitalea,27,0,0,23,22,23,25,20
+Desulforhopalus,27,0,0,22,20,21,21,20
+Ectothiorhodospira,27,0,0,21,20,17,20,8
+Embleya,27,1,0,18,18,6,6,6
+Fodinibius,27,0,0,21,19,18,22,16
+Gemmata,29,1,0,21,16,18,25,16
+Geomonas,27,7,0,22,19,22,22,21
+Hydrogenoanaerobacterium,27,21,0,24,25,24,24,22
+Hydrogenobacter,27,0,0,22,21,21,22,20
+Lawsonella,27,7,0,13,13,12,14,5
+Marinifilum,27,2,0,10,10,10,10,8
+Neolewinella,27,1,0,21,20,19,21,17
+Oceanithermus,27,0,0,25,24,24,25,22
+Parasynechococcus,27,0,0,13,13,13,14,13
+Prosthecochloris,27,6,0,23,23,22,22,9
+Tepidanaerobacter,27,1,0,16,16,21,21,10
+Amedibacillus,26,13,0,11,8,12,14,10
+Anaerobacillus,26,5,0,24,25,11,21,22
+Aquamicrobium,26,3,0,16,20,20,16,12
+Caldisericum,26,0,0,24,24,24,24,24
+Candidatus Avilachnospira,26,23,0,22,22,24,22,21
+Candidatus Epulonipiscium,26,7,0,8,8,20,20,0
+Candidatus Galligastranaerophilus,26,5,0,1,1,5,1,1
+Candidatus Pelethomonas,26,10,0,9,9,11,10,8
+Coprothermobacter,26,0,0,19,16,21,24,19
+Croceitalea,26,1,0,13,14,8,10,9
+Dehalobacter,26,0,0,21,20,21,23,21
+Desulfonatronovibrio,26,1,0,25,24,23,24,23
+Filomicrobium,26,0,0,18,18,20,20,17
+Gottfriedia,26,9,0,25,24,21,20,11
+Haloferula,26,2,0,12,13,14,13,9
+Kerstersia,26,18,0,20,20,20,20,15
+Labrys,26,10,0,21,20,17,16,10
+Niastella,26,1,0,20,14,19,18,17
+Rhodothermus,26,0,0,17,17,16,16,18
+Sandaracinus,26,1,0,13,12,12,18,11
+Solimonas,26,2,0,24,14,22,24,23
+Subtercola,26,4,0,17,16,17,13,7
+Sunxiuqinia,26,0,0,17,14,14,15,15
+Alkalihalobacillus,25,8,0,13,14,17,17,14
+Aminivibrio,25,1,0,22,19,22,22,7
+Aquitalea,25,9,0,20,21,14,11,15
+Aromatoleum,25,0,0,21,20,19,20,21
+Atopostipes,25,4,0,17,11,16,16,13
+Aurantiacibacter,25,3,1,22,20,20,17,15
+Blastopirellula,25,1,0,18,18,18,19,17
+Bullifex,25,12,0,12,12,12,12,12
+Candidatus Aphodousia,25,19,0,14,14,19,14,4
+Candidatus Cryosericum,25,0,0,25,19,25,25,23
+Candidatus Deferrimicrobium,25,0,0,25,7,25,25,24
+Candidatus Elarobacter,25,2,0,23,6,23,21,23
+Candidatus Entotheonella,25,3,0,4,3,3,5,2
+Candidatus Ruthturnera,25,8,0,14,11,19,20,5
+Candidatus Sulfobium,25,0,0,24,23,24,24,24
+Caproiciproducens,25,3,0,22,20,23,23,6
+Cognaticolwellia,25,4,0,19,19,22,21,21
+Elioraea,25,2,0,17,16,20,24,15
+Falsiroseomonas,25,2,0,20,20,21,19,19
+Franconibacter,25,15,0,19,16,11,20,4
+Herbinix,25,0,0,13,13,14,14,13
+Luteococcus,25,7,0,16,19,20,16,6
+Macellibacteroides,25,0,0,18,18,20,20,19
+Maribellus,25,1,1,8,8,8,7,7
+Methylovulum,25,0,0,20,19,20,20,19
+Niameybacter,25,21,0,19,20,20,22,18
+Picosynechococcus,25,0,0,7,7,8,5,2
+Porcincola,25,8,0,10,10,10,10,8
+Proteiniclasticum,25,0,0,19,17,18,19,5
+Rubritalea,25,1,0,11,14,17,15,10
+Saccharospirillum,25,7,0,22,21,19,19,16
+Stakelama,25,1,0,5,5,4,3,2
+Suilimivivens,25,12,0,12,12,12,12,12
+Tangfeifania,25,0,0,9,8,9,9,9
+Thermobifida,25,5,0,17,16,16,19,11
+Thiohalocapsa,25,2,0,23,21,22,22,17
+Trichocoleus,25,0,0,25,9,12,25,4
+Tsuneonella,25,4,0,23,20,21,22,18
+Viridibacillus,25,2,0,13,13,16,16,6
+Wenyingzhuangia,25,7,0,18,18,16,16,12
+Anaerofustis,24,16,0,15,12,13,20,13
+Aquifex,24,0,0,17,17,17,18,7
+Arsenicicoccus,24,10,0,20,17,19,19,1
+Baekduia,24,0,0,24,10,23,24,24
+Bombella,24,20,0,21,21,18,16,4
+Caecibacter,24,22,0,22,21,18,19,10
+Candidatus Contendibacter,24,1,0,23,23,23,24,22
+Candidatus Faeciplasma,24,14,0,11,11,14,11,7
+Candidatus Hydrogenedens,24,1,0,13,13,15,21,12
+Candidatus Peribacter,24,0,0,18,16,24,24,19
+Candidatus Poriferisodalis,24,5,0,5,5,5,5,0
+Candidatus Portiera,24,13,8,14,14,13,4,2
+Candidatus Scatovivens,24,18,0,17,17,18,17,17
+Croceibacter,24,2,0,5,5,7,7,5
+Desulfovermiculus,24,3,0,23,23,24,24,24
+Desulfurella,24,0,0,24,22,23,23,23
+Donghicola,24,6,0,15,14,14,15,14
+Dongia,24,1,0,16,16,16,16,13
+Drancourtella,24,10,0,5,9,9,8,3
+Frateuria,24,8,0,21,18,21,19,19
+Halalkalibacterium (ex Joshi et al. 2022),24,8,0,21,22,21,17,17
+Immundisolibacter,24,0,0,23,21,23,24,22
+Inquilinus,24,10,0,23,19,20,19,15
+Intrasporangium,24,3,0,21,13,17,20,16
+Jeotgalibacillus,24,0,0,18,18,16,15,11
+Kordia,24,2,0,13,12,11,12,10
+Kytococcus,24,8,0,15,12,9,11,6
+Labilithrix,24,1,0,22,18,22,21,19
+Modicisalibacter,24,1,0,14,13,14,12,10
+Nitrosovibrio,24,0,0,2,1,0,8,0
+Oryzihumus,24,0,0,22,20,22,22,22
+Pseudobdellovibrio,24,1,0,22,22,21,21,21
+Roseococcus,24,3,0,20,17,19,18,18
+Rubrivirga,24,0,0,13,13,11,11,11
+Tatumella,24,15,0,18,16,16,15,2
+Thermaerobacter,24,1,0,21,16,19,21,19
+Thermocrinis,24,1,0,21,19,19,21,19
+Candidatus Aldehydirespirator,23,4,0,4,4,4,4,0
+Candidatus Avimonas,23,4,0,10,10,11,14,6
+Candidatus Homeothermus,23,4,0,3,4,4,4,2
+Candidatus Multivorans,23,6,0,6,6,6,6,0
+Candidatus Paceibacter,23,3,0,23,22,22,23,23
+Candidatus Stercoripulliclostridium,23,15,0,13,13,15,13,13
+Chakrabartia,23,0,0,18,17,19,19,19
+Cognatishimia,23,4,0,16,16,15,15,12
+Dakarella,23,5,0,6,6,7,7,4
+Desulfopila,23,0,0,12,11,12,13,12
+Ezakiella,23,11,0,12,12,10,11,9
+Kineosporia,23,4,0,4,4,6,10,2
+Lacisediminihabitans,23,1,0,22,18,21,21,19
+Lederbergia,23,9,0,13,18,18,12,10
+Mangrovimonas,23,3,0,21,21,20,19,17
+Marisediminitalea,23,1,0,12,12,11,12,12
+Paenirhodobacter,23,6,0,19,19,21,20,12
+Paucilactobacillus,23,5,0,8,10,11,15,5
+Scandinavium,23,9,0,19,17,18,19,9
+Sulfuricaulis,23,0,0,21,16,22,23,14
+Terasakiella,23,6,0,17,17,17,19,14
+Thermophilibacter,23,10,0,10,11,11,12,1
+Thermovibrio,23,0,0,21,20,20,22,16
+Thiomargarita,23,1,0,17,17,20,20,16
+Tolypothrix,23,3,0,14,11,14,14,7
+Trichormus,23,9,0,13,7,17,11,7
+Algiphilus,22,1,0,17,17,17,16,11
+Bilifractor,22,15,0,20,20,20,20,15
+Bryobacter,22,0,0,13,13,14,15,12
+Candidatus Aquilonibacter,22,0,0,22,11,22,22,22
+Candidatus Caccoplasma,22,15,0,13,13,15,13,13
+Candidatus Colimorpha,22,9,0,9,9,8,11,6
+Candidatus Fimimonas,22,12,0,10,10,12,10,8
+Cellulosilyticum,22,11,0,11,11,11,12,9
+Cysteiniphilum,22,1,0,20,20,20,20,19
+Dehalogenimonas,22,0,0,15,13,13,14,16
+Desulfobacca,22,1,0,15,14,15,15,14
+Desulfosalsimonas,22,5,0,22,21,21,21,21
+Dethiobacter,22,0,0,19,18,19,19,18
+Fenollaria,22,15,0,13,13,5,10,4
+Guptibacillus,22,0,0,18,15,13,12,14
+Halodesulfovibrio,22,3,0,18,16,17,20,13
+Hanamia,22,0,0,20,2,19,20,20
+Holophaga,25,2,0,20,18,17,21,15
+Hominilimicola,22,21,0,21,21,20,21,21
+Ktedonobacter,22,0,0,10,9,20,22,19
+Labilibaculum,22,1,0,14,14,15,15,15
+Larkinella,22,0,1,11,15,14,12,8
+Leadbetterella,22,4,0,21,16,20,22,20
+Leptothrix,22,0,0,20,17,17,18,19
+Lonepinella,22,20,0,21,20,16,20,4
+Methylomagnum,22,2,0,7,7,6,9,6
+Oceanipulchritudo,22,0,0,22,20,22,22,22
+Oricola,22,0,0,13,13,11,12,12
+Pelosinus,22,0,0,11,9,10,12,7
+Phoenicibacter,22,13,0,13,12,12,13,11
+Polyangium,22,1,0,16,14,15,14,16
+Pseudoramibacter,22,5,0,9,10,10,10,8
+Pseudorhizobium,22,1,0,16,13,11,11,10
+Richelia,22,0,0,9,8,15,18,10
+Ruoffia,22,5,0,21,21,22,21,18
+Terrimesophilobacter,22,0,0,22,14,21,20,20
+Terrimonas,22,1,0,10,11,11,10,10
+Thiocapsa,22,1,0,19,14,18,20,18
+Traorella,22,8,0,7,7,7,7,5
+Truepera,22,5,0,17,16,16,14,9
+Uliginosibacterium,22,1,0,15,15,17,19,16
+Yokenella,22,12,1,15,14,15,18,7
+Acetoanaerobium,21,1,0,17,13,17,18,14
+Ahrensia,21,0,0,14,13,14,14,13
+Aquimonas,21,1,0,11,10,10,12,9
+Athalassotoga,21,0,0,20,20,21,21,20
+Candidatus Allocopromorpha,21,12,0,16,16,19,16,2
+Candidatus Coprovivens,21,15,0,15,15,16,15,15
+Candidatus Onthocola,21,12,0,9,9,12,9,5
+Candidatus Pullichristensenella,21,12,0,8,8,13,8,0
+Candidatus Spyradenecus,21,19,0,19,19,20,19,19
+Candidatus Sulfidibacterium,21,0,0,21,21,20,21,20
+Desulfonatronospira,21,0,0,21,20,21,21,21
+Domibacillus,21,0,0,18,16,18,16,9
+Hippea,21,0,0,17,14,14,18,16
+Hydrocarboniphaga,21,1,0,7,6,8,9,7
+Hydrogenivirga,21,0,0,19,18,18,19,18
+Kutzneria,21,0,0,10,9,11,8,9
+Methylohalobius,21,0,0,20,19,20,21,20
+Pectinatus,21,2,0,17,16,16,17,4
+Phreatobacter,21,1,0,18,17,18,18,17
+Plasticicumulans,21,0,0,20,19,19,19,17
+Propionimicrobium,21,11,0,11,10,5,6,1
+Rivularia,21,0,0,13,12,12,12,10
+Robertmurraya,21,6,0,13,15,15,17,10
+Scytonema,21,1,0,13,11,11,13,9
+Simplicispira,21,1,0,12,11,8,13,8
+Sporofaciens,21,3,0,3,3,2,2,2
+Symbiopectobacterium,21,19,1,20,15,14,9,1
+Synergistes,21,18,0,15,17,15,18,7
+Tagaea,21,0,0,16,12,12,17,12
+Tropheryma,21,2,0,2,2,2,19,0
+Agriterribacter,20,4,0,20,18,20,20,19
+Aphanothece,20,0,0,16,16,16,16,15
+Aquihabitans,20,1,0,14,13,12,14,14
+Breznakia,20,2,0,4,4,4,5,4
+Brumimicrobium,20,0,0,17,12,17,17,17
+Candidatus Dasytiphilus,20,9,11,20,20,3,20,0
+Candidatus Fimadaptatus,20,11,0,11,11,12,11,5
+Catenulispora,20,0,0,16,13,18,12,12
+Cognatundibacterium,20,0,0,14,16,16,14,9
+Congregibacter,20,2,0,15,14,15,15,15
+Euzebya,20,1,0,15,13,15,14,12
+Fluviibacter,20,4,0,17,17,18,17,16
+Friedmanniella,20,1,0,5,4,5,8,5
+Frondihabitans,20,4,0,7,6,3,4,3
+Fusibacter,20,1,0,10,10,10,12,7
+Grimontia,20,4,0,7,5,6,7,5
+Hydrogenobaculum,20,0,0,14,13,14,17,16
+Hydrogenophilus,20,0,0,16,16,14,16,16
+Ilyobacter,20,0,0,4,3,3,4,4
+Nitratidesulfovibrio,20,4,0,9,8,10,12,9
+Oceaniferula,20,1,0,14,14,13,14,12
+Oceanospirillum,20,2,0,15,15,16,15,16
+Oleiharenicola,20,0,0,8,8,8,8,8
+Ornithinibacillus,20,5,0,11,12,14,13,8
+Paenalicyclobacillus,20,2,0,10,7,10,13,9
+Palleronia,20,0,0,7,7,7,7,4
+Patulibacter,20,5,0,16,13,16,16,15
+Peptacetobacter,20,19,0,17,15,16,15,14
+Polymorphobacter,20,3,0,14,14,13,16,12
+Pontixanthobacter,20,1,0,15,11,11,10,14
+Pygmaiobacter,20,8,0,10,10,11,11,8
+Rhodospirillum,20,3,0,11,8,15,14,7
+Roseivivax,20,3,0,11,13,12,11,11
+Saccharibacillus,20,3,0,15,13,12,10,8
+Salinivenus,20,0,0,7,7,7,7,5
+Streptomonospora,20,1,0,8,14,13,7,5
+Syntrophothermus,20,2,0,14,13,17,15,14
+Telmatospirillum,20,0,0,14,13,15,18,14
+Thalassobaculum,20,1,0,15,13,15,16,12
+Vitreoscilla,20,5,0,14,10,16,16,12
+Xylophilus,20,9,0,14,10,13,14,10
+Abditibacterium,19,1,0,10,8,10,10,7
+Aliidiomarina,19,0,0,18,12,17,18,15
+Azorhizobium,19,5,0,12,10,5,13,7
+Brooklawnia,19,1,0,11,12,13,13,7
+Brotaphodocola,19,6,0,6,3,5,6,3
+Bythopirellula,19,1,0,13,13,12,13,10
+Candidatus Avigastranaerophilus,19,18,0,17,17,18,17,17
+Candidatus Faecivicinus,19,15,0,14,14,15,14,4
+Candidatus Ornithospirochaeta,19,16,0,14,13,16,14,13
+Chitinimonas,19,0,0,16,13,14,13,11
+Desulfamplus,19,0,0,16,16,16,16,16
+Emcibacter,19,0,0,15,18,18,17,17
+Enterovirga,19,0,0,10,6,11,10,10
+Epibacterium,19,3,0,12,12,8,10,11
+Fastidiosipila,19,2,0,2,2,6,6,0
+Galbibacter,19,1,0,15,12,13,12,12
+Jutongia,19,8,0,8,7,8,8,7
+Mangrovibacterium,19,2,0,11,16,16,16,14
+Mesoaciditoga,19,0,0,15,15,15,15,15
+Methylacidiphilum (ex Ratnadevi et al. 2023),19,0,0,13,13,12,15,11
+Mycetohabitans,19,17,0,17,8,17,9,4
+Mycoavidus,19,16,0,16,16,16,15,12
+Nitrincola,19,0,0,15,14,13,14,10
+Oceanimonas,19,7,0,16,17,14,15,8
+Pelobium,22,1,0,20,15,8,17,6
+Pradoshia,19,6,0,6,6,6,6,4
+Pseudacidovorax,19,2,0,9,6,11,13,4
+Pseudobacillus,19,3,0,10,13,16,14,10
+Serinicoccus,19,4,0,12,9,12,11,9
+Syntrophotalea,19,0,0,15,14,15,15,14
+Tenuifilum,19,0,0,19,19,19,19,18
+Tepidiphilus,19,0,0,14,12,16,16,12
+Thiodictyon,19,1,0,2,2,1,15,2
+Trichlorobacter,19,0,0,15,14,14,15,13
+Tunturiibacter,19,0,0,11,12,2,2,10
+Urechidicola,19,1,0,15,16,14,14,12
+Acaryochloris,18,4,0,12,11,10,13,9
+Aliiglaciecola,18,2,1,10,10,7,8,2
+Alkalispirochaeta,18,1,0,14,12,12,13,12
+Anoxybacteroides,18,1,0,9,12,9,8,7
+Azohydromonas,18,1,1,13,11,13,13,11
+Bhargavaea,18,3,0,8,12,12,9,4
+Candidatus Caccousia,18,9,0,6,6,9,6,2
+Candidatus Caldatribacterium,18,0,0,16,15,16,16,14
+Candidatus Finniella,18,0,1,3,3,3,4,2
+Candidatus Micropelagius,18,0,0,15,14,14,15,14
+Candidatus Rhabdochlamydia,18,9,0,17,15,16,16,12
+Candidatus Spyradocola,18,15,0,15,15,16,15,8
+Casimicrobium,18,2,0,18,18,17,17,17
+Chelativorans,18,3,0,12,14,14,13,9
+Chiayiivirga,18,2,0,15,13,15,16,14
+Chroococcidiopsis,18,3,0,15,13,15,15,12
+Chryseosolibacter,18,0,0,13,4,13,13,13
+Croceivirga,18,8,0,11,11,10,11,6
+Denitromonas,18,0,0,14,15,17,17,10
+Ectobacillus,18,4,0,14,16,16,13,8
+Fibrella,18,3,0,13,11,13,14,11
+Fluoribacter,18,1,0,15,5,5,8,4
+Frigidibacter,18,0,0,13,12,13,13,13
+Gilvimarinus,18,6,2,14,14,9,8,5
+Globicatella,18,12,0,13,10,11,11,2
+Glycocaulis,18,0,0,11,12,11,11,8
+Ilyomonas,18,1,0,5,5,5,5,4
+Kushneria,18,4,0,9,7,8,6,5
+Lachnotalea,18,1,0,5,4,5,6,4
+Litorimonas,18,8,0,14,13,13,10,6
+Mumia,18,13,0,13,15,15,10,6
+Novilysobacter,18,2,0,16,14,13,17,12
+Olivibacter,18,6,0,13,15,13,11,10
+Oscillatoria,18,0,0,15,12,14,14,15
+Paenilisteria,18,3,0,15,13,11,13,12
+Phytopseudomonas,18,9,0,10,9,10,11,1
+Planomicrobium,18,1,0,10,11,10,9,9
+Pontibacterium,18,0,0,12,12,12,12,11
+Rubellimicrobium,18,2,0,13,10,12,10,8
+Silanimonas,18,1,0,14,13,15,18,14
+Solidesulfovibrio,18,0,0,12,9,15,17,16
+Teredinibacter,18,10,0,10,10,9,8,2
+Thermoclostridium,18,1,0,14,10,12,11,11
+Thiohalophilus,18,1,0,13,12,12,11,11
+Acetofilamentum,17,0,0,17,17,17,17,17
+Actinopolyspora,17,0,0,8,7,9,10,4
+Aliicoccus,17,13,0,13,15,15,13,1
+Amedibacterium,17,13,0,12,12,10,12,12
+Aquincola,17,3,0,12,14,13,13,12
+Arsukibacterium,17,0,0,9,10,14,15,12
+Caldanaerobacter,17,0,0,12,10,12,12,6
+Caminibacter,17,0,0,13,13,13,14,12
+Candidatus Aquarickettsia,17,14,0,14,14,13,14,0
+Candidatus Electronema,17,2,0,15,15,15,17,11
+Candidatus Jettenia,17,0,0,12,12,14,15,11
+Candidatus Marinacidobacterium,17,4,0,4,4,4,4,0
+Canibacter,17,4,0,16,16,16,14,12
+Catenuloplanes,17,2,0,1,2,2,4,4
+Chlorobaculum,17,0,0,13,11,13,13,12
+Cyanobacterium,17,0,0,12,10,10,12,12
+Deefgea,17,9,0,10,9,10,9,3
+Desemzia,17,2,0,16,10,13,13,7
+Desulfobacterium,17,0,0,9,8,8,9,9
+Desulfonema,17,0,0,10,10,11,11,10
+Desulfosoma,17,3,0,13,13,14,15,12
+Frischella,17,5,0,5,5,5,5,0
+Gudongella,17,0,0,10,9,10,10,7
+Hahella,17,11,0,16,15,15,14,6
+Halocynthiibacter,17,7,0,15,15,14,13,9
+Hominicoprocola,25,16,0,16,6,14,15,16
+Huintestinicola,17,10,0,10,8,10,10,9
+Kaarinaea,17,0,0,0,0,0,0,0
+Lapidilactobacillus,17,3,0,9,14,11,10,2
+Longilinea,17,1,0,11,5,15,16,8
+Marinimicrobium,17,0,0,13,11,11,13,13
+Marinitoga,17,0,0,11,6,9,13,10
+Microtetraspora,17,0,0,7,8,11,11,7
+Moheibacter,17,2,0,13,11,14,14,12
+Nereida,17,1,0,6,4,4,4,2
+Nosocomiicoccus,17,8,0,7,8,11,9,0
+Oceanobacter,17,2,0,13,12,6,10,7
+Panacagrimonas,17,0,0,13,13,13,13,13
+Paraeggerthella,17,10,0,9,9,10,11,5
+Paraperlucidibaca,17,0,0,7,8,8,7,7
+Pontibacillus,17,5,1,15,12,7,13,6
+Ponticaulis,17,1,0,9,9,10,11,9
+Pyruvatibacter,17,3,1,6,6,6,5,3
+Quadrisphaera,17,8,0,10,9,10,9,6
+Quisquiliibacterium,17,0,0,15,14,15,15,15
+Rariglobus,17,0,0,15,12,16,16,15
+Serpentinimonas,17,0,0,10,10,9,9,9
+Snowella,17,0,0,13,13,13,14,12
+Spirulina,17,0,0,15,12,13,13,10
+Syntrophaceticus,17,0,0,12,12,14,14,9
+Adhaeribacter,16,3,0,13,12,13,13,11
+Aquidulcibacter,16,0,0,13,13,13,13,11
+Asanoa,16,1,0,5,1,4,3,3
+Aureibaculum,16,1,1,14,14,13,13,11
+Brevinema,16,8,0,10,10,10,10,10
+Caloramator,16,0,0,11,10,8,11,9
+Candidatus Calescibacterium,16,0,0,14,14,14,14,14
+Candidatus Desulfofervidus,16,0,0,16,16,16,16,14
+Candidatus Faecivivens,16,4,0,1,1,4,1,1
+Candidatus Fimimorpha,16,3,0,2,2,4,2,2
+Candidatus Microsaccharimonas,16,0,0,16,13,16,16,16
+Candidatus Pelethousia,16,12,0,13,13,14,13,1
+Candidatus Tumulicola,16,0,0,16,8,16,16,16
+Culturomica,16,6,0,5,5,6,7,1
+Desulfofundulus,16,0,0,14,11,13,13,11
+Dictyobacter,16,1,0,4,4,6,7,5
+Flammeovirga,16,3,0,12,13,13,11,7
+Flaviramulus,16,0,0,6,6,6,5,4
+Halochromatium,16,0,0,13,11,13,13,10
+Hominisplanchenecus,16,15,0,14,14,14,14,13
+Hyphobacterium,16,3,0,8,9,8,5,7
+Inhella,16,0,0,15,14,15,15,13
+Ketobacter,16,1,0,14,14,14,14,13
+Kibdelosporangium,16,1,0,7,10,10,7,5
+Kiloniella,16,7,0,11,10,10,8,7
+Litorilinea,16,1,0,8,7,8,9,3
+Lutimaribacter,16,1,0,11,12,12,11,11
+Marinospirillum,16,0,0,12,9,8,11,6
+Methylocaldum,16,2,0,13,11,13,10,5
+Parasaccharibacter,16,12,0,12,12,4,13,0
+Parascardovia,16,4,0,7,3,8,9,2
+Parasphingopyxis,16,2,0,11,11,12,12,8
+Parasporobacterium,16,9,0,4,9,9,9,2
+Pelagibius,16,4,0,7,8,8,7,6
+Planomonospora,16,0,0,2,6,6,4,2
+Pleomorphomonas,16,3,0,9,8,9,11,4
+Porcipelethomonas,16,8,0,8,8,8,8,8
+Profundibacter,16,0,0,15,15,15,15,13
+Pseudorhodoferax,16,7,0,11,9,8,11,9
+Thalassococcus,16,1,0,9,11,11,11,9
+Thermacetogenium,16,0,0,14,10,13,15,8
+Thiolinea,16,0,0,16,14,16,16,16
+Umezakia,16,0,0,13,13,0,1,13
+Verrucomicrobium,16,0,0,8,6,10,12,7
+Acidihalobacter,15,4,0,12,12,11,12,10
+Actinopolymorpha,15,0,0,10,4,2,3,5
+Aestuariivita,15,7,0,11,10,11,5,4
+Agreia,15,6,0,11,10,4,9,9
+Altibacter,15,1,0,14,13,14,14,13
+Anaerosacchariphilus,15,5,0,9,5,4,8,6
+Arcticibacterium,15,2,0,12,12,12,12,12
+Beggiatoa,15,2,0,15,12,13,15,15
+Bremerella,15,4,0,12,12,10,9,9
+Candidatus Aquirickettsiella,15,2,0,13,12,13,13,12
+Candidatus Berkiella,15,2,0,8,8,8,8,7
+Candidatus Choladocola,15,7,0,6,6,7,6,6
+Candidatus Faecimonas,15,7,0,5,5,10,8,5
+Candidatus Fervidifonticultor,15,0,0,15,15,15,15,15
+Candidatus Limadaptatus,15,8,0,5,5,8,5,0
+Candidatus Marithrix,15,1,0,15,15,9,15,8
+Candidatus Merdivicinus,15,5,0,3,3,7,3,1
+Candidatus Nanogingivalis,15,7,0,9,8,10,10,2
+Candidatus Poriferisocius,15,5,0,5,5,5,5,0
+Candidatus Scatomonas,15,3,0,0,0,3,0,0
+Desulfococcus,15,1,0,12,12,11,11,11
+Desulforamulus,15,2,0,5,3,5,10,5
+Desulforudis,15,0,0,11,11,10,11,7
+Echinicola,15,3,0,10,10,11,11,7
+Enteroscipio,15,6,0,5,5,5,6,0
+Exercitatus,15,15,0,0,0,6,11,0
+Flaviflexus,15,6,0,14,14,14,13,13
+Fredinandcohnia,15,3,0,12,11,14,12,11
+Gaetbulibacter,15,3,0,11,11,10,11,9
+Gemmatirosa,15,0,0,13,11,13,13,13
+Glaciihabitans,15,0,0,14,11,13,12,11
+Glaciimonas,15,0,0,15,14,13,9,10
+Gleimia,15,10,0,11,9,6,8,2
+Haematospirillum,15,15,0,15,15,15,14,0
+Herpetosiphon,15,0,0,7,5,8,7,5
+Hornefia,15,14,0,15,15,14,14,15
+Humibacter,15,1,0,10,6,10,14,9
+Imperialibacter,15,1,0,11,11,11,11,5
+Iodobacter,15,2,0,9,10,9,8,8
+Lactonifactor,15,13,0,13,8,5,5,9
+Leucothrix,15,3,0,13,12,13,13,4
+Limnothrix,15,0,0,15,10,15,15,14
+Mariniplasma,15,0,0,0,0,0,0,0
+Marinococcus,15,1,0,10,10,4,3,7
+Methylocapsa,15,0,0,8,8,8,8,7
+Mordavella,15,4,0,2,5,3,4,1
+Muricomes,15,5,0,13,12,13,13,12
+Natronohydrobacter,15,0,0,13,12,14,13,8
+Nitrospirillum,15,4,1,8,7,5,5,2
+Oceanibaculum,15,0,0,11,11,11,11,9
+Oceanicoccus,15,1,0,9,9,11,11,8
+Paenacidovorax,15,2,0,7,7,7,10,6
+Pelagicoccus,15,4,0,9,11,10,10,8
+Pelagimonas,15,4,0,5,5,5,5,2
+Pimelobacter,15,1,0,11,12,9,8,8
+Planktothricoides,15,0,0,15,13,14,15,15
+Pseudobacteriovorax,15,4,0,6,5,5,7,1
+Putridiphycobacter,15,1,0,11,12,12,11,9
+Siccibacter,15,10,0,12,12,10,12,1
+Symbiobacterium,15,0,0,10,10,10,13,9
+Thioploca,15,2,0,12,12,14,14,9
+Actinoalloteichus,14,5,0,9,9,8,8,8
+Aedoeadaptatus,14,4,0,4,4,3,7,3
+Afifella,14,1,0,8,9,9,9,6
+Alkalicoccobacillus,14,3,0,10,11,9,9,9
+Aminipila,14,0,0,12,11,13,13,3
+Aquaticitalea,14,0,0,8,7,9,9,6
+Aureliella,14,1,0,11,11,8,8,11
+Belliella,14,0,0,7,8,10,8,8
+Byssovorax,14,0,0,13,12,13,14,13
+Candidatus Adiutrix,14,13,0,13,13,13,13,4
+Candidatus Amulumruptor,19,15,0,16,11,16,16,12
+Candidatus Choladousia,14,6,0,4,4,7,4,1
+Candidatus Heritagella,14,2,0,2,2,3,7,2
+Candidatus Macondimonas,14,0,0,14,11,12,14,12
+Candidatus Onthousia,14,5,0,1,1,5,1,1
+Candidatus Tremblayella,14,3,0,2,2,1,2,0
+Candidatus Villigracilis,14,0,0,14,14,14,14,14
+Candidatus Woodwardiibium,14,6,0,6,6,7,7,1
+Ciceribacter,14,7,0,10,11,11,7,3
+Dethiosulfovibrio,14,1,0,13,11,7,8,7
+Dielma,14,5,0,5,3,5,6,3
+Duffyella,14,12,0,14,14,7,8,7
+Exilispira,14,0,0,12,12,13,14,12
+Flavicella,14,1,0,12,12,12,12,11
+Flintibacter,14,12,0,12,12,12,13,12
+Galbitalea,14,1,0,12,2,13,13,11
+Heliomicrobium,14,0,0,3,3,3,3,2
+Homoserinimonas,14,4,0,13,12,13,11,11
+Jiangella,14,1,0,10,9,10,10,8
+Klenkia,14,2,0,5,6,5,4,4
+Kouleothrix,14,0,0,11,7,12,14,12
+Lyngbya,14,0,0,7,7,3,5,6
+Marinagarivorans,14,4,0,10,8,10,11,10
+Methylomicrobium,14,1,0,11,10,11,13,11
+Minwuia,14,1,0,12,12,12,12,11
+Naasia,14,1,0,7,6,10,11,6
+Niveispirillum,14,1,0,11,9,11,13,7
+Peptococcus,14,6,0,9,9,9,9,8
+Polycyclovorans,14,1,0,8,8,8,8,7
+Poseidonibacter,14,6,0,14,14,12,11,7
+Proteocatella,14,2,0,11,4,10,11,11
+Pseudoglutamicibacter,14,8,0,8,7,6,4,0
+Pseudotabrizicola,14,2,0,14,13,13,11,11
+Rhodosalinus,14,0,0,14,13,11,12,13
+Rivihabitans,14,0,0,12,12,13,13,13
+Roseofilum,14,9,0,14,14,10,14,5
+Rubinisphaera,14,0,0,12,12,11,12,9
+Salinarimonas,14,1,0,11,9,10,11,8
+Salipaludibacillus,14,0,1,13,13,13,12,7
+Sedimentitalea,14,7,0,12,11,12,12,6
+Seonamhaeicola,14,3,1,12,12,8,11,10
+Stackebrandtia,14,2,0,5,4,8,6,5
+Succinimonas,14,4,0,4,5,6,6,1
+Tahibacter,14,1,0,13,8,11,11,11
+Tropicimonas,14,2,0,8,10,8,5,6
+Waterburya,14,7,0,10,9,10,9,9
+Xylanimonas,14,4,0,6,5,3,3,2
+Actinocrinis,13,0,0,13,3,12,13,13
+Actinospica,13,3,0,11,6,12,10,9
+Affinirhizobium,13,1,0,8,10,10,7,5
+Anaerosporobacter,13,2,0,4,3,3,5,2
+Ancylomarina,13,0,0,12,12,12,12,11
+Angustibacter,13,3,0,7,7,7,10,6
+Atribacter,13,0,0,8,8,13,13,4
+Austwickia,13,2,0,9,9,11,10,8
+Azovibrio,13,2,0,13,12,13,13,11
+Brasilonema,13,2,2,9,9,9,9,3
+Bryocella,13,1,0,4,2,4,4,3
+Candidatus Aveggerthella,13,4,0,2,2,4,2,0
+Candidatus Merdicola,13,10,0,9,9,10,9,1
+Candidatus Merdisoma,13,7,0,6,6,8,6,4
+Candidatus Onthomonas,13,11,0,11,11,12,11,6
+Candidimonas,13,1,0,10,9,12,10,11
+Cephaloticoccus,15,2,0,15,15,15,15,13
+Desulfarculus,13,0,0,10,9,9,10,7
+Desulfatibacillum,13,0,0,4,2,3,3,3
+Desulfatiglans,13,0,0,3,2,4,5,3
+Desulfurivibrio,13,0,0,11,10,11,11,7
+Edaphocola,13,2,0,10,7,11,11,10
+Elstera,13,0,0,8,8,8,11,4
+Enteractinococcus,13,1,0,7,5,6,6,5
+Flavivirga,13,4,0,10,8,8,7,5
+Flectobacillus,13,1,0,10,11,10,8,5
+Galactobacillus,13,7,0,7,7,7,7,7
+Geitlerinema,13,0,0,8,7,8,8,6
+Geminicoccus,13,0,0,12,9,7,11,8
+Haliangium,13,3,0,8,7,8,8,6
+Hydromonas,14,4,0,7,5,7,7,3
+Hyunsoonleella,13,1,0,7,8,8,6,4
+Kosmotoga,13,0,0,11,10,10,11,8
+Lamprocystis,13,0,0,3,2,3,9,3
+Lawsonia,13,3,0,4,3,0,3,0
+Limibaculum,13,0,0,2,2,3,3,2
+Limnoglobus,13,0,0,13,13,13,13,13
+Longibaculum,13,11,0,11,10,7,7,8
+Luteitalea,13,0,1,11,10,11,11,11
+Marinilabilia,13,0,0,12,9,9,11,7
+Maritalea,13,2,0,8,7,6,7,6
+Methyloglobulus,13,0,0,12,8,12,12,11
+Mobilibacterium,13,5,0,5,4,3,6,0
+Mycolicibacillus,13,9,0,10,8,10,9,1
+Niveibacterium,13,2,0,11,11,5,9,6
+Paraliobacillus,13,6,0,8,8,8,7,7
+Paremcibacter,13,0,0,12,12,12,12,12
+Petrachloros,13,0,0,1,1,1,1,0
+Phaeovulum,13,0,0,12,9,10,10,8
+Phytohabitans,13,0,0,2,3,4,7,2
+Pikeienuella,13,0,0,11,11,11,11,9
+Planotetraspora,13,0,0,2,3,4,1,1
+Primorskyibacter,13,4,0,9,9,7,7,4
+Protofrankia,13,11,0,6,6,2,10,5
+Rhodovarius,17,0,0,12,12,6,12,5
+Ruania,13,3,0,11,8,12,11,11
+Saccharophagus,13,0,0,11,11,7,9,8
+Savagea,13,9,0,12,10,13,3,11
+Shuttleworthella,13,5,0,4,4,4,6,4
+Solirubrobacter,13,2,0,11,5,11,12,9
+Specibacter,13,1,0,11,11,9,9,8
+Stieleria,13,1,0,12,12,7,6,11
+Stygiobacter,13,0,0,13,13,6,13,5
+Testudinibacter,13,12,0,13,12,2,9,0
+Thermincola,13,0,0,12,8,12,13,11
+Thermoanaerobaculum,13,0,0,10,10,11,13,10
+Thermodesulfobium,13,0,0,13,12,13,13,13
+Thermotomaculum,13,0,0,12,12,12,13,12
+Thermovirga,13,0,0,8,7,10,10,5
+Umezawaea,13,2,0,12,10,10,10,8
+Xenophilus,13,4,0,10,11,10,10,8
+Acidaminobacter,12,0,0,5,4,4,4,4
+Actinocorallia,12,2,0,4,4,4,3,2
+Aliihoeflea,12,2,0,10,10,9,9,10
+Alkalihalophilus,12,2,0,11,11,10,10,10
+Alkalilimnicola,12,1,0,9,9,6,8,7
+Anaerovorax,12,5,0,8,5,9,9,6
+Arcticibacter,12,2,0,8,9,9,10,8
+Armatimonas,12,1,0,11,11,11,11,11
+Beduini,12,6,0,7,7,6,6,6
+Blastochloris,12,0,0,7,7,7,8,5
+Breoghania,12,1,0,5,4,4,4,4
+Brevifollis,12,1,0,0,0,0,0,0
+Caenibius,12,0,0,5,5,7,7,5
+Candidatus Aalborgiella,12,0,0,12,6,12,12,12
+Candidatus Aphodovivens,12,11,0,8,8,11,8,0
+Candidatus Aquicultor,12,0,0,12,11,11,12,9
+Candidatus Avichristensenella,12,3,0,2,2,3,2,0
+Candidatus Didemnitutus,12,1,0,12,7,12,11,11
+Candidatus Endobugula,12,2,0,8,8,8,8,6
+Candidatus Lightella,12,12,0,12,12,12,12,0
+Candidatus Limenecus,12,10,0,9,9,11,10,4
+Candidatus Merdimorpha,12,9,0,8,8,9,8,4
+Candidatus Metalachnospira,12,2,0,5,5,5,6,1
+Candidatus Ornithoclostridium,12,3,0,0,0,3,0,0
+Candidatus Parabeggiatoa,12,0,0,11,11,12,12,11
+Candidatus Pelethenecus,12,5,0,7,6,8,7,6
+Candidatus Phosphoribacter,12,0,0,12,12,12,12,12
+Candidatus Solincola,12,0,0,12,12,12,12,12
+Candidatus Symbiothrix,12,8,0,8,8,8,12,0
+Candidatus Versatilivorator,12,4,0,4,4,4,4,0
+Candidatus Vicinibacter,12,0,0,12,12,12,12,12
+Catenibacillus,12,5,0,4,3,4,4,4
+Chryseotalea,12,0,0,11,11,12,12,10
+Cytophaga,12,1,0,7,5,7,10,6
+Denitrobacterium,12,3,0,4,4,4,8,3
+Desulfosudis,12,0,0,11,11,11,11,11
+Enemella,12,7,0,10,10,9,9,1
+Evansella,12,0,0,8,9,10,9,8
+Faecalispora,12,7,0,9,9,10,11,7
+Flexivirga,12,0,0,6,6,7,8,5
+Geminocystis,12,1,0,10,9,10,11,9
+Gibbsiella,12,6,1,8,7,5,8,1
+Haematobacter,12,7,0,10,8,9,5,0
+Humidesulfovibrio,12,0,0,9,9,10,11,9
+Lepagella,12,5,0,5,5,5,5,4
+Limnoraphis,12,0,0,12,11,8,8,5
+Magnetococcus,12,0,0,11,11,10,10,11
+Massilistercora,12,3,0,3,2,3,3,1
+Mesoterricola,12,0,0,0,0,0,0,0
+Methylosarcina,12,0,0,12,12,12,12,12
+Mycoplana,12,2,0,7,5,6,6,5
+Neoaquamicrobium,12,2,0,8,10,10,9,9
+Obesumbacterium,12,6,0,9,7,5,4,1
+Olegusella,12,4,0,6,4,5,6,3
+Oligoflexus,12,2,0,10,7,10,9,9
+Oxalicibacterium,12,0,0,7,2,9,9,7
+Pacificibacter,12,1,0,8,8,4,6,6
+Paracraurococcus,12,1,0,5,4,5,9,2
+Parafrankia,12,6,0,6,6,6,5,3
+Pelodictyon,12,0,0,5,5,4,4,5
+Perlucidibaca,12,0,0,10,9,9,10,10
+Pricia,12,0,0,11,9,10,10,9
+Prochlorothrix,12,0,0,11,11,12,12,11
+Prolixibacter,12,1,0,4,5,4,6,4
+Pseudactinotalea,12,8,1,9,7,8,6,6
+Rugamonas,12,0,0,10,10,9,8,8
+Salaquimonas,12,1,0,11,11,11,11,10
+Sandaracinobacter,12,0,0,7,7,7,7,6
+Saprospira,12,1,0,9,8,8,9,7
+Silvanigrella,12,0,0,3,3,3,9,3
+Simkania,12,3,0,10,10,10,10,9
+Sinomicrobium,12,3,0,10,10,9,9,6
+Siphonobacter,12,2,0,8,7,8,9,7
+Solwaraspora,12,11,1,12,12,12,0,3
+Streptantibioticus,12,2,0,7,6,6,7,5
+Sulfurimicrobium,12,0,0,11,11,11,12,11
+Symploca,12,0,0,12,12,12,12,11
+Tamlana,12,3,0,10,11,7,6,5
+Tepidiforma,12,0,0,6,6,8,11,8
+Thermoleptolyngbya,12,0,0,12,12,11,11,11
+Tomitella,12,6,0,10,8,11,11,8
+Tuanshanicoccus,12,8,0,12,12,12,10,0
+Vallitalea,12,3,0,6,7,6,8,3
+Variibacter,12,0,0,9,9,10,10,8
+Vicingus,12,0,0,6,6,6,6,5
+Yeosuana,12,0,0,8,7,8,8,7
+Zhihengliuella,12,0,0,8,7,7,8,6
+Zobellella,12,3,0,11,11,11,11,9
+Acidisoma,11,6,0,9,8,10,10,6
+Acidithrix,11,1,0,10,9,9,10,9
+Actomonas,11,3,0,8,7,7,7,7
+Acuticoccus,11,1,0,9,9,7,7,6
+Aestuariibacter,11,7,0,11,11,10,11,9
+Alkalibacillus,11,1,0,6,5,6,4,4
+Alkalimonas,11,0,0,7,8,6,6,3
+Alloyangia,11,0,0,9,9,3,3,9
+Anaerocaecibacter,11,1,0,0,0,1,0,0
+Anaerophaga,11,0,0,10,10,10,10,7
+Anthropogastromicrobium,11,8,0,8,7,7,8,7
+Aquisalimonas,11,0,0,10,10,10,10,8
+Arachidicoccus,11,1,0,8,5,9,10,8
+Beijerinckia,11,0,0,4,2,3,3,3
+Belnapia,11,2,0,7,6,6,5,5
+Caenispirillum,11,0,0,3,3,2,2,3
+Caldicoprobacter,11,1,0,9,8,9,9,9
+Candidatus Anammoximicrobium,11,0,0,9,9,11,11,9
+Candidatus Apopatosoma,11,7,0,6,6,7,10,7
+Candidatus Atelocyanobacterium,11,2,0,5,6,8,9,6
+Candidatus Azobacteroides,11,5,0,5,5,6,9,2
+Candidatus Brachybacter,11,0,0,11,11,11,11,11
+Candidatus Caccocola,11,5,0,3,3,5,3,0
+Candidatus Calidihabitans,11,0,0,11,11,11,11,11
+Candidatus Coneutiohabitans,11,0,0,11,11,11,11,11
+Candidatus Hakubella,11,0,0,0,0,0,0,0
+Candidatus Limivivens,11,6,0,4,4,6,4,4
+Candidatus Megaera,11,8,1,7,8,9,8,1
+Candidatus Microgenomatus,11,0,0,11,10,10,10,11
+Candidatus Odyssella,11,1,0,6,5,5,6,5
+Candidatus Proelusimicrobium,11,4,0,1,2,3,6,1
+Candidatus Scybalosoma,11,10,0,9,9,10,9,1
+Candidatus Skiveiella,11,0,0,11,11,11,11,11
+Caproicibacterium,11,1,0,9,9,9,8,1
+Centipeda,11,4,0,2,1,3,3,1
+Desulfocurvus,11,0,0,5,4,4,6,5
+Desulfonatronum,11,0,0,7,5,5,7,5
+Desulfothermus,11,0,0,8,8,8,9,8
+Dryocola,11,4,0,10,11,11,10,7
+Eggerthia,11,5,0,4,4,5,5,0
+Galactobacter,11,3,0,9,11,11,11,9
+Geoalkalibacter,11,0,0,9,6,9,10,6
+Hamadaea,11,0,0,7,7,9,8,8
+Hansschlegelia,11,2,0,8,6,9,9,6
+Humibacillus,11,0,0,9,6,7,7,6
+Hydrogenibacillus,11,0,0,10,8,10,10,3
+Laceyella,11,0,0,6,8,7,3,5
+Limnobaculum,11,9,0,11,11,11,8,3
+Methyloligella,11,0,0,5,6,6,5,5
+Methylopila,11,0,0,1,2,6,5,0
+Mobilitalea,11,1,0,11,7,11,11,10
+Neoroseomonas,11,0,0,9,9,9,9,8
+Novipirellula,11,3,0,9,9,6,7,9
+Oceanihabitans,11,0,0,9,10,7,7,7
+Paludibacterium,11,2,0,8,7,5,6,4
+Parachlamydia,11,1,0,8,8,8,9,8
+Paucimonas,11,2,0,8,7,9,9,7
+Pelagerythrobacter,11,1,0,11,11,10,10,7
+Pelobacter,11,0,0,8,4,7,7,7
+Peptoclostridium,11,1,0,7,4,5,6,3
+Periweissella,11,4,0,10,8,9,8,0
+Phnomibacter,13,0,0,10,6,10,12,9
+Pleomorphochaeta,11,7,1,9,9,1,5,1
+Pollutimonas,11,2,0,10,9,8,8,7
+Povalibacter,11,0,0,10,3,10,10,10
+Protaetiibacter,11,5,0,11,8,11,10,9
+Pseudalkalibacillus,11,3,1,10,11,7,7,5
+Pseudaminobacter,11,1,1,9,6,8,9,7
+Pseudokineococcus,11,3,0,6,6,6,6,3
+Pseudomaricurvus,11,0,0,8,8,7,9,7
+Rhabdaerophilum,11,1,0,11,11,11,11,9
+Robbsia,11,8,0,9,8,4,5,4
+Schumannella,11,1,0,6,6,7,8,5
+Sediminispirochaeta,11,0,0,5,2,3,5,3
+Seohaeicola,11,4,0,6,9,8,5,3
+Sideroxyarcus,11,0,0,9,7,9,10,9
+Sulfurirhabdus,11,0,0,9,9,9,9,9
+Thalassobacillus,11,0,0,3,4,2,2,2
+Thermanaerothrix,11,0,0,9,8,9,9,9
+Thermaurantiacus,11,0,0,11,11,11,11,11
+Thiohalospira,11,2,0,10,10,10,10,10
+Tychonema,11,0,0,8,8,8,8,8
+Vitreimonas,11,0,0,11,4,11,11,11
+Wolinella,11,2,0,7,7,7,9,3
+Zeimonas,11,0,0,11,8,11,11,10
+Acidibacter,10,0,0,1,1,1,1,1
+Actinocatenispora,10,0,0,3,2,3,3,3
+Affinundibacterium,10,0,0,7,9,9,7,5
+Aliikangiella,10,2,1,9,9,8,8,7
+Alkalicoccus,10,0,0,8,8,5,7,3
+Allobacillus,10,4,0,5,8,8,5,0
+Amphibacillus,10,2,0,3,3,4,5,3
+Amphiplicatus,10,0,0,7,7,7,8,6
+Anaerosalibacter,10,6,0,6,4,6,7,3
+Anaerospora,10,0,0,8,8,8,8,1
+Aquiflexum,11,0,0,8,8,8,8,5
+Aquirhabdus,10,6,0,8,7,8,2,8
+Basfia,10,7,0,8,7,7,7,0
+Bibersteinia,10,9,0,8,8,3,3,0
+Calditerrivibrio,10,0,0,10,9,10,10,9
+Caloranaerobacter,10,0,0,5,4,4,6,2
+Candidatus Aquidulcis,10,0,0,10,10,10,10,10
+Candidatus Dormiibacter,10,0,0,10,10,10,10,10
+Candidatus Fimousia,10,5,0,5,5,6,5,5
+Candidatus Geohabitans,10,0,0,10,10,10,10,10
+Candidatus Kinetoplastidibacterium,10,4,1,3,2,3,3,0
+Candidatus Krumholzibacterium,10,0,0,9,8,10,10,9
+Candidatus Merdiplasma,10,5,0,5,5,6,5,0
+Candidatus Pollutiaquabacter,10,0,0,7,2,6,8,7
+Candidatus Protochlamydia,10,1,0,4,3,4,6,4
+Candidatus Psyllophila,10,10,0,10,10,10,0,0
+Candidatus Riesia,10,9,0,9,3,8,3,1
+Candidatus Stercorousia,10,8,0,7,7,8,7,2
+Candidatus Velthaea,10,0,0,4,4,4,4,4
+Candidatus Ventrenecus,10,6,0,4,4,6,4,3
+Caproicibacter,10,0,0,9,8,10,10,6
+Chitinibacter,10,2,0,8,7,7,7,7
+Crossiella,10,1,0,7,6,6,6,2
+Ethanoligenens,10,0,0,6,6,8,9,8
+Flexistipes,10,0,0,8,8,10,10,9
+Frigoriglobus,10,0,0,7,7,7,7,6
+Granulibacter,10,9,0,6,6,1,4,0
+Halofilum,10,1,0,10,10,10,10,10
+Halothece,10,0,0,10,10,10,10,10
+Herbidospora,10,0,0,2,3,2,6,2
+Igneacidithiobacillus,10,0,0,10,9,10,10,9
+Indolivaga,10,6,0,6,5,6,6,3
+Intestinibacillus,10,2,0,4,3,4,4,2
+Jiella,10,6,0,10,10,10,8,3
+Kamptonema,10,0,0,7,5,8,9,8
+Kroppenstedtia,10,1,0,3,6,6,2,0
+Leminorella,10,5,0,4,2,3,6,3
+Litchfieldia,10,1,0,7,8,8,6,3
+Macromonas,10,0,0,6,5,3,4,4
+Malikia,10,0,0,9,8,8,8,8
+Marichromatium,10,1,0,5,7,8,8,5
+Merdimmobilis,10,9,0,4,5,5,7,3
+Methylotuvimicrobium,10,2,0,8,8,8,9,7
+Methylovorus,10,3,0,6,5,5,7,2
+Nigerium,10,0,0,4,4,4,4,3
+Nitrolancea,10,0,0,9,3,9,10,9
+Nitrosophilus,10,0,0,6,6,6,7,6
+Oceanispirochaeta,10,0,0,5,5,5,5,5
+Oleiagrimonas,10,0,0,8,5,8,9,8
+Parashewanella,10,6,2,9,8,9,7,2
+Peteryoungia,10,3,0,9,9,9,8,6
+Planobispora,10,0,0,0,5,4,0,0
+Pleionea,10,5,0,9,9,9,9,5
+Pseudoruegeria,10,5,0,8,8,6,6,2
+Pyxidicoccus,10,1,0,10,9,10,9,9
+Rosistilla,10,0,0,9,9,6,6,8
+Rubritepida,10,0,0,9,8,9,9,9
+Salimicrobium,10,0,0,4,4,4,4,1
+Senegalia,10,1,0,9,9,9,9,9
+Simiduia,10,1,0,4,4,5,4,4
+Stenomitos,10,0,0,8,5,6,8,4
+Sulfurivermis,10,0,0,9,9,9,9,9
+Terracoccus,10,1,0,6,6,6,6,6
+Thermoflexibacter,10,0,0,7,7,7,9,7
+Thermosynergistes,10,0,0,10,10,10,10,10
+Trabulsiella,10,8,0,10,9,9,10,1
+Vandammella,10,10,0,10,10,9,10,0
+Yimella,10,4,0,7,6,4,5,2
+Zavarzinia,10,0,0,10,9,6,8,7
+Zeaxanthinibacter,10,1,0,9,9,9,9,5
+Acrocarpospora,9,3,0,2,2,2,5,5
+Aequoribacter,9,0,0,5,5,4,4,5
+Aestuariibaculum,9,0,0,5,6,5,5,6
+Algoriella,9,7,0,6,7,7,7,6
+Aquabacter,9,2,0,6,6,6,5,4
+Aquaspirillum,9,0,0,4,3,4,7,5
+Aquibacillus,9,1,0,8,8,7,6,5
+Aquipuribacter,9,0,0,5,9,9,5,5
+Bittarella (ex Durand et al. 2017),9,6,0,6,5,4,5,5
+Buchananella,9,9,0,8,9,5,8,2
+Caldalkalibacillus,9,0,0,3,2,2,1,1
+Camelimonas,9,3,0,3,7,7,3,2
+Candidatus Aalborgicola,9,0,0,9,9,9,9,9
+Candidatus Alloclostridium,9,0,0,0,0,1,2,0
+Candidatus Amarobacter,9,0,0,9,9,9,9,9
+Candidatus Avidehalobacter,9,5,0,4,4,5,4,4
+Candidatus Azoamicus,9,0,0,8,8,8,9,8
+Candidatus Caldipriscus,9,0,0,9,9,9,9,9
+Candidatus Desulfobacillus,9,0,0,6,5,6,6,6
+Candidatus Egerieenecus,9,7,0,6,6,7,6,0
+Candidatus Endolissoclinum,9,1,0,4,4,6,7,6
+Candidatus Faecenecus,9,3,0,2,2,5,4,1
+Candidatus Fimivivens,9,3,0,6,5,7,6,5
+Candidatus Fokinia,9,2,0,4,4,2,4,1
+Candidatus Kaftiobacterium,9,0,0,9,9,9,9,9
+Candidatus Merdivivens,9,3,0,3,3,3,3,3
+Candidatus Paralachnospira,9,2,0,2,2,2,4,2
+Candidatus Rifleibacterium,9,0,0,9,8,9,9,9
+Candidatus Roseilinea,9,0,0,5,5,7,9,7
+Candidatus Spyradosoma,9,7,0,6,6,6,5,6
+Candidatus Sysuimicrobium,9,0,0,9,9,9,9,9
+Candidatus Tenderia,9,0,0,9,9,9,9,6
+Candidatus Vesicomyidisocius,9,7,0,8,8,8,8,0
+Candidatus Wallacebacter,9,0,0,9,9,9,9,0
+Chimaeribacter,9,9,0,9,3,9,9,0
+Chlorogloeopsis,9,0,0,9,7,9,8,6
+Chromatium,9,0,0,4,2,4,6,4
+Cognatiyoonia,9,2,0,4,4,4,4,2
+Conchiformibius,9,7,0,4,6,8,6,1
+Crenobacter,9,1,0,8,8,7,8,7
+Cystobacter,9,0,0,5,5,8,8,7
+Desulfonauticus,9,0,0,6,6,6,8,3
+Desulfoplanes,9,0,0,8,8,8,9,6
+Desulfoscipio,9,0,0,9,4,7,8,7
+Eoetvoesiella,9,1,0,5,5,6,4,5
+Floccifex,9,8,0,8,8,8,8,8
+Fulvimarina,9,2,0,6,6,6,5,4
+Fundidesulfovibrio,9,0,0,6,6,6,7,6
+Gallaecimonas,9,1,0,8,8,6,6,8
+Gloeocapsopsis,9,0,0,6,5,5,6,2
+Gryllotalpicola,9,1,0,5,4,6,5,4
+Haloechinothrix,9,0,0,6,6,6,5,5
+Halolactibacillus,9,0,0,3,1,1,1,1
+Hydrogenothermus,9,0,0,9,8,8,8,7
+Iamia,9,1,0,9,4,9,8,8
+Iodidimonas,9,0,0,4,4,5,6,5
+Jonquetella,9,3,0,2,1,1,3,1
+Kyrpidia,9,2,0,8,7,6,6,3
+Lactimicrobium,9,6,0,9,9,8,9,8
+Laspinema,9,0,0,8,8,0,0,0
+Limibacillus,9,0,0,4,3,4,3,3
+Lutispora,9,0,0,9,8,7,7,6
+Marisediminicola,9,2,0,7,5,7,6,6
+Melaminivora,9,0,0,6,6,5,6,1
+Meridianimaribacter,9,1,0,4,4,4,4,4
+Meridianimarinicoccus,9,3,0,9,9,7,7,4
+Microbacter,9,0,0,3,3,3,3,3
+Mobilicoccus,9,1,0,6,6,7,8,1
+Nitrosococcus,9,0,0,5,5,5,5,6
+Notoacmeibacter,9,5,0,9,8,8,8,5
+Oceaniradius,9,3,0,2,4,2,2,1
+Oleidesulfovibrio,9,0,0,6,6,6,8,5
+Pacificimonas,9,1,0,7,7,7,5,5
+Paenirhizobium,9,1,0,4,5,5,5,4
+Paludisphaera,9,3,0,8,9,6,8,5
+Panacibacter,9,0,0,9,7,9,9,7
+Parablautia,9,2,0,2,2,2,2,2
+Paramicrobacterium,9,4,0,6,5,5,2,1
+Parerythrobacter,9,1,0,8,7,6,6,6
+Planifilum,9,0,0,5,5,5,6,3
+Planosporangium,9,0,0,6,5,6,6,6
+Pseudogemmobacter,9,3,0,7,7,8,6,3
+Pseudostreptobacillus,9,1,0,1,1,1,1,0
+Psychrilyobacter,9,1,0,8,7,9,9,6
+Rhabdothermincola,9,0,0,5,5,5,5,5
+Roseiconus,9,3,0,7,7,7,5,3
+Salibacterium,9,0,0,5,5,5,3,4
+Skermanella,9,1,0,7,4,6,7,3
+Soehngenia,9,0,0,8,8,8,8,8
+Sporobacter,9,0,0,4,3,3,3,3
+Stagnihabitans,9,0,0,1,1,1,1,1
+Telluribacter,9,5,0,8,7,8,9,8
+Tepidibacillus,9,0,0,7,6,7,8,7
+Thalassobacter,9,1,0,6,5,4,4,5
+Thermogemmatispora,9,0,0,5,4,6,6,2
+Thermomonospora,9,1,0,5,4,4,6,5
+Tractidigestivibacter,9,6,0,9,9,9,8,6
+Trichloromonas,9,1,0,9,9,7,9,8
+Tumebacillus,9,2,0,7,7,6,6,5
+Undibacter,9,0,0,1,1,1,1,1
+Vannielia,9,1,0,8,8,4,5,8
+Ventosimonas,9,1,0,1,1,1,1,0
+Weeksella,9,5,0,4,3,2,3,0
+Abyssibacter,8,0,0,5,5,5,5,4
+Aestuariivivens,8,0,0,8,8,8,8,8
+Albibacterium,8,2,0,7,6,6,6,7
+Aliidongia,8,0,0,6,3,7,7,6
+Aliirhizobium,8,2,0,3,3,2,2,0
+Alloacidobacterium,8,0,0,8,2,8,8,8
+Allochromatium,8,0,0,3,4,5,6,3
+Allofrancisella,8,0,0,7,4,6,7,5
+Alloiococcus,8,3,0,4,3,4,5,4
+Allopontixanthobacter,8,0,0,7,5,5,5,7
+Antarcticibacterium,8,1,0,4,5,5,5,5
+Antrihabitans,8,0,0,8,6,8,8,5
+Arthrospira,8,0,0,6,6,7,7,3
+Aurantibacter,8,1,0,6,4,6,6,5
+Bernardetia,8,4,0,8,7,5,8,3
+Bisbaumannia,8,0,0,3,5,5,4,1
+Botrimarina,8,0,0,5,5,3,3,5
+Bowmanella,8,1,0,5,5,5,6,4
+Brevirhabdus,8,2,0,7,7,7,5,7
+Caenimonas,8,0,0,6,8,7,6,4
+Candidatus Aphodocola,8,6,0,5,5,6,5,4
+Candidatus Aphodoplasma,8,7,0,6,6,7,6,6
+Candidatus Azophilus,8,1,0,1,1,2,2,2
+Candidatus Caccalectryoclostridium,8,1,0,0,0,1,0,0
+Candidatus Caccosoma,8,4,0,3,3,4,3,3
+Candidatus Coprosoma,8,2,0,1,1,2,1,1
+Candidatus Endoriftia,8,3,0,3,4,1,4,1
+Candidatus Frackibacter,8,0,0,4,4,5,5,3
+Candidatus Ichthyocystis,8,0,0,0,0,0,2,0
+Candidatus Lachnocurva,8,8,0,8,8,8,8,6
+Candidatus Lustribacter,8,0,0,5,2,5,5,5
+Candidatus Manganitrophus,8,1,0,8,8,8,8,5
+Candidatus Parvibacillus,8,0,0,8,4,8,8,8
+Candidatus Raskinella,8,0,0,2,2,8,8,7
+Candidatus Regiella,8,3,0,3,1,1,0,1
+Candidatus Segetimicrobium,8,0,0,8,8,8,8,8
+Candidatus Thiosymbion,8,5,0,7,7,6,4,5
+Candidatus Tokpelaia,8,8,0,8,8,7,7,0
+Candidatus Walczuchella,8,5,1,6,6,6,0,0
+Catenovulum,8,2,0,8,8,7,7,3
+Cecembia,8,0,0,5,4,6,6,5
+Chryseomicrobium,8,3,0,5,6,4,3,3
+Croceimicrobium,8,0,0,3,3,3,3,3
+Cryomorpha,8,2,0,7,7,6,7,5
+Cryptosporangium,8,0,0,2,2,3,2,2
+Crystallibacter,8,0,0,6,6,6,6,6
+Cuspidothrix,8,0,0,8,8,8,8,8
+Desulfoferrobacter,8,0,0,8,8,8,8,7
+Entomospira,8,8,0,8,8,8,4,0
+Falsirhodobacter,8,3,0,7,7,5,5,5
+Filimonas,8,0,0,4,3,4,5,4
+Formosimonas,8,1,0,6,6,6,6,6
+Gemelliphila,8,4,0,3,3,4,4,0
+Geopsychrobacter,8,1,0,4,4,6,6,4
+Gymnodinialimonas,8,3,0,7,7,7,3,2
+Halomicronema,8,0,0,3,2,3,5,1
+Hathewaya,8,2,0,4,2,2,2,0
+Helcobacillus,8,6,0,6,6,4,4,0
+Hirschia,8,0,0,3,3,4,3,3
+Hominifimenecus,8,6,0,6,6,4,6,5
+Hoyosella,8,0,0,4,2,3,5,2
+Humisphaera,8,0,0,8,4,7,7,7
+Hydrococcus,8,0,0,8,8,8,8,8
+Hydrogeniiclostridium,8,6,0,6,5,6,6,6
+Jejuia,8,2,0,5,3,4,4,2
+Jhaorihella,8,0,0,4,7,7,5,5
+Lacihabitans,8,4,0,4,5,5,4,4
+Lentisphaera,8,0,0,3,3,3,3,1
+Levyella,8,4,0,4,4,4,4,2
+Lichenicoccus,8,1,0,1,1,1,0,0
+Lichenicola,8,1,0,1,1,1,1,0
+Ligaoa,8,8,0,8,8,8,8,8
+Limisphaera,8,0,0,7,7,6,7,6
+Longispora,8,0,0,6,4,6,5,5
+Luteimicrobium,8,1,0,5,3,4,4,2
+Mangrovibacter,8,3,0,7,7,5,5,2
+Mangrovicoccus,8,2,0,7,6,5,7,4
+Marilutibacter,8,2,0,6,6,6,6,4
+Marinibacterium,8,1,0,7,8,8,8,7
+Marinicauda,8,1,0,6,6,6,6,6
+Marispirochaeta,8,0,0,2,2,2,2,2
+Massilibacteroides,8,1,0,6,6,7,7,6
+Massiliimalia,8,3,0,4,4,4,2,2
+Metaclostridioides,8,4,0,4,3,3,4,3
+Methylicorpusculum,8,0,0,8,8,7,8,8
+Microvirgula,8,0,0,5,3,4,6,3
+Muricoccus,8,0,0,6,5,5,4,2
+Myceligenerans,8,2,0,5,4,3,4,1
+Nautilia,8,0,0,3,3,3,5,2
+Neomicrococcus,8,1,0,4,3,2,2,1
+Nitriliruptor,8,0,0,8,7,7,7,4
+Oceanicola,8,0,0,5,5,5,5,2
+Okibacterium,8,0,0,1,1,0,2,1
+Paenochrobactrum,8,2,0,2,2,2,2,0
+Paracholeplasma,8,3,0,5,5,5,5,1
+Pelovirga,8,0,0,8,7,8,8,7
+Permianibacter,8,0,0,7,6,7,7,7
+Pilimelia,8,0,0,4,1,4,4,4
+Polymorphospora,8,0,0,2,2,3,3,3
+Propylenella,8,0,0,4,2,4,4,4
+Proteiniborus,8,1,0,5,4,4,4,2
+Pseudogulbenkiania,8,1,0,6,3,3,5,3
+Pseudoscardovia,8,6,0,6,4,4,4,2
+Pseudoxanthobacter,8,0,0,2,1,3,3,2
+Quinella,8,7,0,8,8,8,8,3
+Raineya,8,0,0,6,6,6,8,6
+Roseimaritima,8,0,0,7,7,7,7,6
+Rubneribacter,8,5,0,4,4,5,4,2
+Saccharibacter,8,5,0,5,6,6,4,1
+Sanguibacteroides,8,7,0,6,6,5,5,3
+Schleiferia,8,0,0,6,6,7,7,6
+Silvimonas,8,1,0,2,3,2,1,2
+Soonwooa,8,2,0,7,6,7,6,4
+Taishania,8,3,0,8,7,8,7,8
+Thalassoglobus,8,2,0,8,8,6,7,5
+Thiocystis,8,0,0,4,2,5,7,3
+Thiohalomonas,8,0,1,5,3,5,5,5
+Tianweitania,8,1,0,5,6,7,4,3
+Tropicibacter,8,5,0,6,6,5,5,2
+Winslowiella,8,7,0,7,7,4,7,0
+Yinghuangia,8,1,0,7,6,7,7,7
+Acidipila,7,0,0,2,2,2,4,2
+Acidisarcina,7,1,0,5,1,5,5,4
+Aestuariimicrobium,7,4,0,6,5,6,6,3
+Agarilytica,7,0,0,6,6,6,6,6
+Albimonas,7,0,0,4,3,3,3,2
+Algicola,7,0,0,7,6,7,7,7
+Aliishimia,7,1,0,2,2,2,2,1
+Alkalimarinus,7,4,0,6,7,7,5,2
+Alteribacillus,7,0,0,4,4,4,4,3
+Alysiella,7,3,0,6,4,4,3,1
+Aquibium,7,1,0,6,7,7,6,6
+Aquisalinus,7,0,0,5,4,4,4,5
+Arenibacterium,7,3,0,6,6,5,5,5
+Arhodomonas,7,0,0,7,6,5,6,4
+Asaccharobacter,7,5,0,6,5,2,5,0
+Asinibacterium,7,0,0,2,2,2,2,2
+Aulosira,7,4,0,6,4,6,6,0
+Candidatus Bandiella,7,2,1,2,2,3,2,2
+Candidatus Elulimicrobium,7,0,0,7,7,7,7,7
+Candidatus Excrementavichristensenella,7,2,0,3,3,4,3,0
+Candidatus Gallacutalibacter,7,3,0,0,0,3,0,0
+Candidatus Galloscillospira,7,3,0,0,0,3,0,0
+Candidatus Heteroclostridium,7,3,0,3,3,3,4,3
+Candidatus Infernicultor,7,0,0,7,7,7,7,6
+Candidatus Leptovillus,7,0,0,7,6,7,7,7
+Candidatus Moanibacter,7,0,0,1,1,1,1,1
+Candidatus Moeniiplasma,7,7,0,7,7,7,7,0
+Candidatus Nanoperiomorbus,7,2,0,3,2,5,5,0
+Candidatus Palibaumannia,7,7,0,6,5,4,5,2
+Candidatus Paracaedibacter,7,2,0,2,3,2,2,1
+Candidatus Protoclostridium,7,2,0,1,1,3,3,0
+Candidatus Pullilachnospira,7,3,0,0,0,3,0,0
+Candidatus Reddybacter,7,0,0,7,7,7,7,7
+Candidatus Ruminimicrobiellum,7,6,0,0,2,6,3,0
+Candidatus Scatousia,7,4,0,3,3,4,3,2
+Candidatus Scatovicinus,7,6,0,5,5,6,5,0
+Candidatus Spongiihabitans,7,1,0,0,1,1,1,0
+Candidatus Symbiodolus,7,7,0,7,7,7,7,0
+Candidatus Tharpella,7,0,0,7,7,7,7,7
+Candidatus Tyrphobacter,7,0,0,7,5,7,7,4
+Candidatus Vecturithrix,7,0,0,6,6,6,7,3
+Candidatus Weimeria,7,4,0,7,7,7,7,5
+Candidatus Xiphinematobacter,7,7,0,7,7,1,7,6
+Chloroherpeton,7,0,0,4,4,4,4,4
+Corallincola,7,0,0,4,4,4,3,4
+Defluviitalea,7,1,0,4,4,4,6,3
+Desertimonas,7,0,0,7,5,7,7,7
+Dissulfurimicrobium,7,0,0,7,7,6,6,6
+Falsiruegeria,7,1,0,4,4,2,4,4
+Ferrigenium,7,0,0,5,5,5,5,5
+Flaviaestuariibacter,7,0,0,5,5,5,6,5
+Fodinicurvata,7,0,0,3,4,5,3,3
+Fundicoccus,7,3,0,7,7,7,7,3
+Geomicrobium,7,0,0,1,1,1,1,1
+Geotalea,7,0,0,1,1,1,1,1
+Geothermobacter,7,0,0,4,3,2,2,1
+Glaciibacter,7,1,0,4,1,2,4,2
+Gloeocapsa,7,2,0,5,4,5,6,4
+Gorillibacterium,7,0,0,5,5,5,6,4
+Granulicoccus,7,2,0,4,3,4,6,3
+Halothermothrix,7,2,0,5,3,6,5,4
+Hormoscilla,7,5,0,6,6,6,6,5
+Hoskinsella,7,7,0,7,7,3,3,7
+Hyalangium,7,0,0,6,5,6,6,6
+Ignavigranum,7,5,0,5,4,5,4,0
+Jeongeupia,7,0,0,4,5,2,1,4
+Jiulongibacter,7,0,0,4,4,4,5,4
+Ketogulonicigenium,7,1,0,5,5,4,4,3
+Lebetimonas,7,0,0,6,6,1,1,7
+Leptonema,7,1,0,6,5,5,5,3
+Leptothermofonsia,7,0,0,7,7,6,6,6
+Levilinea,7,0,0,5,2,6,7,4
+Mahella,7,0,0,7,6,6,7,6
+Massilicoli,7,4,0,4,3,4,4,1
+Metasolibacillus,7,2,0,5,3,7,7,2
+Microterricola,7,0,0,6,3,5,5,5
+Mizugakiibacter,7,1,0,4,3,4,4,4
+Motilimonas,7,3,0,7,7,4,4,3
+Natronosporangium,7,0,0,7,2,7,7,7
+Neptunicoccus,7,0,0,1,2,1,1,1
+Novosphingopyxis,7,0,0,5,5,6,6,5
+Orenia,7,0,0,6,3,3,4,3
+Ornithinicoccus,7,0,0,5,2,4,4,4
+Pampinifervens,7,0,0,7,7,6,6,6
+Paraconexibacter,7,0,0,7,7,6,7,6
+Paradevosia,7,0,0,3,6,6,5,5
+Parahaliea,7,0,0,5,6,5,6,6
+Parasedimentitalea,7,1,0,7,6,5,4,4
+Pasteuria,7,6,0,5,5,2,2,2
+Phocicoccus,7,0,0,3,4,4,3,2
+Planctobacterium,7,1,0,3,5,5,4,3
+Pontivivens,7,0,0,4,4,1,1,1
+Prochloron,7,4,0,5,5,2,5,2
+Pseudochelatococcus,7,0,0,3,5,5,3,2
+Pseudocolwellia,7,2,0,7,7,4,4,3
+Pseudodonghicola,7,0,0,6,6,6,6,6
+Pseudofrankia,7,5,0,4,4,3,3,3
+Pseudoteredinibacter,7,2,0,2,1,2,1,0
+Psychrobium,7,1,0,7,7,6,6,5
+Puniceibacterium,7,0,0,5,5,5,4,4
+Rhizorhapis,7,0,0,5,1,5,5,5
+Rhodobium,7,0,0,1,1,2,3,0
+Rhodocyclus,7,1,0,2,6,6,5,1
+Rhodophyticola,7,3,0,6,6,5,5,4
+Rhodovibrio,7,0,0,6,4,5,6,4
+Roseospira,7,0,0,6,2,2,2,1
+Rugosimonospora,7,0,0,5,1,5,5,5
+Ruminococcoides,7,7,0,7,7,0,7,7
+Sciscionella,7,0,0,7,7,7,7,7
+Sebaldella,7,2,0,3,1,4,4,2
+Sediminibacillus,7,1,0,5,5,3,4,3
+Seramator,7,0,0,7,7,7,7,7
+Siccirubricoccus,7,0,0,5,6,5,5,3
+Solitalea,7,1,0,6,5,5,5,5
+Sphaerimonospora,7,0,0,2,3,4,3,3
+Sporanaerobacter,7,2,0,4,3,3,5,2
+Sulfurivirga,7,0,0,7,6,6,6,5
+Superficieibacter,7,2,0,7,7,7,7,0
+Tautonia,7,0,0,7,7,6,6,7
+Tepidibacter,7,1,0,5,3,3,4,2
+Thermocrispum,7,2,0,7,5,5,7,7
+Thermoflavifilum,7,0,0,5,4,5,5,1
+Thermosulfurimonas,7,0,0,7,6,5,7,5
+Thiohalorhabdus,7,0,0,7,5,6,6,6
+Thiorhodovibrio,7,0,0,5,3,6,7,7
+Tichowtungia,7,0,0,6,5,6,6,6
+Timonella,7,1,0,6,6,5,6,1
+Tindallia,7,0,0,4,4,4,5,4
+Velocimicrobium,7,5,0,7,7,7,7,7
+Wielerella,7,7,0,7,7,7,7,0
+Williamsoniiplasma,7,7,0,1,1,1,4,0
+Acidiluteibacter,6,1,0,2,2,1,2,1
+Acidomonas,6,1,0,2,2,4,4,0
+Actimicrobium,6,0,0,5,4,4,0,0
+Aestuarium,6,0,0,3,4,4,3,2
+Agrilactobacillus,6,1,0,4,6,5,4,2
+Alitiscatomonas,6,3,0,3,3,3,3,3
+Alkalibaculum,6,0,0,3,3,2,3,1
+Alkalihalobacterium,6,0,0,4,6,5,6,5
+Alkalinema,6,0,0,6,5,6,6,5
+Allobranchiibius,6,0,0,5,5,5,5,2
+Allocoleopsis,6,0,0,6,1,6,6,6
+Allokutzneria,6,1,0,3,4,4,3,1
+Alteribacter,6,0,0,6,6,6,6,6
+Alteripontixanthobacter,6,3,0,5,5,5,5,2
+Aminiphilus,6,0,0,4,3,4,4,4
+Ammoniphilus,6,0,0,5,4,5,5,5
+Amygdalobacter,6,5,0,4,4,4,5,0
+Anabaenopsis,6,0,0,5,5,2,2,5
+Anatilimnocola,6,0,0,6,6,3,4,6
+Antarctobacter,6,1,0,5,5,4,4,5
+Atopomonas,6,1,0,5,5,5,5,5
+Aurantivibrio,6,6,0,6,6,6,6,6
+Autumnicola,6,0,0,6,6,0,0,0
+Barrientosiimonas,6,1,0,1,1,0,2,0
+Bowdeniella,6,5,0,5,5,5,3,3
+Breznakibacter,6,1,0,6,3,5,5,5
+Brumicola,6,0,0,2,1,1,2,1
+Budvicia,6,1,0,4,2,4,4,3
+Caedibacter,6,2,0,6,6,6,5,2
+Calditerricola,6,0,0,2,1,2,2,2
+Candidatus Alectryobacillus,6,2,0,2,2,3,3,3
+Candidatus Alectryocaccobium,6,5,0,5,5,6,5,4
+Candidatus Alloscillospira,6,4,0,4,4,4,5,4
+Candidatus Amarolinea,6,0,0,4,4,4,6,4
+Candidatus Anammoxibacter,6,0,0,6,6,6,6,6
+Candidatus Ancillula,6,6,0,5,5,6,6,0
+Candidatus Aphodomorpha,6,4,0,3,3,4,3,1
+Candidatus Avibacteroides,6,3,0,0,0,3,0,0
+Candidatus Avirikenella,6,1,0,0,0,1,0,0
+Candidatus Bruticola,6,4,0,6,5,6,6,6
+Candidatus Cacconaster,6,6,0,6,6,6,6,6
+Candidatus Cryptoclostridium,6,0,0,0,0,0,1,0
+Candidatus Dactylopiibacterium,6,4,0,6,6,6,5,1
+Candidatus Desulfobia,6,1,0,4,5,6,6,5
+Candidatus Egerieimonas,6,2,0,0,0,2,0,0
+Candidatus Foliamicus,6,1,0,1,1,1,1,0
+Candidatus Fukatsuia,6,2,0,2,2,2,1,0
+Candidatus Hydromicrobium,6,0,0,6,5,6,6,6
+Candidatus Korobacter,6,1,0,5,4,5,4,5
+Candidatus Mesolinea,6,0,0,1,1,5,6,1
+Candidatus Nardonella,6,2,0,2,2,1,3,0
+Candidatus Neoehrlichia,6,6,0,6,5,3,5,0
+Candidatus Nitromaritima,6,0,0,6,6,5,6,6
+Candidatus Pararuminococcus,6,0,0,1,1,1,2,0
+Candidatus Pelagisphaera,6,0,0,3,3,2,2,3
+Candidatus Petromonas,6,0,0,6,6,6,6,5
+Candidatus Pseudobutyricicoccus,6,2,0,2,2,2,2,2
+Candidatus Pseudoscillospira,6,2,0,2,2,1,3,2
+Candidatus Sediminicultor,6,0,0,5,5,6,6,6
+Candidatus Soleaferrea,6,1,0,1,1,1,2,1
+Candidatus Ventrisoma,6,5,0,4,4,5,4,0
+Candidatus Ventrousia,6,1,0,0,0,1,0,0
+Candidatus Wunengus,6,0,0,6,6,6,6,6
+Candidatus Zhuqueibacter,6,0,0,6,6,6,6,6
+Carbonicoccus,6,4,0,6,6,6,6,0
+Carboxydocella,6,0,0,4,3,3,5,3
+Catenisphaera,6,0,0,1,1,1,1,0
+Celerinatantimonas,6,1,0,4,3,3,4,2
+Cerasicoccus,6,0,0,3,5,4,3,4
+Chishuiella,6,0,0,4,4,4,4,0
+Chitiniphilus,6,0,0,4,3,4,5,4
+Chromatocurvus,6,0,0,5,5,5,5,4
+Claveliimonas,6,2,0,2,2,2,5,1
+Cognatiluteimonas,6,0,0,4,6,5,4,2
+Cognatilysobacter,6,0,0,4,4,4,4,4
+Convivina,6,0,0,0,0,0,5,0
+Conyzicola,6,0,0,2,1,2,3,1
+Couchioplanes,6,0,0,2,4,3,1,2
+Dactylococcopsis,6,0,0,1,1,0,1,0
+Dasania,6,1,0,5,5,5,5,5
+Deferrisoma,6,0,0,3,3,3,5,3
+Deferrivibrio,6,0,0,6,6,5,6,6
+Dehalobacterium,6,0,0,6,5,6,6,4
+Desertifilum,6,0,0,6,3,6,5,5
+Desulfatirhabdium,6,0,0,3,2,3,3,3
+Desulfobaculum,6,0,0,4,3,3,4,1
+Desulfoprunum,6,0,0,5,4,5,5,5
+Desulfotalea,6,0,0,5,5,5,6,5
+Dichelobacter,6,3,0,3,4,3,3,1
+Egicoccus,6,0,0,5,4,5,5,5
+Elainella,6,0,0,6,6,6,6,6
+Enhygromyxa,6,0,0,3,2,5,5,5
+Euzebyella,7,0,0,1,5,5,1,1
+Extibacter,6,5,0,5,2,4,4,1
+Faecalibacter,6,3,0,4,4,4,4,4
+Falsihalocynthiibacter,6,3,0,6,6,6,6,6
+Falsochrobactrum,6,0,0,1,3,4,2,2
+Ferroacidibacillus,6,0,0,6,6,6,6,3
+Flavimaricola,6,3,0,5,5,5,5,3
+Flavimobilis,6,0,0,3,3,3,3,1
+Floridanema,6,0,0,6,6,2,2,6
+Fontimonas,6,0,0,5,4,5,5,5
+Fumia,6,5,0,5,5,5,5,5
+Geovibrio,6,0,0,4,4,5,6,4
+Gloeotrichia,6,0,0,6,6,5,6,6
+Gracilibacter,6,1,0,5,5,5,6,3
+Hanstruepera,6,0,1,6,5,5,5,5
+Holzapfeliella,6,4,0,5,5,4,5,0
+Hominiventricola,6,3,0,3,3,1,3,3
+Huaxiibacter,6,4,0,6,6,6,3,1
+Hwanghaeella,6,1,1,4,4,2,1,3
+Kistimonas,6,3,0,3,3,3,0,0
+Kozakia,6,2,0,4,3,3,6,0
+Labedella,6,5,0,5,5,5,5,1
+Laedolimicola,6,3,0,3,2,2,3,3
+Larsenimonas,6,1,0,3,4,6,2,2
+Leptothoe,6,2,0,6,6,5,5,4
+Limoniibacter,6,0,0,4,5,5,4,4
+Lujinxingia,6,2,0,6,6,4,4,6
+Malonomonas,6,0,0,6,3,5,5,5
+Membranihabitans,6,0,0,5,2,3,3,4
+Mergibacter,6,6,0,6,6,5,5,0
+Mesohalobacter,6,0,0,2,2,2,2,2
+Metalysinibacillus,6,2,0,5,3,5,5,3
+Minicystis,6,1,0,5,4,5,5,5
+Morococcus,6,5,0,6,1,1,0,0
+Murimonas,6,3,0,3,3,0,0,0
+Myxosarcina,6,1,0,5,5,4,5,5
+Natronospira,6,0,0,5,5,5,5,5
+Natronospirillum,6,1,0,5,5,5,5,5
+Neochlamydia,6,5,0,5,5,2,4,5
+Neokomagataea,6,1,0,2,2,4,4,0
+Nibricoccus,6,3,0,5,5,5,5,5
+Occultella,6,2,0,4,4,5,4,4
+Oceanicella,6,0,0,4,3,3,3,2
+Oceaniglobus,6,3,0,6,6,6,5,3
+Ohessyouella,6,2,0,2,1,2,2,0
+Onishia,6,0,0,3,3,2,2,3
+Orbus,6,4,0,5,4,0,0,0
+Paeniclostridium,6,3,0,5,5,4,4,5
+Pallidibacillus,6,1,0,4,6,6,5,3
+Paludibaculum,6,1,0,5,4,4,4,4
+Papillibacter,6,0,0,1,0,2,2,0
+Paraferrimonas,6,2,0,4,4,2,3,4
+Paraflavitalea,6,0,0,5,5,3,3,4
+Paragemmobacter,6,0,0,6,6,6,6,5
+Paralcaligenes,6,0,0,5,3,4,5,4
+Parazoarcus,6,2,0,6,6,6,5,4
+Pelomicrobium,6,0,0,6,5,6,6,5
+Peptidiphaga,6,1,0,6,1,6,6,0
+Persicimonas,6,1,0,6,5,5,4,5
+Phytoactinopolyspora,6,1,0,4,4,5,6,4
+Pinisolibacter,6,2,0,5,5,5,5,2
+Piscibacillus,6,0,0,3,4,3,3,1
+Pokkaliibacter,6,2,0,5,5,5,5,4
+Pragia,6,0,0,3,2,2,2,2
+Pristimantibacillus (SeqCode),6,3,0,5,4,4,5,3
+Pseudaeromonas,6,1,0,3,4,4,4,3
+Pseudarcicella,6,0,0,3,3,5,3,3
+Pseudobacter,6,0,0,5,3,5,5,5
+Pseudoblastomonas,6,0,0,5,4,4,4,3
+Pseudolysobacter,6,0,0,6,6,6,6,6
+Pseudopedobacter,6,1,0,5,6,6,5,4
+Psittacicella,6,5,0,4,6,5,2,0
+Pulveribacter,6,0,0,6,6,6,6,0
+Raineyella,6,0,0,4,4,4,4,4
+Rhodonellum,6,0,0,4,4,3,5,1
+Robertkochia,6,0,0,6,6,6,6,6
+Rubrimonas,6,0,0,5,5,5,5,4
+Ruicaihuangia,6,3,0,6,6,6,3,3
+Salinimonas,6,0,0,6,5,5,6,4
+Salinispira,6,0,0,1,1,1,1,1
+Salisediminibacterium,6,0,0,1,1,1,1,1
+Sandaracinobacteroides,6,2,0,6,6,5,4,3
+Seleniivibrio,6,0,0,4,4,4,4,3
+Sessilibacter,6,1,0,1,1,0,4,0
+Solilutibacter,6,2,0,4,4,5,5,3
+Sporichthya,6,0,0,4,2,5,5,5
+Stagnimonas,6,0,0,5,5,5,5,5
+Stenotrophobium,6,0,0,6,5,6,6,6
+Stigmatella,6,0,0,3,2,2,2,2
+Suipraeoptans,6,3,0,4,4,4,4,3
+Sulfuriflexus,6,0,0,3,3,5,5,1
+Tatlockia,6,0,0,6,6,6,6,6
+Thalassomonas,6,3,0,5,5,5,4,1
+Thermobaculum,6,0,0,5,5,5,5,5
+Thermobispora,6,1,0,4,4,4,5,3
+Thermosulfidibacter,6,0,0,4,4,4,4,4
+Thiorhodococcus,6,2,0,5,5,5,5,5
+Thiovulum,6,0,0,6,5,4,5,4
+Urbifossiella,6,0,0,6,2,5,5,5
+Uruburuella,6,2,0,3,3,3,3,1
+Venatoribacter,6,2,0,5,5,5,3,3
+Vermiphilus,6,1,0,6,6,6,6,6
+Verticiella,6,2,0,5,5,5,4,4
+Vulcaniibacterium,6,0,0,3,4,4,3,3
+Vulgatibacter,6,1,0,6,4,6,5,5
+Waddlia,6,1,0,2,2,2,2,1
+Zavarzinella,6,0,0,5,5,5,5,5
+Zhengella,6,2,1,6,6,6,6,4
+Zhenhengia,6,6,0,6,6,6,6,6
+Zooshikella,6,2,0,6,5,6,4,3
+Achromatium,5,0,0,5,5,5,5,5
+Acidothermus,5,0,0,4,4,4,4,2
+Aeoliella,5,0,0,4,4,2,2,4
+Aestuariirhabdus,5,2,0,3,3,4,2,1
+Aetokthonos,5,2,0,3,3,3,3,3
+Algihabitans,5,1,0,2,2,2,2,0
+Algisphaera,5,0,0,3,3,3,4,3
+Aliterella,5,1,0,3,3,4,4,2
+Alkalibacter,5,0,0,5,4,4,4,3
+Alkalilacustris,5,0,0,3,3,3,3,2
+Allobaileyella,5,5,0,5,5,4,4,4
+Allopusillimonas,5,1,0,5,3,3,3,4
+Allostella,5,0,0,1,1,2,2,1
+Amorphus,5,1,0,4,1,3,2,1
+Amylolactobacillus,5,3,0,1,3,2,1,0
+Anaeromusa,5,0,0,3,2,3,3,1
+Anaerosinus,5,2,0,3,3,3,3,1
+Anaerosolibacter,5,0,0,2,2,2,3,2
+Anseongella,5,0,0,4,2,4,4,3
+Antarcticimicrobium,5,0,0,5,5,4,5,4
+Aphanocapsa,5,4,0,5,5,5,5,3
+Aquicoccus,5,2,0,2,3,3,3,3
+Aquisediminimonas,5,0,0,3,2,3,3,3
+Atopococcus,5,2,0,4,4,3,4,1
+Aureitalea,5,0,0,3,3,3,3,3
+Bacterioplanoides,5,1,0,1,2,1,0,0
+Balneatrix,5,3,0,4,4,5,4,1
+Bavariicoccus,5,0,0,4,4,5,5,3
+Berryella,5,5,0,5,5,5,5,2
+Branchiibius,5,0,0,1,2,2,0,0
+Caecibacteroides,5,4,0,0,4,2,2,0
+Calidithermus,5,0,0,4,2,4,4,4
+Candidatus Alangreenwoodia,5,0,0,0,0,0,1,0
+Candidatus Amoebophilus,5,1,0,4,4,4,4,1
+Candidatus Avimicrobium,5,0,0,0,0,0,1,0
+Candidatus Bostrichicola,5,5,0,5,5,5,5,0
+Candidatus Caccenecus,5,1,0,0,0,1,0,0
+Candidatus Caccopulliclostridium,5,1,0,0,0,1,0,0
+Candidatus Caccovicinus,5,2,0,1,1,2,1,1
+Candidatus Chromulinivorax,5,1,0,4,4,4,3,4
+Candidatus Defluviibacterium,5,0,0,5,5,5,5,5
+Candidatus Egerieicola,5,2,0,0,0,2,0,0
+Candidatus Eremiobacter,5,0,0,5,5,5,5,5
+Candidatus Faecisoma,5,2,0,1,1,2,1,1
+Candidatus Fimicola,5,2,0,1,1,2,1,1
+Candidatus Flexifilum,5,0,0,5,5,5,5,5
+Candidatus Gallipaludibacter,5,4,0,4,4,4,4,4
+Candidatus Gallispira,5,2,0,2,2,2,3,1
+Candidatus Glomeribacter,5,3,0,4,4,2,5,1
+Candidatus Hepatoplasma,5,0,0,1,1,1,1,1
+Candidatus Hopanoidivorans,5,5,0,5,5,5,5,0
+Candidatus Humicultor,5,0,0,5,5,5,5,5
+Candidatus Latescibacter,5,0,0,4,2,2,4,3
+Candidatus Limousia,5,3,0,3,3,4,3,2
+Candidatus Magnetobacterium,5,0,0,5,5,4,5,5
+Candidatus Malihini,5,0,0,5,5,5,5,0
+Candidatus Mcinerneyibacterium,5,0,0,5,4,5,5,5
+Candidatus Moduliflexus,5,0,0,1,1,1,2,1
+Candidatus Neptunichlamydia,5,2,0,2,2,1,1,2
+Candidatus Parachristensenella,5,2,0,2,2,2,3,2
+Candidatus Purcelliella,5,5,0,5,5,5,0,0
+Candidatus Scatenecus,5,3,0,2,2,3,2,2
+Candidatus Scybalomonas,5,2,0,1,1,2,1,1
+Candidatus Spongiisocius,5,2,0,2,2,2,2,0
+Candidatus Spyradomonas,5,4,0,3,3,4,3,0
+Candidatus Stoquefichus,5,3,0,2,2,3,5,1
+Candidatus Termititenax,5,0,0,1,1,1,1,1
+Canicola,5,3,0,4,2,1,2,0
+Capsulimonas,5,0,0,4,4,4,4,4
+Carbonactinospora,5,0,0,5,5,4,4,5
+Carboxydothermus,5,0,0,2,0,2,3,1
+Carnimonas,5,4,0,4,4,0,0,0
+Catalinimonas,5,0,0,2,2,2,3,2
+Caviibacter,5,2,0,2,2,2,0,0
+Cerasibacillus,5,1,0,4,2,4,4,1
+Chitinivorax,5,0,0,4,4,4,4,4
+Chlamydiifrater,5,0,0,0,0,0,3,0
+Citreicella,5,0,0,2,2,3,5,3
+Confluentibacter,5,0,0,5,5,5,5,5
+Corallibacter,5,0,0,4,4,4,4,4
+Crateriforma,5,2,0,5,5,3,4,2
+Cribrihabitans,5,1,0,3,3,3,3,3
+Cruoricaptor,5,4,0,3,3,2,2,1
+Cucumibacter,5,0,0,5,4,5,5,5
+Cuneatibacter,5,3,0,3,3,2,2,2
+Cyanothece,5,0,0,3,3,4,3,2
+Denitratisoma,5,1,0,2,2,1,2,1
+Desmonostoc,5,1,0,5,4,5,5,2
+Desulfacinum,5,0,0,5,3,3,3,1
+Desulfocicer,5,0,0,1,0,0,1,0
+Desulfocurvibacter,5,1,0,1,2,3,4,3
+Desulfogranum,5,0,0,3,2,3,4,3
+Desulfoluna,5,2,0,3,2,3,3,3
+Desulfolutivibrio,5,0,0,5,5,5,5,5
+Desulfovirgula,5,0,0,4,3,3,4,4
+Dichotomicrobium,5,0,0,4,4,4,4,4
+Diplocloster,5,5,0,5,5,5,5,5
+Dissulfuribacter,5,0,0,3,3,4,3,2
+Dolosicoccus,5,3,0,3,3,3,3,0
+Effusibacillus,5,0,0,1,1,2,2,1
+Entomomonas,5,4,0,4,5,5,2,1
+Extensimonas,5,0,0,3,3,3,3,3
+Falsigemmobacter,5,2,0,3,5,5,3,2
+Ferribacterium,5,0,0,5,5,1,1,5
+Fluviicoccus,5,0,0,4,2,4,4,4
+Fluviispira,5,1,0,2,2,3,3,0
+Formivibrio,5,0,0,3,3,3,3,2
+Fulvimonas,5,0,0,5,4,4,4,2
+Funiculus,5,0,0,5,5,0,5,0
+Fuscovulum,5,0,0,4,3,4,4,3
+Gallibacter,5,4,0,4,4,4,4,3
+Gallicola,5,2,0,2,2,4,4,2
+Garciella,5,1,0,4,2,1,3,1
+Gellertiella,5,1,0,1,2,1,1,0
+Geopseudomonas,5,0,0,2,2,2,2,1
+Geotoga,5,0,0,3,3,3,3,2
+Goekera,5,0,0,5,5,4,4,0
+Haloimpatiens,5,0,0,3,2,2,3,1
+Halovibrio,5,0,0,3,2,2,3,2
+Halovulum,5,2,0,5,5,5,5,5
+Haploplasma,5,3,0,2,1,2,3,1
+Harryflintia,5,2,0,2,2,2,2,2
+Hespellia,5,1,0,5,4,4,4,4
+Homoserinibacter,5,3,0,4,4,4,2,1
+Hwangdonia,5,0,0,4,4,3,2,4
+Hypericibacter,5,1,0,5,4,5,4,4
+Jonesia,5,2,0,3,1,2,4,1
+Kriegella,5,1,0,1,1,1,1,1
+Lacipirellula,5,0,1,3,2,2,2,2
+Lactovum,5,0,0,3,1,2,2,2
+Lampropedia,5,1,0,4,4,4,3,3
+Lascolabacillus,5,1,0,4,4,4,4,4
+Lentisalinibacter,5,0,0,5,5,5,5,5
+Limnochorda,5,0,0,3,2,4,5,3
+Litchfieldella,5,0,0,2,3,2,2,1
+Lysinibacter,5,0,0,3,4,3,3,3
+Marihabitans,5,0,0,4,3,3,3,0
+Marinirhabdus,5,0,0,4,4,4,4,4
+Marixanthomonas,5,2,0,3,3,1,2,0
+Massilioclostridium,5,4,0,4,2,3,4,4
+Mastigocoleus,5,0,0,4,4,4,4,3
+Melghirimyces,5,0,0,2,2,2,2,2
+Melissospora,5,1,0,5,5,5,5,0
+Methylacidimicrobium,5,1,0,2,2,2,5,2
+Murdochiella,5,4,0,3,2,2,3,1
+Muribacter,5,4,0,5,4,4,5,0
+Musicola,5,2,0,3,3,2,2,1
+Naumannella,5,2,0,3,3,2,2,1
+Neopusillimonas,5,1,0,5,5,5,4,5
+Neorickettsia,5,4,0,4,3,2,2,0
+Nitrococcus,5,0,0,4,3,4,4,2
+Nitrogeniibacter,5,1,0,4,4,3,3,3
+Oceanidesulfovibrio,5,0,0,4,4,4,5,2
+Oceanotoga,5,0,0,4,4,4,3,2
+Oharaeibacter,5,1,0,3,3,3,4,3
+Opacimonas,5,2,0,2,2,2,2,1
+Orlajensenia,5,1,0,4,4,4,3,3
+Oryzomonas,5,0,0,4,5,5,5,4
+Pacificispira,5,0,0,0,1,1,1,1
+Paracandidimonas,5,1,0,3,4,4,3,3
+Paramagnetospirillum,5,0,0,4,3,4,4,4
+Paraneptunicella,5,0,0,3,3,3,3,3
+Pararobbsia,5,0,0,3,3,3,4,2
+Parasphingomonas,5,0,0,5,5,5,5,5
+Parathermosynechococcus,5,0,0,5,5,5,5,5
+Pengzhenrongella,5,0,0,5,2,5,5,4
+Persicitalea,5,0,0,1,2,2,1,0
+Persicobacter,5,0,0,2,2,2,2,2
+Petroclostridium,5,0,0,5,5,5,5,2
+Phaeocystidibacter,5,1,0,2,2,2,2,2
+Phragmitibacter,5,0,0,4,4,4,4,4
+Pinirhizobacter,5,3,0,5,3,5,5,5
+Planktosalinus,5,0,0,3,3,3,3,1
+Pontimicrobium,5,0,0,3,3,3,3,3
+Prosthecodimorpha,5,1,0,5,5,4,5,4
+Pseudacidobacterium,5,0,0,4,2,4,4,3
+Pseudofulvimonas,5,1,0,3,4,4,2,1
+Pseudoleptotrichia,5,3,0,2,1,2,3,1
+Pseudooctadecabacter,5,2,0,3,3,3,3,1
+Pseudoroseicyclus,5,0,0,4,4,2,3,3
+Pseudothauera,5,1,0,5,3,5,5,4
+Pyrinomonas,5,0,0,4,3,4,5,2
+Raphidiopsis,5,0,0,3,3,2,2,3
+Renibacterium,5,1,0,3,4,4,4,0
+Rhodothalassium,5,0,0,3,2,3,3,3
+Roseimicrobium,5,0,0,4,3,4,4,4
+Rudanella,5,0,0,3,2,3,3,3
+Salana,5,1,0,3,2,2,2,2
+Salibaculum,5,0,0,5,4,5,5,4
+Salinibacillus,5,0,0,1,1,0,2,0
+Saliniramus,5,0,0,3,2,4,4,3
+Salinivirga,5,0,0,5,4,5,5,2
+Salirhabdus,5,0,0,2,2,2,3,0
+Schnuerera,5,1,0,3,2,1,2,2
+Scopulibacillus,5,0,0,0,3,3,0,0
+Shimwellia,5,2,0,1,0,1,4,1
+Sphaerobacter,5,0,0,5,4,5,5,3
+Starkeya,5,0,0,4,3,3,4,3
+Tepidamorphus,5,2,0,3,3,4,3,2
+Terrilactibacillus,5,3,0,4,5,5,4,3
+Thalassobium,5,0,0,4,4,5,5,5
+Thermanaerovibrio,5,0,0,3,2,3,4,3
+Thermogemmata,5,0,0,5,5,5,5,5
+Thermopolyspora,5,1,0,1,0,1,2,1
+Thermosyntropha,5,0,0,4,3,3,4,3
+Thermovenabulum,5,0,0,5,5,4,5,4
+Thiofilum,5,0,0,5,4,5,5,5
+Thiomicrolovo,5,0,0,5,5,2,2,5
+Thiosulfatimonas,5,0,0,0,0,0,0,0
+Tistlia,5,0,0,2,2,2,2,2
+Tunicatimonas,5,1,0,3,3,4,3,3
+Ulvibacterium,5,2,0,2,2,2,1,1
+Urinicoccus,5,2,0,3,2,2,3,0
+Virgisporangium,5,0,0,0,0,0,0,0
+Xaviernesmea,5,2,0,0,2,3,1,1
+Zestomonas,5,1,0,3,1,2,3,2
+Zhouia,5,1,0,4,4,4,3,3
+Acerihabitans,4,2,0,4,3,3,4,3
+Acetanaerobacterium,4,1,0,3,3,3,3,2
+Acetilactobacillus,4,0,0,4,4,3,4,0
+Acetobacteroides,4,0,0,1,0,0,0,0
+Acidicapsa,4,0,0,3,4,4,3,2
+Aequitasia,4,2,0,2,1,2,2,0
+Agrilutibacter,4,0,0,3,3,3,2,2
+Aidingimonas,4,0,0,1,2,2,1,1
+Aldersonia,4,0,0,4,2,3,4,4
+Aliamphritea,4,1,0,1,1,1,4,1
+Alkaliflexus,4,0,0,1,0,1,2,0
+Alkanindiges,4,2,0,4,3,3,3,2
+Allocoprobacillus,4,1,0,0,0,1,1,1
+Allomeiothermus,4,0,0,3,2,3,3,3
+Allorhizocola,4,0,0,4,4,4,4,4
+Altericroceibacterium,4,1,0,4,1,1,0,2
+Alterinioella,4,0,0,3,3,3,3,3
+Ammonifex,4,0,0,3,3,4,4,3
+Anaerobranca,4,0,0,4,2,2,2,2
+Andreesenella,4,2,0,3,2,2,3,2
+Antiquaquibacter,4,0,0,4,3,3,3,2
+Aquella,4,1,0,2,1,2,2,2
+Ardenticatena,4,0,0,3,2,4,4,2
+Aristaeella,4,2,0,2,2,2,2,0
+Arundinibacter,4,0,0,4,4,4,4,4
+Auraticoccus,4,0,0,3,3,1,1,1
+Bacterioplanes,4,0,0,2,2,2,2,1
+Biomaibacter,4,0,0,4,4,4,4,3
+Boudabousia,4,4,0,4,4,4,3,3
+Brockia,4,0,0,3,2,3,3,1
+Calidifontibacter,4,0,0,1,1,1,1,1
+Candidatus Adamsella,4,1,0,0,0,2,1,0
+Candidatus Alloscybalousia,4,2,0,1,1,2,1,1
+Candidatus Altimarinus,4,0,0,2,2,2,2,2
+Candidatus Aminicenans,4,0,0,2,2,2,2,2
+Candidatus Aphodomonas,4,2,0,1,1,2,1,1
+Candidatus Avacholeplasma,4,1,0,0,0,1,0,0
+Candidatus Babela,4,0,0,1,1,1,2,1
+Candidatus Caccomorpha,4,1,0,0,0,1,0,0
+Candidatus Colicola,4,4,0,4,4,4,4,4
+Candidatus Copromonas (nom. illeg.),4,2,0,0,0,2,0,0
+Candidatus Coprovicinus,4,3,0,2,2,3,2,0
+Candidatus Desulfaltia,4,0,0,3,2,4,4,4
+Candidatus Egaibacter,4,0,0,4,4,4,4,4
+Candidatus Epulonipiscioides,4,4,0,4,4,4,4,0
+Candidatus Faecimorpha,4,2,0,1,1,2,1,0
+Candidatus Fimihabitans,4,2,0,1,0,2,1,1
+Candidatus Fimiplasma,4,1,0,0,0,1,0,0
+Candidatus Gallibacteroides,4,1,0,0,0,1,0,0
+Candidatus Heteroruminococcus,4,2,0,2,2,2,3,2
+Candidatus Howiella,4,0,0,1,1,1,2,0
+Candidatus Hydrothermovivens,4,0,0,4,4,4,4,4
+Candidatus Jidaibacter,4,1,0,3,3,0,2,0
+Candidatus Kryptobacter,4,0,0,4,4,4,4,4
+Candidatus Leptofilum,4,0,0,2,2,2,2,2
+Candidatus Limihabitans,4,1,0,0,0,1,0,0
+Candidatus Lucifugimonas,4,0,0,4,4,4,4,0
+Candidatus Magnetominusculus,4,0,0,4,4,4,4,4
+Candidatus Makana,4,4,0,4,4,4,4,0
+Candidatus Mesenet,4,0,0,0,0,2,2,0
+Candidatus Methylumidiphilus,4,0,0,4,4,4,4,4
+Candidatus Minimicrobia,4,2,0,2,2,0,2,0
+Candidatus Neoanaerotignum,4,0,0,0,0,1,2,0
+Candidatus Nitrosoglobus,4,0,0,3,3,3,3,3
+Candidatus Njordibacter,4,0,0,4,4,0,0,4
+Candidatus Omnitrophus,4,0,0,2,2,2,2,2
+Candidatus Onthenecus,4,1,0,0,0,1,0,0
+Candidatus Onthovicinus,4,2,0,1,1,2,1,0
+Candidatus Opimibacter,4,0,0,4,4,4,4,4
+Candidatus Opitulatrix,4,4,0,4,4,4,4,0
+Candidatus Pelethosoma,4,1,0,0,0,1,0,0
+Candidatus Phaeomarinibacter,4,2,0,2,2,2,3,1
+Candidatus Scybalenecus,4,3,0,2,2,3,2,0
+Candidatus Scybalousia,4,4,0,4,4,4,4,1
+Candidatus Sumerlaea,4,0,0,3,3,2,4,2
+Candidatus Thiobius,4,4,0,4,4,4,4,0
+Candidatus Tripitaka,4,0,0,4,4,4,4,4
+Candidatus Vallotiella,4,3,0,3,3,3,1,0
+Candidatus Velamenicoccus,4,0,0,4,4,4,4,4
+Candidatus Westeberhardia,4,4,0,3,3,3,0,0
+Candidatus Xianfuyuplasma,4,0,0,4,4,4,4,3
+Capillimicrobium,4,0,0,4,1,4,4,4
+Caryophanon,4,4,0,4,3,4,4,3
+Chengkuizengella,4,1,0,3,4,4,3,3
+Chondromyces,4,0,0,2,0,3,3,3
+Cnuibacter,4,1,0,3,3,1,1,0
+Crenalkalicoccus,4,0,0,1,1,3,3,3
+Crinalium,4,0,0,3,1,3,3,3
+Deferribacter,4,0,0,2,3,1,3,2
+Deferrimonas,4,0,0,4,1,4,4,4
+Denitrobaculum,4,1,0,2,2,2,2,1
+Desulfallas,4,0,0,2,2,2,2,2
+Desulfobotulus,4,0,0,3,3,3,3,2
+Desulfolithobacter,4,0,0,3,3,3,3,3
+Desulfomarina,4,0,0,3,3,3,3,3
+Desulforhabdus,4,0,0,2,2,2,3,2
+Desulfosceptrum,4,0,0,4,4,1,1,1
+Desulfospira,4,0,0,1,1,1,1,1
+Desulfurispora,4,0,0,4,3,4,4,4
+Edaphosphingomonas,4,1,0,2,3,3,3,3
+Entomoplasma,4,3,0,4,2,1,1,0
+Ereboglobus,4,1,0,2,2,2,2,1
+Euryhalocaulis,4,0,0,3,3,3,3,2
+Exilibacterium,4,4,0,4,4,4,4,3
+Falseniella,4,3,0,2,2,1,2,1
+Flavilitoribacter,4,0,0,4,1,4,4,3
+Fontibacillus,4,0,0,1,1,0,0,1
+Fortiea,4,0,0,2,1,2,2,2
+Gaopeijia,4,0,0,4,4,4,4,4
+Geofilum,4,0,0,2,2,2,2,2
+Geosporobacter,4,1,0,3,2,2,3,2
+Glacieibacterium,4,1,0,3,3,2,3,2
+Gulbenkiania,4,0,0,4,1,3,3,3
+Gynuella,4,3,0,3,3,3,3,1
+Halalkalibaculum,4,0,0,4,3,4,4,2
+Halioxenophilus,4,2,0,2,2,1,1,2
+Haloplasma,4,0,0,4,2,4,4,4
+Halpernia,4,0,0,2,2,1,1,2
+Hasllibacter,4,2,0,3,3,3,3,2
+Hephaestia,4,2,0,2,3,3,2,1
+Holospora,4,3,0,3,2,2,1,0
+Imtechella,4,0,0,2,1,2,2,1
+Inconstantimicrobium,4,3,0,3,3,3,3,3
+Insolitispirillum,4,0,0,1,2,2,2,1
+Intestinibaculum,4,3,0,3,3,3,4,3
+Krasilnikovia,4,0,0,0,0,0,0,0
+Lacicoccus,4,0,0,1,0,0,0,0
+Lacimicrobium,4,0,0,3,3,3,3,2
+Lagierella,4,3,0,3,3,3,3,2
+Leeia,4,0,0,4,3,4,4,4
+Leptodesmis,4,0,0,4,4,3,3,4
+Leptogranulimonas,4,1,0,1,1,1,1,1
+Lichenibacterium,4,2,0,4,4,4,4,2
+Lignipirellula,4,0,0,4,4,2,2,4
+Longimonas,4,0,0,2,3,2,2,2
+Lunatimonas,4,0,0,4,2,3,3,1
+Luteipulveratus,4,1,1,4,4,4,2,2
+Magnetospira,4,3,0,2,2,2,4,2
+Maioricimonas,4,3,0,4,4,3,3,3
+Maledivibacter,4,3,0,3,3,3,3,2
+Marinactinospora,4,0,0,2,2,2,2,0
+Maritimimonas,4,2,2,4,4,4,4,0
+Marseilla,4,3,0,1,3,1,1,0
+Mastigocladus,4,0,0,4,4,4,4,1
+Megalodesulfovibrio,4,1,0,3,1,2,3,3
+Melittangium,4,3,0,3,2,4,3,2
+Microbaculum,4,0,0,3,4,4,3,3
+Millionella,4,1,0,0,0,1,0,0
+Miltoncostaea,4,0,0,3,3,4,4,4
+Miniphocaeibacter,4,0,0,3,3,2,3,2
+Mongoliitalea,4,0,0,2,3,3,2,1
+Motilibacter,4,0,0,3,2,2,2,2
+Natronincola,4,0,0,2,0,1,1,0
+Necropsobacter,4,2,0,1,1,1,1,0
+Neiella,4,2,0,3,3,1,2,0
+Neoasaia,4,2,0,2,2,1,3,0
+Neotamlana,4,3,0,4,4,3,2,2
+Nordella,4,0,0,3,2,3,3,3
+Novibacillus,4,0,0,4,4,4,4,4
+Noviluteimonas,4,0,0,4,4,3,3,4
+Oceanivirga,4,3,0,3,3,2,3,1
+Oceanomicrobium,4,0,0,4,4,4,4,4
+Otariodibacter,4,3,0,3,3,3,3,2
+Parafrigoribacterium,4,1,0,3,3,3,4,3
+Parapusillimonas,4,0,0,3,3,3,3,3
+Pararcticibacter,4,1,0,4,4,3,4,1
+Pararoseburia,4,1,0,1,1,1,1,1
+Parasulfuritortus,4,1,0,3,3,4,4,3
+Parendozoicomonas,4,1,0,1,1,1,1,0
+Parvicella,4,0,0,3,3,4,4,3
+Pedomonas,4,1,0,4,2,3,3,3
+Pendulispora,4,0,0,4,4,4,4,4
+Peredibacter,4,1,0,4,4,4,4,3
+Perlabentimonas,4,0,0,4,3,4,4,3
+Peterkaempfera,4,1,0,3,3,2,3,1
+Phaeospirillum,4,0,0,2,3,3,2,2
+Phytomonospora,4,0,0,2,0,1,1,1
+Pigmentibacter,4,1,0,3,3,3,3,0
+Pinibacter,4,1,0,2,4,4,2,2
+Planctopirus,4,0,0,3,3,2,2,4
+Porifericola,4,1,0,0,0,1,0,0
+Portibacter,4,1,0,3,3,1,1,3
+Prosthecomicrobium,4,0,0,3,3,3,3,2
+Provencibacterium,4,3,0,2,2,2,2,2
+Pseudaestuariivita,4,2,0,4,4,4,3,2
+Pseudaquabacterium,4,0,0,3,3,3,3,3
+Pseudobacteroides,4,0,0,4,2,3,3,3
+Pseudohaliea,4,0,0,4,2,4,4,3
+Pseudohalocynthiibacter,4,0,0,3,4,3,3,3
+Pseudoneobacillus,4,1,0,4,2,4,4,3
+Pseudotamlana,4,1,0,3,3,3,3,3
+Pseudozobellia,4,1,0,3,3,3,2,2
+Psychromarinibacter,4,1,0,3,3,3,2,2
+Psychromicrobium,4,0,0,3,3,3,3,2
+Pullulanibacillus,4,0,0,1,1,1,1,1
+Pumilibacter,4,2,0,0,0,2,0,0
+Rarobacter,4,0,0,1,0,0,0,0
+Rehaibacterium,4,0,0,3,3,3,3,3
+Rhodocaloribacter,4,0,0,4,4,4,4,4
+Rhodoligotrophos,4,0,0,3,3,3,2,2
+Rhodovastum,4,1,0,3,4,4,4,3
+Roseicella,4,0,1,4,4,4,3,2
+Saccharococcus,4,0,0,0,2,2,0,0
+Salicibibacter,4,0,0,2,2,1,1,0
+Salidesulfovibrio,4,0,0,1,1,1,1,1
+Saonia,4,1,0,2,2,2,2,2
+Schauerella,4,3,0,4,4,4,4,1
+Scrofimicrobium,4,3,0,3,3,4,3,1
+Sediminimonas,4,0,0,4,3,3,4,4
+Sediminivirga,4,0,0,1,2,2,3,1
+Segeticoccus,4,0,0,4,2,4,4,4
+Senimuribacter,4,3,0,1,1,3,1,0
+Silvania,4,4,0,4,4,4,4,4
+Sinobacterium,4,0,0,3,3,2,3,1
+Skermania,4,0,0,1,2,1,1,2
+Solibaculum,4,1,0,1,1,0,1,1
+Spartinivicinus,4,1,0,4,4,3,2,2
+Spongiactinospora,4,1,0,4,4,4,4,3
+Sporocytophaga,4,1,0,2,2,3,3,2
+Stecheria,4,4,0,4,4,4,4,4
+Stigonema,4,0,0,1,1,1,1,1
+Streptoalloteichus,4,0,0,1,1,1,0,0
+Sulfuricystis,4,0,0,2,2,2,2,2
+Sulfurifustis,4,0,0,3,3,4,4,3
+Suttonella,4,2,0,2,2,1,1,0
+Symmachiella,4,1,0,3,3,0,1,2
+Tepidicaulis,4,0,0,2,2,2,2,2
+Tepidimicrobium,4,0,0,1,0,1,2,0
+Terribium,4,0,0,2,2,1,1,1
+Terrihabitans,4,1,0,3,3,3,3,3
+Terrimicrobium,4,0,0,3,1,3,3,3
+Tersicoccus,4,0,0,2,2,3,3,3
+Thalassobellus,4,2,0,4,4,4,4,2
+Thalassocella,4,1,0,0,0,0,0,0
+Thermanaeromonas,4,0,0,2,2,2,2,2
+Thermaurantimonas,4,0,0,3,3,4,4,3
+Thermobacillus,4,0,0,2,2,2,4,2
+Thermolongibacillus,4,0,0,2,2,2,3,2
+Thermonema,4,0,0,3,1,1,3,2
+Thermophagus,4,0,0,3,2,3,3,3
+Tibeticola,4,0,0,2,2,2,3,2
+Tranquillimonas,4,0,0,1,1,1,1,1
+Vermiculatibacterium,4,1,0,0,0,1,0,0
+Vineibacter,4,0,0,4,1,4,4,3
+Wenxinia,4,0,0,2,0,1,1,1
+Williamwhitmania,4,0,0,3,0,3,3,3
+Winogradskya,4,0,0,0,0,0,1,0
+Wocania,4,0,0,1,1,1,1,0
+Xanthocytophaga,4,0,0,4,4,4,4,4
+Xinfangfangia,4,0,0,2,3,3,3,3
+Zafaria,4,3,0,3,3,3,3,1
+Zhenpiania,4,1,0,1,1,1,1,1
+Zymobacter,4,2,0,2,2,0,1,0
+Abyssicoccus,3,1,0,1,1,1,1,0
+Acidibrevibacterium,3,0,0,3,3,3,3,3
+Acidimangrovimonas,3,0,0,2,3,3,2,2
+Aciditerrimonas,3,0,0,1,2,2,1,1
+Actinocrispum,3,0,0,0,1,0,0,0
+Adonisia,3,0,0,3,3,3,3,3
+Aerosakkonema,3,0,0,3,2,1,1,3
+Aestuariibius,3,0,0,1,2,2,2,2
+Agaribacter,3,1,0,1,2,2,1,0
+Aggregatilinea,3,1,0,0,0,2,3,2
+Alienimonas,3,1,0,3,3,1,2,2
+Aliiruegeria,3,0,0,1,0,0,1,0
+Alkalitalea,3,0,0,2,1,1,1,1
+Alkalithermobacter,3,0,0,2,1,2,2,2
+Allgaiera,3,0,0,1,1,1,1,1
+Allofranklinella,3,3,0,3,3,3,3,0
+Allomicrovenator,3,0,0,3,2,2,2,2
+Alpinimonas,3,0,0,1,1,1,2,1
+Alterileibacterium,3,2,0,1,1,2,1,0
+Ameyamaea,3,2,0,2,2,3,3,0
+Aminicella,3,0,0,1,1,1,2,1
+Aminomonas,3,0,0,3,2,3,3,3
+Anaeromicropila,3,0,0,0,0,1,1,0
+Anaerosphaera,3,2,0,2,1,1,2,0
+Anaerosporomusa,3,0,0,2,2,2,2,2
+Anditalea,3,0,0,3,2,3,3,3
+Andreprevotia,3,0,0,3,1,1,1,1
+Antricoccus,3,0,0,2,2,2,2,2
+Aporhodopirellula,3,0,0,2,2,2,2,2
+Aquicella,3,0,0,0,0,0,2,0
+Aquisphaera,3,0,0,2,2,2,2,2
+Arenibaculum,3,0,0,3,1,3,3,3
+Argonema,3,0,0,2,2,0,0,2
+Arsenicibacter,3,0,0,1,1,1,1,1
+Azorhizophilus,3,0,0,0,3,3,1,1
+Bergeriella,3,1,0,2,1,1,2,0
+Bombiscardovia,3,1,0,1,0,0,3,0
+Caedimonas,3,0,1,1,0,1,1,1
+Calidifontibacillus,3,0,0,3,3,3,3,3
+Caminicella,3,0,0,3,2,2,2,1
+Candidatus Albibeggiatoa,3,2,0,3,3,3,3,2
+Candidatus Amphirhobacter,3,2,0,2,2,2,0,0
+Candidatus Anaerovoracibacter,3,3,0,3,3,3,3,0
+Candidatus Avimonoglobus,3,2,0,1,1,2,1,1
+Candidatus Avipropionibacterium,3,2,0,2,1,3,2,2
+Candidatus Avisuccinivibrio,3,2,0,1,1,2,1,1
+Candidatus Avitreponema,3,1,0,1,1,1,1,1
+Candidatus Bathyanammoxibius,3,0,0,3,3,3,3,3
+Candidatus Benthicola,3,0,0,2,2,2,2,2
+Candidatus Caccomonas,3,1,0,0,0,1,0,0
+Candidatus Carbonibacillus,3,0,0,3,2,3,3,2
+Candidatus Celaenobacter,3,0,0,3,3,3,3,3
+Candidatus Chlorohelix,3,0,0,3,3,3,3,3
+Candidatus Chloroploca,3,0,0,3,3,3,3,2
+Candidatus Coprocola,3,1,0,0,0,1,0,0
+Candidatus Crickella,3,3,0,3,3,3,3,3
+Candidatus Cyrtobacter,3,3,0,3,3,3,2,2
+Candidatus Cytomitobacter,3,0,2,2,2,0,2,2
+Candidatus Defluviibacillus,3,0,0,3,2,3,3,3
+Candidatus Desulfacyla,3,0,0,2,3,3,3,3
+Candidatus Desulfatibia,3,0,0,1,3,3,3,3
+Candidatus Desulfolinea,3,0,0,2,3,3,3,3
+Candidatus Dwaynesavagella,3,2,0,1,1,2,1,1
+Candidatus Faecaligallichristensenella,3,2,0,1,1,2,1,0
+Candidatus Falkowella,3,0,0,0,0,0,1,0
+Candidatus Fibrimonas,3,3,0,3,3,3,3,0
+Candidatus Gallitreponema,3,1,0,1,1,1,1,1
+Candidatus Geothermadaptatus,3,0,0,3,3,3,3,3
+Candidatus Geothermincola,3,0,0,3,3,3,3,3
+Candidatus Geothermovivens,3,0,0,3,3,3,3,3
+Candidatus Halichondribacter,3,3,0,3,3,1,1,3
+Candidatus Harrysmithiimonas,3,0,0,0,0,0,0,0
+Candidatus Heteroscillospira,3,0,0,1,1,1,1,0
+Candidatus Humimicrobium,3,0,0,3,2,3,3,1
+Candidatus Kentrum,3,3,0,3,3,3,3,3
+Candidatus Krakonobacterium,3,3,0,3,3,3,3,0
+Candidatus Lariskella,3,1,0,1,1,1,1,1
+Candidatus Limicola,3,1,0,0,0,1,0,0
+Candidatus Loosdrechtia,3,0,0,3,3,3,3,3
+Candidatus Mariimomonas,3,0,0,3,3,3,3,3
+Candidatus Marivariicella,3,0,0,2,3,3,3,3
+Candidatus Meridianibacter,3,0,0,3,3,3,3,3
+Candidatus Methylophosphatis,3,0,0,3,3,3,3,3
+Candidatus Muiribacterium,3,0,0,3,3,3,3,3
+Candidatus Nephthysia,3,0,0,3,3,3,3,3
+Candidatus Nucleicultrix,3,1,0,3,3,2,3,3
+Candidatus Ornithocaccomicrobium,3,2,0,1,1,2,1,0
+Candidatus Parepulonipiscium,3,3,0,3,3,3,3,1
+Candidatus Pelethocola,3,3,0,2,2,3,2,0
+Candidatus Photodesmus,3,3,0,3,2,0,2,2
+Candidatus Profftia,3,2,0,2,2,2,2,0
+Candidatus Profundicultor,3,0,0,3,1,3,3,2
+Candidatus Psychracetigena,3,0,0,3,3,3,3,3
+Candidatus Rubrimentiphilum,3,0,0,3,0,3,3,3
+Candidatus Schneideria,3,3,0,3,3,3,3,0
+Candidatus Sordicultor,3,0,0,1,0,3,3,1
+Candidatus Stygibacter,3,0,0,3,3,3,3,3
+Candidatus Syntrophopropionicum,3,0,0,3,3,3,3,1
+Candidatus Tenebribacter,3,0,0,3,3,3,3,3
+Candidatus Thermofontivivens,3,0,0,3,3,3,3,3
+Candidatus Thermokryptus,3,0,0,3,3,3,3,3
+Candidatus Thermosaccharophagus,3,0,0,3,3,3,3,3
+Candidatus Uabimicrobium,3,0,0,2,2,0,0,2
+Candidatus Vondammii,3,1,0,0,1,0,1,0
+Candidatus Zinderia,3,2,0,2,1,1,0,1
+Candidatus Zymogenus,3,0,0,1,1,3,3,1
+Caniella,3,3,0,0,0,3,0,0
+Caulifigura,3,0,0,3,1,2,2,3
+Cesiribacter,3,1,0,3,2,3,2,3
+Chania,3,0,0,3,3,1,1,3
+Chitinilyticum,3,0,0,3,1,3,3,3
+Chitinolyticbacter,3,0,0,3,2,3,3,3
+Chlorogloea,3,0,0,2,2,2,2,2
+Chordicoccus,3,3,0,3,2,2,2,2
+Citreimonas,3,0,0,2,2,2,2,2
+Citrifermentans,3,0,0,0,0,0,0,0
+Cognataquiflexum,3,0,0,3,3,3,3,2
+Colidextribacter,3,2,0,2,1,2,2,1
+Coralloluteibacterium,3,0,0,1,3,3,1,1
+Crassaminicella,3,0,0,3,3,2,2,3
+Craterilacuibacter,3,2,0,3,3,3,3,2
+Criibacterium,3,3,0,3,3,2,3,0
+Cumulibacter,3,0,0,2,3,3,3,2
+Curvivirga,3,0,0,1,1,0,1,1
+Cylindrospermum,3,0,0,2,1,2,2,2
+Dankookia,3,0,0,2,3,3,1,1
+Dapis,3,0,0,3,3,0,0,3
+Dendronalium,3,2,0,2,2,2,1,0
+Dendrosporobacter,3,2,0,1,1,2,2,0
+Denitrovibrio,3,0,0,3,2,2,3,2
+Derxia,3,0,0,2,0,1,2,2
+Desertivirga,3,0,0,3,3,3,3,3
+Desmospora,3,1,0,1,0,0,1,1
+Desulforapulum,3,0,0,1,1,1,1,1
+Desulfosediminicola,3,0,0,3,3,3,3,3
+Desulfurispirillum,3,0,0,1,1,1,2,2
+Dethiosulfatibacter,3,0,0,2,1,2,2,1
+Diaminobutyricimonas,3,0,0,0,0,0,0,0
+Dinghuibacter,3,0,0,1,0,2,2,2
+Drouetiella,3,0,0,3,1,3,3,2
+Egibacter,3,0,0,3,3,3,3,3
+Endobacter,3,2,0,2,2,2,2,1
+Endobacterium,3,2,0,3,3,3,2,1
+Enterobacillus,3,2,0,2,2,2,1,1
+Eremococcus,3,2,0,1,0,0,2,1
+Faecalimicrobium,3,2,0,1,1,1,2,0
+Falcatimonas,3,1,0,2,2,2,2,2
+Falsarthrobacter,3,0,0,0,1,1,0,0
+Falsibacillus,3,0,0,2,2,2,2,2
+Fangia,3,0,0,2,2,2,2,2
+Ferriphaselus,3,0,0,0,0,0,1,0
+Floricoccus,3,3,0,3,3,3,3,1
+Fodinicola,3,2,0,2,2,2,1,0
+Frederiksenia,3,2,0,2,2,2,1,0
+Frigoriflavimonas,3,0,0,1,1,1,0,0
+Gabonibacter,3,1,0,1,1,1,3,0
+Geminisphaera,3,2,0,2,2,3,3,2
+Geoanaerobacter,3,0,0,1,1,1,2,1
+Georhizobium,3,0,0,2,2,2,2,2
+Gloeobacter,3,0,0,2,1,0,3,1
+Gracilinema,3,0,0,3,2,3,3,3
+Haematomicrobium,3,1,0,1,1,1,1,0
+Haloactinopolyspora,3,0,0,2,2,2,2,1
+Halospina,3,0,0,3,2,2,2,1
+Hassallia,3,0,0,3,3,3,3,2
+Heliobacterium,3,1,0,1,2,3,3,3
+Heliomarina,3,0,0,3,3,2,2,3
+Herbivorax,3,0,0,3,3,3,3,3
+Hominibacterium,3,2,0,2,2,2,2,2
+Hubeiibacter,3,3,0,3,3,3,3,0
+Hutsoniella,3,2,0,2,1,3,2,0
+Ihubacter,3,3,0,2,3,3,3,3
+Iningainema,3,0,0,1,1,1,1,0
+Isoalcanivorax,3,0,0,3,2,3,3,2
+Isosphaera,3,0,0,3,2,3,3,3
+Jaaginema,3,0,0,3,3,3,3,3
+Jejuibacter,3,2,0,3,3,3,2,1
+Joostella,3,0,0,3,3,2,3,2
+Kallipyga,3,1,0,1,1,1,3,0
+Kangsaoukella,3,0,0,3,3,3,3,2
+Kineobactrum,3,1,0,2,2,3,3,3
+Kineosphaera,3,0,0,1,1,2,2,1
+Ktedonosporobacter,3,0,0,3,1,3,3,3
+Lacisediminimonas,3,0,0,3,3,3,3,3
+Lamprobacter,3,0,0,3,3,3,3,0
+Limimonas,3,0,0,1,1,1,1,1
+Litoribacter,3,1,0,3,2,1,1,2
+Litorilituus,3,0,0,3,3,2,3,2
+Luedemannella,3,0,0,0,1,1,0,0
+Luteibaculum,3,0,0,2,2,2,2,2
+Lwoffella,3,3,0,3,3,3,3,0
+Marinicrinis,3,0,0,0,2,2,0,0
+Marinisporobacter,3,2,0,2,2,2,2,0
+Marinitenerispora,3,0,0,3,3,3,3,3
+Marivibrio,3,0,0,1,2,2,2,0
+Marnyiella,3,2,0,3,3,3,3,3
+Meinhardsimonia,3,0,0,1,1,1,1,1
+Merismopedia,3,0,0,2,2,2,2,2
+Methylocucumis,3,0,0,1,1,1,1,0
+Methylogaea,3,1,0,0,0,0,0,0
+Methylomusa,3,0,0,0,0,2,2,2
+Methyloradius,3,0,0,2,0,3,3,2
+Methylotetracoccus,3,0,0,3,3,3,3,3
+Microscilla,3,1,0,1,1,1,1,0
+Miniimonas,3,0,0,3,3,3,3,1
+Muricoprocola,3,3,0,3,2,3,3,2
+Myxacorys,3,0,0,3,3,3,3,2
+Natranaerobius,3,0,0,1,1,1,1,1
+Natroniella,3,0,0,3,3,3,3,2
+Neorhodopirellula,3,0,0,1,1,1,1,1
+Neotabrizicola,3,0,0,3,3,2,3,3
+Neptunicella,3,1,0,3,3,2,3,2
+Nguyenibacter,3,1,0,2,2,3,3,3
+Nissabacter,3,1,0,3,2,2,3,1
+Novispirillum,3,0,0,0,0,1,2,1
+Oculatella,3,0,0,2,1,2,2,0
+Oecophyllibacter,3,3,0,3,3,3,0,0
+Oryzobacter,3,1,0,2,2,1,1,2
+Oryzomicrobium,3,0,0,3,3,2,2,1
+Oxynema,3,0,0,3,2,3,3,3
+Paenactinomyces,3,1,0,1,3,3,1,1
+Pantanalinema,3,0,0,3,2,3,3,2
+Paracerasibacillus,3,1,0,2,3,3,1,1
+Paralysiella,3,1,0,1,2,1,0,0
+Paraoerskovia,3,0,0,1,0,1,1,1
+Parasediminibacterium,3,1,0,2,3,1,2,2
+Parasegetibacter,3,1,0,2,1,2,1,1
+Paucihalobacter,3,0,0,3,3,3,3,2
+Paucisalibacillus,3,0,0,1,0,1,2,1
+Pelagovum,3,0,0,3,3,3,3,3
+Pelorhabdus,3,0,0,3,3,3,3,3
+Peristeroidobacter,3,0,0,3,3,3,3,3
+Phosphitispora,3,1,0,3,3,2,2,2
+Pistricoccus,3,0,0,2,2,3,2,1
+Planctellipticum,3,0,0,3,3,0,0,3
+Planctomonas,3,0,0,3,3,3,3,2
+Plastoroseomonas,3,2,0,3,3,3,3,1
+Polluticoccus,3,0,0,1,1,1,1,1
+Polycladomyces,3,0,0,2,2,1,1,2
+Pontibaca,3,0,0,2,1,2,2,2
+Poseidonocella,3,0,0,1,1,1,1,1
+Prodigiosinella,3,0,0,2,3,2,2,2
+Propionispora,3,0,0,1,0,0,0,0
+Pseudemcibacter,3,0,0,2,2,2,2,2
+Pseudenterobacter,3,3,0,2,2,1,1,0
+Pseudobowmanella,3,0,0,0,3,3,0,0
+Pseudofrancisella,3,0,0,2,3,3,2,2
+Pseudomarimonas,3,0,0,3,3,3,3,1
+Pseudopelagicola,3,0,0,3,3,3,3,1
+Pseudoprimorskyibacter,3,0,0,2,2,2,2,2
+Pseudoroseomonas,3,1,0,2,3,2,1,0
+Pseudothioclava,3,0,0,3,2,3,3,2
+Pseudundibacterium,3,0,0,0,3,3,0,0
+Pueribacillus,3,1,0,3,3,3,3,1
+Pukyongia,3,0,0,3,3,2,3,2
+Quyinboa,3,0,0,3,3,3,3,3
+Radiobacillus,3,1,0,3,3,2,1,1
+Rhizonema,3,3,0,3,3,3,3,0
+Rhodocytophaga,3,0,0,1,3,3,2,2
+Rhodospira,3,1,0,2,1,1,2,1
+Roseisolibacter,3,1,0,2,2,2,2,2
+Ruficoccus,3,0,0,2,2,2,2,0
+Saezia,3,2,0,2,2,2,2,1
+Salibacter,3,0,0,3,3,3,3,2
+Salinispirillum,3,0,0,1,3,2,0,1
+Samsonia,3,1,0,1,2,2,0,0
+Sansalvadorimonas,3,0,0,1,1,0,1,1
+Sedimentimonas,3,0,0,3,3,3,3,2
+Sedimentisphaera,3,0,0,3,3,3,3,1
+Sediminicoccus,3,0,0,3,3,1,2,3
+Segniliparus,3,3,0,2,1,2,3,2
+Seongchinamella,3,0,0,3,3,2,1,1
+Serinibacter,3,1,0,2,2,2,2,0
+Serpentinicella,3,0,0,2,2,1,1,1
+Shimazuella,3,0,0,3,2,3,3,3
+Siculibacillus,3,0,0,2,2,3,3,3
+Sinosporangium,3,0,0,1,1,1,0,0
+Smaragdicoccus,3,0,0,1,0,1,1,1
+Spelaeicoccus,3,0,0,1,1,1,2,1
+Spirabiliibacterium,3,2,1,3,3,3,2,0
+Spirilliplanes,3,0,0,0,0,0,0,0
+Spongiivirga,3,2,0,1,1,2,1,0
+Stanieria,3,0,0,1,0,0,3,0
+Subsaximicrobium,3,0,0,3,3,3,3,3
+Sulfurisoma,3,0,0,1,1,1,1,1
+Sulfuritortus,3,0,0,1,1,1,1,1
+Taklimakanibacter,3,1,0,3,3,3,2,2
+Thaumasiovibrio,3,0,0,1,1,1,1,0
+Thermaerobacillus,3,0,0,1,1,1,1,1
+Thermicanus,3,0,0,3,2,3,3,2
+Thermithiobacillus,3,0,0,2,1,1,2,0
+Thermocatellispora,3,0,0,0,1,1,0,0
+Thermochromatium,3,0,0,3,3,3,3,2
+Thermodesulfitimonas,3,0,0,1,1,2,2,2
+Thermoleophilum,3,0,0,3,2,2,2,2
+Thermosulfuriphilus,3,0,0,2,2,2,2,2
+Thiosulfativibrio,3,0,0,2,2,2,2,2
+Thiovibrio,3,0,0,2,2,2,3,2
+Tigheibacillus,3,0,0,2,3,2,1,2
+Trichothermofontia,3,0,0,3,3,2,2,3
+Trujillonella,3,0,0,2,2,1,2,1
+Tuberibacillus,3,0,0,2,1,1,2,2
+Umbribacter,3,3,0,2,2,3,3,0
+Urmitella,3,2,0,1,1,1,2,1
+Venenivibrio,3,0,0,0,0,0,1,0
+Veronia,3,1,0,2,2,3,2,2
+Wenjunlia,3,0,0,2,1,2,2,2
+Wigglesworthia,3,1,0,1,1,1,2,0
+Wukongibacter,3,0,0,2,3,1,1,2
+Xenococcus,3,1,0,3,3,2,3,3
+Xiamenia,3,2,0,3,3,3,3,3
+Youngiibacter,3,0,0,2,2,2,2,2
+Zongyangia,3,2,0,2,2,2,1,1
+Abyssibius,2,0,0,2,2,2,1,1
+Acanthopleuribacter,2,1,0,1,1,1,0,0
+Acaricomes,2,2,0,2,1,0,2,0
+Aceticella,2,0,0,2,2,2,2,2
+Acetitomaculum,2,0,0,0,0,0,0,0
+Acetonema,2,1,0,1,1,1,2,1
+Acidibacillus,2,0,0,2,2,2,2,1
+Acididesulfobacillus,2,0,0,0,0,0,2,0
+Acidiferrimicrobium,2,0,0,2,2,2,2,0
+Aegicerativicinus,2,0,0,1,1,1,1,1
+Aerobium,2,1,0,2,1,1,1,1
+Aerolutibacter,2,0,0,1,1,1,1,1
+Aerophototrophica,2,1,0,2,2,2,2,2
+Aestuariispira,2,0,0,1,1,1,1,1
+Agaribacterium,2,2,0,2,2,1,1,1
+Agaricicola,2,1,0,1,1,1,1,1
+Aggregatimonas,2,0,0,1,1,1,1,0
+Aggregicoccus,2,0,0,2,1,2,2,2
+Ahniella,2,0,0,2,2,2,2,2
+Aliagarivorans,2,0,0,2,0,2,2,2
+Aliibacillus,2,0,0,1,2,2,1,0
+Aliisedimentitalea,2,1,0,2,1,1,1,1
+Alkalidesulfovibrio,2,0,0,1,1,2,2,0
+Allohahella,2,0,0,1,1,1,1,1
+Allomesorhizobium,2,2,0,2,1,2,2,0
+Allorhodopirellula,2,1,0,2,2,1,2,2
+Allosediminivita,2,0,0,0,0,0,0,0
+Allotamlana,2,1,0,2,2,2,2,1
+Almyronema,2,0,0,2,2,2,2,2
+Alterirhizorhabdus,2,0,0,2,2,1,1,0
+Alterluteimonas,2,2,0,2,2,2,0,0
+Amniculibacterium,2,0,0,1,2,2,2,2
+Anaeroarcus,2,0,0,0,0,1,1,1
+Anaerobaca,2,0,0,2,2,2,2,1
+Anaerocellum,2,0,0,1,0,1,1,1
+Anaerohalosphaera,2,0,0,2,2,2,2,1
+Anaerolactibacter,2,1,0,1,1,1,1,1
+Anaeromicrobium,2,1,0,2,2,2,2,1
+Anaeromonas,2,0,0,2,2,2,2,2
+Anaerotardibacter,2,2,0,1,1,2,1,1
+Andreesenia,2,1,0,2,1,2,2,2
+Anoxynatronum,2,0,0,1,1,0,0,0
+Antarcticirhabdus,2,1,0,2,2,2,2,1
+Antribacter,2,1,0,2,2,2,1,1
+Aquariibacter,2,0,0,2,2,2,2,1
+Aquibaculum,2,0,0,2,2,2,2,2
+Aquilutibacter,2,0,0,2,2,2,2,2
+Arabiibacter,2,1,0,0,0,0,0,0
+Aristophania,2,2,0,1,1,2,1,0
+Arsenicitalea,2,0,0,2,1,1,1,2
+Asaccharospora,2,0,0,0,0,0,0,0
+Ascidiimonas,2,0,0,2,2,2,2,1
+Atopobacter,2,2,0,1,1,2,1,0
+Attibartonella,2,0,0,0,0,0,0,0
+Aureibacter,2,0,0,0,0,0,0,0
+Aureisphaera,2,1,0,1,1,1,1,0
+Aureivirga,2,2,0,2,2,1,0,1
+Avrilella,2,1,0,2,2,2,2,0
+Azomonas,2,0,0,0,0,0,0,0
+Baaleninema,2,0,0,2,1,2,2,1
+Balnearium,2,0,0,1,1,1,1,1
+Basilea,2,2,0,1,1,1,2,0
+Biostraticola,2,0,0,0,0,0,0,0
+Bisgaardia,2,1,0,1,1,1,1,0
+Bradymonas,2,0,0,1,1,1,1,1
+Brassicibacter,2,0,0,0,0,0,1,0
+Brotocaccenecus,2,2,0,2,2,1,2,2
+Brotonthovivens,2,1,0,1,1,1,1,1
+Brytella,2,0,0,1,0,1,1,0
+Caldanaerobius,2,0,0,1,0,0,0,0
+Caldora,2,0,0,1,1,1,1,1
+Caldovatus,2,0,0,1,1,1,1,1
+Candidatus Aceula,2,0,0,2,2,2,2,2
+Candidatus Aeolococcus,2,0,0,2,2,2,2,2
+Candidatus Aerophobus,2,0,0,2,1,0,2,2
+Candidatus Alcium,2,2,0,2,2,2,2,0
+Candidatus Alectryocaccomicrobium,2,1,0,0,0,1,0,0
+Candidatus Annandia,2,2,0,2,2,2,0,0
+Candidatus Aphodenecus,2,1,0,1,1,1,1,1
+Candidatus Aristotella,2,0,0,0,0,0,1,0
+Candidatus Avamphibacillus,2,1,0,1,0,2,1,1
+Candidatus Avidesulfovibrio,2,1,0,0,0,1,0,0
+Candidatus Avimuribaculum,2,1,0,0,0,1,0,0
+Candidatus Azosocius,2,0,0,2,2,2,2,2
+Candidatus Bealeia,2,2,0,2,2,2,1,1
+Candidatus Caenarcanum,2,0,0,2,2,2,2,2
+Candidatus Caldifonticola,2,0,0,2,2,2,2,2
+Candidatus Caldisaccharidevorator,2,0,0,2,2,2,2,2
+Candidatus Chazhemtobacterium,2,0,0,2,2,2,2,2
+Candidatus Chthoniomicrobium,2,0,0,1,1,2,2,1
+Candidatus Cibiobacter,2,2,0,2,2,2,2,2
+Candidatus Colinaster,2,2,0,2,2,2,2,2
+Candidatus Coliplasma,2,2,0,2,2,2,2,2
+Candidatus Colivivens,2,2,0,2,2,2,2,2
+Candidatus Contubernalis,2,0,0,2,2,2,2,1
+Candidatus Coprousia,2,1,0,0,0,1,0,0
+Candidatus Cottocaccamicrobium,2,1,0,0,0,1,0,0
+Candidatus Cyanaurora,2,0,0,2,2,2,2,2
+Candidatus Defluviilinea,2,0,0,2,2,2,2,2
+Candidatus Electryonea,2,0,0,2,2,2,2,2
+Candidatus Endonucleibacter,2,2,0,2,2,2,2,0
+Candidatus Epilinea,2,0,0,2,2,2,2,2
+Candidatus Equicola,2,2,0,2,2,2,2,2
+Candidatus Equimonas,2,2,0,2,2,2,2,2
+Candidatus Euphemobacter,2,0,0,2,2,2,2,2
+Candidatus Faecicola,2,1,0,0,0,1,0,0
+Candidatus Flexicrinis,2,0,0,2,2,2,2,2
+Candidatus Galacturonatibacter,2,1,0,2,2,2,2,0
+Candidatus Geddesella,2,0,0,0,0,0,1,0
+Candidatus Geohydrothermomicrobium,2,0,0,2,2,2,2,2
+Candidatus Hemicellulosilyticus,2,2,0,2,2,2,2,0
+Candidatus Hepatincola,2,2,0,2,2,2,2,0
+Candidatus Hinthialibacter,2,0,0,2,2,2,2,2
+Candidatus Immundihabitans,2,0,0,2,0,2,2,2
+Candidatus Improbicoccus,2,0,0,0,0,0,0,0
+Candidatus Kaelpia,2,0,0,2,2,2,2,2
+Candidatus Laterigemmans,2,0,0,2,2,2,2,2
+Candidatus Limimonas,2,2,0,2,2,2,2,2
+Candidatus Lithacetigena,2,0,0,2,2,2,2,2
+Candidatus Lumbricidiphila,2,1,0,2,1,2,2,1
+Candidatus Lutibacillus,2,0,0,2,2,2,2,2
+Candidatus Magnetomorum,2,0,0,2,2,2,2,2
+Candidatus Magnetovum,2,0,0,2,2,2,2,2
+Candidatus Marinarcus,2,1,0,2,2,2,2,2
+Candidatus Metaruminococcus,2,0,0,0,0,0,2,0
+Candidatus Methylospira,2,0,0,2,2,0,0,1
+Candidatus Minthosoma,2,2,0,2,2,2,2,2
+Candidatus Minusculum,2,0,0,1,1,2,2,1
+Candidatus Moranella,2,1,0,0,0,0,0,0
+Candidatus Mycalebacterium,2,1,0,1,1,1,1,1
+Candidatus Nanosynsacchari,2,2,0,2,2,1,2,0
+Candidatus Neochristensenella,2,0,0,0,0,0,1,0
+Candidatus Neoclostridium,2,1,0,1,1,2,2,1
+Candidatus Neoruminococcus,2,0,0,0,0,0,1,0
+Candidatus Nesciobacter,2,0,1,1,1,0,1,1
+Candidatus Nitricultor,2,0,0,2,2,2,2,2
+Candidatus Nitrosacidococcus,2,0,0,0,0,0,1,0
+Candidatus Nitrosymbiomonas,2,0,0,1,1,1,1,1
+Candidatus Oleihabitans,2,0,0,2,1,2,2,2
+Candidatus Oleimmundimicrobium,2,0,0,2,1,2,2,2
+Candidatus Oleincola,2,0,0,2,2,2,2,2
+Candidatus Onstottus,2,0,0,2,2,2,2,2
+Candidatus Orphnella,2,0,0,2,2,2,2,2
+Candidatus Ozemobacter,2,0,0,2,2,2,2,0
+Candidatus Paracaedimonas,2,1,0,1,2,1,1,1
+Candidatus Paraluminiphilus,2,0,0,1,1,0,0,1
+Candidatus Parendomicrobium,2,2,0,2,2,2,2,0
+Candidatus Pelagadaptatus,2,0,0,0,0,0,0,0
+Candidatus Phycocordibacter,2,0,0,1,1,2,2,1
+Candidatus Phycorickettsia,2,1,0,1,1,1,0,0
+Candidatus Phycosocius,2,0,0,0,0,0,0,0
+Candidatus Poriferihabitans,2,1,0,1,1,1,1,0
+Candidatus Protistibacter,2,2,0,2,2,2,2,2
+Candidatus Pseudolachnospira,2,0,0,0,0,0,1,0
+Candidatus Pullibacteroides,2,1,0,1,1,1,1,1
+Candidatus Rariloculus ( ex Nguyen 2022),2,1,0,1,1,1,1,1
+Candidatus Regnicoccus,2,0,0,2,2,2,2,2
+Candidatus Roslinia,2,0,0,0,0,0,1,0
+Candidatus Rubidus,2,0,0,0,0,0,0,0
+Candidatus Ruminimicrobium,2,0,0,0,0,0,1,0
+Candidatus Salinivivens,2,0,0,1,1,1,1,1
+Candidatus Scatoplasma,2,1,0,1,1,1,1,1
+Candidatus Schmidhempelia,2,2,0,2,2,2,2,0
+Candidatus Schneewindia,2,0,0,0,0,0,1,0
+Candidatus Scybalocola (ex Gilroy et al. 2022),2,2,0,2,1,2,2,2
+Candidatus Similichlamydia,2,2,0,2,2,2,1,0
+Candidatus Sivonenia,2,0,0,0,0,0,0,0
+Candidatus Sororendozoicomonas,2,2,0,2,2,1,1,0
+Candidatus Symbiobacter,2,1,0,1,1,1,1,1
+Candidatus Tectiglobus,2,0,0,2,2,2,2,2
+Candidatus Thermofontimicrobium,2,0,0,2,2,2,2,2
+Candidatus Timburyella,2,1,0,1,1,2,2,1
+Candidatus Trichorickettsia,2,1,0,1,1,1,0,0
+Candidatus Venteria,2,0,0,1,1,1,2,1
+Candidatus Viridilinea,2,0,0,2,2,2,2,0
+Candidatus Xenobium,2,0,0,2,1,2,2,1
+Capillibacterium,2,0,0,2,1,1,1,2
+Casaltella,2,1,0,1,0,1,1,0
+Catellicoccus,2,0,0,0,0,0,0,0
+Chachezhania,2,0,0,2,2,2,2,2
+Changpingibacter,2,1,0,2,2,2,2,2
+Chelonobacter,2,2,0,2,2,1,2,0
+Chenggangzhangella,2,0,0,1,2,2,1,1
+Chitinispirillum,2,0,0,2,2,2,2,1
+Chroococcus,2,0,0,1,1,1,1,1
+Chroogloeocystis,2,0,0,1,1,1,1,1
+Chthonobacter,2,0,0,2,2,2,2,2
+Citroniella,2,1,0,0,1,2,0,0
+Cnuella,2,1,0,1,1,1,0,0
+Consotaella,2,1,0,1,1,1,1,1
+Corticibacter,2,1,0,1,1,1,1,0
+Corticimicrobacter,2,2,0,2,2,2,1,0
+Craurococcus,2,0,0,0,0,0,1,0
+Curtanaerobium,2,2,0,2,2,2,2,0
+Cyanosarcina,2,0,0,2,2,2,2,0
+Cyclonatronum,2,0,0,2,2,2,2,1
+Daeguia,2,0,0,0,1,1,0,0
+Dawidia,2,1,0,2,2,2,2,2
+Deminuibacter,2,0,0,1,1,1,1,1
+Denitratimonas,2,0,0,2,1,1,2,1
+Desertihabitans,2,0,0,2,2,2,2,2
+Desulfitibacter,2,0,0,2,1,1,2,0
+Desulfocucumis,2,0,0,0,0,0,0,0
+Desulfohalobium,2,0,0,2,1,2,2,2
+Desulfotruncus,2,0,0,2,0,1,1,1
+Desulfovulcanus,2,0,0,2,2,1,1,1
+Desulfuribacillus,2,0,0,2,2,2,2,2
+Dissulfurirhabdus,2,0,0,2,2,0,2,1
+Dissulfurispira,2,0,0,1,1,1,2,1
+Dulcicalothrix,2,0,0,2,1,1,0,0
+Ectothiorhodosinus,2,0,0,1,0,1,1,0
+Edaphovirga,2,1,0,2,2,2,2,2
+Eionea,2,1,0,2,2,1,1,1
+Endoryza,2,2,0,2,2,2,2,0
+Engelhardtia,2,0,0,2,2,0,0,2
+Epidermidibacterium,2,1,0,1,1,1,1,0
+Euhalothece,2,0,0,2,2,1,2,1
+Faunimonas,2,0,0,1,1,1,1,1
+Ferirhizobium,2,0,0,2,2,2,2,2
+Fervidibacillus,2,0,0,2,2,0,0,0
+Fibrisoma,2,0,0,1,1,1,2,1
+Filibacter,2,0,0,0,0,0,0,0
+Flavimarina,2,0,0,0,0,1,1,1
+Flexibacter,2,0,0,2,1,1,1,1
+Fluctibacter,2,1,0,2,2,2,1,1
+Franzmannia,2,0,0,1,1,1,0,0
+Fulverythrobacter,2,1,0,1,1,2,0,1
+Gallalistipes,2,1,0,1,1,1,1,0
+Galliscardovia,2,0,0,0,0,0,0,0
+Gaoshiqia,2,0,1,2,2,2,2,2
+Garicola,2,0,0,0,0,0,0,0
+Gelatiniphilus,2,0,0,0,2,2,0,0
+Gelidimonas,2,0,0,2,2,2,2,2
+Gelria,2,0,0,0,0,1,1,0
+Geomobilimonas,2,0,0,2,1,2,2,1
+Georgfuchsia,2,0,0,1,1,1,1,1
+Gilvirhabdus,2,0,0,2,2,2,2,1
+Gloeothece,2,1,0,1,0,1,1,1
+Goodfellowiella,2,0,0,1,1,1,1,1
+Gottschalkia,2,0,0,0,1,1,1,1
+Granulimonas,2,1,0,1,1,1,1,1
+Halalkalibacillus,2,0,0,2,1,2,2,2
+Halanaerobacter,2,0,0,1,1,1,1,1
+Halopolyspora,2,0,0,0,0,0,0,0
+Halosquirtibacter,2,0,0,2,2,1,2,0
+Halotalea,2,0,0,2,1,1,2,1
+Halotia,2,1,0,2,2,1,1,0
+Hankyongella,2,0,0,1,1,1,1,1
+Haoranjiania,2,0,0,1,2,2,1,1
+Heliophilum,2,0,0,0,0,0,0,0
+Heliorestis,2,0,0,2,2,2,2,2
+Heminiphilus,2,2,0,2,2,2,2,2
+Heterorhizobium,2,0,0,0,1,1,0,0
+Histidinibacterium,2,1,0,2,2,2,2,1
+Hoministercoradaptatus,2,1,0,1,1,1,1,1
+Horticoccus,2,0,0,2,2,2,2,2
+Hufsiella,2,2,0,2,2,2,2,0
+Humitalea,2,0,0,1,1,1,1,1
+Hydrocurvibacter,2,0,0,2,2,0,0,2
+Hydrogenispora,2,0,0,1,0,1,1,0
+Imbroritus,2,0,0,1,0,0,1,1
+Inmirania,2,0,0,1,1,0,1,1
+Isobaculum,2,1,0,1,0,1,1,0
+Izhakiella,2,0,0,1,1,1,1,0
+Jongsikchunia,2,0,0,1,0,1,1,0
+Kallotenue,2,0,0,1,1,1,1,1
+Kalymmatonema,2,0,0,1,1,1,1,1
+Keratinibaculum,2,0,0,1,1,0,0,1
+Klugiella,2,0,0,1,0,0,0,0
+Koleobacter,2,0,0,2,2,2,2,1
+Komarekiella,2,1,0,2,2,1,2,1
+Kovacikia,2,0,0,2,2,2,2,2
+Kribbibacterium,2,2,0,2,2,0,0,2
+Labedaea,2,0,0,1,1,1,1,1
+Labilibacter,2,0,0,2,2,2,2,2
+Leptobacterium,2,1,0,2,2,2,2,1
+Lientehia,2,1,0,1,1,1,1,1
+Lihuaxuella,2,1,0,1,1,0,1,0
+Limnofasciculus,2,0,0,1,1,1,0,0
+Limnovirga,2,0,0,2,2,2,2,2
+Lipingzhangella,2,0,0,1,1,1,1,1
+Litoribrevibacter,2,0,0,0,1,1,0,0
+Litorihabitans,2,1,0,1,1,1,1,1
+Litorivita,2,0,0,1,1,1,1,1
+Lolliginicoccus,2,0,0,2,2,2,2,1
+Longibacter,2,0,0,1,2,0,1,0
+Longitalea,2,0,0,2,2,2,2,2
+Luoshenia,2,1,0,2,2,2,2,1
+Lusitaniella,2,0,0,2,2,2,2,0
+Luteirhabdus,2,0,0,2,2,2,2,2
+Luxibacter,2,0,0,0,0,0,1,0
+Magnetovirga,2,0,0,2,2,2,1,1
+Mangrovibacillus,2,0,0,2,2,1,1,1
+Mangrovibrevibacter,2,2,0,2,2,2,0,0
+Mangrovivirga,2,0,0,2,2,2,1,1
+Maribrevibacterium,2,0,0,1,1,0,1,0
+Marimicrobium,2,0,0,1,1,0,0,0
+Marimonas,2,0,0,2,2,2,2,0
+Marinibactrum,2,0,1,1,1,0,1,1
+Marinilongibacter,2,0,0,1,1,0,0,1
+Mariniluteicoccus,2,0,0,0,0,0,2,0
+Marininema,2,0,0,0,0,0,0,0
+Mariniradius,2,0,0,2,1,2,2,2
+Massilibacterium,2,1,0,1,0,1,1,1
+Mesobacterium,2,0,0,2,2,1,1,1
+Metaplanococcus,2,0,0,1,2,1,0,1
+Methylobrevis,2,0,0,2,2,2,2,2
+Methylolobus,2,0,0,2,2,2,2,2
+Methylomarinovum,2,0,0,0,0,0,0,0
+Methyloraptor,2,1,0,2,2,1,1,1
+Microseira,2,1,0,1,1,0,1,2
+Minisyncoccus,2,0,0,0,0,0,0,0
+Mobilisporobacter,2,1,0,1,1,1,1,1
+Mongoliibacter,2,0,0,1,1,1,1,0
+Mucisphaera,2,0,0,1,1,0,0,1
+Muriventricola,2,2,0,2,2,2,2,2
+Nanchangia,2,2,0,2,2,2,2,2
+Natranaerovirga,2,0,0,0,0,0,0,0
+Natronobacillus,2,0,0,1,1,0,1,0
+Ndongobacter,2,1,0,2,1,1,2,1
+Neobittarella (ex Bilen et al. 2018),2,1,0,1,1,1,1,1
+Neofamilia (nom. nud.),2,0,0,1,1,1,1,1
+Neomesorhizobium,2,0,0,0,0,0,1,0
+Neoundibacterium,2,1,0,2,2,2,2,1
+Neowestiellopsis,2,0,0,2,2,2,2,2
+Neptunitalea,2,0,0,0,0,0,0,0
+Nibrella,2,0,0,0,0,0,0,0
+Nibribacter,2,0,0,1,1,1,1,1
+Nicoletella,2,1,0,2,1,1,1,0
+Nicoliella,2,2,0,2,2,1,1,0
+Ningiella,2,0,0,2,2,2,2,2
+Nitritalea,2,0,0,2,2,1,1,1
+Novimethylophilus,2,0,0,1,0,1,2,1
+Nucisporomicrobium,2,0,0,1,1,1,1,1
+Oceanibium,2,1,0,1,1,1,1,0
+Oceaniovalibus,2,0,0,2,2,2,2,1
+Oceanirhabdus,2,0,0,2,2,2,2,2
+Ochrovirga,2,1,0,1,1,1,1,1
+Oligosphaera,2,0,0,0,0,0,1,0
+Ornatilinea,2,0,0,2,1,2,2,2
+Oryzibacter,2,1,0,2,2,1,2,1
+Oryzifoliimicrobium,2,1,0,2,2,2,2,2
+Ostreibacterium,2,1,0,2,2,2,1,1
+Ostreiculturibacter,2,0,0,2,2,0,0,2
+Oxobacter,2,0,0,1,2,2,2,1
+Pacificitalea,2,0,0,1,1,1,1,1
+Paeniroseomonas,2,0,0,1,2,2,1,1
+Pajaroellobacter,2,1,0,1,1,0,0,0
+Palleniella,2,2,0,2,2,2,2,1
+Paludihabitans,2,0,0,1,1,1,1,1
+Paracnuella,2,0,0,1,1,1,1,1
+Paracrocinitomix,2,0,0,2,2,2,2,2
+Paradesertivirga,2,0,0,1,2,2,1,1
+Paradesulfitobacterium,2,0,0,1,1,1,2,1
+Parahalioglobus,2,0,0,1,1,1,1,0
+Paramylibacter,2,0,0,1,1,1,1,0
+Paranoxybacillus,2,0,0,0,0,0,0,0
+Paraperibacillus,2,0,0,2,2,2,2,2
+Paraphotobacterium,2,0,0,1,1,1,1,1
+Pararhodospirillum,2,1,0,0,0,0,1,0
+Pararoseomonas,2,0,0,2,2,2,2,2
+Parenemella,2,1,0,2,2,2,2,1
+Pareuzebyella,2,0,0,2,2,2,2,2
+Paroceanicella,2,0,0,2,2,2,2,2
+Paucidesulfovibrio,2,0,0,2,0,0,1,0
+Peijinzhouia,2,0,0,2,2,2,2,1
+Pelagibaca,2,1,0,2,2,2,2,1
+Pelagibaculum,2,1,0,1,1,1,1,1
+Pelatocladus,2,0,0,2,2,0,1,0
+Penaeicola,2,0,0,1,1,1,1,0
+Petralouisia,2,1,0,1,1,1,1,0
+Petrocella,2,0,0,1,1,1,2,0
+Phycobacter,2,1,0,2,2,2,0,0
+Piscicoccus,2,0,0,1,1,1,1,1
+Pisciglobus,2,0,0,1,1,1,1,1
+Piscinibacterium,2,0,0,1,2,2,1,1
+Plebeiibacterium,2,0,0,2,2,2,2,2
+Plectonema,2,0,0,2,2,2,2,1
+Polycladidibacter,2,2,0,0,2,2,2,0
+Polycladospora,2,0,0,2,2,0,2,0
+Polymorphum,2,0,0,1,1,1,1,1
+Poriferisphaera,2,0,0,2,2,1,1,1
+Posidoniimonas,2,1,0,2,2,1,2,2
+Profundicola,2,0,0,2,2,2,2,2
+Prolinoborus,2,1,0,1,1,0,0,0
+Proluteimonas,2,2,0,2,2,2,0,0
+Propionicicella,2,0,0,2,1,2,2,2
+Propioniferax,2,0,0,0,0,0,0,0
+Propionispira,2,0,0,1,0,0,1,0
+Proteinivorax,2,0,0,2,2,2,2,2
+Pseudazoarcus,2,0,0,2,2,2,2,2
+Pseudocnuella,2,0,0,1,1,1,1,1
+Pseudoflavitalea,2,0,0,2,2,2,2,2
+Pseudogemmatithrix,2,0,0,2,2,0,0,0
+Pseudohalioglobus,2,0,0,2,2,2,2,2
+Pseudohoeflea,2,1,0,2,2,1,1,1
+Pseudoluteimonas,2,0,0,1,1,1,1,1
+Pseudomyxococcus,2,1,0,1,1,1,0,0
+Pseudosphingobacterium,2,0,0,2,1,2,2,2
+Pseudotenacibaculum,2,1,0,1,2,2,0,0
+Puerhibacterium,2,2,0,2,2,1,1,0
+Puniceicoccus,2,1,0,1,1,1,1,0
+Puribacter,2,0,0,0,0,0,0,0
+Pusillibacter,2,0,0,0,0,0,0,0
+Qingshengfaniella,2,0,0,2,2,2,2,2
+Quatrionicoccus,2,0,0,2,2,1,1,2
+Rasiella,2,0,0,2,2,2,2,2
+Reella,2,2,0,2,2,2,2,0
+Rhabdobacter,2,0,0,0,0,0,0,0
+Rhodoflexus,2,0,0,2,2,2,2,2
+Rivibacter,2,0,0,1,1,1,1,1
+Roholtiella,2,0,0,1,1,1,1,0
+Roseicitreum,2,0,0,1,1,1,1,1
+Rosettibacter,2,0,0,2,2,2,2,2
+Rubricella,2,0,0,1,1,1,1,1
+Sabulicella,2,0,0,2,2,2,2,2
+Salifodinibacter,2,0,0,2,2,2,2,0
+Salinifilum,2,0,0,1,1,1,2,1
+Salinilacustrithrix,2,0,0,2,2,2,2,2
+Salininema,2,0,0,0,2,2,0,0
+Salsuginibacillus,2,0,0,1,1,1,1,1
+Sapientia,2,0,0,1,1,1,1,1
+Sediminicurvatus,2,0,0,2,2,1,2,2
+Sediminihabitans,2,0,0,0,0,0,0,0
+Sediminihaliea,2,0,0,1,1,1,1,1
+Segnochrobactrum,2,1,0,1,1,1,1,1
+Sheuella,2,0,0,2,2,2,2,2
+Simiaoa,2,2,0,2,1,2,2,2
+Sinanaerobacter,2,0,0,2,2,2,2,2
+Sinisalibacter,2,0,0,0,0,0,0,0
+Sinobaca,2,0,0,1,1,1,1,1
+Snuella,2,0,0,1,1,1,1,1
+Sodalinema,2,0,0,2,1,2,1,1
+Solicola,2,0,0,2,2,1,1,2
+Solimicrobium,2,0,0,2,2,2,2,2
+Sorlinia,2,2,0,2,2,0,0,0
+Spectribacter,2,0,0,2,2,0,0,0
+Speluncibacter,2,0,0,2,1,2,2,2
+Sphingosinithalassobacter,2,0,0,2,2,2,2,2
+Spinactinospora,2,0,0,1,0,0,0,0
+Spirobacillus,2,2,0,1,1,2,1,0
+Spongiimicrobium,2,1,0,2,2,0,1,1
+Spongorhabdus,2,1,0,1,1,0,0,1
+Sporosalibacterium,2,0,0,1,1,1,1,1
+Stomatohabitans,2,2,0,2,2,2,2,0
+Streptodolium,2,0,0,1,0,0,1,0
+Strigamonas,2,0,0,2,2,2,2,2
+Sulfidibacter,2,1,0,1,1,1,0,0
+Sulfoacidibacillus,2,0,0,2,2,2,2,1
+Swaminathania,2,0,0,0,0,1,1,0
+Szabonella,2,0,0,1,1,1,1,1
+Tamilnaduibacter,2,0,0,1,1,1,1,1
+Tanticharoenia,2,0,0,0,0,2,2,0
+Telmatocola,2,0,0,1,1,1,1,1
+Tenebrionicola,2,2,0,2,2,2,2,0
+Tenggerimyces,2,0,0,0,1,1,0,0
+Tenuibacillus,2,0,0,0,0,0,0,0
+Tepidicella,2,0,0,1,1,1,1,0
+Tepidisphaera,2,0,0,2,2,2,2,2
+Tepiditoga,2,0,0,1,1,1,2,1
+Termitidicoccus,2,2,0,2,2,2,1,0
+Terrihalobacillus,2,0,0,2,2,2,2,2
+Thalassobacterium,2,0,0,2,2,2,2,2
+Thalassoporum,2,0,0,0,0,0,0,0
+Thalassorhabdomicrobium,2,0,0,1,1,1,1,1
+Thalassorhabdus,2,0,0,0,2,2,0,0
+Thermanaerosceptrum,2,0,0,1,1,1,1,1
+Thermoactinospora,2,0,0,2,2,2,2,2
+Thermobrachium,2,0,0,0,0,0,1,0
+Thermocaproicibacter,2,0,0,2,2,1,1,2
+Thermodesulforhabdus,2,0,0,1,1,1,1,1
+Thermoflavimicrobium,2,0,0,1,1,1,1,1
+Thermorudis,2,0,0,1,1,1,1,0
+Thermosediminibacter,2,0,0,2,0,1,1,1
+Thermosporothrix,2,0,0,1,0,0,0,0
+Thioalbus,2,0,0,1,1,1,1,1
+Thiobacter,2,0,0,1,1,1,2,1
+Thiococcus,2,0,0,2,0,2,2,0
+Thiosulfatihalobacter,2,0,0,2,2,2,2,1
+Thorsellia,2,0,0,1,1,1,0,0
+Tildeniella,2,0,0,2,2,2,2,0
+Tumidithrix,2,0,0,1,1,0,1,1
+Tundrisphaera,2,0,0,2,2,0,1,2
+Umboniibacter,2,0,0,0,0,0,0,0
+Uniformispora,2,0,0,2,2,0,0,0
+Vaginella,2,2,0,2,1,1,1,1
+Varunaivibrio,2,0,0,1,1,1,1,1
+Vespertiliibacter,2,1,0,1,1,1,1,0
+Volucribacter,2,1,0,2,1,1,1,0
+Vulcanibacillus,2,0,0,2,2,2,2,2
+Wansuia,2,2,0,2,2,2,2,2
+Winmispira,2,0,0,1,0,1,1,1
+Xylanibacillus,2,0,0,1,1,1,1,1
+Xylanivirga,2,0,0,2,2,2,2,2
+Xylocopilactobacillus,2,0,0,0,0,0,2,0
+Yanshouia,2,1,0,1,1,1,1,1
+Yeguia,2,1,0,1,1,1,1,1
+Abyssalbus,1,0,0,1,1,1,1,1
+Abyssisolibacter,1,0,0,1,1,1,1,1
+Acetohalobium,1,0,0,1,0,1,1,1
+Acidaminobacterium,1,0,0,1,1,1,1,0
+Acidicaldus,1,0,0,1,1,1,1,0
+Acidilutibacter,1,0,0,1,1,1,1,0
+Aciduricibacillus,1,1,0,1,1,1,1,1
+Actinomarinicola,1,0,0,1,1,1,1,1
+Actinorectispora,1,0,0,1,0,1,1,0
+Actinorhabdospora,1,0,0,0,0,0,0,0
+Actinorugispora,1,0,0,0,0,0,0,0
+Actinospongiicola,1,1,0,1,1,1,0,0
+Adhaeretor,1,0,0,1,1,1,1,1
+Aegicerorhabdus,1,0,0,1,1,1,1,1
+Aerosticca,1,0,0,0,0,0,1,0
+Aestuarierythrobacter,1,0,0,0,0,1,0,0
+Aestuariicoccus,1,0,0,1,1,1,1,0
+Aetherobacter,1,0,0,0,0,0,0,0
+Affinibrenneria,1,1,0,1,1,1,1,0
+Africanella,1,1,0,0,0,0,0,0
+Agaribacillus,1,1,0,1,1,1,0,0
+Agilicoccus,1,0,0,1,1,1,1,1
+Albibacillus,1,1,0,1,1,1,1,1
+Albirhodobacter,1,1,0,1,1,0,0,1
+Alexandriicola,1,1,0,1,1,1,0,0
+Algibacillus,1,1,0,1,1,1,1,0
+Algicella,1,1,0,1,1,1,0,0
+Alginatibacterium,1,0,0,1,1,1,1,1
+Algirhabdus,1,1,0,1,1,1,0,0
+Algivirga,1,0,0,0,0,0,0,0
+Aliigemmobacter,1,0,0,1,1,1,1,1
+Aliinostoc,1,0,0,1,1,1,1,1
+Aliiphycobium,1,1,0,1,1,1,0,0
+Aliitabrizicola,1,0,0,1,1,1,1,1
+Alitibacter,1,0,0,1,0,0,0,0
+Alkalicaulis,1,0,0,1,1,1,1,0
+Alkalicella,1,0,0,1,1,0,0,1
+Alkalisalibacterium,1,0,0,0,0,1,1,1
+Alkalispirillum,1,0,0,0,0,0,0,0
+Alloactinosynnema,1,1,0,1,0,0,0,0
+Allobogoriella,1,0,0,1,0,0,0,0
+Allocatelliglobosispora,1,0,0,1,0,0,0,0
+Allocatenococcus,1,0,0,0,0,0,1,0
+Allocellulophaga,1,0,0,0,0,0,0,0
+Allofustis,1,1,0,1,0,0,1,0
+Allolucifera,1,0,0,0,0,0,1,0
+Allonocardiopsis,1,0,0,0,0,0,0,0
+Allopseudospirillum,1,0,0,0,0,0,0,0
+Allosaccharopolyspora,1,1,0,1,1,1,1,0
+Allosalinactinospora,1,1,0,1,1,0,1,0
+Allostreptomyces,1,0,0,0,0,0,0,0
+Alteraquisediminimonas,1,0,0,1,0,1,1,1
+Altericista,1,0,0,1,1,1,1,1
+Alterisphingorhabdus (ex Yan et al. 2024),1,1,0,1,0,1,1,0
+Alteristakelama,1,0,0,1,1,1,1,1
+Amantichitinum,1,0,0,1,1,1,1,1
+Amazonocrinis,1,0,0,1,1,1,1,0
+Aminirod,1,0,0,1,1,1,1,1
+Aminithiophilus,1,0,0,1,1,0,1,1
+Ammonicoccus,1,1,0,1,1,1,0,1
+Amnimonas,1,0,0,1,1,0,1,1
+Amphibiibacter,1,1,0,1,1,1,0,0
+Ampullimonas,1,0,0,1,1,1,1,1
+Anaerobacterium,1,0,0,0,0,0,0,0
+Anaerobium,1,0,0,1,1,0,1,0
+Anaeroglomus,1,0,0,1,1,1,1,1
+Anaerolentibacter,1,1,0,1,1,1,1,1
+Anaeropeptidivorans,1,0,0,0,0,0,0,0
+Anaerophilus,1,0,0,1,1,1,1,1
+Anaerorudis,1,0,0,1,1,0,1,1
+Anaeroselena,1,0,0,1,1,1,1,1
+Anaerosoma,1,0,0,1,1,1,1,0
+Anaerotaenia,1,0,0,0,0,0,0,0
+Anaerotalea,1,0,0,1,1,1,1,0
+Anaerovirgula,1,0,0,0,0,0,0,0
+Anaerozeibacter,1,0,0,1,1,0,0,1
+Ancylothrix,1,0,0,1,1,0,0,0
+Anianabacter,1,0,0,1,1,1,1,1
+Annamia,1,0,0,0,0,0,1,0
+Anoxybacter,1,0,0,0,1,1,1,0
+Anoxybacterium,1,0,0,1,1,1,1,1
+Anthocerotibacter,1,1,0,1,1,1,1,1
+Apirhabdus,1,1,0,1,1,0,1,0
+Apolloniradiicaulis,1,0,0,1,1,1,1,1
+Aquimixticola,1,0,0,0,0,0,0,0
+Aquipluma,1,0,0,0,0,0,1,0
+Aquisalibacillus,1,0,0,1,0,0,0,0
+Arboribacterium,1,0,0,0,0,1,1,0
+Arboricoccus,1,0,0,0,1,1,0,0
+Arenivirga,1,0,0,0,0,0,0,0
+Aridibaculum,1,0,0,1,1,1,1,1
+Arthrospiribacter,1,1,0,1,1,1,1,1
+Arvimicrobium,1,0,0,1,1,0,0,1
+Asprobacillus,1,0,0,1,1,0,0,0
+Astrobacterium,1,0,0,1,1,0,1,0
+Atlanticothrix,1,1,0,1,1,1,0,0
+Atrimonas,1,0,0,0,0,0,0,0
+Aurantibacillus,1,0,0,1,1,1,1,1
+Aurantibrevibacter,1,0,0,1,1,1,1,1
+Aurantiphycus (nom. nud.),1,0,0,0,0,0,0,0
+Aureibacillus,1,0,0,0,0,0,0,0
+Aureicoccus,1,0,0,1,1,1,1,0
+Azotosporobacter,1,0,0,1,1,1,1,1
+Bacilliculturomica,1,0,0,0,0,0,0,0
+Baia,1,0,0,0,0,0,0,0
+Bailinhaonella,1,0,0,1,1,1,1,1
+Balneicella,1,0,0,0,0,0,0,0
+Banduia,1,0,0,1,1,0,0,0
+Beduinella,1,0,0,0,0,0,0,0
+Bengtsoniella,1,1,0,1,1,0,0,1
+Benzoatithermus,1,0,0,1,1,1,1,1
+Beutenbergia,1,0,0,1,0,1,1,1
+Bianquea,1,1,0,1,1,1,1,1
+Biformimicrobium,1,0,0,0,0,0,0,0
+Borborobacter,1,0,0,1,1,1,1,1
+Botryobacter,1,0,0,1,1,1,1,1
+Bounagaea,1,0,0,1,1,1,1,1
+Bovifimicola,1,1,0,1,1,1,1,1
+Brackiella,1,1,0,1,0,1,1,0
+Breznakiella,1,1,0,1,1,1,0,0
+Brotomerdimonas,1,1,0,1,1,1,1,1
+Brucepastera,1,1,0,1,1,1,0,0
+Brunnivagina,1,0,0,1,1,0,1,0
+Caenibacillus,1,0,0,0,0,0,0,0
+Caenicola,1,0,0,1,1,0,0,1
+Caldanaerovirga,1,0,0,1,0,0,0,0
+Calderihabitans,1,0,0,0,0,0,0,0
+Caldichromatium,1,0,0,1,1,1,1,1
+Caldinitratiruptor,1,0,0,0,0,0,0,0
+Caldisalinibacter,1,0,0,1,1,0,1,1
+Calorimonas,1,0,0,1,1,1,0,0
+Calycomorphotria,1,0,0,1,1,0,0,1
+Calyptranema,1,0,0,1,1,0,0,1
+Camelliibacillus,1,0,0,0,1,1,0,0
+Candidatus Aadella,1,0,0,1,1,1,1,1
+Candidatus Absconditicoccus,1,0,0,1,1,1,1,1
+Candidatus Abzuiibacterium,1,0,0,1,1,1,1,1
+Candidatus Acetocimmeria,1,0,0,1,1,1,1,1
+Candidatus Acheromyda,1,0,0,1,1,1,1,1
+Candidatus Acidiflorens,1,0,0,1,1,1,1,1
+Candidatus Alcyoniella,1,0,0,1,1,1,1,1
+Candidatus Algichlamydia,1,0,1,0,1,1,1,1
+Candidatus Allobutyricicoccus,1,0,0,0,0,0,1,0
+Candidatus Allochristensenella,1,0,0,0,0,0,1,0
+Candidatus Alloruminococcus,1,0,0,0,0,0,1,0
+Candidatus Amarobacillus,1,0,0,1,1,1,1,1
+Candidatus Amphrikana,1,1,0,1,1,1,0,0
+Candidatus Amunia,1,0,0,1,1,1,1,1
+Candidatus Anadelfobacter,1,1,0,1,0,1,1,1
+Candidatus Anaeroferrophillus,1,0,0,1,1,1,1,1
+Candidatus Anammoxiglobus,1,0,0,1,1,1,1,1
+Candidatus Ancaeobacter,1,0,0,1,1,1,1,1
+Candidatus Andeanibacterium,1,0,0,1,0,1,1,1
+Candidatus Anoxymicrobium,1,0,0,1,1,1,1,1
+Candidatus Apopatocola,1,1,0,1,1,1,1,1
+Candidatus Apopatousia,1,1,0,1,1,1,1,1
+Candidatus Aquitaenariimonas,1,0,0,1,1,1,1,1
+Candidatus Aquivivens,1,0,0,1,1,0,1,0
+Candidatus Arcanibacter,1,0,0,1,1,1,1,1
+Candidatus Auribacter,1,0,0,1,1,1,1,0
+Candidatus Australimonas,1,0,0,1,1,1,1,1
+Candidatus Avacidaminococcus,1,1,0,0,0,1,0,0
+Candidatus Avalokitesvara,1,0,0,1,1,1,1,1
+Candidatus Avanaerovorax,1,1,0,0,0,1,0,0
+Candidatus Avedoeria,1,0,0,1,1,1,1,1
+Candidatus Azotimanducus,1,0,0,0,0,0,0,0
+Candidatus Bathyoplasma,1,1,0,1,1,1,1,0
+Candidatus Bodocaedibacter,1,1,0,1,1,1,0,0
+Candidatus Brachythrix,1,0,0,1,1,1,1,1
+Candidatus Branchiomonas,1,1,0,1,1,1,1,0
+Candidatus Caballimonas,1,1,0,1,1,1,1,1
+Candidatus Calidifonticultor,1,0,0,1,1,1,1,1
+Candidatus Caribbeanibacter,1,0,0,0,0,0,0,0
+Candidatus Carthagonibacter,1,0,0,1,1,1,1,1
+Candidatus Chaera,1,0,0,1,1,1,1,1
+Candidatus Changshengia,1,0,0,1,1,1,1,1
+Candidatus Chordibacter,1,0,0,0,0,0,0,0
+Candidatus Chryseopegocella,1,0,0,1,1,1,1,1
+Candidatus Clavichlamydia,1,1,0,1,1,0,1,1
+Candidatus Colenecus,1,1,0,1,1,1,1,1
+Candidatus Colimonas,1,1,0,1,1,1,1,1
+Candidatus Colisoma,1,1,0,1,1,1,1,1
+Candidatus Colivicinus,1,1,0,1,1,1,1,1
+Candidatus Colousia,1,1,0,1,1,1,1,1
+Candidatus Comchoanobacter,1,0,1,1,1,0,1,0
+Candidatus Copronaster,1,1,0,1,1,1,1,1
+Candidatus Criblamydia,1,0,0,0,0,0,1,0
+Candidatus Curculioniphilus,1,0,0,0,0,0,0,0
+Candidatus Danuiimicrobium,1,0,0,1,1,1,1,0
+Candidatus Darwinimomas,1,1,0,1,1,1,1,1
+Candidatus Deianiraea,1,1,0,1,1,1,1,1
+Candidatus Denitrolinea,1,0,0,0,0,0,0,0
+Candidatus Desulfarcum,1,0,0,1,1,1,1,1
+Candidatus Desulfatifera,1,0,0,0,1,1,1,1
+Candidatus Desulfocorpusculum,1,0,0,1,1,1,1,1
+Candidatus Desulfopertinax,1,0,0,1,1,1,1,0
+Candidatus Dichloromethanomonas,1,0,0,1,1,1,1,1
+Candidatus Doolittlea,1,0,0,0,0,0,0,0
+Candidatus Doriopsillibacter,1,1,0,1,1,1,1,0
+Candidatus Duberdicusella,1,0,0,1,1,1,1,1
+Candidatus Ectomicrobium,1,1,0,1,1,1,1,0
+Candidatus Endowatersipora,1,0,0,0,0,0,0,0
+Candidatus Equadaptatus,1,1,0,1,1,1,1,1
+Candidatus Equibacterium,1,1,0,1,1,1,1,1
+Candidatus Equicaccousia,1,1,0,1,1,1,1,1
+Candidatus Equihabitans,1,1,0,1,1,1,1,1
+Candidatus Equinaster,1,1,0,1,1,1,1,1
+Candidatus Erabacter,1,0,0,1,1,1,1,1
+Candidatus Erginobacter,1,0,0,1,1,1,1,1
+Candidatus Eutrophobius,1,0,0,1,1,1,1,1
+Candidatus Eutrophocola,1,0,0,1,1,1,1,1
+Candidatus Eutrophomonas,1,0,0,1,1,1,1,1
+Candidatus Eutrophosalina,1,0,0,1,1,1,1,1
+Candidatus Eutrophovita,1,0,0,1,1,1,1,1
+Candidatus Faecinaster,1,1,0,1,1,1,1,1
+Candidatus Fermentithermobacillus,1,0,0,1,0,1,1,0
+Candidatus Fiminaster,1,1,0,1,1,1,1,1
+Candidatus Formimonas,1,0,0,1,1,1,1,1
+Candidatus Fredericiella,1,0,0,1,1,1,1,1
+Candidatus Gaiellasilicea,1,0,0,1,1,1,1,0
+Candidatus Gallilactobacillus,1,1,0,1,1,1,1,1
+Candidatus Geothermocultor,1,0,0,1,1,1,1,1
+Candidatus Ghiorseimicrobium,1,0,0,1,1,1,1,1
+Candidatus Gilichinskyi,1,0,0,1,1,1,1,1
+Candidatus Gillettellia,1,0,1,1,1,1,0,0
+Candidatus Gorgyraea,1,0,0,1,1,1,1,1
+Candidatus Gromoviella,1,1,0,1,1,1,1,1
+Candidatus Guanabacterium,1,0,0,0,0,0,1,0
+Candidatus Gullanella,1,0,0,0,0,0,0,0
+Candidatus Gygaella,1,0,0,1,1,1,1,1
+Candidatus Hadalibacter,1,0,0,0,0,0,0,0
+Candidatus Hadersleviella,1,0,0,1,1,1,1,1
+Candidatus Haliotispira,1,1,0,1,1,1,1,0
+Candidatus Hartigia,1,1,0,1,1,1,0,0
+Candidatus Hatepunaea,1,0,0,1,1,1,1,1
+Candidatus Hebobacterum,1,0,0,1,1,1,1,1
+Candidatus Hennigella,1,1,0,1,1,1,1,1
+Candidatus Hennigimonas,1,1,0,1,1,1,1,1
+Candidatus Hepatobacter,1,1,0,0,1,0,0,0
+Candidatus Hippenecus,1,1,0,1,1,1,1,1
+Candidatus Hippobium,1,1,0,1,1,1,1,1
+Candidatus Hoaglandella,1,0,0,0,0,0,0,0
+Candidatus Humimonas,1,0,0,0,0,0,0,0
+Candidatus Hydrogenisulfobacillus,1,0,0,0,0,0,1,0
+Candidatus Hydrogenosomobacter,1,0,0,0,0,0,0,0
+Candidatus Hydrothermomicrobium,1,0,0,1,1,1,1,1
+Candidatus Hydrothermus,1,0,0,1,1,1,1,0
+Candidatus Hypereutrophica,1,0,0,1,1,1,1,1
+Candidatus Indicimonas,1,0,0,0,0,0,0,0
+Candidatus Inralta,1,0,0,1,1,1,1,1
+Candidatus Inrsubterrania,1,0,0,1,1,1,1,1
+Candidatus Intricatilinea,1,0,0,1,1,1,1,1
+Candidatus Ishikawella,1,0,0,0,0,0,0,0
+Candidatus Jinrbaksania,1,0,0,1,1,1,1,1
+Candidatus Jinrextremum,1,0,0,1,1,1,1,1
+Candidatus Johnevansia,1,0,0,0,0,0,1,0
+Candidatus Kappaea,1,0,0,1,1,1,1,1
+Candidatus Kirkpatrickella,1,1,0,1,1,1,1,0
+Candidatus Kutchimonas,1,0,0,1,1,1,1,1
+Candidatus Lernaella,1,0,0,1,1,1,1,1
+Candidatus Levibacter,1,0,0,1,1,0,0,1
+Candidatus Liberimonas,1,0,0,1,1,1,1,1
+Candidatus Liminaster,1,1,0,1,1,1,1,1
+Candidatus Litorirhabdus,1,0,0,1,1,0,0,1
+Candidatus Magnetaquicoccus,1,0,0,1,1,1,1,1
+Candidatus Magnetaquiglobus,1,0,0,0,0,0,0,0
+Candidatus Magnetocorallium,1,0,0,1,1,1,1,1
+Candidatus Magnetoglobus,1,0,0,1,0,1,1,1
+Candidatus Magnetomicrobium,1,0,0,1,1,1,1,1
+Candidatus Magnetomonas,1,0,0,1,1,1,1,1
+Candidatus Makaraimicrobium,1,0,0,1,1,1,1,1
+Candidatus Manresella,1,0,0,1,1,1,1,1
+Candidatus Marifrigoribacter,1,0,0,1,1,0,0,1
+Candidatus Marisalimonas,1,0,0,1,1,1,1,1
+Candidatus Marithioploca,1,0,0,1,1,1,1,1
+Candidatus Mayfieldus,1,0,0,1,1,1,1,1
+Candidatus Merdenecus,1,1,0,0,0,1,0,0
+Candidatus Merdinaster,1,1,0,1,1,1,1,1
+Candidatus Methanofishera,1,1,0,1,1,1,1,0
+Candidatus Methylacidithermus,1,0,0,0,0,0,0,0
+Candidatus Methylaffinis,1,0,0,1,1,1,1,1
+Candidatus Methylocalor,1,0,0,0,0,0,0,0
+Candidatus Microsyncoccus,1,0,0,0,0,0,0,0
+Candidatus Mikella,1,0,0,0,0,0,0,0
+Candidatus Minthenecus,1,1,0,1,1,1,1,1
+Candidatus Minthocola,1,1,0,1,1,1,1,1
+Candidatus Minthomonas,1,1,0,1,1,1,1,1
+Candidatus Minthousia,1,1,0,1,1,1,1,1
+Candidatus Multiplicimicrobium,1,0,0,1,0,1,1,1
+Candidatus Mycosynbacter,1,1,0,1,1,1,1,1
+Candidatus Nebulibacter,1,1,0,1,1,1,0,0
+Candidatus Neoflavobacterium,1,1,0,1,1,1,1,1
+Candidatus Neomarinimicrobium,1,0,0,1,1,0,1,1
+Candidatus Nephrothrix,1,1,0,1,1,1,1,0
+Candidatus Neutrinellum,1,0,0,1,1,1,1,1
+Candidatus Neutrinobacter,1,0,0,1,1,1,1,1
+Candidatus Nitricoxidireducens,1,0,0,1,1,1,1,1
+Candidatus Nitricoxidivorans,1,0,0,1,1,1,1,1
+Candidatus Nitrobium,1,0,0,1,0,1,1,0
+Candidatus Nitrohelix,1,0,0,1,1,1,1,1
+Candidatus Nitronauta,1,0,0,1,1,1,1,1
+Candidatus Nitronereus,1,0,0,1,1,1,1,1
+Candidatus Nutricula,1,1,0,1,1,1,1,0
+Candidatus Nyctobacter,1,0,0,1,1,1,1,1
+Candidatus Obscuribacterium,1,0,0,1,1,1,1,1
+Candidatus Onthonaster,1,1,0,1,1,1,1,1
+Candidatus Onthosoma,1,1,0,0,0,1,0,0
+Candidatus Ordinivivax,1,1,0,1,1,1,1,0
+Candidatus Organicella,1,1,0,1,1,1,1,1
+Candidatus Oxydemutator,1,0,0,0,0,0,0,0
+Candidatus Paraimprobicoccus,1,0,0,0,0,0,0,0
+Candidatus Paraktedonobacter,1,0,0,1,1,1,1,1
+Candidatus Paraprochloron,1,1,0,1,1,0,1,1
+Candidatus Persebacter,1,1,0,1,1,1,1,1
+Candidatus Phelpsiimicrobium,1,0,0,1,1,1,1,1
+Candidatus Phloeobacter,1,1,0,1,1,1,1,0
+Candidatus Phoenicimicrobium,1,0,0,1,1,1,1,1
+Candidatus Phosphitivorax,1,0,0,1,1,1,1,1
+Candidatus Physcocola,1,1,0,1,1,1,1,1
+Candidatus Physcosoma,1,1,0,1,1,1,1,1
+Candidatus Physcousia,1,1,0,1,1,1,1,1
+Candidatus Pinguicoccus,1,1,0,1,1,1,0,0
+Candidatus Polarisedimenticola,1,0,0,1,1,1,1,1
+Candidatus Ponderosibacter,1,0,0,1,1,0,0,1
+Candidatus Porifericomes,1,1,0,1,1,1,0,0
+Candidatus Praeruminimicrobium,1,0,0,1,1,1,1,1
+Candidatus Proendomicrobium,1,1,0,1,1,1,1,0
+Candidatus Proruminimicrobium,1,0,0,1,1,1,1,1
+Candidatus Proximibacter,1,0,0,1,1,1,1,1
+Candidatus Pseudelusimicrobium,1,0,0,1,1,1,1,1
+Candidatus Reconcilbacillus,1,0,0,1,1,1,1,1
+Candidatus Reidiella,1,1,0,1,1,1,1,0
+Candidatus Ribeiella,1,0,0,1,1,1,1,1
+Candidatus Sacchlamyda,1,1,0,1,1,1,0,1
+Candidatus Saelkia,1,0,0,1,1,1,1,1
+Candidatus Salivita,1,0,0,1,1,1,1,1
+Candidatus Salsuginivita,1,0,0,1,1,1,1,1
+Candidatus Sarmatiella,1,0,0,1,1,1,1,1
+Candidatus Scatonaster,1,1,0,1,1,1,1,1
+Candidatus Seribacter,1,0,0,0,0,0,0,0
+Candidatus Servula,1,1,0,1,1,1,1,0
+Candidatus Sherwoodlollariibacterium,1,0,0,1,1,1,1,1
+Candidatus Siliceabacter,1,0,0,1,1,1,1,0
+Candidatus Sneabacter,1,1,0,1,1,0,1,1
+Candidatus Southlakia,1,1,0,1,1,1,1,0
+Candidatus Spongiicolonus,1,1,0,1,1,1,1,0
+Candidatus Steffania,1,1,0,1,1,1,1,0
+Candidatus Stramentimicrobium,1,0,0,0,0,1,1,0
+Candidatus Subteraquimicrobium,1,0,0,1,0,1,1,1
+Candidatus Subterrananammoxibius,1,0,0,1,1,1,1,1
+Candidatus Sulfuritelmatomonas,1,0,0,1,1,1,1,1
+Candidatus Susulua,1,0,0,1,1,1,1,1
+Candidatus Synchoanobacter,1,0,1,1,1,0,1,0
+Candidatus Syntrophocurvum,1,0,0,1,0,0,0,0
+Candidatus Syntrophonatronum,1,0,0,1,1,1,1,1
+Candidatus Tabaqchalia,1,0,0,0,0,0,1,0
+Candidatus Tachikawaea,1,0,0,0,0,0,0,0
+Candidatus Taenaricola,1,0,0,1,1,1,1,1
+Candidatus Taenariivivens,1,0,0,1,1,1,1,1
+Candidatus Tantalella,1,0,0,1,1,1,1,1
+Candidatus Tariuqbacter,1,0,0,1,1,1,1,0
+Candidatus Tepidiaquacella,1,0,0,1,1,1,1,0
+Candidatus Tethybacter,1,1,0,1,1,1,1,1
+Candidatus Thalassospirochaeta,1,1,0,1,1,1,1,1
+Candidatus Thermoproauctor,1,0,0,1,1,1,1,1
+Candidatus Theseobacter,1,0,0,1,1,1,1,1
+Candidatus Thioaporhodococcus,1,0,0,1,1,1,1,1
+Candidatus Thiocaldithrix,1,0,0,0,1,1,1,1
+Candidatus Thiopontia,1,0,0,0,1,1,1,1
+Candidatus Tityobacter,1,0,0,1,1,1,1,1
+Candidatus Trichofilum,1,0,0,1,1,1,1,1
+Candidatus Tritonobacter,1,0,0,1,1,1,1,1
+Candidatus Tyloplasma,1,0,0,0,0,0,0,0
+Candidatus Undivivens,1,0,0,0,0,1,1,0
+Candidatus Velesiimonas,1,0,0,1,1,1,1,1
+Candidatus Viadribacter,1,0,0,1,1,0,0,1
+Candidatus Xenohaliotis,1,0,0,0,0,0,0,0
+Candidatus Xenolissoclinum,1,1,0,0,0,0,1,1
+Candidatus Yanofskyibacterium,1,0,0,0,0,0,0,0
+Candidatus Zapsychrus,1,0,0,1,1,1,1,1
+Candidatus Zemynaea,1,0,0,1,1,1,1,1
+Candidatus Zeuxoniibacter,1,1,0,1,1,1,1,0
+Candidatus Zipacnadum,1,0,0,1,1,1,1,1
+Candidatus Zophobacter,1,0,0,1,1,1,1,1
+Candidiatus Paracoxiella,1,1,0,1,1,1,0,0
+Capilliphycus,1,1,0,1,1,1,1,1
+Carbonatibacter,1,1,0,1,1,1,0,0
+Carboxydichorda,1,0,0,1,1,0,0,1
+Carideicomes,1,0,0,1,1,1,1,0
+Catelliglobosispora,1,0,0,1,0,1,1,1
+Cauispirillum,1,0,0,1,1,1,0,0
+Caviibacterium,1,1,0,1,1,1,1,0
+Cellulosispirillum,1,0,0,1,1,1,1,1
+Cerina,1,0,0,1,1,1,1,1
+Cernens,1,1,0,1,1,0,0,0
+Chakrabartyella,1,1,0,1,1,0,0,0
+Changchengzhania,1,0,0,1,1,1,1,1
+Chitinasiproducens,1,0,0,0,0,0,0,0
+Chitinirhabdus,1,0,0,1,1,1,1,1
+Chitinivibrio,1,0,0,1,0,1,1,1
+Chondrinema,1,1,0,1,1,0,0,0
+Chondrocystis,1,0,0,0,0,0,1,0
+Chroococcopsis,1,0,0,1,1,1,1,1
+Chrysiogenes,1,0,0,1,1,0,1,0
+Chrysosporum,1,0,0,1,1,0,0,1
+Chungangia,1,0,0,0,1,1,0,0
+Citreicoccus,1,0,0,1,1,1,1,1
+Clostridiisalibacter,1,0,0,1,1,0,1,1
+Cochleicola,1,1,0,1,1,1,0,0
+Cochlodiniinecator,1,1,0,1,1,1,1,1
+Cognatazoarcus,1,0,0,1,1,1,1,1
+Cognatitamlana,1,1,0,1,1,1,1,0
+Collibacillus,1,0,0,0,0,0,0,0
+Compostibacillus,1,0,0,0,0,0,0,0
+Compostibacter,1,0,0,0,0,0,0,0
+Compostimonas,1,0,0,0,0,0,0,0
+Congregicoccus,1,0,0,0,0,0,0,0
+Conservatibacter,1,1,0,1,1,1,1,0
+Constantimarinum,1,0,0,1,1,1,1,1
+Constrictibacter,1,0,0,1,0,1,0,0
+Copranaerobaculum,1,1,0,1,1,1,1,1
+Coraliihabitans,1,1,0,1,1,1,0,0
+Coralliovum,1,1,0,1,1,0,0,0
+Coriobacterium,1,0,0,1,0,1,1,0
+Corticicoccus,1,0,0,0,1,1,0,0
+Costertonia,1,0,0,1,0,1,0,0
+Cricetibacter,1,0,0,0,0,0,0,0
+Croceifilum,1,0,0,0,0,0,0,0
+Croceiramulus,1,0,0,1,1,1,1,0
+Cronbergia,1,0,0,1,1,0,0,1
+Cryocola,1,0,0,0,0,0,0,0
+Cryptocyanus,1,0,0,1,1,1,1,1
+Culicoidibacter,1,1,0,1,1,1,1,0
+Cyanocohniella,1,0,0,1,1,1,1,1
+Cyanomargarita,1,1,0,1,1,1,1,0
+Daejeonia,1,1,0,1,1,0,0,1
+Danxiaibacter,1,0,0,1,1,0,0,1
+Deinobacterium,1,0,0,1,0,0,0,0
+Demetria,1,0,0,1,0,1,1,1
+Denitraticella,1,0,0,1,1,1,1,0
+Dentiradicibacter,1,1,0,1,1,0,0,0
+Dermatobacter,1,1,0,1,1,1,1,0
+Desertibacillus,1,0,0,1,1,1,1,1
+Desertibaculum,1,0,0,1,1,1,1,1
+Desertivibrio,1,0,0,1,1,1,1,1
+Desnuesiella,1,0,0,0,0,0,0,0
+Desulfatiferula,1,0,0,0,0,0,1,0
+Desulfitispora,1,0,0,1,0,0,0,0
+Desulfocarbo,1,0,0,1,1,1,1,1
+Desulfocastanea,1,0,0,0,0,0,1,0
+Desulfoconvexum,1,0,0,0,0,0,1,0
+Desulfofalx,1,0,0,1,0,0,0,0
+Desulfofarcimen,1,0,0,1,0,0,1,0
+Desulfoferula,1,0,0,0,0,0,1,0
+Desulfoglaeba,1,0,0,1,1,1,1,1
+Desulfohalovibrio,1,0,0,0,0,0,0,0
+Desulfolucanica,1,0,0,0,0,0,0,0
+Desulfonispora,1,0,0,0,0,0,0,0
+Desulforadius,1,0,0,0,0,0,0,0
+Desulforegula,1,0,0,0,0,0,0,0
+Desulfosporomusa,1,0,0,0,0,0,1,0
+Desulfothermobacter,1,0,0,1,1,1,1,1
+Desulfovectis,1,0,0,0,0,0,1,0
+Desulfurispira,1,0,0,1,0,0,0,0
+Dethiosulfatarculus,1,0,0,1,1,1,1,1
+Dethiothermospora,1,0,0,1,1,1,1,1
+Devriesea,1,0,0,0,0,0,1,0
+Dolomitihabitans,1,0,0,1,1,1,1,1
+Dongshaea,1,1,0,0,1,1,0,0
+Echinimonas,1,1,0,1,1,1,1,0
+Ectorhizobium,1,1,0,1,1,1,0,0
+Edaphobacillus,1,0,0,0,0,0,0,0
+Egbenema,1,0,0,1,1,0,0,0
+Eilatimonas,1,0,0,0,0,0,0,0
+Eisenibacter,1,0,0,1,0,1,1,1
+Eleftheria,1,0,0,1,1,1,1,1
+Elongatibacter,1,0,0,1,1,1,1,1
+Endosaccharibacter,1,1,0,1,1,0,1,0
+Endothiovibrio,1,0,0,0,0,0,1,0
+Entomobacter,1,0,0,0,0,1,1,0
+Entomohabitans,1,1,0,1,1,1,0,0
+Ephemeroptericola,1,1,0,1,1,1,1,0
+Ercella,1,0,0,0,0,0,1,0
+Estrella,1,0,0,0,0,0,1,0
+Eupransor,1,0,0,0,0,0,0,0
+Exobacillus,1,0,0,1,1,1,1,1
+Facilibium,1,0,0,1,1,1,1,1
+Facivitalis,1,0,0,1,1,1,1,0
+Falsiphaeobacter,1,1,0,1,1,1,0,0
+Falsiporphyromonas,1,0,0,0,1,1,0,0
+Fastidiosibacter,1,0,0,1,1,1,1,0
+Feifania,1,1,0,1,1,1,1,1
+Ferranicluibacter,1,1,0,1,1,1,1,0
+Ferruginivarius,1,0,0,1,1,1,1,1
+Fertoeibacter,1,0,0,1,1,1,1,1
+Fervidicella,1,0,0,0,0,0,0,0
+Fervidicola,1,0,0,1,1,0,1,0
+Ferviditalea,1,0,0,1,1,1,1,0
+Fibrivirga,1,0,0,1,1,1,1,1
+Fidelibacter,1,0,0,0,0,0,0,0
+Filobacillus,1,0,0,1,0,1,1,1
+Flagellatimonas,1,0,1,1,1,1,1,0
+Flaviflagellibacter,1,0,0,0,1,1,0,0
+Flavimaribacter,1,0,0,1,1,1,1,1
+Flavisericum,1,0,0,1,1,1,1,1
+Flavisphingomonas,1,0,0,0,1,0,0,0
+Flavisphingopyxis,1,0,0,1,1,1,1,1
+Flexibacterium,1,1,0,1,1,1,1,0
+Flexithrix,1,0,0,1,0,0,1,1
+Flindersiella,1,0,0,0,0,0,1,0
+Flocculibacter,1,0,0,1,1,1,1,1
+Fodinibacter (ex Wang et al. 2009),1,0,0,0,0,0,0,0
+Fodinisporobacter,1,0,0,1,1,0,1,0
+Foetidibacter,1,0,0,1,1,1,1,1
+Foliimonas,1,1,0,1,1,1,1,1
+Fontibacter,1,0,0,0,1,1,0,0
+Fonticella,1,0,0,0,0,0,0,0
+Fontisphaera,1,0,0,1,1,0,0,1
+Fontisubflavum,1,0,0,1,1,1,1,1
+Fontivita,1,0,0,1,1,1,1,1
+Formicincola,1,1,0,1,1,1,0,0
+Fretibacter,1,0,0,1,1,1,1,1
+Fuchsiella,1,0,0,1,1,1,1,1
+Fulvitalea,1,0,0,0,0,0,0,0
+Fuscibacter,1,1,0,1,1,1,1,0
+Fusibacillus,1,1,0,1,1,0,0,1
+Futiania,1,0,0,1,1,1,1,1
+Gabonia,1,0,0,0,0,0,0,0
+Galenea,1,0,0,0,0,0,1,0
+Gandjariella,1,0,0,0,0,1,1,0
+Gangjinia,1,0,0,0,0,0,0,0
+Gayadomonas,1,0,0,1,0,1,1,1
+Gehongia,1,1,0,1,1,1,1,1
+Geochorda,1,0,0,1,0,0,0,1
+Geojedonia,1,0,0,0,1,1,0,0
+Geomesophilobacter,1,0,0,1,1,1,1,1
+Gephyromycinifex,1,1,0,0,1,1,1,0
+Gimibacter,1,0,0,1,1,1,1,1
+Goleter,1,0,0,1,1,0,1,0
+Gomphosphaeria,1,0,0,1,1,1,1,1
+Gordoniibacillus,1,0,0,1,0,1,1,0
+Govanella,1,0,0,1,1,0,0,1
+Grimontella,1,0,0,1,0,0,0,0
+Grylomicrobium,1,0,1,1,1,0,0,0
+Guggenheimella,1,1,0,1,1,1,1,0
+Guopingia,1,1,0,1,1,1,1,1
+Gynurincola,1,1,0,1,1,1,1,0
+Halanaerobaculum,1,0,0,0,0,0,1,0
+Halanaerocella,1,0,0,0,0,0,1,0
+Halarsenatibacter,1,0,0,0,0,0,0,0
+Haliovirga,1,0,0,0,0,0,0,0
+Haloactinomyces,1,0,0,0,0,0,0,0
+Haloactinospora,1,0,0,1,0,0,0,0
+Halobacteroides,1,0,0,1,0,1,1,1
+Halocella,1,0,0,1,1,1,1,0
+Halocola,1,0,0,1,1,1,1,1
+Halodurantibacterium,1,0,0,0,1,1,0,0
+Haloflavibacter,1,0,0,1,1,1,1,1
+Haloglycomyces,1,0,0,1,0,1,1,1
+Halomarinibacterium,1,0,0,1,1,1,1,1
+Halonatronomonas,1,0,0,1,1,1,1,1
+Halonatronum,1,0,0,1,0,0,1,0
+Halosaccharopolyspora,1,0,0,0,0,0,0,0
+Halostreptopolyspora,1,0,0,1,1,1,1,1
+Halotectona (SeqCode),1,0,0,1,1,1,1,1
+Halotolerantifilum,1,0,0,1,1,1,1,0
+Hapalosiphon,1,0,0,1,1,1,1,1
+Harenicola,1,0,0,1,1,1,1,1
+Hartmannibacter,1,0,0,0,0,0,0,0
+Hazenella,1,0,0,0,0,0,0,0
+Helicovermis,1,0,0,0,0,0,0,0
+Herbihabitans,1,0,0,0,0,0,0,0
+Heteroscytonema,1,0,0,1,1,1,1,0
+Hohaiivirga,1,1,0,1,1,1,1,0
+Hollandina,1,1,0,1,1,1,1,0
+Holtiella,1,1,0,1,1,1,1,0
+Hongsoonwoonella,1,0,0,1,0,1,1,0
+Howardella,1,0,0,0,0,0,1,0
+Hugenholtzia,1,0,0,1,0,1,1,1
+Hugonella,1,0,0,0,0,0,1,0
+Huijunlia,1,0,0,1,1,1,1,1
+Hujiaoplasma,1,0,0,1,1,1,1,0
+Humidisolicoccus,1,0,0,1,1,1,1,1
+Hydrobacter,1,0,0,0,0,0,0,0
+Hydrocarboniclastica,1,0,0,1,1,1,1,1
+Hydrocoleum,1,0,0,1,1,1,1,0
+Hydrosulfovibrio,1,0,0,1,1,1,1,0
+Hyella,1,0,0,1,1,0,1,0
+Hypnocyclicus,1,0,0,0,0,0,0,0
+Ichthyenterobacterium,1,0,0,0,0,0,0,0
+Ichthyobacterium,1,0,0,0,0,0,0,0
+Ihuprevotella,1,1,0,1,1,0,1,0
+Imhoffiella,1,0,0,0,0,0,0,0
+Indibacter,1,0,0,1,0,0,1,0
+Indiicoccus,1,0,0,1,1,1,1,1
+Indioceanicola,1,0,0,1,0,1,1,1
+Inediibacterium,1,0,0,0,0,0,1,0
+Insulibacter,1,0,0,0,0,0,0,0
+Intestinicryptomonas,1,0,1,1,1,0,0,0
+Intestinirhabdus,1,1,0,1,1,1,1,0
+Iocasia,1,0,0,0,1,1,1,1
+Iphinoe,1,0,0,1,1,1,1,1
+Irregularibacter,1,1,0,1,1,0,0,0
+Isachenkonia,1,0,0,1,1,1,1,1
+Izemobacterium (SeqCode),1,0,0,1,1,1,1,1
+Jacksonvillea,1,0,0,1,1,0,0,1
+Jejudonia,1,0,0,0,1,1,0,0
+Jezberella,1,0,0,1,0,0,0,0
+Jidongwangia,1,1,0,1,1,1,1,0
+Jilunia,1,1,0,1,1,1,1,1
+Jingyaoa,1,1,0,1,1,1,1,1
+Kaiparowitsia,1,0,0,1,1,1,1,1
+Kastovskya,1,0,0,1,1,1,1,1
+Kaustia,1,0,0,1,1,0,0,1
+Keguizhuia,1,0,0,1,1,1,1,1
+Khoudiadiopia,1,0,0,0,0,0,0,0
+Kiritimatiella,1,0,0,1,1,1,1,1
+Koinonema,1,0,0,1,1,1,1,0
+Kolteria,1,0,0,1,1,0,0,1
+Konateibacter,1,0,0,0,0,0,0,0
+Krasilnikoviella,1,0,0,0,0,0,0,0
+Kribbia,1,0,0,0,0,0,0,0
+Ktedonospora,1,0,0,0,0,0,1,0
+Kueselia,1,0,0,1,1,0,0,1
+Kumtagia,1,1,0,1,1,1,0,0
+Lacibacterium,1,0,0,0,1,1,0,0
+Lacimonas,1,0,0,0,1,1,0,0
+Lacticigenium,1,0,0,1,0,0,1,0
+Lactivibrio,1,0,0,0,0,0,1,0
+Lacunimicrobium,1,0,0,1,1,0,0,1
+Leadbettera,1,0,0,0,0,0,0,0
+Leekyejoonella,1,0,0,1,1,1,1,1
+Leifsonella,1,0,0,0,0,0,0,0
+Lentiprolixibacter,1,0,0,1,1,1,1,1
+Liberiplasma,1,0,0,1,1,0,1,0
+Lichenifustis,1,1,0,1,1,1,1,0
+Limibacter,1,0,0,1,1,1,1,1
+Limibacterium,1,0,0,1,1,1,1,0
+Limihaloglobus,1,0,0,1,1,1,1,1
+Limisalsivibrio,1,0,0,0,0,0,0,0
+Limobrevibacterium,1,0,0,1,1,1,1,1
+Litorerythrobacter,1,0,0,1,1,1,1,1
+Litoribacillus,1,0,0,0,0,0,0,0
+Litoribacterium,1,0,0,1,1,1,1,1
+Litoribaculum,1,0,0,0,0,0,0,0
+Litorisediminicola,1,0,0,0,1,1,0,0
+Longimycelium,1,0,0,0,0,0,0,0
+Longirhabdus,1,0,0,1,1,1,1,1
+Longivirga,1,0,0,0,1,1,0,0
+Lotipaludicoccus,1,0,0,1,1,1,1,0
+Lottiidibacillus,1,0,1,1,1,1,0,0
+Luethyella,1,0,0,0,1,1,0,0
+Lunatibacter,1,0,0,1,1,1,1,1
+Lutaonella,1,0,0,0,0,0,0,0
+Luteithermobacter,1,0,0,1,1,1,1,1
+Lutibaculum,1,0,0,1,0,0,1,0
+Lysinimonas,1,0,0,0,1,1,0,0
+Lyticum,1,1,0,1,1,1,0,0
+Mabikibacter,1,0,0,1,1,1,1,1
+Maccoyibacter,1,1,0,1,1,0,1,1
+Magnetofaba,1,0,0,1,1,1,1,1
+Maliibacterium,1,0,0,0,0,0,1,0
+Maliponia,1,0,0,0,0,0,0,0
+Manganibacter,1,0,0,1,1,1,1,1
+Mangrovactinospora,1,1,0,1,1,1,1,0
+Mangrovicella,1,1,0,1,1,1,1,0
+Mangrovihabitans,1,0,0,0,0,0,0,0
+Mangrovimicrobium,1,0,0,1,1,1,1,1
+Mangrovitalea,1,0,0,1,1,1,1,1
+Marasmitruncus,1,0,0,0,0,0,0,0
+Marcopretia,1,0,0,1,1,1,1,1
+Maricurvus,1,1,0,0,0,0,0,0
+Mariluticola,1,0,0,1,1,1,1,1
+Marinibaculum,1,0,0,0,1,1,0,0
+Marinicellulosiphila,1,0,0,0,0,0,0,0
+Marinifaba,1,0,0,1,1,1,1,1
+Marinigracilibium,1,0,0,0,1,1,1,1
+Marinihelvus,1,0,0,1,1,1,1,1
+Marinimicrococcus,1,0,0,1,1,1,1,1
+Marinithermofilum,1,0,0,0,0,0,0,0
+Marinithermus,1,0,0,1,0,1,1,1
+Marinivivus,1,1,0,1,1,0,1,0
+Marixanthotalea,1,0,0,1,1,1,1,0
+Mastigocladopsis,1,0,0,0,0,0,0,0
+Mechercharimyces,1,0,0,1,1,1,1,0
+Mediannikoviicoccus,1,0,0,1,0,0,1,0
+Meishania,1,0,0,1,1,1,1,1
+Melghiribacillus,1,0,0,0,0,0,0,0
+Mesobaculum,1,1,0,1,1,1,0,0
+Mesopusillimonas,1,1,0,1,1,1,0,1
+Metallococcus,1,0,0,1,1,1,1,0
+Metallumcola,1,0,0,1,1,1,1,0
+Metaprevotella,1,0,0,0,0,0,0,0
+Methyloferula,1,0,0,0,0,0,1,1
+Methylohalomonas,1,0,0,1,0,0,0,0
+Methylonatrum,1,0,0,1,1,1,1,1
+Methyloparacoccus,1,0,0,0,0,0,1,0
+Methylosoma,1,0,0,0,0,0,1,0
+Methyloterricola,1,0,0,0,0,0,0,0
+Methylothermus,1,0,0,0,0,0,1,0
+Microaceticoccus,1,0,0,1,1,0,0,0
+Microaerobacter,1,0,0,1,1,0,1,0
+Microchaete,1,0,0,0,0,0,1,0
+Micrococcoides,1,0,0,0,1,1,0,0
+Microcosmobacter,1,0,0,1,1,0,0,0
+Micropepsis,1,0,0,0,0,0,0,0
+Millisia,1,0,0,0,0,0,0,0
+Mojavia,1,0,0,1,1,1,1,1
+Mongoliimonas,1,0,0,1,1,1,1,1
+Montanilutibacter,1,0,0,1,1,1,1,1
+Moryella,1,0,0,0,0,0,0,0
+Muricaecibacterium,1,1,0,1,1,1,1,0
+Murinocardiopsis,1,0,0,0,0,0,0,0
+Mycovorax,1,1,0,1,1,1,1,1
+Nafulsella,1,0,0,0,0,0,0,0
+Namhaeicola,1,0,0,0,1,1,0,0
+Nanhaiella,1,0,0,1,1,1,1,1
+Natranaerofaba,1,0,0,1,1,1,1,0
+Natribacillus,1,0,0,0,0,0,0,0
+Natronocella,1,0,0,0,0,0,0,0
+Natronocytophaga,1,0,0,1,1,1,1,1
+Natronoflexus,1,0,0,1,0,0,0,0
+Natronoglycomyces,1,0,0,1,1,1,1,1
+Natronogracilivirga,1,0,0,1,1,1,1,0
+Natronomicrosphaera,1,0,0,1,1,1,1,1
+Natronospora (SeqCode),1,0,0,1,1,1,1,1
+Natronotalea,1,0,0,0,0,0,0,0
+Nautella,1,0,0,1,1,1,1,1
+Negadavirga,1,0,0,0,1,1,0,0
+Nemorincola,1,0,0,0,0,0,0,0
+Neoactinobaculum,1,0,0,0,0,0,1,0
+Neogemmobacter,1,0,0,0,0,0,0,0
+Neopararhizobium,1,0,0,1,1,1,1,1
+Neopoerus,1,1,0,1,1,1,1,0
+Neosynechococcus,1,1,0,1,1,0,1,0
+Nesiotobacter,1,1,0,1,1,1,1,1
+Nostochopsis,1,0,0,1,1,1,1,1
+Novisyntrophococcus,1,0,0,0,0,0,0,0
+Numidum,1,0,0,0,0,0,0,0
+Occidentia,1,0,0,0,0,0,1,0
+Oceanibacterium,1,0,0,0,0,0,0,0
+Oceaniserpentilla,1,0,0,0,0,0,0,0
+Oikeobacillus,1,0,0,0,0,0,0,0
+Okeanomitos,1,1,0,1,1,1,1,0
+Oleisolibacter,1,0,0,1,1,1,1,1
+Oleispirillum,1,0,0,1,1,1,1,1
+Oleomonas,1,0,0,1,1,1,1,1
+Ollibium,1,0,0,1,1,1,1,1
+Oryzicola,1,1,0,1,1,1,0,0
+Oryzisolibacter,1,0,0,0,0,0,0,0
+Oscillospira,1,0,0,0,0,0,0,0
+Ovoidimarina,1,0,0,1,1,1,1,0
+Owariibacterium,1,0,0,0,0,0,1,0
+Pacificoceanicola,1,1,0,1,1,0,1,0
+Paenalkalicoccus,1,1,0,1,1,1,0,0
+Paludibacillus,1,0,0,1,1,1,1,1
+Paludifilum,1,0,0,1,1,1,1,1
+Pannus,1,0,0,1,1,1,1,1
+Parablastomonas,1,0,0,1,1,1,1,1
+Parachitinimonas,1,0,0,1,1,1,1,1
+Parachryseolinea,1,0,0,1,1,1,1,1
+Paracidobacterium,1,0,0,1,1,1,1,1
+Paraciimarium,1,0,0,1,1,1,1,1
+Paraflavisolibacter,1,0,0,1,1,1,1,1
+Paraherbaspirillum,1,0,0,0,1,1,0,0
+Paralabilibaculum,1,0,0,1,1,1,1,1
+Paralimibaculum,1,0,0,0,0,0,0,0
+Paraliomyxa,1,0,0,1,1,1,1,1
+Paramaledivibacter,1,0,0,1,0,0,0,0
+Paramesorhizobium,1,0,0,1,1,1,1,1
+Paramixta,1,1,0,1,1,0,1,1
+Parapedomonas,1,0,0,1,1,0,0,1
+Parapontixanthobacter,1,0,0,1,1,0,0,1
+Pararhodonellum,1,0,0,1,1,1,1,1
+Parasalinivibrio,1,1,0,1,1,0,1,1
+Parasphaerochaeta,1,1,0,1,0,0,1,0
+Parasulfitobacter,1,0,0,1,1,1,1,1
+Parathalassolituus,1,0,0,1,1,1,1,0
+Paratissierella,1,1,0,1,1,1,1,1
+Paraurantiacibacter,1,0,0,1,1,1,1,1
+Parelusimicrobium,1,1,0,1,1,1,1,0
+Parundibacterium,1,0,0,0,0,0,0,0
+Parvibium,1,0,0,1,1,1,1,1
+Parvivirga,1,0,0,1,1,1,1,1
+Pegethrix,1,0,0,1,1,1,1,0
+Peiella,1,0,0,1,1,1,1,1
+Pelagihabitans,1,1,0,1,1,1,0,0
+Pelagirhabdus,1,0,0,0,0,0,0,0
+Pelagivirga,1,0,0,1,1,1,1,1
+Peloplasma,1,0,0,1,1,1,1,0
+Pelotalea,1,0,0,1,1,1,1,1
+Persicirhabdus,1,0,0,0,1,0,0,1
+Perspicuibacillus,1,1,0,1,1,1,1,0
+Petropleomorpha,1,0,0,0,0,0,0,0
+Phaeacidiphilus,1,0,0,0,0,0,0,0
+Phaeovibrio,1,0,0,1,1,1,1,0
+Phaseolibacter,1,1,0,0,0,1,1,0
+Philodulcilactobacillus,1,0,0,0,0,0,0,0
+Phorcysia,1,0,0,0,0,0,0,0
+Phototrophicus,1,0,0,1,1,1,1,0
+Phycobium,1,1,0,1,1,1,0,0
+Phytohalomonas,1,1,0,1,1,1,0,0
+Piezobacter,1,0,0,0,0,0,1,0
+Pilibacter,1,0,0,1,0,0,0,0
+Pillotina,1,1,0,1,1,1,1,0
+Pirellulimonas,1,0,0,1,1,0,0,1
+Piscibacter,1,0,0,0,0,0,0,0
+Plantimonas,1,1,0,0,0,1,0,0
+Plastorhodobacter,1,0,0,0,1,1,0,0
+Plectolyngbya,1,0,0,1,1,1,1,1
+Pleomorphovibrio,1,0,0,1,1,1,1,1
+Plesiocystis,1,0,0,0,0,0,0,0
+Pollutibacter,1,0,0,1,1,1,1,1
+Polluticaenibacter,1,0,0,1,1,1,1,1
+Polystyrenella,1,0,0,1,1,0,0,1
+Pontitalea,1,0,0,1,1,1,1,1
+Populibacterium,1,0,0,0,1,1,0,0
+Poritiphilus,1,0,1,1,1,1,0,0
+Portococcus,1,0,0,0,0,0,0,0
+Postechiella,1,0,0,0,0,0,0,0
+Potamolinea,1,0,0,1,1,1,1,1
+Profundibacterium,1,0,0,1,0,1,1,1
+Profundirhabdus,1,0,0,1,1,1,1,1
+Propionigenium,1,0,0,0,0,0,0,0
+Pseudahrensia,1,0,0,0,1,1,0,0
+Pseudalgibacter,1,0,0,1,1,1,1,1
+Pseudanabaenococcus,1,1,0,1,1,0,1,0
+Pseudaquidulcibacter,1,0,0,1,1,1,1,1
+Pseudenhygromyxa,1,1,0,1,1,1,0,0
+Pseudobythopirellula,1,0,0,1,1,0,1,0
+Pseudocalidococcus,1,0,0,1,1,1,1,1
+Pseudochryseolinea,1,0,0,1,1,1,1,1
+Pseudodysgonomonas,1,0,0,0,0,0,0,0
+Pseudofulvibacter,1,0,0,0,1,1,0,0
+Pseudokordiimonas,1,0,0,1,1,0,0,1
+Pseudomethylobacillus,1,0,0,1,1,1,1,1
+Pseudoponticoccus,1,0,0,1,1,1,1,1
+Pseudopontixanthobacter,1,0,0,1,1,1,1,1
+Pseudoprevotella,1,1,0,1,1,1,1,0
+Pseudoseohaeicola,1,0,0,1,0,1,1,0
+Pseudosporangium,1,0,0,0,0,0,0,0
+Pukyongiella,1,1,0,1,1,1,1,0
+Pustulibacterium,1,0,0,0,0,0,0,0
+Puteibacter,1,0,0,1,1,1,1,1
+Pyranulibacter,1,0,0,1,1,1,1,1
+Qaidamihabitans,1,1,0,1,1,1,1,1
+Qiania,1,1,0,1,1,1,1,1
+Qingrenia,1,1,0,1,1,1,1,1
+Radicibacter,1,1,0,1,1,1,1,1
+Rapidithrix,1,0,0,1,1,1,1,0
+Rappaport,1,1,0,1,1,1,1,0
+Rarispira,1,0,0,1,1,1,1,1
+Ravibacter,1,0,0,0,0,0,0,0
+Reticulibacter,1,0,0,0,0,1,1,0
+Rhabdochromatium,1,0,0,1,0,1,1,0
+Rhabdonatronobacter,1,0,0,1,1,1,1,1
+Rhabdothermus,1,0,0,0,0,0,0,0
+Rhinopithecimicrobium,1,1,0,1,1,1,1,1
+Rhizocola,1,0,0,0,0,0,0,0
+Rhizohabitans,1,0,0,0,0,0,1,0
+Rhizomonospora,1,0,0,0,0,1,1,0
+Rhizosaccharibacter,1,1,0,1,1,1,1,0
+Rhizosphaericola,1,0,0,1,1,1,1,1
+Rhodalgimonas,1,1,0,1,1,1,0,0
+Rhodobaculum,1,0,0,1,1,1,1,0
+Rhodocista,1,0,0,0,1,1,0,0
+Rippkaea,1,0,0,0,0,0,0,0
+Risungbinella,1,1,0,1,1,1,1,0
+Rohdeia,1,0,0,1,1,0,0,1
+Romeriopsis,1,0,0,1,1,1,1,0
+Roseimarinus,1,0,0,0,0,0,0,0
+Roseisalinus,1,0,0,0,0,0,0,0
+Roseiterribacter,1,0,0,0,0,0,0,0
+Roseithermus,1,0,0,1,1,1,1,1
+Roseitranquillus,1,0,0,1,1,1,0,0
+Roseospirillum,1,0,0,0,0,0,0,0
+Rubellicoccus,1,0,0,1,1,1,1,0
+Rubeoparvulum,1,0,0,0,0,0,1,0
+Rubidibacter,1,0,0,0,0,0,0,0
+Rubricoccus,1,0,0,1,1,1,1,1
+Rubrilithobacter,1,0,0,1,1,1,1,1
+Rudaeicoccus,1,0,0,0,0,0,0,0
+Rugositalea,1,0,0,0,0,0,0,0
+Ruixingdingia,1,0,0,1,1,1,1,1
+Rurimicrobium,1,0,0,0,0,0,0,0
+Sabulibacter,1,0,0,1,1,1,1,1
+Saccharobesus,1,0,0,1,1,0,1,1
+Salicola,1,0,0,1,1,1,1,0
+Salinactinospora,1,0,0,0,0,0,0,0
+Salinibius,1,0,0,1,1,1,1,1
+Saliniferula,1,0,0,1,1,1,1,1
+Salinihabitans,1,0,0,0,0,0,0,0
+Saliniradius,1,0,0,1,1,1,1,1
+Salinithrix,1,0,0,0,1,1,0,0
+Salisaeta,1,0,0,1,0,1,1,1
+Saliterribacillus,1,0,0,0,0,0,0,0
+Salmonirosea,1,1,0,1,1,1,1,1
+Salsipaludibacter,1,0,0,1,1,0,1,1
+Saltatorellus,1,0,0,1,1,0,0,1
+Sandaracinomonas,1,0,0,1,1,1,1,1
+Sanyastnella,1,1,0,1,1,0,0,0
+Saxibacter,1,0,0,1,1,1,1,0
+Scatolibacter,1,0,0,0,0,0,0,0
+Scleromatobacter,1,0,0,1,1,1,1,1
+Scytolyngbya,1,0,0,1,1,1,1,1
+Scytonematopsis,1,0,0,1,1,1,1,0
+Sediminibacter,1,0,0,0,0,1,1,1
+Sediminitomix,1,0,0,0,0,0,0,0
+Seinonella,1,0,0,0,0,0,0,0
+Selenihalanaerobacter,1,0,0,0,0,0,0,0
+Seminibacterium,1,0,0,0,1,1,0,0
+Shackletoniella,1,0,0,1,1,1,1,0
+Shiella,1,0,0,1,1,1,1,1
+Shivajiella,1,0,0,0,1,1,0,0
+Shumkonia,1,0,0,1,1,1,1,1
+Siansivirga,1,0,0,1,0,1,1,1
+Simulacricoccus,1,0,0,1,1,1,1,1
+Sivoneniella,1,0,0,1,1,1,0,1
+Solihabitans,1,0,0,1,1,1,1,1
+Solirhodobacter,1,0,0,1,1,1,1,1
+Solirubrum,1,0,0,1,1,1,1,1
+Sphaerothrix,1,0,0,1,1,1,1,1
+Sphingoaurantiacus,1,0,0,0,1,1,0,0
+Spiractinospora,1,0,0,1,1,1,1,1
+Spirirestis,1,0,0,1,1,1,1,1
+Splendidivirga,1,1,0,1,1,1,0,0
+Spongisporangium,1,0,0,0,0,0,0,0
+Sporanaerobium,1,0,0,1,1,1,1,1
+Sporohalobacter,1,0,0,0,0,0,0,0
+Sporolituus,1,0,0,1,0,0,0,0
+Sporotomaculum,1,0,0,1,1,1,1,1
+Staphylospora,1,0,0,1,1,1,1,1
+Stenoxybacter,1,0,0,1,0,0,0,0
+Stratiformator,1,0,0,1,1,0,0,1
+Streptohalobacillus,1,0,0,0,0,0,0,0
+Subsaxibacter,1,0,0,1,1,1,1,0
+Succinispira,1,0,0,1,1,1,1,1
+Suicoccus,1,1,0,1,1,0,0,0
+Sulfonitrofixus,1,0,0,1,1,0,0,1
+Sulfuriroseicoccus,1,0,0,1,1,1,1,1
+Sungkyunkwania,1,0,0,0,1,1,0,0
+Svornostia,1,0,0,1,1,0,0,1
+Swingsia,1,1,0,1,1,1,1,0
+Symbioplanes,1,1,0,1,1,0,1,0
+Symplocastrum,1,0,0,1,1,1,1,1
+Syntrophobotulus,1,0,0,1,1,1,1,1
+Tamaricihabitans,1,0,0,0,0,0,0,0
+Tannockella,1,1,0,1,1,0,1,0
+Tardibacter,1,0,0,1,1,1,1,1
+Taurinivorans,1,1,0,1,1,1,1,1
+Telmatobacter,1,1,0,1,1,1,1,0
+Temperatibacter,1,0,0,1,1,0,1,1
+Tenebrionibacter,1,1,0,1,1,1,1,0
+Tengunoibacter,1,0,0,0,0,0,0,0
+Terasakiispira,1,0,0,1,1,1,1,0
+Teretinema,1,0,0,0,0,1,1,1
+Termitispirillum (SeqCode),1,0,0,0,0,0,0,0
+Terripilifer,1,0,0,1,1,1,1,1
+Terrirhizobium,1,0,0,1,1,1,1,1
+Terrirubrum,1,0,0,1,1,1,1,1
+Tetzosporium,1,1,0,1,1,1,1,0
+Texcoconibacillus,1,0,0,0,0,0,0,0
+Thainema,1,0,0,1,1,1,1,1
+Thalassiella,1,0,0,0,0,0,1,0
+Thalassoroseus,1,1,0,1,1,1,1,0
+Thalassovivens,1,0,0,1,1,0,0,0
+Thermalbibacter,1,0,0,1,1,1,1,1
+Thermasporomyces,1,0,0,1,0,0,0,0
+Thermatribacter,1,0,0,1,1,1,1,1
+Thermocoleostomius,1,0,0,1,1,0,0,1
+Thermodesulfomicrobium,1,0,0,0,0,0,0,0
+Thermohahella,1,0,0,1,1,1,1,1
+Thermohalobacter,1,0,0,1,1,1,1,0
+Thermohydrogenium,1,0,0,1,0,0,0,0
+Thermopirellula,1,0,0,0,0,0,1,0
+Thermorhabdus,1,0,0,1,1,1,1,1
+Thermosinus,1,0,0,0,0,0,0,0
+Thermospira,1,0,0,1,1,1,1,1
+Thermostaphylospora,1,0,0,0,0,0,0,0
+Thermostilla,1,0,0,0,0,0,0,0
+Thermotalea,1,0,0,1,1,1,1,0
+Thermovorax,1,0,0,1,1,1,1,1
+Thetidibacter,1,0,0,1,1,1,1,1
+Thioalkalicoccus,1,0,0,1,1,1,1,0
+Thiobaca,1,0,0,1,0,0,0,0
+Thiofaba,1,0,0,1,1,1,1,1
+Thioflavicoccus,1,0,0,1,0,0,1,0
+Thioflexithrix,1,0,0,1,1,0,1,0
+Thiofractor,1,0,0,0,0,0,1,0
+Thioprofundum,1,0,0,0,0,0,1,0
+Thioreductor,1,0,0,0,0,0,0,0
+Thiorhodospira,1,0,0,1,1,0,1,1
+Thiosocius,1,1,0,1,1,0,1,1
+Thiospirillum,1,0,0,1,1,1,1,1
+Thiospirochaeta,1,0,0,1,1,1,1,0
+Tianxiuia,1,0,0,0,1,0,0,0
+Timaviella,1,1,0,1,1,1,1,0
+Tullyiplasma,1,1,0,0,0,1,1,0
+Tuwongella,1,0,0,0,0,0,0,0
+Utexia,1,1,0,1,1,0,0,0
+Vacuolonema,1,0,0,1,1,1,1,0
+Vaginimicrobium,1,0,0,1,0,1,0,0
+Vaginisenegalia,1,0,0,0,0,0,1,0
+Vallicoccus,1,0,0,1,1,1,1,1
+Vampirococcus,1,0,0,1,1,0,1,0
+Variimorphobacter,1,1,0,1,1,0,1,0
+Vasconcelosia,1,0,0,1,1,1,1,0
+Virgifigura,1,0,0,1,1,1,1,1
+Viridibacterium,1,0,0,0,0,0,0,0
+Viscerimonas,1,0,0,0,0,0,0,0
+Vitiosangium,1,0,0,1,1,1,1,1
+Vulcanimicrobium,1,0,0,0,0,0,0,0
+Vulcanithermus,1,0,0,0,0,0,1,0
+Wandonia,1,0,0,0,0,0,0,0
+Westiellopsis,1,0,0,1,0,1,0,0
+Woodsholea,1,0,0,1,0,1,1,1
+Woronichinia,1,0,0,1,1,1,1,1
+Wuhapuella,1,0,0,1,1,1,1,1
+Xanthovirga,1,0,0,1,1,0,1,1
+Xiashengella,1,1,0,1,1,1,1,0
+Yanghanlia,1,0,0,1,1,1,1,1
+Youxingia,1,1,0,1,1,1,1,1
+Yunchengibacter,1,0,0,1,1,1,1,1
+Zarconia,1,0,0,1,1,1,1,0
+Zemynaea,1,0,0,1,1,1,1,1
+Zhaonella,1,0,0,1,1,1,1,1
+Zhurongbacter,1,0,0,1,1,1,1,0
+Zophobihabitans,1,1,0,1,1,0,0,0

@@ -1,0 +1,9 @@
+field,rows_scanned,raw_present,raw_present_percent_all_rows,standardized_present,standardized_present_percent_all_rows,standardized_present_percent_same_field_raw_present_rows
+Isolation Source,2596890,1735465,66.83,1488358,57.31,85.76
+Isolation Site,2596890,31317,1.21,781785,30.1,2496.36
+Sample Type,2596890,249434,9.61,1553621,59.83,622.86
+Environment Medium,2596890,114288,4.4,458393,17.65,401.09
+Environment (Broad Scale),2596890,150908,5.81,574408,22.12,380.63
+Environment (Local Scale),2596890,112433,4.33,369631,14.23,328.76
+Host Disease,2596890,61404,2.36,22236,0.86,36.21
+Host Health State,2596890,2872,0.11,2524,0.1,87.88
