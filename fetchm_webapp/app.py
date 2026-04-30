@@ -10453,6 +10453,8 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
         label="Host disease",
     )
     add_categorical_bar("host_health_state_bar", "Host_Health_State_SD", "Host health-state distribution", "Teal", label="Host health state")
+    add_categorical_bar("host_disease_raw_bar", "Host Disease", "Raw host disease distribution", "Sunset", label="Raw host disease")
+    add_categorical_bar("host_health_state_raw_bar", "Host Health State", "Raw host health-state distribution", "Teal", label="Raw host health state")
 
     add_standardized_coverage_plot(
         "standardized_context_coverage",
