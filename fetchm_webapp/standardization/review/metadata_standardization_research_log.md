@@ -797,3 +797,25 @@ Date: 2026-04-30
   - `Homosapines` maps to `Homo sapiens` / 9606.
   - `Piggle`, `Calve`, `Shepp`, and `Felix catus domesticus` map to the reviewed livestock/domestic animal hosts.
 - A genus standardization refresh is required before these curated rules are reflected in all stored managed metadata outputs and post-refresh quality audit metrics.
+
+## Targeted Host Disease Refinement
+
+Date: 2026-05-01
+
+- Reviewed the host disease plots after the metadata-analysis UI exposed raw and standardized disease distributions.
+- Confirmed the previous `Host_Disease_SD` coverage was too sparse for visible analysis in some taxa; for example, Microbacterium retained raw disease terms such as `scleroderma`, `Carcinoma, Ductal, Breast`, `Neoplasms`, `Lymphoma, Non-Hodgkin`, `C. difficile` variants, and food/source labels in the raw host-disease field.
+- Added conservative controlled-category rules for clear disease concepts, including:
+  - `Clostridioides difficile infection` variants.
+  - Infectious diseases such as Buruli ulcer, yersiniosis, tularemia, syphilis, leptospirosis, Lyme disease, diphtheria, brucellosis, legionellosis, melioidosis, and pertussis.
+  - Healthcare-associated infection terms.
+  - Respiratory disease/infection terms including `M. abscessus lung disease`, chronic obstructive pulmonary disease, bacterial respiratory disease, and acute respiratory tract infection.
+  - Cancer/neoplasm terms including breast neoplasm, prostatic neoplasm, adenocarcinoma, lymphoma, non-small-cell lung cancer, and general neoplasm/cancer.
+  - Other explicit clinical states including diabetes mellitus, glaucoma, scleroderma, traumatic brain injury, alcohol-related disorder, secondary infection, obesity, otitis media, gastritis, and diseased/positive disease flags.
+- Kept source/product labels out of `Host_Disease_SD`; food, dairy, pork/meat, environmental, wine, and screening-culture labels were routed as source/sample controlled categories where appropriate instead of being treated as diseases.
+- Controlled-category audit after this refinement:
+  - 6,839 total rows.
+  - 6,739 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
+- These rules are reproducible in `standardization/controlled_categories.csv`; stored taxon metadata will show the expanded disease standardization after the active genus standardization refresh applies the updated rule file.

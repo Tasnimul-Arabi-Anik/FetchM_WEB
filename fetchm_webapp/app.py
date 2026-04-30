@@ -3885,12 +3885,29 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     host_value = row.get("Host")
     host_method = str(host_standardization.get("Host_SD_Method") or "")
     host_as_context = host_value if host_method == "non_host_source" else ""
+    host_disease_context = [
+        row.get("Host Disease"),
+        row.get("BioSample Host Disease"),
+        row.get("BioSample Disease"),
+        row.get("BioSample Study Disease"),
+        row.get("BioSample Disease State"),
+    ]
     isolation_source_material = isolation_source_material_context(row.get("Isolation Source"))
     isolation_source, isolation_method, isolation_ontology_id = first_standardized_concept(
         [isolation_source_material, row.get("Isolation Site"), host_as_context],
         source_standardization_synonyms(),
         standardize_isolation_source,
     )
+    host_disease_source, host_disease_source_method, host_disease_source_ontology_id = first_standardized_concept(
+        host_disease_context,
+        source_standardization_synonyms(),
+    )
+    if host_disease_source and (not isolation_source or isolation_method == "missing"):
+        isolation_source, isolation_method, isolation_ontology_id = (
+            host_disease_source,
+            host_disease_source_method,
+            host_disease_source_ontology_id,
+        )
     isolation_site, isolation_site_method, isolation_site_ontology_id = first_standardized_concept(
         [
             row.get("Isolation Site"),
@@ -3917,6 +3934,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             row.get("Isolation Source"),
             row.get("Sample Type"),
             host_as_context,
+            *host_disease_context,
         ],
         ENVIRONMENT_BROAD_SYNONYMS,
     )
@@ -3933,6 +3951,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             row.get("Isolation Source"),
             row.get("Sample Type"),
             host_as_context,
+            *host_disease_context,
         ],
         ENVIRONMENT_LOCAL_SYNONYMS,
     )
@@ -3944,11 +3963,12 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             row.get("Isolation Source"),
             row.get("Sample Type"),
             host_as_context,
+            *host_disease_context,
         ],
         ENVIRONMENT_MEDIUM_SYNONYMS,
     )
     sample_type, sample_type_method, sample_type_ontology_id = first_standardized_concept(
-        [row.get("Sample Type"), row.get("Isolation Source"), host_as_context],
+        [row.get("Sample Type"), row.get("Isolation Source"), host_as_context, *host_disease_context],
         SAMPLE_TYPE_SYNONYMS,
     )
     host_sample_type, host_sample_method, host_sample_ontology_id = host_context_sample_type(host_standardization, host_value)
@@ -3959,13 +3979,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             host_sample_ontology_id,
         )
     host_disease, host_disease_method, host_disease_ontology_id = first_standardized_concept(
-        [
-            row.get("Host Disease"),
-            row.get("BioSample Host Disease"),
-            row.get("BioSample Disease"),
-            row.get("BioSample Study Disease"),
-            row.get("BioSample Disease State"),
-        ],
+        host_disease_context,
         HOST_DISEASE_SYNONYMS,
     )
     host_health_state, host_health_state_method, host_health_state_ontology_id = first_standardized_concept(
