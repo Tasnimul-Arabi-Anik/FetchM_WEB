@@ -8136,6 +8136,15 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
                     tuple(chunk),
                 )
             db.commit()
+        active_chunk_row = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM standardization_refresh_chunks
+            WHERE status IN ('pending', 'running')
+            """
+        ).fetchone()
+        if int(active_chunk_row["total"] or 0) > 0:
+            return None
         db.execute("BEGIN IMMEDIATE")
         row = db.execute(
             """
@@ -8146,12 +8155,18 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
               AND s.status = 'ready'
               AND s.metadata_status = 'ready'
               AND s.metadata_clean_path IS NOT NULL
+              AND (
+                  SELECT COUNT(*)
+                  FROM assembly_metadata am
+                  WHERE am.species_id = s.id
+              ) < ?
             ORDER BY
               CASE WHEN s.taxon_rank = 'genus' THEN 0 ELSE 1 END,
               COALESCE(s.genome_count, 0) DESC,
               t.requested_at ASC
             LIMIT 1
-            """
+            """,
+            (STANDARDIZATION_PARALLEL_CHUNK_MIN_ROWS,),
         ).fetchone()
         if row is None:
             db.commit()
@@ -8339,12 +8354,20 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
         row = db.execute(
             """
             SELECT
-                c.*,
-                s.species_name,
-                s.taxon_rank,
-                s.metadata_clean_path,
-                s.slug,
-                s.genome_count
+                s.*,
+                c.id AS chunk_id,
+                c.task_id AS chunk_task_id,
+                c.species_id AS chunk_species_id,
+                c.chunk_index AS chunk_index,
+                c.start_offset AS chunk_start_offset,
+                c.end_offset AS chunk_end_offset,
+                c.status AS chunk_status,
+                c.claimed_by AS chunk_claimed_by,
+                c.claimed_at AS chunk_claimed_at,
+                c.completed_at AS chunk_completed_at,
+                c.total_rows AS chunk_total_rows,
+                c.updated_rows AS chunk_updated_rows,
+                c.error AS chunk_error
             FROM standardization_refresh_chunks c
             JOIN standardization_refresh_tasks t ON t.id = c.task_id
             JOIN species s ON s.id = c.species_id
@@ -8373,12 +8396,27 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
             WHERE id = ?
               AND status = 'pending'
             """,
-            (worker_name, now, int(row["id"])),
+            (worker_name, now, int(row["chunk_id"])),
         ).rowcount
         db.commit()
     if not updated:
         return None
-    return {"chunk": dict(row), "species": row_to_species(row)}
+    chunk = {
+        "id": int(row["chunk_id"]),
+        "task_id": int(row["chunk_task_id"]),
+        "species_id": int(row["chunk_species_id"]),
+        "chunk_index": int(row["chunk_index"]),
+        "start_offset": int(row["chunk_start_offset"]),
+        "end_offset": int(row["chunk_end_offset"]),
+        "status": str(row["chunk_status"]),
+        "claimed_by": row["chunk_claimed_by"],
+        "claimed_at": row["chunk_claimed_at"],
+        "completed_at": row["chunk_completed_at"],
+        "total_rows": int(row["chunk_total_rows"] or 0),
+        "updated_rows": int(row["chunk_updated_rows"] or 0),
+        "error": row["chunk_error"],
+    }
+    return {"chunk": chunk, "species": row_to_species(row)}
 
 
 def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: str) -> bool:

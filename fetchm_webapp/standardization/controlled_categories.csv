@@ -6869,3 +6869,82 @@ animal-chicken-young chicken,Isolation_Source_SD,poultry,,high-count animal sour
 animal-cattle-steer,Isolation_Source_SD,cattle,,high-count animal source context correction 2026-04-30
 animal-swine-market swine,Isolation_Source_SD,swine,,high-count animal source context correction 2026-04-30
 other,Sample_Type_SD,other/unspecified,,high-count unspecified sample descriptor 2026-04-30
+human,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+human gut,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+human gut microbiome,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+gut metagenome,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+pig gut metagenome,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+infant gut microbiome,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+oral metagenome,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+feces,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+faeces,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+stool,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+excreta material,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+fecal material,Environment_Broad_Scale_SD,host-associated gut/oral/fecal environment,,post-audit high-value standardization rule 2026-04-30
+human-associated habitat,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+human associated habitat,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+digestive tract enviroment,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+digestive tract environment,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+intestinal,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+gut,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+human gut,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+infant gut microbiome,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+human feces,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+feces,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+faeces,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+stool,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+excreta material,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+fecal material,Environment_Local_Scale_SD,gut/fecal local context,,post-audit high-value standardization rule 2026-04-30
+soil biome,Environment_Broad_Scale_SD,terrestrial environment,,post-audit high-value standardization rule 2026-04-30
+tropical woodland biome,Environment_Broad_Scale_SD,terrestrial environment,,post-audit high-value standardization rule 2026-04-30
+algae metagenome,Environment_Broad_Scale_SD,marine environment,,post-audit high-value standardization rule 2026-04-30
+bodily fluid material biome,Environment_Broad_Scale_SD,clinical/host-associated material,,post-audit high-value standardization rule 2026-04-30
+biological sample,Environment_Broad_Scale_SD,clinical/host-associated material,,post-audit high-value standardization rule 2026-04-30
+coastal,Environment_Local_Scale_SD,coastal area,,post-audit high-value standardization rule 2026-04-30
+agricultural land,Environment_Local_Scale_SD,agricultural land,,post-audit high-value standardization rule 2026-04-30
+activated sludge,Environment_Local_Scale_SD,activated sludge,,post-audit high-value standardization rule 2026-04-30
+feces,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+faeces,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+fecal material,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+stool,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+human-gut,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+human gut,Environment_Medium_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+rich broth,Environment_Medium_SD,culture medium,,post-audit high-value standardization rule 2026-04-30
+leachate,Environment_Medium_SD,leachate,ENVO:00002141,post-audit high-value standardization rule 2026-04-30
+leachate [ENVO:00002141],Environment_Medium_SD,leachate,ENVO:00002141,post-audit high-value standardization rule 2026-04-30
+sea ice,Environment_Medium_SD,sea ice,,post-audit high-value standardization rule 2026-04-30
+biological waste material,Environment_Medium_SD,biological waste material,ENVO:01000373,post-audit high-value standardization rule 2026-04-30
+biological waste material [ENVO:01000373],Environment_Medium_SD,biological waste material,ENVO:01000373,post-audit high-value standardization rule 2026-04-30
+Faeces,Isolation_Site_SD,feces/stool,,post-audit high-value standardization rule 2026-04-30
+Root,Isolation_Site_SD,root,,post-audit high-value standardization rule 2026-04-30
+pancreas,Isolation_Site_SD,pancreas,,post-audit high-value standardization rule 2026-04-30
+Nasopharyngeal swab,Isolation_Site_SD,nasopharynx/oropharynx,,post-audit high-value standardization rule 2026-04-30
+whole organism,Isolation_Site_SD,whole organism,,post-audit high-value standardization rule 2026-04-30
+Saliva,Isolation_Site_SD,saliva,,post-audit high-value standardization rule 2026-04-30
+Tracheal aspiration,Sample_Type_SD,tracheal aspirate,,post-audit high-value standardization rule 2026-04-30
+Pure isolates,Sample_Type_SD,pure/single culture,,post-audit high-value standardization rule 2026-04-30
+isolated colonies,Sample_Type_SD,pure/single culture,,post-audit high-value standardization rule 2026-04-30
+single colony,Sample_Type_SD,pure/single culture,,post-audit high-value standardization rule 2026-04-30
+cell culturre,Sample_Type_SD,cell culture,,post-audit high-value standardization rule 2026-04-30
+whole genome,Sample_Type_SD,whole genome sequencing sample,,post-audit high-value standardization rule 2026-04-30
+assamly,Sample_Type_SD,assembly,,post-audit high-value standardization rule 2026-04-30
+Clean room floor,Sample_Type_SD,cleanroom floor,,post-audit high-value standardization rule 2026-04-30
+commercial probiotic,Sample_Type_SD,probiotic product,,post-audit high-value standardization rule 2026-04-30
+grain products,Sample_Type_SD,grain product,,post-audit high-value standardization rule 2026-04-30
+tuberculosis,Host_Disease_SD,tuberculosis,,post-audit high-value standardization rule 2026-04-30
+Clostridium difficile infection,Host_Disease_SD,Clostridioides difficile infection,,post-audit high-value standardization rule 2026-04-30
+pertussis,Host_Disease_SD,pertussis,,post-audit high-value standardization rule 2026-04-30
+bacterial infectious disease,Host_Disease_SD,bacterial infectious disease,,post-audit high-value standardization rule 2026-04-30
+Prostatic Neoplasms,Host_Disease_SD,prostatic neoplasm,,post-audit high-value standardization rule 2026-04-30
+Obesity,Host_Disease_SD,obesity,,post-audit high-value standardization rule 2026-04-30
+otitis media,Host_Disease_SD,otitis media,,post-audit high-value standardization rule 2026-04-30
+sick,Host_Health_State_SD,diseased,,post-audit high-value standardization rule 2026-04-30
+diseased,Host_Health_State_SD,diseased,,post-audit high-value standardization rule 2026-04-30
+carriage,Host_Health_State_SD,carrier,,post-audit high-value standardization rule 2026-04-30
+Dead,Host_Health_State_SD,dead,,post-audit high-value standardization rule 2026-04-30
+Control,Host_Health_State_SD,healthy/control,,post-audit high-value standardization rule 2026-04-30
+Specific pathogen free,Host_Health_State_SD,specific pathogen free,,post-audit high-value standardization rule 2026-04-30
+disease,Host_Health_State_SD,diseased,,post-audit high-value standardization rule 2026-04-30
+alive,Host_Health_State_SD,alive,,post-audit high-value standardization rule 2026-04-30
+Exacerbation,Host_Health_State_SD,exacerbation,,post-audit high-value standardization rule 2026-04-30
+scleroderma,Host_Health_State_SD,diseased,,post-audit high-value standardization rule 2026-04-30
