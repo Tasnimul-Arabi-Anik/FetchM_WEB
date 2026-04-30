@@ -695,3 +695,38 @@ Date: 2026-04-30
   - Source-like unmapped host values are mostly expected non-host/source labels such as food, wastewater, environment, soil, stool, water, seafood, hospital environment, and metagenome.
   - Remaining source-like mapped host rows are dominated by host-context phrases such as human feces, dairy calf feces, cattle manure, water deer, water buffalo, and similar biologically plausible host-context mappings.
   - Some rows remain policy decisions rather than code bugs, e.g. whether `chicken meat` should preserve `Gallus gallus` host context while also being represented as food/sample source.
+
+## Targeted Controlled-Category and Host Spot-Check Refinement
+
+Date: 2026-04-30
+
+- Performed a targeted review of the 414 suspicious controlled-category rules retained after the conflict cleanup, rather than another broad rewrite.
+- Refined deterministic generic `water` and `swab` mappings into more specific controlled classes where the original text supported it:
+  - Water examples: `canal water`, `drainage water`, `running water`, `built-environment water`, `agricultural/food-production water`, `drainage/runoff water`, `landfill/leachate water`, `seawater`, and `environmental water`.
+  - Swab examples: `urogenital swab`, `oral/oropharyngeal swab`, `rectal/cloacal/perianal swab`, `respiratory swab`, `wound/lesion/abscess swab`, `skin/body-surface swab`, `environmental swab`, `food/animal-production swab`, `teat/nipple swab`, and `surveillance swab`.
+- Demoted or corrected water-containing non-source phrases so they no longer fall through to generic environmental water:
+  - `cold water disease` -> `metadata descriptor/non-source`.
+  - `acquired via water exposure/ingestion ...` -> `metadata descriptor/non-source`.
+  - Long drought/water-deficit biomaterial descriptors -> `metadata descriptor/non-source`.
+- Added conservative host synonym or negative rules from host spot-check files:
+  - Broad/medium host mappings for values such as `Tique`, `Porifera`, `gecko`, `owl`, `whale`, `Ape`, `Crustacean`, `duckling`, `Lagomorph sp.`, and similar higher-rank host terms.
+  - Exact/high mappings where the value was sufficiently specific, e.g. `Crested Tern`, `Rhodnius prolixus 5th instar`, `S. aurata`, `Common chimpanzee`, `Sablefish`, `Anopheles gambiae lab colony`, and several plant host/source taxa.
+  - Negative host rules for clearly non-host or not-identifiable values such as `Pseudomonas`, `Synechococcus`, culture media, person names, institutions, cell/plasmid labels, disease labels, and environmental misspellings.
+- Validated representative mappings in the running web container:
+  - `Tique` -> `Ixodida` with medium confidence.
+  - `Porifera` -> `Porifera` with medium confidence.
+  - `Crested Tern` -> `Thalasseus bergii` with high confidence.
+  - `Anopheles gambiae lab colony` -> `Anopheles gambiae` with high confidence.
+  - `Pseudomonas` and blood-agar culture phrases no longer become host values.
+  - `Canal water` -> `canal water`; `drainage water` -> `drainage water`; `Cold water disease` -> `metadata descriptor/non-source`.
+- Final targeted controlled-category audit after this pass:
+  - 6,760 total rows.
+  - 6,660 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 suspicious approved rows remain.
+- The remaining 20 suspicious rows were intentionally retained after review:
+  - 13 are genuinely generic swab values without reliable anatomical/environmental specificity.
+  - 2 are generic water metadata terms.
+  - 5 are approved `metadata descriptor/non-source` values that are flagged only because their raw text contains water-related words.
+- A new genus standardization refresh is required before these targeted rule refinements appear in all managed metadata outputs.

@@ -1,15 +1,15 @@
 synonym,decision,note
 sea,non_host_source,Post-audit correction 2026-04-30: ambiguous marine/source word was over-mapped to a Lepidoptera genus; keep out of Host_SD unless manually curated with stronger context.
-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
-seawater,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
-deep sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
-deep-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
-brackish water,non_host_source,Post-audit correction 2026-04-30: water/source material, not host.
-baltic sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material, not host.
-sewage plant,non_host_source,Post-audit correction 2026-04-30: wastewater facility/source context, not host.
-bacteria culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
-bacterial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
-microbial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor, not host.
+sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
+seawater,non_host_source,Post-audit correction 2026-04-30: marine water/source material
+deep sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
+deep-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
+brackish water,non_host_source,Post-audit correction 2026-04-30: water/source material
+baltic sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
+sewage plant,non_host_source,Post-audit correction 2026-04-30: wastewater facility/source context
+bacteria culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
+bacterial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
+microbial culture,non_host_source,Post-audit correction 2026-04-30: microbial culture descriptor
 "N. Ennis, Tisa lab UNH",non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
 Instituto de Productos Lacteos de Asturias (IPLA)-CSIC,non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
 Chiu-Chung Young,non_host_source,AI reviewed approve_blank: Looks like person/institution/lab descriptor rather than biological host.
@@ -201,3 +201,19 @@ Isochrysis aff. galbana 'Tahitian isolate,non_host_source,Cluster instruction sa
 Medium 987,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
 Nasonia vitripennis LabII strain,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
 Amaru Indians,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
+Pseudomonas,non_host_source,"targeted host review 2026-04-30; bacterial self/source term, not eukaryotic host in bacterial metadata"
+Synechococcus,non_host_source,"targeted host review 2026-04-30; microbial term, not host"
+Grown in Blood agar culture medium.,non_host_source,targeted host review 2026-04-30; culture medium descriptor
+Prof. Gail Preston,not_identifiable,"targeted host review 2026-04-30; person name, not host"
+Zhang Yuzhong,not_identifiable,"targeted host review 2026-04-30; person name, not host"
+Yuping Zhang,not_identifiable,"targeted host review 2026-04-30; person name, not host"
+Wen-Jun Li,not_identifiable,"targeted host review 2026-04-30; person name, not host"
+Istituto di Microbiologia Universita' Cattolica del Sacro Cuore,not_identifiable,targeted host review 2026-04-30; institution/lab descriptor
+Laboratorio de Estudios Ecogenomicos UAEM,not_identifiable,targeted host review 2026-04-30; institution/lab descriptor
+Envirnment,non_host_source,targeted host review 2026-04-30; misspelled environment/source term
+communal hospital surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
+hospital communal surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
+Leptospirosis,non_host_source,"targeted host review 2026-04-30; disease term, not host"
+Apheresis platelet concentrate-Preservative solution,non_host_source,targeted host review 2026-04-30; clinical product/source descriptor
+TOPO10F',non_host_source,targeted host review 2026-04-30; lab strain/vector descriptor
+XLOLR,non_host_source,targeted host review 2026-04-30; lab strain/vector descriptor

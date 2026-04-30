@@ -6709,3 +6709,40 @@ Sambucus canadensis L.,sambucus canadensis,57008,high,"TaxonKit exact eukaryotic
 "Scarlet Hedgenettle, Stachys coccinea",stachys coccinea,141787,high,"TaxonKit exact eukaryotic match from variant ""stachys coccinea""."
 Sipunculus nudus L.,sipunculus nudus,6446,high,"TaxonKit exact eukaryotic match from variant ""sipunculus nudus""."
 "Western Tansy-Mustard, Descurainia pinnata",descurainia pinnata,110556,high,"TaxonKit exact eukaryotic match from variant ""descurainia pinnata""."
+Tique,Ixodida,6935,medium,targeted host review 2026-04-30; common-language tick label
+Porifera,Porifera,6040,medium,targeted host review 2026-04-30; broad sponge phylum
+gecko,Gekkonidae,8561,medium,targeted host review 2026-04-30; broad gecko host group
+owl,Strigiformes,30458,medium,targeted host review 2026-04-30; broad owl host group
+Crested Tern,Thalasseus bergii,1843445,high,targeted host review 2026-04-30; NCBI Taxonomy exact/common name
+Ox,Bos taurus,9913,medium,targeted host review 2026-04-30; domestic cattle common label
+day-old chicks,Gallus gallus,9031,medium,targeted host review 2026-04-30; juvenile chicken host context
+chick,Gallus gallus,9031,medium,targeted host review 2026-04-30; juvenile chicken host context
+chicks,Gallus gallus,9031,medium,targeted host review 2026-04-30; juvenile chicken host context
+fowl,Aves,8782,medium,targeted host review 2026-04-30; broad fowl/bird host group
+whale,Cetacea,9721,medium,targeted host review 2026-04-30; broad whale host group
+Ape,Hominidae,9604,medium,targeted host review 2026-04-30; broad ape host group
+tiapia,Tilapia,8126,medium,targeted host review 2026-04-30; typo/common fish host label
+Plantain,Musa,4640,medium,targeted host review 2026-04-30; plantain plant host/source label
+Parsley,Petroselinum crispum,4043,high,targeted host review 2026-04-30; plant host/source label
+tea,Camellia sinensis,4442,medium,targeted host review 2026-04-30; tea plant host/source label
+artichoke,Cynara cardunculus,4265,medium,targeted host review 2026-04-30; artichoke plant host/source label
+muskmelon,Cucumis melo,3656,medium,targeted host review 2026-04-30; melon plant host/source label
+Rhodnius prolixus 5th instar,Rhodnius prolixus,13249,high,targeted host review 2026-04-30; life-stage suffix removed
+S. aurata,Sparus aurata,8175,high,targeted host review 2026-04-30; common species abbreviation
+Blattoidea,Blattodea,85823,medium,targeted host review 2026-04-30; cockroach order spelling variant
+Common chimpanzee,Pan troglodytes,9598,high,targeted host review 2026-04-30; common name
+Sablefish,Anoplopoma fimbria,229290,high,targeted host review 2026-04-30; common name
+Beach Morning Glory Ipomoea pes-caprae,Ipomoea pes-caprae,89656,high,targeted host review 2026-04-30; common plus scientific name
+mungbean,Vigna radiata,157791,medium,targeted host review 2026-04-30; crop plant host/source label
+Lagomorph sp.,Lagomorpha,9975,medium,targeted host review 2026-04-30; broad lagomorph host group
+common marmosets,Callithrix jacchus,9483,medium,targeted host review 2026-04-30; common marmoset plural
+Oryzae sativa L.,Oryza sativa,4530,high,targeted host review 2026-04-30; spelling/scientific-name variant
+Marsupialia,Marsupialia,9263,medium,targeted host review 2026-04-30; broad marsupial host group
+Peafowl,Pavo,9048,medium,targeted host review 2026-04-30; broad peafowl host group
+raven,Corvidae,28725,medium,targeted host review 2026-04-30; broad raven/corvid host group
+chipmunk,Sciuridae,55153,medium,targeted host review 2026-04-30; broad chipmunk/squirrel host group
+Gnu,Connochaetes,9926,medium,targeted host review 2026-04-30; gnu/wildebeest host group
+Crustacean,Crustacea,197562,medium,targeted host review 2026-04-30; broad crustacean host group
+duckling,Duck,8839,medium,targeted host review 2026-04-30; juvenile duck host context
+Anopheles gambiae lab colony,Anopheles gambiae,7165,high,"targeted host review 2026-04-30; lab colony is context, host remains mosquito species"
+Capy C,Hydrochoerus hydrochaeris,10149,medium,targeted host review 2026-04-30; capybara shorthand
