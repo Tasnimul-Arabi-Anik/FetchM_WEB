@@ -2863,6 +2863,15 @@ def apply_core_standardization_overrides() -> None:
             "leaf": "plant tissue",
         }
     )
+    # Keep generic food labels generic. Specific meat/product classes are handled by
+    # more specific keys such as "pork", "chicken meat", and "raw ground beef".
+    ISOLATION_SOURCE_SYNONYMS.update(
+        {
+            "food": "food/food product",
+            "foods": "food/food product",
+            "food product": "food/food product",
+        }
+    )
     HOST_BROAD_SYNONYMS.update(
         {
             "bird": ("Aves", "8782"),
@@ -3817,7 +3826,8 @@ def broad_standardization_category(value: str) -> str:
 
 def standardize_secondary_metadata(row: dict[str, Any], host_standardization: dict[str, str]) -> dict[str, str]:
     host_value = row.get("Host")
-    host_as_context = "" if host_standardization.get("Host_TaxID") else host_value
+    host_method = str(host_standardization.get("Host_SD_Method") or "")
+    host_as_context = host_value if host_method == "non_host_source" else ""
     isolation_source_material = isolation_source_material_context(row.get("Isolation Source"))
     isolation_source, isolation_method, isolation_ontology_id = first_standardized_concept(
         [isolation_source_material, row.get("Isolation Site"), host_as_context],

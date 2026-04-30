@@ -201,8 +201,8 @@ Isochrysis aff. galbana 'Tahitian isolate,non_host_source,Cluster instruction sa
 Medium 987,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
 Nasonia vitripennis LabII strain,non_host_source,Cluster instruction says non-host/source/microbe/lab descriptor; no Host_SD rule created.
 Amaru Indians,not_identifiable,Cluster instruction says blank/not identifiable; no Host_SD rule created.
-Pseudomonas,non_host_source,"targeted host review 2026-04-30; bacterial self/source term, not eukaryotic host in bacterial metadata"
-Synechococcus,non_host_source,"targeted host review 2026-04-30; microbial term, not host"
+Pseudomonas,not_identifiable,"targeted host review 2026-04-30; bacterial self/source term, not eukaryotic host in bacterial metadata; blocked from host and secondary source routing 2026-04-30"
+Synechococcus,not_identifiable,"targeted host review 2026-04-30; microbial term, not host; blocked from host and secondary source routing 2026-04-30"
 Grown in Blood agar culture medium.,non_host_source,targeted host review 2026-04-30; culture medium descriptor
 Prof. Gail Preston,not_identifiable,"targeted host review 2026-04-30; person name, not host"
 Zhang Yuzhong,not_identifiable,"targeted host review 2026-04-30; person name, not host"
@@ -213,7 +213,7 @@ Laboratorio de Estudios Ecogenomicos UAEM,not_identifiable,targeted host review 
 Envirnment,non_host_source,targeted host review 2026-04-30; misspelled environment/source term
 communal hospital surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
 hospital communal surface,non_host_source,targeted host review 2026-04-30; healthcare surface/source term
-Leptospirosis,non_host_source,"targeted host review 2026-04-30; disease term, not host"
+Leptospirosis,not_identifiable,"targeted host review 2026-04-30; disease term, not host; blocked from host and secondary source routing 2026-04-30"
 Apheresis platelet concentrate-Preservative solution,non_host_source,targeted host review 2026-04-30; clinical product/source descriptor
-TOPO10F',non_host_source,targeted host review 2026-04-30; lab strain/vector descriptor
-XLOLR,non_host_source,targeted host review 2026-04-30; lab strain/vector descriptor
+TOPO10F',not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30
+XLOLR,not_identifiable,targeted host review 2026-04-30; lab strain/vector descriptor; blocked from host and secondary source routing 2026-04-30

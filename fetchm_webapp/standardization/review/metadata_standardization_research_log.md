@@ -729,4 +729,9 @@ Date: 2026-04-30
   - 13 are genuinely generic swab values without reliable anatomical/environmental specificity.
   - 2 are generic water metadata terms.
   - 5 are approved `metadata descriptor/non-source` values that are flagged only because their raw text contains water-related words.
+- Fixed a host-context routing edge case found during validation:
+  - Negative host values classified as `missing`, `not_identifiable`, or unresolved no longer leak into source/sample/environment standardization.
+  - Only values explicitly classified as `non_host_source` can be reused as secondary metadata context.
+  - Microbial/person/cell/disease labels such as `Pseudomonas`, `Synechococcus`, `Leptospirosis`, `TOPO10F'`, and `XLOLR` are blocked from both `Host_SD` and secondary source routing.
+  - Generic `Food` now remains `Isolation_Source_SD=food/food product` and `Sample_Type_SD=food`, instead of being over-specific as a pork/meat product.
 - A new genus standardization refresh is required before these targeted rule refinements appear in all managed metadata outputs.
