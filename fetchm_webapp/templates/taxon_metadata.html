@@ -78,8 +78,27 @@
 
       <aside class="panel">
         <h2>Metadata Completeness</h2>
+        <h3>Raw vs Standardized</h3>
         <div class="coverage-bars">
-          {% for item in analysis.completeness_rows if item.field in ["Host_SD", "Country", "Collection Date", "Isolation_Source_SD", "Sample_Type_SD", "Environment_Medium_SD", "Assembly Level", "Assembly Stats Number of Contigs"] %}
+          {% for item in analysis.standardized_coverage %}
+            <div class="coverage-bar-card">
+              <div class="coverage-bar-head">
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.raw_percent }}% raw · {{ item.standardized_percent }}% standardized</span>
+              </div>
+              <div class="coverage-track">
+                <div class="coverage-fill muted" style="width: {{ item.raw_percent }}%;"></div>
+              </div>
+              <div class="coverage-track">
+                <div class="coverage-fill" style="width: {{ item.standardized_percent }}%;"></div>
+              </div>
+              <div class="coverage-caption">{{ item.raw_present }} raw · {{ item.standardized_present }} standardized · {{ item.recovered }} recovered</div>
+            </div>
+          {% endfor %}
+        </div>
+        <h3>Other Core Fields</h3>
+        <div class="coverage-bars">
+          {% for item in analysis.completeness_rows if item.field in ["Country", "Collection Date", "Assembly Level", "Assembly Stats Number of Contigs"] %}
             <div class="coverage-bar-card">
               <div class="coverage-bar-head">
                 <strong>{{ item.field.replace("_", " ") }}</strong>
@@ -307,11 +326,26 @@
       {% if analysis.plots.host_rank_bar %}
         <div class="plot-shell">{{ analysis.plots.host_rank_bar.html|safe }}</div>
       {% endif %}
+      {% if analysis.plots.host_superkingdom_bar %}
+        <div class="plot-shell top-gap">{{ analysis.plots.host_superkingdom_bar.html|safe }}</div>
+      {% endif %}
+      {% if analysis.plots.host_phylum_bar %}
+        <div class="plot-shell top-gap">{{ analysis.plots.host_phylum_bar.html|safe }}</div>
+      {% endif %}
       {% if analysis.plots.host_class_bar %}
         <div class="plot-shell top-gap">{{ analysis.plots.host_class_bar.html|safe }}</div>
       {% endif %}
       {% if analysis.plots.host_order_bar %}
         <div class="plot-shell top-gap">{{ analysis.plots.host_order_bar.html|safe }}</div>
+      {% endif %}
+      {% if analysis.plots.host_family_bar %}
+        <div class="plot-shell top-gap">{{ analysis.plots.host_family_bar.html|safe }}</div>
+      {% endif %}
+      {% if analysis.plots.host_genus_bar %}
+        <div class="plot-shell top-gap">{{ analysis.plots.host_genus_bar.html|safe }}</div>
+      {% endif %}
+      {% if analysis.plots.host_species_bar %}
+        <div class="plot-shell top-gap">{{ analysis.plots.host_species_bar.html|safe }}</div>
       {% endif %}
       <p class="figure-caption">Host lineage fields make broad host labels such as bird, mammal, or plant analyzable without forcing all values to species level.</p>
     </section>

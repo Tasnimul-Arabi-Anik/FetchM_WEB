@@ -8951,6 +8951,11 @@ def summarize_year_span(rows: list[dict[str, str]]) -> tuple[int | None, int | N
 
 
 REPORT_MISSING_LABELS = {"absent", "unknown"}
+ANALYSIS_VALUE_CANONICALIZERS = {
+    "Sample_Type_SD": {
+        "pure culture": "pure/single culture",
+    },
+}
 
 
 def metadata_dataframe(rows: list[dict[str, str]]) -> pd.DataFrame:
@@ -8968,6 +8973,9 @@ def metadata_value_counts(frame: pd.DataFrame, field: str, *, limit: int = 8) ->
         series.ne("")
         & ~series.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing", "none", "nan"})
     ]
+    canonicalizer = ANALYSIS_VALUE_CANONICALIZERS.get(field)
+    if canonicalizer:
+        series = series.map(lambda value: canonicalizer.get(str(value).strip().lower(), value))
     counts = series.value_counts().head(limit)
     return [(str(index), int(value)) for index, value in counts.items()]
 
@@ -10229,6 +10237,9 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
         ]
         if values.empty:
             return
+        canonicalizer = ANALYSIS_VALUE_CANONICALIZERS.get(field)
+        if canonicalizer:
+            values = values.map(lambda value: canonicalizer.get(str(value).strip().lower(), value))
         counts = values.value_counts().head(limit).reset_index()
         display_label = label or field
         counts.columns = [display_label, "Genomes"]
@@ -10414,8 +10425,13 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
     )
     add_categorical_bar("host_raw_bar", "Host", "Raw host annotations", "Sunsetdark", label="Raw host")
     add_categorical_bar("host_rank_bar", "Host_Rank", "Host taxonomic rank distribution", "Tealgrn", label="Host rank")
+    add_categorical_bar("host_superkingdom_bar", "Host_Superkingdom", "Host superkingdom distribution", "Tealgrn", label="Host superkingdom")
+    add_categorical_bar("host_phylum_bar", "Host_Phylum", "Host phylum distribution", "Tealgrn", label="Host phylum")
     add_categorical_bar("host_class_bar", "Host_Class", "Host class distribution", "Emrld", label="Host class")
     add_categorical_bar("host_order_bar", "Host_Order", "Host order distribution", "Viridis", label="Host order")
+    add_categorical_bar("host_family_bar", "Host_Family", "Host family distribution", "Teal", label="Host family")
+    add_categorical_bar("host_genus_bar", "Host_Genus", "Host genus distribution", "Mint", label="Host genus")
+    add_categorical_bar("host_species_bar", "Host_Species", "Host species distribution", "Sunsetdark", label="Host species")
     add_categorical_bar("host_confidence_bar", "Host_SD_Confidence", "Host standardization confidence", "Blues", label="Confidence")
     add_categorical_bar("host_method_bar", "Host_SD_Method", "Host standardization method", "Mint", label="Method")
 

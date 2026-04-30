@@ -1029,6 +1029,10 @@ button.danger {
   background: linear-gradient(90deg, #165c4e, #3e8d78);
 }
 
+.coverage-fill.muted {
+  background: linear-gradient(90deg, #b8844d, #d8b47e);
+}
+
 .coverage-caption {
   margin-top: 8px;
   color: var(--muted);
