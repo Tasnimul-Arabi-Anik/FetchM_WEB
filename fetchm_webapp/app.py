@@ -130,6 +130,14 @@ STANDARDIZATION_CHUNK_SIZE = max(
     1,
     int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_CHUNK_SIZE", "10000")),
 )
+STANDARDIZATION_PARALLEL_CHUNK_MIN_ROWS = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_PARALLEL_CHUNK_MIN_ROWS", "200000")),
+)
+STANDARDIZATION_PARALLEL_CHUNK_SIZE = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_PARALLEL_CHUNK_SIZE", "200000")),
+)
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_NEGATIVE_CACHE_HOURS", "168"))
@@ -4810,6 +4818,31 @@ def ensure_standardization_refresh_table(db: sqlite3.Connection) -> None:
 
         CREATE INDEX IF NOT EXISTS idx_standardization_refresh_tasks_status
         ON standardization_refresh_tasks (status, requested_at);
+
+        CREATE TABLE IF NOT EXISTS standardization_refresh_chunks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            task_id INTEGER NOT NULL,
+            species_id INTEGER NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            start_offset INTEGER NOT NULL,
+            end_offset INTEGER NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            total_rows INTEGER NOT NULL DEFAULT 0,
+            updated_rows INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            FOREIGN KEY (task_id) REFERENCES standardization_refresh_tasks (id),
+            FOREIGN KEY (species_id) REFERENCES species (id),
+            UNIQUE(task_id, chunk_index)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_standardization_refresh_chunks_status
+        ON standardization_refresh_chunks (status, task_id, chunk_index);
+
+        CREATE INDEX IF NOT EXISTS idx_standardization_refresh_chunks_task
+        ON standardization_refresh_chunks (task_id, status);
         """
     )
     db.commit()
@@ -8050,6 +8083,15 @@ def queue_standardization_refresh_for_ready_taxa(
                 """,
                 (species_id, now),
             )
+            task_row = db.execute(
+                "SELECT id FROM standardization_refresh_tasks WHERE species_id = ?",
+                (species_id,),
+            ).fetchone()
+            if task_row is not None:
+                db.execute(
+                    "DELETE FROM standardization_refresh_chunks WHERE task_id = ?",
+                    (int(task_row["id"]),),
+                )
             queued += 1
         db.commit()
     return {
@@ -8069,7 +8111,7 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
             """
             SELECT id, claimed_by
             FROM standardization_refresh_tasks
-            WHERE status = 'running'
+            WHERE status IN ('running', 'finalizing')
               AND claimed_by IS NOT NULL
             """
         ).fetchall()
@@ -8149,6 +8191,394 @@ def mark_standardization_refresh_task_failed(task_id: int, error: str) -> None:
             (now, error[:2000], task_id),
         )
         db.commit()
+
+
+def ensure_standardization_chunks_for_pending_tasks() -> int:
+    prepared = 0
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        rows = db.execute(
+            """
+            SELECT
+                t.id AS task_id,
+                s.id AS species_id,
+                s.species_name,
+                COALESCE(s.genome_count, 0) AS genome_count,
+                (
+                    SELECT COUNT(*)
+                    FROM assembly_metadata am
+                    WHERE am.species_id = s.id
+                ) AS stored_row_total
+            FROM standardization_refresh_tasks t
+            JOIN species s ON s.id = t.species_id
+            WHERE t.status = 'pending'
+              AND s.status = 'ready'
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+            ORDER BY COALESCE(s.genome_count, 0) DESC, t.requested_at ASC
+            LIMIT 8
+            """,
+        ).fetchall()
+        for row in rows:
+            task_id = int(row["task_id"])
+            species_id = int(row["species_id"])
+            stored_row_total = int(row["stored_row_total"] or 0)
+            if stored_row_total < STANDARDIZATION_PARALLEL_CHUNK_MIN_ROWS:
+                continue
+            existing = db.execute(
+                "SELECT COUNT(*) AS total FROM standardization_refresh_chunks WHERE task_id = ?",
+                (task_id,),
+            ).fetchone()
+            if int(existing["total"] or 0) > 0:
+                db.execute(
+                    """
+                    UPDATE standardization_refresh_tasks
+                    SET status = 'chunking',
+                        total_rows = ?,
+                        updated_rows = 0,
+                        claimed_by = NULL,
+                        claimed_at = NULL,
+                        completed_at = NULL,
+                        error = NULL
+                    WHERE id = ?
+                    """,
+                    (stored_row_total, task_id),
+                )
+                prepared += 1
+                continue
+            chunk_rows = []
+            for chunk_index, start_offset in enumerate(
+                range(0, stored_row_total, STANDARDIZATION_PARALLEL_CHUNK_SIZE)
+            ):
+                end_offset = min(start_offset + STANDARDIZATION_PARALLEL_CHUNK_SIZE, stored_row_total)
+                chunk_rows.append(
+                    (
+                        task_id,
+                        species_id,
+                        chunk_index,
+                        start_offset,
+                        end_offset,
+                    )
+                )
+            db.executemany(
+                """
+                INSERT OR IGNORE INTO standardization_refresh_chunks (
+                    task_id, species_id, chunk_index, start_offset, end_offset
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                chunk_rows,
+            )
+            db.execute(
+                """
+                UPDATE standardization_refresh_tasks
+                SET status = 'chunking',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = NULL,
+                    total_rows = ?,
+                    updated_rows = 0,
+                    error = NULL
+                WHERE id = ?
+                """,
+                (stored_row_total, task_id),
+            )
+            prepared += 1
+            logging.info(
+                "Prepared %s standardization chunks for %s (%s rows).",
+                len(chunk_rows),
+                row["species_name"],
+                stored_row_total,
+            )
+        db.commit()
+    return prepared
+
+
+def release_stale_standardization_chunk_claims_for_dead_workers(db: sqlite3.Connection) -> int:
+    rows = db.execute(
+        """
+        SELECT id, claimed_by
+        FROM standardization_refresh_chunks
+        WHERE status = 'running'
+          AND claimed_by IS NOT NULL
+        """
+    ).fetchall()
+    stale_ids = [
+        int(row["id"])
+        for row in rows
+        if not worker_heartbeat_is_live(str(row["claimed_by"]))
+    ]
+    if not stale_ids:
+        return 0
+    for start in range(0, len(stale_ids), SQLITE_VARIABLE_CHUNK_SIZE):
+        chunk = stale_ids[start : start + SQLITE_VARIABLE_CHUNK_SIZE]
+        placeholders = ", ".join("?" for _ in chunk)
+        db.execute(
+            f"""
+            UPDATE standardization_refresh_chunks
+            SET status = 'pending',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                error = NULL
+            WHERE id IN ({placeholders})
+            """,
+            tuple(chunk),
+        )
+    return len(stale_ids)
+
+
+def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any] | None:
+    ensure_standardization_chunks_for_pending_tasks()
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        released = release_stale_standardization_chunk_claims_for_dead_workers(db)
+        if released:
+            db.commit()
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute(
+            """
+            SELECT
+                c.*,
+                s.species_name,
+                s.taxon_rank,
+                s.metadata_clean_path,
+                s.slug,
+                s.genome_count
+            FROM standardization_refresh_chunks c
+            JOIN standardization_refresh_tasks t ON t.id = c.task_id
+            JOIN species s ON s.id = c.species_id
+            WHERE c.status = 'pending'
+              AND t.status = 'chunking'
+              AND s.status = 'ready'
+              AND s.metadata_status = 'ready'
+            ORDER BY
+              COALESCE(s.genome_count, 0) DESC,
+              c.task_id ASC,
+              c.chunk_index ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        updated = db.execute(
+            """
+            UPDATE standardization_refresh_chunks
+            SET status = 'running',
+                claimed_by = ?,
+                claimed_at = ?,
+                completed_at = NULL,
+                error = NULL
+            WHERE id = ?
+              AND status = 'pending'
+            """,
+            (worker_name, now, int(row["id"])),
+        ).rowcount
+        db.commit()
+    if not updated:
+        return None
+    return {"chunk": dict(row), "species": row_to_species(row)}
+
+
+def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: str) -> bool:
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        task_row = db.execute(
+            """
+            SELECT s.*, t.id AS task_id
+            FROM standardization_refresh_tasks t
+            JOIN species s ON s.id = t.species_id
+            WHERE t.id = ?
+            """,
+            (task_id,),
+        ).fetchone()
+        if task_row is None or str(task_row["status"]) != "chunking":
+            db.commit()
+            return False
+        chunk_status = {
+            str(row["status"]): int(row["total"] or 0)
+            for row in db.execute(
+                """
+                SELECT status, COUNT(*) AS total
+                FROM standardization_refresh_chunks
+                WHERE task_id = ?
+                GROUP BY status
+                """,
+                (task_id,),
+            ).fetchall()
+        }
+        if chunk_status.get("failed", 0):
+            db.execute(
+                """
+                UPDATE standardization_refresh_tasks
+                SET status = 'failed',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    error = 'One or more standardization chunks failed.'
+                WHERE id = ?
+                """,
+                (now, task_id),
+            )
+            db.commit()
+            return False
+        if chunk_status.get("pending", 0) or chunk_status.get("running", 0):
+            db.commit()
+            return False
+        updated = db.execute(
+            """
+            UPDATE standardization_refresh_tasks
+            SET status = 'finalizing',
+                claimed_by = ?,
+                claimed_at = ?,
+                error = NULL
+            WHERE id = ?
+              AND status = 'chunking'
+            """,
+            (worker_name, now, task_id),
+        ).rowcount
+        db.commit()
+    if not updated:
+        return False
+
+    species = row_to_species(task_row)
+    try:
+        rows_by_accession = load_taxon_metadata_rows(species.id)
+        rows = list(rows_by_accession.values())
+        metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
+            species.slug,
+            rows,
+            normalize_rows=False,
+        )
+        try:
+            refresh_metadata_species_search_entries(species, rows)
+        except Exception:
+            logging.exception("Failed to refresh metadata species search entries for taxon %s.", species.id)
+        with get_sqlite_connection() as db:
+            totals = db.execute(
+                """
+                SELECT COALESCE(SUM(total_rows), 0) AS total_rows,
+                       COALESCE(SUM(updated_rows), 0) AS updated_rows
+                FROM standardization_refresh_chunks
+                WHERE task_id = ?
+                """,
+                (task_id,),
+            ).fetchone()
+            done_at = utc_now()
+            db.execute(
+                """
+                UPDATE species
+                SET metadata_path = ?,
+                    metadata_clean_path = ?,
+                    genome_count = COALESCE(genome_count, ?),
+                    metadata_last_built_at = COALESCE(metadata_last_built_at, ?),
+                    updated_at = ?
+                WHERE id = ?
+                """,
+                (metadata_path, clean_path, clean_count, done_at, done_at, species.id),
+            )
+            db.execute(
+                """
+                UPDATE standardization_refresh_tasks
+                SET status = 'done',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    total_rows = ?,
+                    updated_rows = ?,
+                    error = NULL
+                WHERE id = ?
+                """,
+                (
+                    done_at,
+                    int(totals["total_rows"] or 0),
+                    min(int(totals["updated_rows"] or 0), clean_count),
+                    task_id,
+                ),
+            )
+            db.commit()
+        return True
+    except Exception as exc:
+        mark_standardization_refresh_task_failed(task_id, str(exc))
+        raise
+
+
+def process_standardization_refresh_chunk(payload: dict[str, Any], worker_name: str) -> int:
+    chunk = payload["chunk"]
+    species = payload["species"]
+    assert isinstance(species, SpeciesRecord)
+    chunk_id = int(chunk["id"])
+    task_id = int(chunk["task_id"])
+    start_offset = max(0, int(chunk["start_offset"]))
+    end_offset = max(start_offset, int(chunk["end_offset"]))
+    try:
+        rows = load_taxon_metadata_row_chunk(
+            species.id,
+            limit=end_offset - start_offset,
+            offset=start_offset,
+        )
+        refreshed_at = utc_now()
+        updated_rows = upsert_taxon_metadata_rows(
+            species.id,
+            rows,
+            refreshed_at=refreshed_at,
+        )
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE standardization_refresh_chunks
+                SET status = 'done',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    total_rows = ?,
+                    updated_rows = ?,
+                    error = NULL
+                WHERE id = ?
+                """,
+                (utc_now(), len(rows), updated_rows, chunk_id),
+            )
+            db.commit()
+        logging.info(
+            "Standardized chunk %s for %s (%s-%s), updated %s rows.",
+            chunk["chunk_index"],
+            species.species_name,
+            start_offset,
+            end_offset,
+            updated_rows,
+        )
+        finalize_standardization_refresh_task_if_ready(task_id, worker_name)
+        return updated_rows
+    except Exception as exc:
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE standardization_refresh_chunks
+                SET status = 'failed',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    error = ?
+                WHERE id = ?
+                """,
+                (utc_now(), str(exc)[:2000], chunk_id),
+            )
+            db.execute(
+                """
+                UPDATE standardization_refresh_tasks
+                SET status = 'failed',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    completed_at = ?,
+                    error = ?
+                WHERE id = ?
+                """,
+                (utc_now(), f"Chunk {chunk.get('chunk_index')} failed: {str(exc)[:1800]}", task_id),
+            )
+            db.commit()
+        raise
 
 
 def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
@@ -12529,6 +12959,11 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "standardization"}:
+                standardization_chunk = claim_next_standardization_refresh_chunk(worker_name)
+                if standardization_chunk is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_standardization_refresh_chunk(standardization_chunk, worker_name)
+                    continue
                 standardization_task = claim_next_standardization_refresh_task(worker_name)
                 if standardization_task is not None:
                     with maintain_worker_heartbeat(worker_name):
