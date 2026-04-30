@@ -8972,6 +8972,29 @@ def metadata_value_counts(frame: pd.DataFrame, field: str, *, limit: int = 8) ->
     return [(str(index), int(value)) for index, value in counts.items()]
 
 
+def metadata_analysis_field(frame: pd.DataFrame, standardized_field: str, raw_field: str) -> str:
+    """Prefer standardized columns for analysis when they contain usable values."""
+    if standardized_field in frame.columns and metadata_present_unknown_absent(frame, standardized_field)["present"] > 0:
+        return standardized_field
+    return raw_field
+
+
+def metadata_standardized_coverage(frame: pd.DataFrame, raw_field: str, standardized_field: str, label: str) -> dict[str, Any]:
+    raw = metadata_present_unknown_absent(frame, raw_field)
+    standardized = metadata_present_unknown_absent(frame, standardized_field)
+    recovered = max(0, int(standardized["present"]) - int(raw["present"]))
+    return {
+        "label": label,
+        "raw_field": raw_field,
+        "standardized_field": standardized_field,
+        "raw_present": raw["present"],
+        "raw_percent": raw["present_percent"],
+        "standardized_present": standardized["present"],
+        "standardized_percent": standardized["present_percent"],
+        "recovered": recovered,
+    }
+
+
 def metadata_numeric_series(frame: pd.DataFrame, field: str) -> pd.Series:
     if field not in frame.columns:
         return pd.Series(dtype="float64")
@@ -9370,19 +9393,20 @@ def build_metadata_insights(
         insights.append(f"The metadata artifact was last built on {species.metadata_last_built_at}.")
 
     completeness_map = {row["field"]: row for row in completeness_rows}
-    for field in ["Collection Date", "Geographic Location", "Host", "Isolation Source"]:
+    for field in ["Collection Date", "Geographic Location", "Host_SD", "Isolation_Source_SD", "Sample_Type_SD", "Environment_Medium_SD"]:
         row = completeness_map.get(field)
         if not row:
             continue
+        label = field.replace("_", " ")
         insights.append(
-            f"{field} is informative for {row['present']:,} genomes ({row['present_percent']}%), "
+            f"{label} is informative for {row['present']:,} genomes ({row['present_percent']}%), "
             f"unknown for {row['unknown']:,}, and absent for {row['absent']:,}."
         )
 
-    top_hosts = metadata_value_counts(frame, "Host", limit=3)
+    top_hosts = metadata_value_counts(frame, metadata_analysis_field(frame, "Host_SD", "Host"), limit=3)
     if top_hosts:
         rendered = ", ".join(f"{name} ({count})" for name, count in top_hosts)
-        insights.append(f"The most represented hosts are {rendered}.")
+        insights.append(f"The most represented standardized hosts are {rendered}.")
 
     top_countries = metadata_value_counts(frame, "Country", limit=3)
     if top_countries:
@@ -9392,6 +9416,24 @@ def build_metadata_insights(
     if year_start and year_end:
         insights.append(
             f"Collection years currently span from {year_start} to {year_end}, enabling temporal comparisons."
+        )
+
+    standardized_pairs = [
+        ("Host", "Host_SD", "host"),
+        ("Isolation Source", "Isolation_Source_SD", "isolation-source"),
+        ("Sample Type", "Sample_Type_SD", "sample-type"),
+        ("Environment Medium", "Environment_Medium_SD", "environment-medium"),
+    ]
+    recovery_fragments: list[str] = []
+    for raw_field, standardized_field, label in standardized_pairs:
+        if raw_field not in frame.columns or standardized_field not in frame.columns:
+            continue
+        coverage = metadata_standardized_coverage(frame, raw_field, standardized_field, label)
+        if coverage["recovered"] > 0:
+            recovery_fragments.append(f"{coverage['recovered']:,} additional {label} rows")
+    if recovery_fragments:
+        insights.append(
+            "Standardized metadata recovery adds " + ", ".join(recovery_fragments) + " beyond the directly populated raw fields."
         )
 
     completeness = metadata_numeric_series(frame, "CheckM completeness")
@@ -9998,8 +10040,10 @@ def build_summary_paragraphs(
 
     top_countries = analysis.get("top_countries") or []
     top_continents = analysis.get("top_continents") or []
-    top_hosts = analysis.get("top_hosts") or []
-    top_sources = analysis.get("top_sources") or []
+    top_hosts = analysis.get("top_standardized_hosts") or analysis.get("top_hosts") or []
+    top_sources = analysis.get("top_standardized_sources") or analysis.get("top_sources") or []
+    top_sample_types = analysis.get("top_standardized_sample_types") or []
+    top_environment_media = analysis.get("top_standardized_environment_media") or []
     species_diversity = analysis.get("species_diversity") or {}
     if top_countries:
         rendered = ", ".join(f"{name} ({count})" for name, count in top_countries[:3])
@@ -10016,14 +10060,25 @@ def build_summary_paragraphs(
     if top_hosts:
         rendered = ", ".join(f"{name} ({count})" for name, count in top_hosts[:3])
         paragraphs.append(
-            f"In parallel, host annotations are dominated by {rendered}, highlighting the principal biological contexts represented "
+            f"In parallel, standardized host annotations are dominated by {rendered}, highlighting the principal biological contexts represented "
             f"in the stored dataset and defining the clearest axes for host-associated comparison."
         )
     if top_sources:
         rendered = ", ".join(f"{name} ({count})" for name, count in top_sources[:3])
         paragraphs.append(
-            f"Likewise, isolation-source metadata most frequently records {rendered}, showing that the current assembly set is "
+            f"Likewise, standardized isolation-source metadata most frequently records {rendered}, showing that the current assembly set is "
             f"anchored around a relatively small number of recurrent sampling origins."
+        )
+    if top_sample_types:
+        rendered = ", ".join(f"{name} ({count})" for name, count in top_sample_types[:3])
+        paragraphs.append(
+            f"Standardized sample-type analysis further identifies {rendered} as the leading sampled material classes, "
+            f"making heterogeneous BioSample descriptors easier to compare across genomes."
+        )
+    if top_environment_media:
+        rendered = ", ".join(f"{name} ({count})" for name, count in top_environment_media[:3])
+        paragraphs.append(
+            f"Environmental-medium standardization highlights {rendered}, adding a controlled view of sampled matrices beyond the raw environment fields."
         )
     if species.taxon_rank == "genus" and species_diversity.get("distinct_species_total"):
         dominant_species = species_diversity.get("dominant_species")
@@ -10156,6 +10211,81 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
             "figure": styled,
         }
 
+    def add_categorical_bar(
+        key: str,
+        field: str,
+        title: str,
+        scale: str,
+        *,
+        limit: int = 12,
+        label: str | None = None,
+    ) -> None:
+        if field not in frame.columns:
+            return
+        values = frame[field].astype(str).str.strip()
+        values = values[
+            values.ne("")
+            & ~values.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing", "none", "nan"})
+        ]
+        if values.empty:
+            return
+        counts = values.value_counts().head(limit).reset_index()
+        display_label = label or field
+        counts.columns = [display_label, "Genomes"]
+        add_plot(
+            key,
+            px.bar(
+                counts,
+                x="Genomes",
+                y=display_label,
+                orientation="h",
+                title=title,
+                color="Genomes",
+                color_continuous_scale=scale,
+                text="Genomes",
+            ).update_traces(textposition="outside", cliponaxis=False).update_layout(
+                yaxis={"categoryorder": "total ascending"},
+                margin={"l": 20, "r": 20, "t": 60, "b": 20},
+            ),
+        )
+
+    def add_standardized_coverage_plot(key: str, rows: list[dict[str, Any]], title: str) -> None:
+        if not rows:
+            return
+        coverage_frame = pd.DataFrame(rows)
+        if coverage_frame.empty:
+            return
+        melted = coverage_frame.melt(
+            id_vars=["label"],
+            value_vars=["raw_present", "standardized_present"],
+            var_name="Layer",
+            value_name="Genomes",
+        )
+        melted["Layer"] = melted["Layer"].replace(
+            {
+                "raw_present": "Raw field",
+                "standardized_present": "Standardized field",
+            }
+        )
+        add_plot(
+            key,
+            px.bar(
+                melted,
+                x="Genomes",
+                y="label",
+                color="Layer",
+                barmode="group",
+                orientation="h",
+                title=title,
+                text="Genomes",
+                color_discrete_map={"Raw field": "#b8844d", "Standardized field": "#165c4e"},
+                labels={"label": "Metadata field"},
+            ).update_traces(textposition="outside", cliponaxis=False).update_layout(
+                yaxis={"categoryorder": "total ascending"},
+                margin={"l": 20, "r": 20, "t": 60, "b": 20},
+            ),
+        )
+
     species_counts = species_value_counts(frame)
     if species_counts:
         top_species = species_counts[:20]
@@ -10274,64 +10404,68 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
             ).update_traces(textposition="outside", cliponaxis=False).update_layout(yaxis={"categoryorder": "total ascending"}, margin={"l": 20, "r": 20, "t": 60, "b": 20}),
         )
 
-    if "Host" in frame.columns:
-        host_counts = (
-            frame["Host"].astype(str).str.strip()
+    host_analysis_field = metadata_analysis_field(frame, "Host_SD", "Host")
+    add_categorical_bar(
+        "host_bar",
+        host_analysis_field,
+        "Top standardized host annotations" if host_analysis_field == "Host_SD" else "Top host annotations",
+        "Sunsetdark",
+        label="Host",
+    )
+    add_categorical_bar("host_raw_bar", "Host", "Raw host annotations", "Sunsetdark", label="Raw host")
+    add_categorical_bar("host_rank_bar", "Host_Rank", "Host taxonomic rank distribution", "Tealgrn", label="Host rank")
+    add_categorical_bar("host_class_bar", "Host_Class", "Host class distribution", "Emrld", label="Host class")
+    add_categorical_bar("host_order_bar", "Host_Order", "Host order distribution", "Viridis", label="Host order")
+    add_categorical_bar("host_confidence_bar", "Host_SD_Confidence", "Host standardization confidence", "Blues", label="Confidence")
+    add_categorical_bar("host_method_bar", "Host_SD_Method", "Host standardization method", "Mint", label="Method")
+
+    for key, standardized_field, raw_field, title, scale, label in [
+        ("source_bar", "Isolation_Source_SD", "Isolation Source", "Top standardized isolation sources", "Mint", "Isolation source"),
+        ("environment_bar", "Environment_Broad_Scale_SD", "Environment (Broad Scale)", "Standardized broad environmental contexts", "Teal", "Broad environment"),
+        ("sample_type_bar", "Sample_Type_SD", "Sample Type", "Standardized sample type distribution", "Burg", "Sample type"),
+        ("environment_local_bar", "Environment_Local_Scale_SD", "Environment (Local Scale)", "Standardized local environmental contexts", "Emrld", "Local environment"),
+        ("environment_medium_bar", "Environment_Medium_SD", "Environment Medium", "Standardized environmental medium distribution", "Darkmint", "Environmental medium"),
+        ("isolation_site_bar", "Isolation_Site_SD", "Isolation Site", "Standardized isolation site distribution", "Tealgrn", "Isolation site"),
+    ]:
+        add_categorical_bar(
+            key,
+            metadata_analysis_field(frame, standardized_field, raw_field),
+            title,
+            scale,
+            label=label,
         )
-        host_counts = host_counts[
-            host_counts.ne("")
-            & ~host_counts.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing"})
-        ]
-        if not host_counts.empty:
-            host_counts = host_counts.value_counts().head(12).reset_index()
-            host_counts.columns = ["Host", "Genomes"]
-            add_plot(
-                "host_bar",
-            px.bar(
-                host_counts,
-                x="Genomes",
-                y="Host",
-                orientation="h",
-                title="Top host annotations",
-                color="Genomes",
-                color_continuous_scale="Sunsetdark",
-                text="Genomes",
-            ).update_traces(textposition="outside", cliponaxis=False).update_layout(yaxis={"categoryorder": "total ascending"}, margin={"l": 20, "r": 20, "t": 60, "b": 20}),
-            )
 
     for key, field, title, scale in [
-        ("source_bar", "Isolation Source", "Top isolation sources", "Mint"),
-        ("environment_bar", "Environment (Broad Scale)", "Broad environmental contexts", "Teal"),
+        ("source_raw_bar", "Isolation Source", "Raw isolation sources", "Mint"),
+        ("sample_type_raw_bar", "Sample Type", "Raw sample types", "Burg"),
+        ("environment_medium_raw_bar", "Environment Medium", "Raw environmental medium", "Darkmint"),
+        ("environment_broad_raw_bar", "Environment (Broad Scale)", "Raw broad environment", "Teal"),
+        ("environment_local_raw_bar", "Environment (Local Scale)", "Raw local environment", "Emrld"),
         ("assembly_level_bar", "Assembly Level", "Assembly level distribution", "Blues"),
-        ("host_disease_bar", "Host Disease", "Host disease distribution", "Sunset"),
-        ("sample_type_bar", "Sample Type", "Sample type distribution", "Burg"),
-        ("environment_local_bar", "Environment (Local Scale)", "Local environmental contexts", "Emrld"),
-        ("environment_medium_bar", "Environment Medium", "Environmental medium distribution", "Darkmint"),
     ]:
-        if field not in frame.columns:
-            continue
-        values = frame[field].astype(str).str.strip()
-        values = values[
-            values.ne("")
-            & ~values.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing"})
-        ]
-        if values.empty:
-            continue
-        counts = values.value_counts().head(12).reset_index()
-        counts.columns = [field, "Genomes"]
-        add_plot(
-            key,
-            px.bar(
-                counts,
-                x="Genomes",
-                y=field,
-                orientation="h",
-                title=title,
-                color="Genomes",
-                color_continuous_scale=scale,
-                text="Genomes",
-            ).update_traces(textposition="outside", cliponaxis=False).update_layout(yaxis={"categoryorder": "total ascending"}, margin={"l": 20, "r": 20, "t": 60, "b": 20}),
-        )
+        add_categorical_bar(key, field, title, scale)
+
+    add_categorical_bar(
+        "host_disease_bar",
+        metadata_analysis_field(frame, "Host_Disease_SD", "Host Disease"),
+        "Standardized host disease distribution",
+        "Sunset",
+        label="Host disease",
+    )
+    add_categorical_bar("host_health_state_bar", "Host_Health_State_SD", "Host health-state distribution", "Teal", label="Host health state")
+
+    add_standardized_coverage_plot(
+        "standardized_context_coverage",
+        [
+            metadata_standardized_coverage(frame, "Host", "Host_SD", "Host"),
+            metadata_standardized_coverage(frame, "Isolation Source", "Isolation_Source_SD", "Isolation source"),
+            metadata_standardized_coverage(frame, "Sample Type", "Sample_Type_SD", "Sample type"),
+            metadata_standardized_coverage(frame, "Environment Medium", "Environment_Medium_SD", "Environment medium"),
+            metadata_standardized_coverage(frame, "Environment (Broad Scale)", "Environment_Broad_Scale_SD", "Broad environment"),
+            metadata_standardized_coverage(frame, "Environment (Local Scale)", "Environment_Local_Scale_SD", "Local environment"),
+        ],
+        "Raw vs standardized metadata coverage",
+    )
 
     completeness = metadata_numeric_series(frame, "CheckM completeness")
     if not completeness.empty:
@@ -10511,15 +10645,26 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
 
     core_coverage_fields = [
         "Host",
+        "Host_SD",
+        "Host_TaxID",
         "Geographic Location",
         "Country",
         "Continent",
         "Subcontinent",
         "Isolation Source",
+        "Isolation_Source_SD",
         "Collection Date",
+        "Sample Type",
+        "Sample_Type_SD",
         "Environment (Broad Scale)",
+        "Environment_Broad_Scale_SD",
         "Environment (Local Scale)",
+        "Environment_Local_Scale_SD",
         "Environment Medium",
+        "Environment_Medium_SD",
+        "Isolation_Site_SD",
+        "Host_Disease_SD",
+        "Host_Health_State_SD",
         "Assembly Level",
         "Assembly Stats Number of Contigs",
     ]
@@ -10547,8 +10692,12 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
         "year_end": year_end,
         "top_countries": summarize_top_values(rows, "Country"),
         "top_continents": metadata_value_counts(frame, "Continent"),
-        "top_hosts": summarize_top_values(rows, "Host"),
-        "top_sources": summarize_top_values(rows, "Isolation Source"),
+        "top_hosts": summarize_top_values(rows, metadata_analysis_field(frame, "Host_SD", "Host")),
+        "top_sources": summarize_top_values(rows, metadata_analysis_field(frame, "Isolation_Source_SD", "Isolation Source")),
+        "top_standardized_hosts": metadata_value_counts(frame, "Host_SD"),
+        "top_standardized_sources": metadata_value_counts(frame, "Isolation_Source_SD"),
+        "top_standardized_sample_types": metadata_value_counts(frame, "Sample_Type_SD"),
+        "top_standardized_environment_media": metadata_value_counts(frame, "Environment_Medium_SD"),
         "genome_length": numeric_summary(genome_lengths),
         "completeness": numeric_summary(completeness_values),
         "contamination": numeric_summary(contamination_values),
@@ -10562,6 +10711,7 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
         "year_start": year_start,
         "year_end": year_end,
         "distinct_host_count": metadata_distinct_count(frame, "Host"),
+        "distinct_standardized_host_count": metadata_distinct_count(frame, "Host_SD"),
         "distinct_country_count": metadata_distinct_count(frame, "Country"),
         "distinct_continent_count": metadata_distinct_count(frame, "Continent"),
         "distinct_species_count": species_diversity["distinct_species_total"],
@@ -10572,15 +10722,37 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
         "scaffolds": numeric_summary(scaffold_values),
         "genome_length_display": format_sequence_length(numeric_summary(genome_lengths)["mean"]) if numeric_summary(genome_lengths) else "N/A",
         "top_hosts": summarize_top_values(rows, "Host"),
+        "top_standardized_hosts": metadata_value_counts(frame, "Host_SD"),
+        "top_host_ranks": metadata_value_counts(frame, "Host_Rank"),
+        "top_host_classes": metadata_value_counts(frame, "Host_Class"),
+        "top_host_orders": metadata_value_counts(frame, "Host_Order"),
+        "host_methods": metadata_value_counts(frame, "Host_SD_Method"),
+        "host_confidences": metadata_value_counts(frame, "Host_SD_Confidence"),
         "top_countries": summarize_top_values(rows, "Country"),
         "top_continents": metadata_value_counts(frame, "Continent"),
         "top_sources": summarize_top_values(rows, "Isolation Source"),
+        "top_standardized_sources": metadata_value_counts(frame, "Isolation_Source_SD"),
         "top_sample_types": summarize_top_values(rows, "Sample Type"),
+        "top_standardized_sample_types": metadata_value_counts(frame, "Sample_Type_SD"),
         "top_environments": summarize_top_values(rows, "Environment (Broad Scale)"),
+        "top_standardized_environment_broad": metadata_value_counts(frame, "Environment_Broad_Scale_SD"),
+        "top_standardized_environment_local": metadata_value_counts(frame, "Environment_Local_Scale_SD"),
+        "top_standardized_environment_media": metadata_value_counts(frame, "Environment_Medium_SD"),
+        "top_standardized_isolation_sites": metadata_value_counts(frame, "Isolation_Site_SD"),
+        "top_standardized_host_diseases": metadata_value_counts(frame, "Host_Disease_SD"),
+        "top_standardized_host_health_states": metadata_value_counts(frame, "Host_Health_State_SD"),
         "assembly_levels": summarize_top_values(rows, "Assembly Level"),
         "assembly_statuses": summarize_top_values(rows, "Assembly Status"),
         "top_subcontinents": metadata_value_counts(frame, "Subcontinent"),
         "top_host_diseases": metadata_value_counts(frame, "Host Disease"),
+        "standardized_coverage": [
+            metadata_standardized_coverage(frame, "Host", "Host_SD", "Host"),
+            metadata_standardized_coverage(frame, "Isolation Source", "Isolation_Source_SD", "Isolation source"),
+            metadata_standardized_coverage(frame, "Sample Type", "Sample_Type_SD", "Sample type"),
+            metadata_standardized_coverage(frame, "Environment Medium", "Environment_Medium_SD", "Environment medium"),
+            metadata_standardized_coverage(frame, "Environment (Broad Scale)", "Environment_Broad_Scale_SD", "Broad environment"),
+            metadata_standardized_coverage(frame, "Environment (Local Scale)", "Environment_Local_Scale_SD", "Local environment"),
+        ],
         "species_diversity": species_diversity,
         "quality_bands": build_quality_bands(frame),
         "coverage": coverage,

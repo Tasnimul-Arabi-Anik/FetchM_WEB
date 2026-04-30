@@ -79,10 +79,10 @@
       <aside class="panel">
         <h2>Metadata Completeness</h2>
         <div class="coverage-bars">
-          {% for item in analysis.completeness_rows %}
+          {% for item in analysis.completeness_rows if item.field in ["Host_SD", "Country", "Collection Date", "Isolation_Source_SD", "Sample_Type_SD", "Environment_Medium_SD", "Assembly Level", "Assembly Stats Number of Contigs"] %}
             <div class="coverage-bar-card">
               <div class="coverage-bar-head">
-                <strong>{{ item.field }}</strong>
+                <strong>{{ item.field.replace("_", " ") }}</strong>
                 <span>{{ item.present_percent }}%</span>
               </div>
               <div class="coverage-track">
@@ -249,73 +249,164 @@
     </section>
   {% elif active_section == "host" %}
     <section class="panel">
-      <h2>Host Distribution</h2>
+      <h2>Standardized Host Distribution</h2>
       {% if analysis.plots.host_bar %}
         <div class="plot-shell">{{ analysis.plots.host_bar.html|safe }}</div>
-        <p class="figure-caption">Dominant host annotations in the current dataset, with counts labeled directly on the bars.</p>
+        <p class="figure-caption">Dominant standardized host annotations in the current dataset, using <code>Host_SD</code> when available.</p>
       {% else %}
-        <p class="empty">Host plots will appear once host annotations are available.</p>
+        <p class="empty">Standardized host plots will appear once host annotations are available.</p>
+      {% endif %}
+    </section>
+
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <h2>Host Taxonomic Structure</h2>
+        {% if analysis.plots.host_rank_bar %}
+          <div class="plot-shell">{{ analysis.plots.host_rank_bar.html|safe }}</div>
+        {% endif %}
+        {% if analysis.plots.host_class_bar %}
+          <div class="plot-shell top-gap">{{ analysis.plots.host_class_bar.html|safe }}</div>
+        {% endif %}
+        <p class="figure-caption">Host lineage fields make broad host labels such as bird, mammal, or plant analyzable without forcing all values to species level.</p>
+      </section>
+      <aside class="panel">
+        <h2>Host Standardization QA</h2>
+        {% if analysis.plots.host_confidence_bar %}
+          <div class="plot-shell">{{ analysis.plots.host_confidence_bar.html|safe }}</div>
+        {% endif %}
+        {% if analysis.plots.host_method_bar %}
+          <div class="plot-shell top-gap">{{ analysis.plots.host_method_bar.html|safe }}</div>
+        {% endif %}
+      </aside>
+    </section>
+
+    <section class="panel">
+      <h2>Raw Host Comparison</h2>
+      {% if analysis.plots.host_raw_bar %}
+        <div class="plot-shell">{{ analysis.plots.host_raw_bar.html|safe }}</div>
+        <p class="figure-caption">Raw host values are retained for traceability and comparison with the standardized host analysis.</p>
+      {% else %}
+        <p class="empty">Raw host comparison will appear once host metadata is available.</p>
       {% endif %}
     </section>
 
     <section class="panel">
-      <h2>Host Disease Distribution</h2>
+      <h2>Standardized Host Disease Distribution</h2>
       {% if analysis.plots.host_disease_bar %}
         <div class="plot-shell">{{ analysis.plots.host_disease_bar.html|safe }}</div>
-        <p class="figure-caption">Reported host-disease categories when such metadata is present.</p>
+        <p class="figure-caption">Reported host-disease categories after standardization, when such metadata is present.</p>
       {% else %}
         <p class="empty">Host-disease plots will appear once disease annotations are available.</p>
       {% endif %}
     </section>
+
+    <section class="panel">
+      <h2>Host Health State Distribution</h2>
+      {% if analysis.plots.host_health_state_bar %}
+        <div class="plot-shell">{{ analysis.plots.host_health_state_bar.html|safe }}</div>
+        <p class="figure-caption">Standardized host health-state annotations where reported by BioSample-style metadata.</p>
+      {% else %}
+        <p class="empty">Host-health-state plots will appear once health-state annotations are available.</p>
+      {% endif %}
+    </section>
   {% elif active_section == "environment" %}
     <section class="panel">
-      <h2>Isolation Source Distribution</h2>
+      <h2>Standardized Isolation Source Distribution</h2>
       {% if analysis.plots.source_bar %}
         <div class="plot-shell">{{ analysis.plots.source_bar.html|safe }}</div>
-        <p class="figure-caption">Most common isolation sources represented in the metadata.</p>
+        <p class="figure-caption">Most common isolation sources after rule-based standardization and context recovery.</p>
       {% else %}
         <p class="empty">Isolation-source plots will appear once source metadata is available.</p>
       {% endif %}
     </section>
 
     <section class="panel">
-      <h2>Broad Environmental Context</h2>
-      {% if analysis.plots.environment_bar %}
-        <div class="plot-shell">{{ analysis.plots.environment_bar.html|safe }}</div>
-        <p class="figure-caption">Broad environmental contexts for the sampled genomes.</p>
-      {% else %}
-        <p class="empty">Broad environment plots will appear once environment metadata is available.</p>
-      {% endif %}
-    </section>
-
-    <section class="panel">
-      <h2>Sample Type Distribution</h2>
+      <h2>Standardized Sample Type Distribution</h2>
       {% if analysis.plots.sample_type_bar %}
         <div class="plot-shell">{{ analysis.plots.sample_type_bar.html|safe }}</div>
-        <p class="figure-caption">Sample-type distribution for genomes with sample descriptors.</p>
+        <p class="figure-caption">Standardized sample-type distribution for genomes with sample descriptors or recoverable source context.</p>
       {% else %}
         <p class="empty">Sample-type plots will appear once sample-type metadata is available.</p>
       {% endif %}
     </section>
 
     <section class="panel">
-      <h2>Local Environment Distribution</h2>
+      <h2>Standardized Environmental Medium</h2>
+      {% if analysis.plots.environment_medium_bar %}
+        <div class="plot-shell">{{ analysis.plots.environment_medium_bar.html|safe }}</div>
+        <p class="figure-caption">Environmental medium distribution after controlled-category standardization.</p>
+      {% else %}
+        <p class="empty">Environmental medium plots will appear once medium metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Standardized Broad Environmental Context</h2>
+      {% if analysis.plots.environment_bar %}
+        <div class="plot-shell">{{ analysis.plots.environment_bar.html|safe }}</div>
+        <p class="figure-caption">Broad environmental contexts after standardization.</p>
+      {% else %}
+        <p class="empty">Broad environment plots will appear once environment metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Standardized Local Environment</h2>
       {% if analysis.plots.environment_local_bar %}
         <div class="plot-shell">{{ analysis.plots.environment_local_bar.html|safe }}</div>
-        <p class="figure-caption">Local environmental context, where available.</p>
+        <p class="figure-caption">Local environmental context, where available after standardization.</p>
       {% else %}
         <p class="empty">Local environment plots will appear once local environment metadata is available.</p>
       {% endif %}
     </section>
 
     <section class="panel">
-      <h2>Environmental Medium Distribution</h2>
-      {% if analysis.plots.environment_medium_bar %}
-        <div class="plot-shell">{{ analysis.plots.environment_medium_bar.html|safe }}</div>
-        <p class="figure-caption">Environmental medium distribution, expanding the environmental interpretation beyond the broad scale.</p>
+      <h2>Standardized Isolation Site</h2>
+      {% if analysis.plots.isolation_site_bar %}
+        <div class="plot-shell">{{ analysis.plots.isolation_site_bar.html|safe }}</div>
+        <p class="figure-caption">Body site, tissue, or local sampled site after isolation-site standardization.</p>
       {% else %}
-        <p class="empty">Environmental medium plots will appear once medium metadata is available.</p>
+        <p class="empty">Isolation-site plots will appear once site metadata is available.</p>
       {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Raw vs Standardized Coverage</h2>
+      {% if analysis.plots.standardized_context_coverage %}
+        <div class="plot-shell">{{ analysis.plots.standardized_context_coverage.html|safe }}</div>
+        <p class="figure-caption">Standardized fields can exceed same-field raw coverage because values are recovered from related BioSample metadata columns.</p>
+      {% else %}
+        <p class="empty">Coverage comparison will appear once standardized metadata is available.</p>
+      {% endif %}
+    </section>
+
+    <section class="grid metadata-report-grid">
+      <section class="panel">
+        <h2>Raw Field Comparison</h2>
+        {% if analysis.plots.source_raw_bar %}
+          <div class="plot-shell">{{ analysis.plots.source_raw_bar.html|safe }}</div>
+        {% endif %}
+        {% if analysis.plots.sample_type_raw_bar %}
+          <div class="plot-shell top-gap">{{ analysis.plots.sample_type_raw_bar.html|safe }}</div>
+        {% endif %}
+      </section>
+      <aside class="panel">
+        <h2>Standardization Recovery</h2>
+        <div class="coverage-bars">
+          {% for item in analysis.standardized_coverage %}
+            <div class="coverage-bar-card">
+              <div class="coverage-bar-head">
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.standardized_percent }}%</span>
+              </div>
+              <div class="coverage-track">
+                <div class="coverage-fill" style="width: {{ item.standardized_percent }}%;"></div>
+              </div>
+              <div class="coverage-caption">{{ item.raw_present }} raw · {{ item.standardized_present }} standardized · {{ item.recovered }} recovered</div>
+            </div>
+          {% endfor %}
+        </div>
+      </aside>
     </section>
   {% elif active_section == "temporal" %}
     <section class="panel">
