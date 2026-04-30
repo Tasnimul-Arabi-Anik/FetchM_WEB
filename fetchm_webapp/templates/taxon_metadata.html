@@ -78,21 +78,33 @@
 
       <aside class="panel">
         <h2>Metadata Completeness</h2>
-        <h3>Raw vs Standardized</h3>
+        <h3>Raw Metadata</h3>
         <div class="coverage-bars">
           {% for item in analysis.standardized_coverage %}
             <div class="coverage-bar-card">
               <div class="coverage-bar-head">
                 <strong>{{ item.label }}</strong>
-                <span>{{ item.raw_percent }}% raw · {{ item.standardized_percent }}% standardized</span>
+                <span>{{ item.raw_percent }}%</span>
               </div>
               <div class="coverage-track">
                 <div class="coverage-fill muted" style="width: {{ item.raw_percent }}%;"></div>
               </div>
+              <div class="coverage-caption">{{ item.raw_present }} present in {{ item.raw_field }}</div>
+            </div>
+          {% endfor %}
+        </div>
+        <h3>Standardized Metadata</h3>
+        <div class="coverage-bars">
+          {% for item in analysis.standardized_coverage %}
+            <div class="coverage-bar-card">
+              <div class="coverage-bar-head">
+                <strong>{{ item.label }}</strong>
+                <span>{{ item.standardized_percent }}%</span>
+              </div>
               <div class="coverage-track">
                 <div class="coverage-fill" style="width: {{ item.standardized_percent }}%;"></div>
               </div>
-              <div class="coverage-caption">{{ item.raw_present }} raw · {{ item.standardized_present }} standardized · {{ item.recovered }} recovered</div>
+              <div class="coverage-caption">{{ item.standardized_present }} standardized in {{ item.standardized_field.replace("_", " ") }} · {{ item.recovered }} recovered</div>
             </div>
           {% endfor %}
         </div>
