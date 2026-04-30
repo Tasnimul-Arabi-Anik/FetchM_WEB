@@ -630,3 +630,34 @@ Date: 2026-04-30
   - `source_like_unmapped_hosts_for_review.csv` is mostly expected non-host material/context values such as food, wastewater, environment, soil, stool, water, seafood, and hospital environment.
   - `suggested_high_confidence_rules.csv` contains useful deterministic suggestions, but Host Disease-derived suggestions were treated cautiously and not bulk-promoted into production rules.
 - No standardization refresh was started during this pass.
+
+## Controlled Category Conflict Cleanup
+
+Date: 2026-04-30
+
+- Paused the genus standardization refresh after an external review found conflicting approved rows in `controlled_categories.csv`.
+- Added `tools/audit_controlled_categories.py` to make rule conflicts reproducible before future refreshes.
+- Audit key: `source_column + normalized_value + destination`.
+- Initial conflict audit after the large rule export found:
+  - 6,760 total rows.
+  - 6,744 approved rows.
+  - 84 duplicate approved keys.
+  - 83 conflicting approved keys.
+- Corrected stale `Environment_Local_Scale_SD = intensive care unit` mis-mappings for agricultural/environmental values:
+  - `agricultural feature` -> `agricultural feature`.
+  - `agricultural` / `Agriculture` -> `agricultural environment`.
+  - `Agricultural land` -> `agricultural land`.
+  - `Agriculture Fields`, `agricultural field`, and ENVO agricultural-field variants -> `agricultural field`.
+  - `mariculture biome` -> `mariculture biome`.
+  - `Ruminal Content of Bos indicus` -> `rumen/gut content`.
+- Demoted conflicting lower-specificity approved rows to `needs_review` instead of deleting them.
+- Refined 236 generic `water`/`swab` approved rows where the raw text supported a clearer class, including `seawater`, `freshwater`, `groundwater`, `wastewater`, `hospital wastewater`, `estuarine water`, `environmental swab`, `skin/body-surface swab`, `urogenital swab`, and related controlled values.
+- Final controlled-category audit:
+  - 6,760 total rows.
+  - 6,660 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 414 suspicious rows retained for future review, mostly broad fallback values such as generic `water` or `swab`.
+- Rebuilt/recreated the web and standardization worker containers from the cleaned rule file.
+- Reset all 5,066 genus refresh tasks to `pending` so the partially completed interrupted run would be overwritten by the cleaned rules.
+- Restarted 16 standardization workers.
