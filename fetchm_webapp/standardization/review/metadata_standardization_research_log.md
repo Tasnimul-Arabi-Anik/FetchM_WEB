@@ -661,3 +661,37 @@ Date: 2026-04-30
 - Rebuilt/recreated the web and standardization worker containers from the cleaned rule file.
 - Reset all 5,066 genus refresh tasks to `pending` so the partially completed interrupted run would be overwritten by the cleaned rules.
 - Restarted 16 standardization workers.
+
+### Post-cleanup standardization audit
+
+- Genus standardization completed successfully after the conflict cleanup:
+  - 5,066 genus tasks done.
+  - 0 pending/running/failed genus tasks.
+  - 2,599,152 total rows processed by task counters.
+  - 2,596,841 rows updated by task counters.
+- Post-refresh quality audit: `standardization/review/quality_audit/20260430_145538/`.
+  - Genus metadata files scanned: 5,066.
+  - Rows scanned: 2,596,889.
+  - File errors: 0.
+  - Host TaxID mapped rows: 1,557,073 (59.96%).
+  - Host rows still requiring review: 1,370.
+  - Source-like mapped host rows needing spot-check: 18,070.
+  - Source-like unmapped host rows needing routing/review: 4,440.
+  - `Sample_Type_SD`: 1,553,634 rows (59.83%).
+  - `Isolation_Source_SD`: 1,489,326 rows (57.35%).
+  - `Environment_Medium_SD`: 457,879 rows (17.63%).
+  - Country present: 2,261,153 rows (87.07%).
+  - Collection year present: 2,168,789 rows (83.51%).
+  - Country-continent mismatch rows: 0.
+  - Country-subcontinent mismatch rows: 0.
+- Post-refresh source/sample/environment audit: `standardization/review/source_sample_environment_audit/20260430_145555/`.
+  - `Isolation Source`: 1,489,326 standardized rows; 85.82% of same-field raw-present rows.
+  - `Sample Type`: 1,553,634 standardized rows; 622.86% of same-field raw-present rows because values are recovered from multiple fields.
+  - `Environment Medium`: 457,879 standardized rows; 400.63% of same-field raw-present rows because values are recovered from multiple fields.
+  - `Environment (Broad Scale)`: 574,390 standardized rows; 380.62% of same-field raw-present rows.
+  - `Environment (Local Scale)`: 369,589 standardized rows; 328.72% of same-field raw-present rows.
+- Spot-checks after the completed run:
+  - No recurrent agricultural/environmental values mapped to `intensive care unit` were observed in the controlled-rule audit.
+  - Source-like unmapped host values are mostly expected non-host/source labels such as food, wastewater, environment, soil, stool, water, seafood, hospital environment, and metagenome.
+  - Remaining source-like mapped host rows are dominated by host-context phrases such as human feces, dairy calf feces, cattle manure, water deer, water buffalo, and similar biologically plausible host-context mappings.
+  - Some rows remain policy decisions rather than code bugs, e.g. whether `chicken meat` should preserve `Gallus gallus` host context while also being represented as food/sample source.
