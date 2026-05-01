@@ -869,3 +869,38 @@ Date: 2026-05-01
   - 0 conflicting approved keys.
   - 20 intentionally retained suspicious approved rows.
 - A genus standardization refresh is required before these source/sample/environment recovery rules are reflected in all stored managed metadata outputs.
+
+## Final Geography And Fecal-Material QA
+
+Date: 2026-05-01
+
+- Reviewed the post-source-recovery audit `quality_audit/20260501_073105/` after an external QA check flagged two plausible issues.
+- Confirmed that several hospital/clinic labels were present in standardized `Country` counts, including `Hospital`, `M3 Tb Hospital`, `Siloah Clinic`, `Dundee Hospital`, and `Stanger Hospital`.
+- Root cause: existing `Country` values were trusted before validating against the controlled country/territory/marine-region table.
+- Patched geography standardization so an existing `Country` value is accepted only when it resolves to `COUNTRY_MAPPING`; otherwise the pipeline falls back to `Geographic Location` and safe secondary recovery.
+- Patched the shared runtime geography helper so `extract_country()` and `add_geo_columns()` also reject unrecognized normalized country strings instead of title-casing arbitrary text.
+- Extended `audit_standardization_quality.py` with explicit `non_country_values_in_country_rows` and `non_country_values_in_country.csv` outputs, so future audits show this failure mode directly.
+- Confirmed that `Environment_Medium_SD=feces/stool` was driven by five approved controlled-category rules plus a core override. Demoted those environment-medium fecal/stool rules to `needs_review` and removed the core override.
+- Policy retained:
+  - Human/animal feces, stool, and faeces should populate `Sample_Type_SD=feces/stool`.
+  - `Environment_Medium_SD` should remain blank for feces/stool unless explicit environmental waste context such as manure, slurry, sewage, wastewater, or environmental fecal contamination is present.
+- Controlled-category audit after this final QA patch:
+  - 7,305 total rows.
+  - 7,200 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
+- Added Batch 22 protection against host/context words leaking into `Sample_Type_SD`.
+  - Local SQLite rules included approved `Sample_Type_SD` mappings for plain values such as `human`, `fish`, and `whole organism`.
+  - Runtime rule loading now ignores `Sample_Type_SD` rules where the proposed value is a host/context term and the source value lacks a real specimen/material term.
+  - Material-bearing phrases such as `human blood`, `human feces`, `cattle feces`, `chicken meat`, and swab/tissue/biopsy/lavage phrases remain eligible for sample-type standardization.
+  - Built-in sample-type synonyms are also purged of host-only sample terms during core override loading.
+- Extended `audit_standardization_quality.py` with:
+  - `bad_sample_type_host_terms.csv`.
+  - `invalid_sample_type_host_term_rows`.
+  - `non_country_values_in_country_by_source.csv` to record the country source/evidence causing non-country leakage.
+- A genus standardization refresh plus a new quality audit is required to verify:
+  - `non_country_values_in_country_rows = 0`.
+  - `Environment_Medium_SD=feces/stool` is removed or sharply reduced.
+  - `Sample_Type_SD=feces/stool` remains preserved.
+  - `invalid_sample_type_host_term_rows = 0`.

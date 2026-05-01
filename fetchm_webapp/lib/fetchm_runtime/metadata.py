@@ -1854,7 +1854,8 @@ def extract_country(geo_location):
         return None
     # Handle cases like "USA: New York" or "United States: California"
     raw_country = geo_location.split(":")[0].strip()
-    return normalize_country_name(raw_country)
+    country = normalize_country_name(raw_country)
+    return country if country in COUNTRY_MAPPING else None
 
 def add_geo_columns(df):
     """Add Continent and Subcontinent columns based on Geographic Location"""
@@ -1865,7 +1866,9 @@ def add_geo_columns(df):
     def derive_country(row):
         existing = row.get("Country")
         if not pd.isna(existing) and str(existing).strip().lower() not in MISSING_VALUE_TOKENS:
-            return normalize_country_name(str(existing).split(":", 1)[0].strip())
+            country = normalize_country_name(str(existing).split(":", 1)[0].strip())
+            if country in COUNTRY_MAPPING:
+                return country
         return extract_country(row.get("Geographic Location"))
 
     df['Country'] = df.apply(derive_country, axis=1)

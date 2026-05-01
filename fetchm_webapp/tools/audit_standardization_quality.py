@@ -28,6 +28,27 @@ SOURCE_LIKE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+HOST_ONLY_SAMPLE_TYPE_TERMS = {
+    "human",
+    "patient",
+    "people",
+    "animal",
+    "mammal",
+    "bird",
+    "poultry",
+    "cattle",
+    "cow",
+    "pig",
+    "swine",
+    "chicken",
+    "fish",
+    "plant",
+    "bacteria",
+    "organism",
+    "host",
+    "whole organism",
+}
+
 
 REQUIRED_HOST_COLUMNS = [
     "Host_Original",
@@ -158,8 +179,10 @@ def main() -> None:
     subcontinent_present = 0
     country_continent_mismatch = 0
     country_subcontinent_mismatch = 0
+    non_country_value_rows = 0
     collection_year_present = 0
     sample_type_present = 0
+    invalid_sample_type_host_term_rows = 0
     isolation_source_present = 0
     environment_medium_present = 0
 
@@ -173,6 +196,7 @@ def main() -> None:
     suspicious_mapped_host_counts: Counter[tuple[str, str, str, str]] = Counter()
 
     sample_type_counts: Counter[str] = Counter()
+    bad_sample_type_host_counts: Counter[str] = Counter()
     sample_type_broad_counts: Counter[str] = Counter()
     isolation_source_counts: Counter[str] = Counter()
     isolation_source_broad_counts: Counter[str] = Counter()
@@ -180,6 +204,8 @@ def main() -> None:
     environment_medium_broad_counts: Counter[str] = Counter()
 
     country_counts: Counter[str] = Counter()
+    non_country_counts: Counter[str] = Counter()
+    non_country_source_counts: Counter[tuple[str, str, str]] = Counter()
     continent_counts: Counter[str] = Counter()
     subcontinent_counts: Counter[str] = Counter()
     geo_mismatch_counts: Counter[tuple[str, str, str, str]] = Counter()
@@ -264,6 +290,12 @@ def main() -> None:
             counter.update({value: int(count) for value, count in values[values.map(present)].value_counts().items()})
 
         file_sample_type_present = int(frame["Sample_Type_SD"].fillna("").astype(str).str.strip().map(present).sum())
+        sample_type_values = frame["Sample_Type_SD"].fillna("").astype(str).str.strip()
+        bad_sample_type_mask = sample_type_values.str.lower().isin(HOST_ONLY_SAMPLE_TYPE_TERMS)
+        invalid_sample_type_host_term_rows += int(bad_sample_type_mask.sum())
+        bad_sample_type_host_counts.update(
+            {value: int(count) for value, count in sample_type_values[bad_sample_type_mask].value_counts().items()}
+        )
         file_isolation_source_present = int(frame["Isolation_Source_SD"].fillna("").astype(str).str.strip().map(present).sum())
         file_environment_medium_present = int(frame["Environment_Medium_SD"].fillna("").astype(str).str.strip().map(present).sum())
         sample_type_present += file_sample_type_present
@@ -284,14 +316,36 @@ def main() -> None:
         collection_year_present += int(collection_year_mask.sum())
 
         geo = frame.loc[country_mask, ["Country", "Continent", "Subcontinent"]].fillna("").astype(str)
-        for country, continent, subcontinent in geo.itertuples(index=False, name=None):
+        country_source_values = (
+            frame["Country_Source"].fillna("").astype(str).str.strip()
+            if "Country_Source" in frame.columns
+            else pd.Series([""] * len(frame), index=frame.index)
+        )
+        country_evidence_values = (
+            frame["Country_Evidence"].fillna("").astype(str).str.strip()
+            if "Country_Evidence" in frame.columns
+            else pd.Series([""] * len(frame), index=frame.index)
+        )
+        for idx, (country, continent, subcontinent) in zip(geo.index, geo.itertuples(index=False, name=None), strict=False):
+            country = clean(country)
+            if country not in COUNTRY_MAPPING:
+                non_country_value_rows += 1
+                non_country_counts[country] += 1
+                non_country_source_counts[
+                    (
+                        country,
+                        clean(country_source_values.loc[idx]),
+                        clean(country_evidence_values.loc[idx])[:120],
+                    )
+                ] += 1
+                continue
             expected_continent, expected_subcontinent = expected_geo(clean(country))
             if expected_continent and clean(continent) != expected_continent:
                 country_continent_mismatch += 1
-                geo_mismatch_counts[(clean(country), "Continent", clean(continent), expected_continent)] += 1
+                geo_mismatch_counts[(country, "Continent", clean(continent), expected_continent)] += 1
             if expected_subcontinent and clean(subcontinent) != expected_subcontinent:
                 country_subcontinent_mismatch += 1
-                geo_mismatch_counts[(clean(country), "Subcontinent", clean(subcontinent), expected_subcontinent)] += 1
+                geo_mismatch_counts[(country, "Subcontinent", clean(subcontinent), expected_subcontinent)] += 1
 
         per_file_rows.append(
             [
@@ -322,6 +376,7 @@ def main() -> None:
         ["source_like_unmapped_host_rows_for_review", source_like_unmapped_host],
         ["sample_type_sd_present", sample_type_present],
         ["sample_type_sd_percent", ratio(sample_type_present, total_rows)],
+        ["invalid_sample_type_host_term_rows", invalid_sample_type_host_term_rows],
         ["isolation_source_sd_present", isolation_source_present],
         ["isolation_source_sd_percent", ratio(isolation_source_present, total_rows)],
         ["environment_medium_sd_present", environment_medium_present],
@@ -330,6 +385,7 @@ def main() -> None:
         ["country_percent", ratio(country_present, total_rows)],
         ["continent_present", continent_present],
         ["subcontinent_present", subcontinent_present],
+        ["non_country_values_in_country_rows", non_country_value_rows],
         ["country_continent_mismatch_rows", country_continent_mismatch],
         ["country_subcontinent_mismatch_rows", country_subcontinent_mismatch],
         ["collection_year_present", collection_year_present],
@@ -365,12 +421,15 @@ def main() -> None:
         ("source_like_unmapped_hosts_for_review.csv", source_like_host_counts, ["host_original", "host_sd", "host_method"]),
         ("suspicious_source_like_mapped_hosts.csv", suspicious_mapped_host_counts, ["host_original", "host_sd", "taxid", "host_method"]),
         ("sample_type_sd_counts.csv", sample_type_counts, ["sample_type_sd"]),
+        ("bad_sample_type_host_terms.csv", bad_sample_type_host_counts, ["sample_type_sd"]),
         ("sample_type_broad_counts.csv", sample_type_broad_counts, ["sample_type_sd_broad"]),
         ("isolation_source_sd_counts.csv", isolation_source_counts, ["isolation_source_sd"]),
         ("isolation_source_broad_counts.csv", isolation_source_broad_counts, ["isolation_source_sd_broad"]),
         ("environment_medium_sd_counts.csv", environment_medium_counts, ["environment_medium_sd"]),
         ("environment_medium_broad_counts.csv", environment_medium_broad_counts, ["environment_medium_sd_broad"]),
         ("country_counts.csv", country_counts, ["country"]),
+        ("non_country_values_in_country.csv", non_country_counts, ["country"]),
+        ("non_country_values_in_country_by_source.csv", non_country_source_counts, ["country", "country_source", "country_evidence"]),
         ("continent_counts.csv", continent_counts, ["continent"]),
         ("subcontinent_counts.csv", subcontinent_counts, ["subcontinent"]),
         ("collection_year_counts.csv", collection_year_counts, ["collection_year"]),

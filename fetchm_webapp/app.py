@@ -2549,6 +2549,44 @@ STANDARDIZATION_BROAD_CATEGORIES.update(
     }
 )
 
+HOST_ONLY_SAMPLE_TYPE_TERMS = {
+    "human",
+    "patient",
+    "people",
+    "animal",
+    "mammal",
+    "bird",
+    "poultry",
+    "cattle",
+    "cow",
+    "pig",
+    "swine",
+    "chicken",
+    "fish",
+    "plant",
+    "bacteria",
+    "organism",
+    "host",
+    "whole organism",
+}
+
+SAMPLE_TYPE_MATERIAL_PATTERN = re.compile(
+    r"\b("
+    r"blood|feces|faeces|fecal|faecal|stool|urine|sputum|swab|tissue|milk|meat|gut|saliva|"
+    r"biopsy|lavage|fluid|pus|abscess|wound|skin|nasal|rectal|oral|vaginal|manure|carcass|"
+    r"cecal|caecal|intestine|intestinal|lung|liver|kidney|spleen|brain|placenta"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
+    proposed = normalize_standardization_lookup(proposed_value)
+    source = normalize_standardization_lookup(synonym)
+    if proposed not in HOST_ONLY_SAMPLE_TYPE_TERMS:
+        return False
+    return not SAMPLE_TYPE_MATERIAL_PATTERN.search(source)
+
 
 def normalize_standardization_lookup(value: Any) -> str:
     text = "" if value is None else str(value).strip().lower()
@@ -2888,6 +2926,8 @@ def apply_core_standardization_overrides() -> None:
         "healthcare facility",
     ):
         SAMPLE_TYPE_SYNONYMS.pop(facility_key, None)
+    for host_only_key in HOST_ONLY_SAMPLE_TYPE_TERMS:
+        SAMPLE_TYPE_SYNONYMS.pop(host_only_key, None)
     SAMPLE_TYPE_SYNONYMS.update(
         {
             "wound swab": "wound swab",
@@ -2913,7 +2953,6 @@ def apply_core_standardization_overrides() -> None:
             "yogurt": "dairy food",
             "yoghurt": "dairy food",
             "biological product": "biological product",
-            "fecal material": "feces/stool",
             "ant built patch material": "soil",
             "buffered agar": "culture medium",
             "agar": "culture medium",
@@ -2994,6 +3033,8 @@ def load_external_standardization_rules() -> None:
         elif destination == "Host_Health_State_SD":
             HOST_HEALTH_STATE_SYNONYMS[synonym] = category
         elif destination == "Sample_Type_SD":
+            if sample_type_rule_is_host_only(synonym, category):
+                continue
             SAMPLE_TYPE_SYNONYMS[synonym] = category
         elif destination == "Isolation_Source_SD":
             ISOLATION_SOURCE_SYNONYMS[synonym] = category
@@ -3045,6 +3086,9 @@ def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> No
     elif destination == "Host_Health_State_SD":
         HOST_HEALTH_STATE_SYNONYMS[normalized_value] = proposed_value
     elif destination == "Sample_Type_SD":
+        if sample_type_rule_is_host_only(normalized_value, proposed_value):
+            clear_standardization_runtime_caches()
+            return
         SAMPLE_TYPE_SYNONYMS[normalized_value] = proposed_value
     elif destination == "Isolation_Source_SD":
         ISOLATION_SOURCE_SYNONYMS[normalized_value] = proposed_value
@@ -4468,10 +4512,10 @@ def recover_secondary_geography(row: Mapping[str, Any]) -> tuple[str, str, str, 
 
 def harmonize_geography_metadata(row: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(row)
-    country = normalized.get("Country")
-    country_source = "Country" if not metadata_value_is_missing(country) else ""
+    country = normalize_country_candidate(normalized.get("Country"))
+    country_source = "Country" if country else ""
     country_confidence = "trusted" if country_source else ""
-    country_evidence = "" if metadata_value_is_missing(country) else str(country).strip()[:180]
+    country_evidence = "" if not country else str(normalized.get("Country")).strip()[:180]
     geo_recovery_status = "trusted_primary" if country_source else ""
     if metadata_value_is_missing(country):
         country = extract_country(normalized.get("Geographic Location"))
