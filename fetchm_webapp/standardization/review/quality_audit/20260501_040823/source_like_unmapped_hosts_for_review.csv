@@ -1,0 +1,166 @@
+count,host_original,host_sd,host_method
+676,Food,,non_host_source
+492,wastewater,,non_host_source
+409,Environmental,,non_host_source
+377,Environment,,non_host_source
+211,environment,,non_host_source
+175,soil,,non_host_source
+163,environmental,,non_host_source
+157,stool,,non_host_source
+143,Water,,non_host_source
+124,seafood,,non_host_source
+101,Wastewater,,non_host_source
+100,environmental sample,,non_host_source
+97,Soil,,non_host_source
+92,meat,,non_host_source
+79,WATER,,non_host_source
+75,environmental waters,,non_host_source
+55,"Dairy Farm, Water",,non_host_source
+50,dairy product,,non_host_source
+49,"Dairy Farm, Faecal",,non_host_source
+49,Hospital environment,,non_host_source
+48,freshwater metagenome,,non_host_source
+45,water,,non_host_source
+42,"Food, pork",,non_host_source
+42,indoor metagenome,,non_host_source
+35,imported food,,non_host_source
+31,soil metagenome,,non_host_source
+26,ready-to-eat food,,non_host_source
+26,lake water,,non_host_source
+24,sediment,,non_host_source
+23,food,,non_host_source
+23,metagenome,,non_host_source
+22,Milk powder,,non_host_source
+21,milk product,,non_host_source
+20,"Poultry Environment, bootsock",,non_host_source
+17,ICU environment,,non_host_source
+14,fecal,,non_host_source
+12,feces metagenome,,non_host_source
+12,grassland soil,,non_host_source
+10,Meat,,non_host_source
+10,farm environment,,non_host_source
+9,Milk,,non_host_source
+9,hot water systems,,non_host_source
+8,meat products,,non_host_source
+8,marine metagenome,,non_host_source
+7,Seafood,,non_host_source
+7,rhizosphere soil,,non_host_source
+7,rain water,,non_host_source
+6,lamb offal or meat,,non_host_source
+6,"Poultry Environment, water",,non_host_source
+6,Raw water,,non_host_source
+6,sludge,,non_host_source
+6,activated sludge,,non_host_source
+5,Sediment,,non_host_source
+5,soil substrate,,non_host_source
+5,industrial environment,,non_host_source
+4,Grown in Blood agar culture medium.,,non_host_source
+4,Storm water,,non_host_source
+4,Hospital Waste Water,,non_host_source
+4,pork offal or meat,,non_host_source
+4,Environment of nosocomial settings,,non_host_source
+4,synthetic metagenome,,non_host_source
+4,fermented food,,non_host_source
+4,Soil aggregate,,non_host_source
+3,milk products,,non_host_source
+3,seawater metagenome,,non_host_source
+3,sample from the maternity hospital,,non_host_source
+3,unclassified metagenome,,non_host_source
+3,gut metagenome,,non_host_source
+3,paddy soil,,non_host_source
+2,Grown in Blood agar culture medium,,non_host_source
+2,"Food, Ground Beef",,non_host_source
+2,environmental hospital surface,,non_host_source
+2,Soil in chicken farm,,non_host_source
+2,Water (environment),,non_host_source
+2,minced meat,,non_host_source
+2,Agricultural soil,,non_host_source
+2,Pure culture,,non_host_source
+2,milk,,non_host_source
+2,inter-root soil,,non_host_source
+2,natural environment,,non_host_source
+2,soil microorganism,,non_host_source
+2,marine sediment,,non_host_source
+2,placenta metagenome,,non_host_source
+2,salt marsh sediment,,non_host_source
+2,communal hospital surface,,non_host_source
+2,biological soil crusts,,non_host_source
+2,hospital communal surface,,non_host_source
+2,Fresh water lake,,non_host_source
+2,Pure culture of bacteria,,context_dictionary
+2,alkali-saline soil,,non_host_source
+2,Guangdong Microbial Culture Collection Center (GDMCC),,non_host_source
+2,bacteria cell culture,,context_dictionary
+2,Sea water,,non_host_source
+2,industrial wastewater,,non_host_source
+1,Water in pipe,,non_host_source
+1,Raw milk,,non_host_source
+1,farm water,,non_host_source
+1,Sewage,,non_host_source
+1,Water from a lake,,non_host_source
+1,red meat,,non_host_source
+1,cows milk,,non_host_source
+1,Red meat,,non_host_source
+1,Environmental waters,,non_host_source
+1,beef offal or meat,,non_host_source
+1,Meat unspecified,,non_host_source
+1,meat unspecified,,non_host_source
+1,culture,,non_host_source
+1,Plant and soil,,non_host_source
+1,Bulk Milk,,non_host_source
+1,waste water effluent,,non_host_source
+1,intestinal,,non_host_source
+1,Soil (polluted),,non_host_source
+1,blood,,non_host_source
+1,Pork carcass,,non_host_source
+1,Grown in chocolate agar culture medium,,non_host_source
+1,rhizospheric soil of Cistus ladanifer L.,,non_host_source
+1,Torreya grandis soil,,non_host_source
+1,hosptial surface,,non_host_source
+1,Meat (Mutton),,non_host_source
+1,faeces,,non_host_source
+1,sea water,,non_host_source
+1,Lake water,,non_host_source
+1,Environmental surface,,non_host_source
+1,Sludge,,non_host_source
+1,Water Hyacinth,,non_host_source
+1,Soil Kebili,,non_host_source
+1,mangrove soil,,non_host_source
+1,Soil in tiger area of zoo,,non_host_source
+1,Zoo anteater area soil,,non_host_source
+1,Saline Water,,non_host_source
+1,forest soil,,non_host_source
+1,surface within hospital,,non_host_source
+1,Soil Gabes,,non_host_source
+1,fermented milk,,non_host_source
+1,sow feces,,non_host_source
+1,Food sample,,non_host_source
+1,"College of Food Science, Nanchang University",,non_host_source
+1,Food Crop,,non_host_source
+1,Gut of Protaetia brevitarsis seulensis (larva),,non_host_source
+1,Food Material,,non_host_source
+1,termite gut,,context_broad_dictionary
+1,soil metagenome,soil metagenome,non_host_source
+1,aerobic activated sludge from the secondary sedimentation tank of WWTP of NB production plant,,non_host_source
+1,sediment of Yellow River,,non_host_source
+1,Cell culture collection,,non_host_source
+1,broad-scale environmental context,,non_host_source
+1,surface of hospital environment,,non_host_source
+1,environmental surface,,non_host_source
+1,marine water,,non_host_source
+1,HayFlick modified culture medium,,non_host_source
+1,Milk thistle,,non_host_source
+1,ocean metagenome,,non_host_source
+1,river water,,non_host_source
+1,Milk product,,non_host_source
+1,tidal flat sediment,,non_host_source
+1,fresh water green algae,,non_host_source
+1,Soil in kangaroo area of zoo,,non_host_source
+1,Tidal flat sediment,,non_host_source
+1,salted seafood,,non_host_source
+1,Surface,,non_host_source
+1,Aquatic environment,,non_host_source
+1,Pond sediment,,non_host_source
+1,Hanam-si wastewater treatment,,non_host_source
+1,gut,,non_host_source
+1,Surface seawater,,non_host_source

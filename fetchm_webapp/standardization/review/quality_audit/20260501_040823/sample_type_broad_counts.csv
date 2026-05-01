@@ -1,0 +1,75 @@
+count,sample_type_sd_broad
+372156,clinical/host-associated material
+229800,feces/stool
+172578,host-associated organism
+125088,food/meat
+110736,culture/assembly
+92569,culture
+73831,swab
+38921,metadata descriptor / non-source
+34765,whole organism
+29992,water
+29952,gut content
+28485,food
+27073,environmental material
+22532,clinical fluid/material
+20909,upper respiratory tract
+11062,upper respiratory site
+10970,food/dairy
+10620,culture/isolate
+10556,single cell
+10336,soil
+8803,urogenital site
+7078,respiratory sample
+6737,plant-associated material
+6577,poultry
+4990,food/produce
+4510,sediment
+4449,sample
+4326,wastewater/sewage
+3885,surface sample
+3771,agricultural environment
+3660,tissue
+3260,host-associated context
+3003,agricultural fecal material
+2657,Oyster
+2596,food/processing environment
+2574,oral cavity
+2463,built environment
+2083,medical device
+2080,shrimp
+1476,molecular extract
+1281,rectal/perianal swab
+1231,aquatic food product
+1117,laboratory environment
+933,urogenital/gastrointestinal site
+895,urban
+461,rectal/cloacal/perianal swab
+418,Aquatic products
+411,gut/host-associated material
+384,fluff/lint material
+342,surface/sample collection material
+318,respiratory swab
+293,food/plant product
+275,healthcare-associated environment
+198,Southern Sea Otter
+190,environmental/geologic material
+128,clinical swab
+127,patient/clinical
+117,internal-site swab
+93,cloacal sample
+82,nodules
+77,probiotic product
+71,grain product
+69,fermented food
+62,wastewater/organic waste
+59,animal tissue/site
+56,leaf tissue
+50,assembly
+36,biological/clinical product
+28,teat/nipple swab
+9,Citrus leaf
+4,transport swab
+4,marine
+1,Marmota himalayana
+1,spore release material
