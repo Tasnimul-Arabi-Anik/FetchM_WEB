@@ -849,3 +849,23 @@ Date: 2026-05-01
   - 5,066 queued.
   - Estimated rows: 2,595,579.
 - Post-refresh quality metrics should be regenerated after this queued run completes.
+
+## Targeted Source/Sample/Environment Recovery
+
+Date: 2026-05-01
+
+- Reviewed the post-refinement source/sample/environment audit `source_sample_environment_audit/20260501_053203/` after host curation reduced `Host_Review_Status=review_needed`.
+- Added 444 conservative high-confidence controlled-category rules from the audit to recover source/sample/environment annotations without loosening host blocking.
+- Imported only clear material/environment/location patterns, including:
+  - Fecal material, stool, faeces, blood, urine, sputum, nasal/nasopharyngeal swab, and bronchoalveolar lavage sample routes.
+  - Soil, sediment, seawater, wastewater, sewage, sludge, biofilm, air, lake water, pond water, and healthcare facility routes.
+- Skipped ambiguous host-only labels such as plain `human`, `patient`, `chicken`, `pig`, `animal`, and `poultry`.
+- Skipped `Host Disease` and `Host Health State` source columns during this import to avoid converting disease/health descriptors into sample or environment terms.
+- Skipped 25 suggestions where an existing more-specific rule already existed, such as `marine sediment` versus generic `sediment`, `activated sludge` versus `sludge`, and `rectal/perianal swab` versus generic `rectal swab`.
+- Controlled-category audit after this source recovery refinement:
+  - 7,305 total rows.
+  - 7,205 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
+- A genus standardization refresh is required before these source/sample/environment recovery rules are reflected in all stored managed metadata outputs.

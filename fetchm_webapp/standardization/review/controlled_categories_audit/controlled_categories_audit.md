@@ -1,8 +1,8 @@
 # Controlled Categories Audit
 
 - Rule file: `/home/ai-pc/Work/FetchM_WEB/fetchm_webapp/standardization/controlled_categories.csv`
-- Total rows: 6,861
-- Approved rows: 6,761
+- Total rows: 7,305
+- Approved rows: 7,205
 - Duplicate approved keys: 0
 - Duplicate approved rows: 0
 - Conflicting approved keys: 0
