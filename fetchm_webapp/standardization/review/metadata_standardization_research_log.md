@@ -819,3 +819,33 @@ Date: 2026-05-01
   - 0 conflicting approved keys.
   - 20 intentionally retained suspicious approved rows.
 - These rules are reproducible in `standardization/controlled_categories.csv`; stored taxon metadata will show the expanded disease standardization after the active genus standardization refresh applies the updated rule file.
+
+## Targeted Refinement Batches 9-12
+
+Date: 2026-05-01
+
+- Verified the prior curation batches against the latest local audit `quality_audit/20260501_040823/`.
+  - Earlier typo/lab values such as `Homosapines`, `humen being`, `Pig1`, `Pig42`, `Poricne`, `Shepp`, `Calve`, `DH5a`, `MC1061/P3`, `XL1-MFR Blue`, `XL10-gold`, `HeLa229 cell line`, `ElectroTen Blue cells`, `hosptial surface`, `surface within hospital`, and `Bacterial Extracellular Vesicles` were absent from the latest `top_host_review_needed.csv`.
+  - Remaining examples included low-frequency food/source values such as `Pasta dish`, `Fodder`, and `Ducks feed`, plus scientific/common eukaryotic host names.
+- Added deterministic host curation rules only:
+  - 112 host synonym rules after pruning one risky ambiguous `Rhodococcus` exact-name collision.
+  - 59 negative host rules for missing, non-host, lab, food, and environmental artifacts.
+  - 22 controlled-category routing rules for food/feed, fermented/dairy products, dust, wetland, hospital surface typo, activated sludge typo, marine sediment typo, biofilter layers, mine tailings, microplastic, geothermal, hypolithic, and cryoconite terms.
+- Added conservative common-name/broad host rules for clear animal groups such as Canidae, Cingulata, Phocoenidae, Cervidae, Camelidae, Mustelidae, Macropodidae, Testudines, Scombridae, Amphipoda, Bivalvia, Gastropoda, Actiniaria, Ascidiacea, Holothuroidea, Aves, and selected unambiguous species-level names.
+- Used TaxonKit exact lookup for reviewed current host-review values and accepted only Eukaryota matches; bacterial/archaeal matches were not imported.
+- Representative smoke tests in the running web container:
+  - `Pasta dish`, `Fodder`, and `Ducks feed` are blocked from `Host_SD` and route to food/feed sample context.
+  - `DH5a` is blocked from `Host_SD`.
+  - `Jackal` maps to broad `Canidae` with medium confidence.
+  - `Rhodococcus` remains unmapped rather than being forced to an unrelated insect genus.
+- Controlled-category audit after the batch:
+  - 6,861 total rows.
+  - 6,761 approved rows.
+  - 0 duplicate approved keys.
+  - 0 conflicting approved keys.
+  - 20 intentionally retained suspicious approved rows.
+- Restarted web and standardization worker containers with the updated code/rules, then queued a new genus standardization refresh:
+  - 5,066 eligible genus taxa.
+  - 5,066 queued.
+  - Estimated rows: 2,595,579.
+- Post-refresh quality metrics should be regenerated after this queued run completes.

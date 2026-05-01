@@ -6827,3 +6827,115 @@ Soliped,Equus caballus,9796,medium,batch3 reviewed broad horse-related synonym; 
 Equusa fricanusasinus,Equus asinus,9793,high,batch3 reviewed donkey typo
 Puppy,Canis lupus familiaris,9615,high,batch3 reviewed dog synonym
 Felix catus domesticus,Felis catus,9685,high,batch3 reviewed cat typo
+Jackal,Canidae,9608,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Armadillo,Cingulata,948951,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Porpoise,Phocoenidae,9748,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Cougar,Puma concolor,9696,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Cervine,Cervidae,9850,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Cervid,Cervidae,9850,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Camelid,Camelidae,9835,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+mustelid,Mustelidae,9655,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+wildebeest,Connochaetes,9923,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+wallaby,Macropodidae,9307,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Tapir,Tapiridae,9788,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Short-beaked echidna,Tachyglossus aculeatus,9261,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Platypus,Ornithorhynchus anatinus,9258,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+aardvark,Orycteropus afer,9818,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+kudu,Tragelaphus,9945,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+kudu (antelope),Tragelaphus,9945,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Eland,Taurotragus,9946,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Shrew,Soricidae,9376,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+shrew of unidentified species,Soricidae,9376,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Ground squirrels,Sciuridae,55153,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Crocodile,Crocodylia,8500,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Rattlesnake,Crotalinae,8727,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Skink,Scincidae,8523,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Chelonian,Testudines,8459,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+seakrait,Laticauda,8631,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Jguana,Iguanidae,8516,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Mackerel,Scombridae,13676,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+loach,Cobitidae,7952,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+seadragon,Syngnathidae,72041,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Grouper,Serranidae,30867,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Sabah Grouper,Serranidae,30867,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+mullet,Mugilidae,8189,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+panga,Pangasiidae,31065,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+toothfish,Dissostichus,8207,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+milkfish,Chanos chanos,29144,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Crucian,Carassius,7956,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Skate,Rajiformes,30476,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+stingray,Batoidea,30470,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+termites,Isoptera,1049658,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Isoptera,Isoptera,1049658,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+caterpillar,Lepidoptera,7088,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+butterfly,Lepidoptera,7088,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+antlion,Myrmeleontidae,75362,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Arachnid,Arachnida,6854,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Curculionoidea,Curculionoidea,71529,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+leafhopper,Cicadellidae,27180,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Blackfly,Simuliidae,7190,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+leech,Hirudinea,6162,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+amphipod,Amphipoda,6654,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+cockle,Cardiidae,6547,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Clams,Bivalvia,6544,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+conch,Gastropoda,6448,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+sea anemone,Actiniaria,6103,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+sea squirt,Ascidiacea,7712,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Tunicata,Tunicata,7712,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Seacucumber,Holothuroidea,7705,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Shrimps,Decapoda,6683,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+marine limpet,Patellogastropoda,6465,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+marine conch,Gastropoda,6448,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+WildBird,Aves,8782,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+wild life,Metazoa,33208,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Anserini,Anserini,8854,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Double-banded Plover,Charadrius bicinctus,50402,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Griffon vultures,Gyps fulvus,33615,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
+Others - Alectoris chukar,Alectoris chukar,9078,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Alectoris chukar; rank=species
+Annelida,Annelida,6340,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Annelida; rank=phylum
+BAMBOO,Bambuseae,147376,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from BAMBOO; rank=tribe
+Bambussa,Bambusa,4581,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Bambusa; rank=genus
+Beet,Beta vulgaris,161934,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Beet; rank=species
+"Roots of Beta vulgaris, variety Pablo",Beta vulgaris,161934,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Beta vulgaris; rank=species
+Black-faced Spoonbill,Platalea minor,259913,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Black-faced Spoonbill; rank=species
+Bombus,Bombus,144708,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Bombus; rank=subgenus
+B. oleracea var. capitata,Brassica oleracea var. capitata,3716,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Brassica oleracea var. capitata; rank=varietas
+B. oleracea var. gemmifera,Brassica oleracea var. gemmifera,178616,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Brassica oleracea var. gemmifera; rank=varietas
+Others - Buteo jamaicensis,Buteo jamaicensis,56263,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Buteo jamaicensis; rank=species
+Cetacea,Cetacea,9721,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Cetacea; rank=infraorder
+Clodonia rei,Cladonia rei,184110,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Cladonia rei; rank=species
+Cnidaria,Cnidaria,6073,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Cnidaria; rank=phylum
+Colocasia,Colocasia,214093,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Colocasia; rank=genus
+Agouti Lowlan paca,Cuniculus paca,108852,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Cuniculus paca; rank=species
+Others - Daboia russelii,Daboia russelii,8707,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Daboia russelii; rank=species
+Dictyota,Torbia,323396,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Dictyota; rank=genus
+Digitaria,Digitaria,1582144,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Digitaria; rank=genus
+Diplotaxis,Diplotaxis,1710485,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Diplotaxis; rank=genus
+Dracaena,Dracaena,420544,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Dracaena; rank=genus
+Ectoprocta,Bryozoa,10205,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Ectoprocta; rank=phylum
+Ginkgo,Ginkgo biloba,3311,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Ginkgo; rank=species
+Others - Gongylophis colubrinus,Eryx colubrinus,51864,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Gongylophis colubrinus; rank=species
+Gould's razor shell,Solen strictus,194331,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Gould's razor shell; rank=species
+Others - Heterodon nasicus,Heterodon nasicus,121332,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Heterodon nasicus; rank=species
+Lacertilia,Scinciformata,35033,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Lacertilia; rank=infraorder
+Long-tailed goral,Naemorhedus caudatus,37173,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Long-tailed goral; rank=species
+Mollusca,Mollusca,6447,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Mollusca; rank=phylum
+Morus,Morus,37577,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Morus; rank=genus
+Nemesia,Nemesia,1810455,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Nemesia; rank=genus
+Finnraccoon,Nyctereutes procyonoides,34880,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Nyctereutes procyonoides; rank=species
+Olea,Olea,1522362,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Olea; rank=genus
+Pachypsylla sp. 'celtidis',Pachypsylla sp. 'celtidis',3058472,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Pachypsylla sp. 'celtidis'; rank=species
+avacado,Persea americana,3435,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Persea americana; rank=species
+Others - Phasianus colchicus,Phasianus colchicus,9054,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Phasianus colchicus; rank=species
+Pinnipedia,Pinnipedia,3072905,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Pinnipedia; rank=clade
+Pleurotus sp. 'Florida',Pleurotus sp. 'Florida',188765,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Pleurotus sp. 'Florida'; rank=species
+Red-capped Plover,Anarhynchus ruficapillus,50399,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Red-capped Plover; rank=species
+Others - Sauromalus ater,Sauromalus ater,65995,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Sauromalus ater; rank=species
+bark bettle,Scolytinae,55867,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Scolytinae; rank=subfamily
+Sida,Sida,108335,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Sida; rank=genus
+Others - Sistrurus catenatus,Sistrurus catenatus,8756,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Sistrurus catenatus; rank=species
+Others - Thamnophis sirtalis,Thamnophis sirtalis,35019,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Thamnophis sirtalis; rank=species
+Xylocopa,Xylocopa,135692,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from Xylocopa; rank=subgenus
+boa,Boa constrictor,8574,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from boa; rank=species
+dark-eyed junco,Junco hyemalis,40217,high,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from dark-eyed junco; rank=species
+three-toed sloth,Bradypus,9353,medium,targeted refinement batch 9-12 2026-05-01; reviewed_taxonkit_exact from three-toed sloth; rank=genus
