@@ -1,0 +1,82 @@
+count,environment_medium_sd
+251124,feces/stool
+35149,soil
+28428,air
+15455,water
+15025,wastewater
+12660,sediment
+9283,seawater
+8780,sewage
+6128,freshwater
+5405,dairy food
+5352,marine
+4358,environmental sample
+4180,plant tissue
+4129,river water
+3893,manure
+3597,environmental material
+2235,biofilm
+2216,activated sludge
+2182,culture medium
+2116,estuarine water
+1924,groundwater
+1803,lake water
+1781,laboratory
+1693,environmental water
+1463,surface water
+1445,hospital wastewater
+1341,marine sediment
+1155,tidal flat sediment
+990,pond water
+953,healthcare facility
+940,sludge
+874,hot spring water
+813,built-environment water
+794,biological product
+787,leachate
+758,hospital sewage
+741,canal water
+682,sea ice
+616,biological waste material
+447,subsurface shale
+443,drinking/distribution water
+416,glacier
+411,spring water
+381,built environment surface
+366,dust
+342,compost
+290,natural/free-living
+273,water column
+255,saline/brine water
+251,brackish water
+242,irrigation water
+202,agricultural/aquaculture water
+179,cryoconite
+174,chemically distinct water
+106,surface/open water
+100,geologic/produced water
+94,produced water
+89,agricultural/food-production water
+86,Oyster pond
+84,metadata descriptor/non-source
+75,mud/sediment
+51,drainage/runoff water
+42,salt marsh sediment
+29,domestic wastewater
+27,mine water
+23,food-processing water
+22,cave/cryoconite water
+20,ice water
+18,pond sediment
+14,drainage water
+11,wastewater/sewage treatment plant
+8,running water
+6,water/sediment mixture
+4,aquarium/aquaculture water
+3,landfill/leachate water
+3,retting water
+2,mine tailings
+1,land crag
+1,healthcare facility surface
+1,river sediment
+1,microplastic/plastic

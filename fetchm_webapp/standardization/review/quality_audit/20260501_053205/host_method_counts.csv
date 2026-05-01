@@ -1,0 +1,11 @@
+count,host_match_method
+1357392,dictionary
+1029127,missing
+101792,context_cleaned_match
+35637,context_dictionary
+22147,context_broad_dictionary
+21656,cleaned_match
+20088,broad_dictionary
+7763,non_host_source
+776,unmapped
+545,not_identifiable
