@@ -8698,7 +8698,8 @@ def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: st
     species = row_to_species(task_row)
     try:
         rows_by_accession = load_taxon_metadata_rows(species.id)
-        rows = list(rows_by_accession.values())
+        rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
+        save_taxon_metadata_rows(species.id, rows, refreshed_at=utc_now(), normalize_rows=False)
         metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
             species.slug,
             rows,
@@ -8866,7 +8867,13 @@ def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
                     stored_row_total,
                 )
             rows_by_accession = load_taxon_metadata_rows(species.id)
-            rows = list(rows_by_accession.values())
+            rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
+            save_taxon_metadata_rows(
+                species.id,
+                rows,
+                refreshed_at=refreshed_at,
+                normalize_rows=False,
+            )
         else:
             rows_by_accession = load_taxon_metadata_rows(species.id)
             rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
