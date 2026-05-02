@@ -3946,7 +3946,10 @@ def broad_standardization_category(value: str) -> str:
     for pattern, broad in _BROAD_STANDARDIZATION_CONTEXT_CACHE[1]:
         if pattern.search(cleaned):
             return broad
-    return value
+    # Broad fields must remain controlled vocabularies. Preserve the specific
+    # standardized value in the *_SD column, but do not leak raw/noisy values
+    # into *_SD_Broad when no controlled broad category is known.
+    return ""
 
 
 def standardize_secondary_metadata(row: dict[str, Any], host_standardization: dict[str, str]) -> dict[str, str]:
