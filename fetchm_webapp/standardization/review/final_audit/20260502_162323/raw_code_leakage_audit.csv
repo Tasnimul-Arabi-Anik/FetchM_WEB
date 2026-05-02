@@ -1,0 +1,375 @@
+count,field,value,recommended_action
+196,Isolation_Source_SD,cxwnd,route to controlled category or manual_review
+193,Isolation_Source_SD,OT,route to controlled category or manual_review
+146,Isolation_Source_SD,derived from the strain Pseudomonas aeruginosa ATCC 27853,route to controlled category or manual_review
+114,Isolation_Source_SD,L_index,route to controlled category or manual_review
+107,Isolation_Source_SD,L_cheek,route to controlled category or manual_review
+105,Isolation_Source_SD,Facility 4,route to controlled category or manual_review
+104,Isolation_Source_SD,doxycycline resistant derivatives of parent strain ATCC 14579,route to controlled category or manual_review
+101,Isolation_Source_SD,R_palm,route to controlled category or manual_review
+97,Isolation_Source_SD,Facility 3,route to controlled category or manual_review
+96,Isolation_Source_SD,R_index,route to controlled category or manual_review
+94,Isolation_Source_SD,parent strain Bacillus Cereus ATCC 14579 exposed to ciprofloxacin,route to controlled category or manual_review
+92,Isolation_Source_SD,L_palm,route to controlled category or manual_review
+91,Isolation_Source_SD,Facility F,route to controlled category or manual_review
+83,Isolation_Source_SD,Facility E,route to controlled category or manual_review
+81,Isolation_Source_SD,Isolated clone,route to controlled category or manual_review
+80,Isolation_Source_SD,ROAR,route to controlled category or manual_review
+80,Isolation_Source_SD,CIPA,route to controlled category or manual_review
+80,Isolation_Source_SD,R_cheek,route to controlled category or manual_review
+79,Isolation_Source_SD,HCW Hand,route to controlled category or manual_review
+77,Isolation_Source_SD,Isolated Organism,route to controlled category or manual_review
+75,Isolation_Source_SD,derived from the parent strain Pseudomonas aeruginosa 39648-20,route to controlled category or manual_review
+65,Isolation_Source_SD,#REF!,route to controlled category or manual_review
+63,Isolation_Source_SD,ESBA,route to controlled category or manual_review
+63,Isolation_Source_SD,BK,route to controlled category or manual_review
+63,Isolation_Source_SD,O,route to controlled category or manual_review
+60,Isolation_Source_SD,Facility 2,route to controlled category or manual_review
+55,Isolation_Source_SD,derived from the strain Pseudomonas aeruginosa 1202,route to controlled category or manual_review
+54,Isolation_Source_SD,Facility A,route to controlled category or manual_review
+53,Isolation_Source_SD,Facility 1,route to controlled category or manual_review
+52,Isolation_Source_SD,Facility 6,route to controlled category or manual_review
+50,Isolation_Source_SD,bioreactor inoculated with peat from an acidic fen and consecutively exposed to oxic and anoxic cycles,route to controlled category or manual_review
+39,Isolation_Source_SD,anaerobic dechlorinating bioreactor; SDC-9 consortium maintain in serum bottles and exposed to biochar pyrolyzed at different temperatures,route to controlled category or manual_review
+34,Isolation_Source_SD,Facility K,route to controlled category or manual_review
+32,Isolation_Source_SD,Facility 5,route to controlled category or manual_review
+31,Isolation_Source_SD,Facility J,route to controlled category or manual_review
+27,Isolation_Source_SD,Facility G,route to controlled category or manual_review
+23,Isolation_Source_SD,Facility D,route to controlled category or manual_review
+22,Isolation_Source_SD,Facility L,route to controlled category or manual_review
+20,Isolation_Source_SD,Facility I,route to controlled category or manual_review
+20,Isolation_Source_SD,Facility B,route to controlled category or manual_review
+15,Isolation_Source_SD,Facility H,route to controlled category or manual_review
+12,Isolation_Source_SD,parent strain RU1 evolved under selective conditions; Mutation accumulation gen 5900 LB GS,route to controlled category or manual_review
+12,Isolation_Source_SD,parent strain RU1 evolved under selective conditions; BHI evolved gen 950 Population GS,route to controlled category or manual_review
+12,Isolation_Source_SD,parent strain RU1 evolved under selective conditions; LB evolved gen 500 Population GS,route to controlled category or manual_review
+12,Isolation_Source_SD,parent strain RU2 evolved under selective conditions; LB evolved gen 500 Population GS,route to controlled category or manual_review
+12,Isolation_Source_SD,parent strain RU2 evolved under selective conditions; BHI evolved gen 950 Population GS,route to controlled category or manual_review
+10,Isolation_Source_SD,antibiotic-induced line from strain ATCC 25922 grown on a MEGA plate,route to controlled category or manual_review
+10,Isolation_Source_SD,Facility C,route to controlled category or manual_review
+9,Isolation_Source_SD,parent strain OG117,route to controlled category or manual_review
+8,Isolation_Source_SD,derived from VB111,route to controlled category or manual_review
+8,Isolation_Source_SD,ATCC Reference Strain,route to controlled category or manual_review
+8,Isolation_Source_SD,resistant mutants selected from H37Rv parent strain,route to controlled category or manual_review
+7,Isolation_Source_SD,ATCC,route to controlled category or manual_review
+6,Isolation_Source_SD,Facility Q,route to controlled category or manual_review
+5,Isolation_Source_SD,Facility O,route to controlled category or manual_review
+5,Isolation_Source_SD,spontaneous mutant of Mycolicibacterium smegmatis ATCC 19420 with increased resistance to lupulone,route to controlled category or manual_review
+3,Isolation_Source_SD,phage-selected mutant derived from KpRJF293cap,route to controlled category or manual_review
+3,Isolation_Source_SD,Facility fcH,route to controlled category or manual_review
+3,Isolation_Source_SD,derived from O395R,route to controlled category or manual_review
+2,Isolation_Source_SD,derived from Salmonella enterica subsp. enterica serovar Typhimurium str. LT2,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 7,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 5,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 4,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 3,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 2,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 8,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 6,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 7,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 4,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 5,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 3,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 2,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 8,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 6,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 7,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 2,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 8,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 3,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 4,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 6,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 5,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 7,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 8,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 6,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 3,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 5,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 2,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 1,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 5 replicate 4,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ATCC 700603 co-incubated with membrane vesicles (OMVs) isolated from carbapenem-resistant Klebsiella pneumoniae,route to controlled category or manual_review
+2,Isolation_Source_SD,parent strain ID4365,route to controlled category or manual_review
+2,Isolation_Source_SD,mutant of ATCC 15926,route to controlled category or manual_review
+2,Isolation_Source_SD,ATCC 27755,route to controlled category or manual_review
+2,Isolation_Source_SD,Streptomyces peucetius ATCC 27952,route to controlled category or manual_review
+2,Isolation_Source_SD,ATCC 27679,route to controlled category or manual_review
+2,Isolation_Source_SD,ATCC 27678,route to controlled category or manual_review
+2,Isolation_Source_SD,"DSM 1402, ATCC 25582, NCIB 10673",route to controlled category or manual_review
+2,Isolation_Source_SD,derived from strain MSB8,route to controlled category or manual_review
+1,Isolation_Source_SD,methionine auxotroph derived from strain LT-2,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from strain s4454,route to controlled category or manual_review
+1,Isolation_Source_SD,ot,route to controlled category or manual_review
+1,Isolation_Source_SD,Artificial construct derived from EPEC E2348/69 variety 2,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC commercial,route to controlled category or manual_review
+1,Isolation_Source_SD,"derived from CIP 106327 (Collection de l'Institute Pasteur, Paris, France)",route to controlled category or manual_review
+1,Isolation_Source_SD,isolated after culturing directly from an ATCC vial labeled BAA-334,route to controlled category or manual_review
+1,Isolation_Source_SD,"NCTC 7864, ATCC 10557",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27823,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 700799,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 10556,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 6249, BCRC 36273",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35037, NCTC 11427",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29667,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 700641,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 15 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 10 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; linezolid resistance selection Day 20 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 3,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 2,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 4,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 5,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 6,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 7,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 5 replicate 8,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 2,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 3,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 4,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 3,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 5,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 6,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 8,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 10 replicate 7,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 2,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 3,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 6,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 4,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 7,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 5,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 15 replicate 8,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 2,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 4,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 7,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 8,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 5,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 43300; vancomycin resistance selection Day 20 replicate 6,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 25923 maintained for many years in lab,route to controlled category or manual_review
+1,Isolation_Source_SD,Facility fcG,route to controlled category or manual_review
+1,Isolation_Source_SD,rough type phage-resistant strain derived from Klebsiella pneumoniae K7,route to controlled category or manual_review
+1,Isolation_Source_SD,smooth type phage-resistant strain derived from K. pneumoniae K7,route to controlled category or manual_review
+1,Isolation_Source_SD,strain K3574 exposed to 15 days of lytic phage infection,route to controlled category or manual_review
+1,Isolation_Source_SD,"strain K3574 exposed to 15 days of a constant concentration of phage and mucin, daily added to the media",route to controlled category or manual_review
+1,Isolation_Source_SD,"strain K3574 exposed to 15 days of a constant concentration of mucin, daily added to the media",route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain,route to controlled category or manual_review
+1,Isolation_Source_SD,tssM knockout of parent strain KU1003-01,route to controlled category or manual_review
+1,Isolation_Source_SD,QC org:ATCC 27853,route to controlled category or manual_review
+1,Isolation_Source_SD,"mixture of 5 samples p1, p2, p67, p73, p74 isolated from the parent mutator strain Pseudomonas fluorescens ATCC 948",route to controlled category or manual_review
+1,Isolation_Source_SD,"mixture of 5 samples p4, p32, p49, p64, p79 isolated from the parent mutator strain Pseudomonas fluorescens ATCC 948",route to controlled category or manual_review
+1,Isolation_Source_SD,Mutant derived from ATCC 31479,route to controlled category or manual_review
+1,Isolation_Source_SD,Clone 2 resistant to the phage variant phiDCL-PA6alpha; parent strain PA14,route to controlled category or manual_review
+1,Isolation_Source_SD,Clone 2 resistant to phage phiDCL-PA6; parent strain PA14,route to controlled category or manual_review
+1,Isolation_Source_SD,Clone 1 resistant to the phage variant phiDCL-PA6alpha; parent strain PA14,route to controlled category or manual_review
+1,Isolation_Source_SD,Clone 1 resistant to phage phiDCL-PA6; parent strain PA14,route to controlled category or manual_review
+1,Isolation_Source_SD,colistin resistant; parent strain Ps01LRM,route to controlled category or manual_review
+1,Isolation_Source_SD,Derived from strain Pseudomonas aeruginosa MF1,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC collection,route to controlled category or manual_review
+1,Isolation_Source_SD,lab mutation of ATCC 17978,route to controlled category or manual_review
+1,Isolation_Source_SD,Generated in lab from ATCC 17979,route to controlled category or manual_review
+1,Isolation_Source_SD,Nx resistant derivative of parent strain ATCC 19606,route to controlled category or manual_review
+1,Isolation_Source_SD,NAg resistant derivative of parent strain ATCC 19606,route to controlled category or manual_review
+1,Isolation_Source_SD,Ag+ tolerant derivative of parent strain ATCC 19606,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from Enterococcus faecalis ATCC 29212 after infected by phage EF_FB,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from Enterococcus faecalis ATCC 29212 after infected by phage EF_CM,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from Enterococcus faecalis ATCC 29212 after infected by phage EF_WCK,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from Enterococcus faecalis ATCC 29212 after infected by phage EF_KTM,route to controlled category or manual_review
+1,Isolation_Source_SD,KatA Tn mutant; parent strain OG1RF,route to controlled category or manual_review
+1,Isolation_Source_SD,CydA Tn mutant; parent strain OG1RF,route to controlled category or manual_review
+1,Isolation_Source_SD,linezolid-resistant strain isolated from parent strain MA1,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain V19 with nagY gene deletion,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain V19 with hylA gene deletion,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain V19 with deletion of the 5 untranslated region of the nagY gene,route to controlled category or manual_review
+1,Isolation_Source_SD,This is ATCC 33843,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49162, CCUG 27126, DSM 12409",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35316,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 33679; Barcode B8 insertion strain,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 33679; Barcode B7 insertion strain,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 33679; Barcode B12 insertion strain,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 33679; Barcode B4 insertion strain,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain ATCC 33679; Barcode B1 insertion strain,route to controlled category or manual_review
+1,Isolation_Source_SD,NRS 243 on filter paper exposed to methyl bromide for 48 hrs,route to controlled category or manual_review
+1,Isolation_Source_SD,NRS 243 on hair exposed to methylene bromide for 72 hrs,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from HD-317,route to controlled category or manual_review
+1,Isolation_Source_SD,originally deposited in ATCC as Arthrobacter sp.,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from existing strain,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29315, NCTC 11050",route to controlled category or manual_review
+1,Isolation_Source_SD,Cultivated from CCT190562S ATCC 14581,route to controlled category or manual_review
+1,Isolation_Source_SD,"sub-population from original ATCC 27064 vial labeled ""Dec 15. 1986""",route to controlled category or manual_review
+1,Isolation_Source_SD,mutant strain derived from Streptomyces xinghaiensis ATCC 19609,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 15579,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 43185,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 8483,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 8492,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43183, CIP 104203T, JCM 9496",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20697, ATCC 27754",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-614,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43879, CCUG 23435",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-430,route to controlled category or manual_review
+1,Isolation_Source_SD,"LCDC 16143, ATCC 700968",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC Collection,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 17216, CCUG 45780, CIP 104286, ATCC 29800, Carlier 10203, VPI 3293",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 55813,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 16992, ATCC 27539, CIP 104175, DSM 20103",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20438, ATCC 27919, LMG 10505, JCM 1200",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20093, ATCC 49850, JCM 8224",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20213, ATCC 15700, NCTC 11815",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20098, ATCC 27535",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 25845,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 700821, CCUG 39484, DSM 18710",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33563,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49559, CCUG 48288, DSM 3688",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29303,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 11116, CCUG 25716",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33392,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33390,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29220, CDC 1885/75",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20072, ATCC 12315, NCDO 1438",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20075, ATCC 15009",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 4796,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33200, DSM 10533",route to controlled category or manual_review
+1,Isolation_Source_SD,Bacteriophage Insensitive Mutant of strain ATCC 10386,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 4582, ATCC 33077, CIP 79.01, ICPB 3995, NCTC 11214",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35198, CDC 4732-68",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29906, CDC PR 14",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-2276,route to controlled category or manual_review
+1,Isolation_Source_SD,Nitrosoguanidine-induced mutant derived from ATCC 6872,route to controlled category or manual_review
+1,Isolation_Source_SD,"Engineered derivative of C. glutamicum ATCC 13032, carrying a number of defined deletions",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33806, CCUG 47160",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33035,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51867,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49726, CCUG 28780, CNCTC 6805 , CNCTC Th 4/63",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33030, NCTC 11859",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 6940, NCTC 764, IFO 15291",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 49725,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51866,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 14266, IFO 15360, NCTC 10254, PCM 2414",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 700975, DSM 44827, CCUG 48176",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20306, ATCC 6871, NCIB 8143, NCTC 2398",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 43734,route to controlled category or manual_review
+1,Isolation_Source_SD,from ATCC 14067 by mutation breeding,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 25986, CCUG 28087, DSM 3979, KCTC 3647, JCM 10188",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27560,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 43184,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43325, NCTC 11617",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29174,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20583, ATCC 27752",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35580,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35198,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 4541, ATCC 33673",route to controlled category or manual_review
+1,Isolation_Source_SD,"NCTC 10286, DSM 30120, CIP 82.90, ATCC 9886",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC PTA-4659,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 14931, NCIB 11840",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49540, NCTC 12197",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 55730,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain THC 02-90 passaged with rifampicin,route to controlled category or manual_review
+1,Isolation_Source_SD,parent strain THC 02-90 passaged without rifampicin,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 5476, ATCC 43829",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 25577, CCUG 36754, DSM 4901",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 11741,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 14917, IAM 12477",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 21052, BCRC 14029, CCRC 14029",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 25302, NCDO 151, R094",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27756,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29176,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29149,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 17748,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 17745, DSM 2007",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 25563,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 23726,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33693,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27725,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49185, NCTC 12111",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 9817,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 51191, CCUG 32879, CIP 104879, DSM 8253",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51357,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29098, DSM 749",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35406,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 53978,route to controlled category or manual_review
+1,Isolation_Source_SD,DSM 9414; ATCC 29659; CCUG 16147; CIP 104112; JCM 20705; LMG 2866; NBRC 102222; NCIMB 2127,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 19254, NCDO 543",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35910, CL4/79, IFO 15054, JCM 2410, NCTC 11432",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43553, CIP 55774, LMG 6100",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27759,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 17931, CDC X599",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 25296, CCM 2417, DSM 20746, NCTC 10663, PCM 2415",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33861, CDC E7288, JCM 1277, NCTC 11386",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33300, DSM 2582",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-613,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33313, CCUG 30068, CIP 102421, DSM 20288",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35704,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 1552, ATCC 29900, NCTC 11211",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 14019,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33612,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33596,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 33624,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 51259, VPI N14B-15",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29863,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 11563, NCTC 8251, DSM 20340",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35185, VPI D19B-28",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 43532,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43531, DSM 19720",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43541, VPI D9B-5",route to controlled category or manual_review
+1,Isolation_Source_SD,derived from ATCC 13685,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 49030,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 23685,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 19414,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 3989, ATCC 27806",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 27751, DSM 3353",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27305,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 11577,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 8290,route to controlled category or manual_review
+1,Isolation_Source_SD,UV-radiation mutant of parent strain MA1002,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 20544, ATCC 27723, NCTC 10934",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 51147, CCUG 30450",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33394, CCUG 6516, DSM 10202",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 23330,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 700122,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 51172, JCM 8140, DSM 7456",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35098,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51170,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 7454, ATCC 49630, JCM 7635",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-1640,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29427, CCUG 17639, DSM 20464",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 27758,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from IFO 3276 that was derived from cherry,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35310, NCDO 2354, DSM 20616, BEI HM-137",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49957, CIP 104027",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 51873, HER 1272, 1672",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 10379, NCTC 5414, CCUG 37985, CIP 101126, LMG 18984",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC BAA-170, DSM 13220, CIP 108362",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 53516,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 29799,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49175, CIP 103243, DSM 9848",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 43331, ATCC 17982",route to controlled category or manual_review
+1,Isolation_Source_SD,contaminant of ATCC 12872 Bacillus megaterium,route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 16795, ATCC 14880",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-286,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 33270, DSM 20468, GIFU 7824, NCTC 11808",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 2876, ATCC 29175",route to controlled category or manual_review
+1,Isolation_Source_SD,mutant derived from parent strain ATCC 53524,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 35241, BV 345-16",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35239,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43063, DSM 2711",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35243,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 23834, BCRC 14415, CCUG 2138, DSM 8340",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 15826, NCTC 10426",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29453, ICPB 3636",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 12042, ATCC 51649",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 49626, VPI D140H-11A",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 35896,route to controlled category or manual_review
+1,Isolation_Source_SD,MNNG mutagenesis derived mutant of the parent strain NUB36,route to controlled category or manual_review
+1,Isolation_Source_SD,Re-isolation from ATCC 39073,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC BAA-1850,route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51276,route to controlled category or manual_review
+1,Isolation_Source_SD,derived from ATCC 27184,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43715, SM65",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 29143, DSM 3991",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 17244, ATCC BAA-858, CCUG 47767, CIP 108481, WAL 14563",route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC 43003, JCM 3961",route to controlled category or manual_review
+1,Isolation_Source_SD,"DSM 2778, ATCC 35019",route to controlled category or manual_review
+1,Isolation_Source_SD,ATCC 51267,route to controlled category or manual_review
+1,Isolation_Source_SD,Lac- derivative of Serratia sp. ATCC 39006 generated by EMS mutagenesis,route to controlled category or manual_review
+1,Isolation_Source_SD,"ATCC BAA-974, CDC 945",route to controlled category or manual_review

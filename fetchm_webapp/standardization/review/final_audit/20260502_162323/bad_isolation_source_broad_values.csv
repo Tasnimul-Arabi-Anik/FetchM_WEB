@@ -1,0 +1,63 @@
+count,isolation_source_sd_broad,problem_class,recommended_destination,recommended_value,recommended_action,reason
+10871,whole organism,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2818,poultry,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+933,urogenital/gastrointestinal site,body_site_in_source_broad,Isolation_Site_SD,,remap_or_demote,anatomical site belongs in isolation/body-site fields
+35,host-associated organism,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+11,Klíčava reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+8,Cortex,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+8,hydrothermal vent,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+7,Římov reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+6,rock,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+5,Hydrothermal Plume,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+4,Große Fuchskuhle SW lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+3,Maggiore lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+3,Lake Washington,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+3,Primary rapid sand filter,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+3,Wall biofilm,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Bioreactor,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Hallstätter See lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Volvi lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Input used in hydraulically fractured shales,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Lugano lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Landštejn reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Tałtowisko lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,NEUS_C leachate from a leachate well at an active municipal landfill in the North Eastern United States,raw_text_fragment,manual_review,,remap_or_demote,raw text fragment should not be a broad category
+2,aquatic biome,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Whole polyp cell suspension GFPlow/RFPlow,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Whole polyp cell suspension neuron,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Thunersee lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Most lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,hydrothermal plume,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Bottom 10cm of land fast sea ice,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+2,Redox gradient,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Amoebophrya sp. ex Karlodinium veneficum,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,urban,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Amadorio reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Slapy reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Cep lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,"holomictic Lake 442, 16.5 m depth",raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,leachate from a leachate well at an active municipal landfill in Southern Ontario,raw_text_fragment,manual_review,,remap_or_demote,raw text fragment should not be a broad category
+1,Čertovo lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,cultured embryonic stem cells,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Vechten lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Greifensee lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Zurich (Zürichsee) lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Große Fuchskuhle NE lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Pavin lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Cinciș reservoir,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Milada lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Kučići lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,hydrocarbon,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Garda lake,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,NEUS_B leachate from a leachate well at an active municipal landfill in the North Eastern United States,raw_text_fragment,manual_review,,remap_or_demote,raw text fragment should not be a broad category
+1,brine pool,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Saanich Inlet,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Tui Malila hydrothermal plume 10m,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Tahi Moana Above plume background,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Mariner hydrothermal plume 25m,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,free living fraction (5 micron - 0.22 micron),raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Peruvian upwelling,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Suspended Particulate Matter (SPM) from the Black Sea western gyre,raw_text_fragment,manual_review,,remap_or_demote,raw text fragment should not be a broad category
+1,Mediterranean Sea,geography_in_source_broad,Country/Geography,,remap_or_demote,"geography belongs in geography fields, not source broad"
+1,marine,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary
+1,Bauxite residue,raw_text_fragment,manual_review,,remap_or_demote,not in approved broad vocabulary

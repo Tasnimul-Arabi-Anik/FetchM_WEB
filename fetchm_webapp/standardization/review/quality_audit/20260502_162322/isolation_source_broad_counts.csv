@@ -1,0 +1,110 @@
+count,isolation_source_sd_broad
+395080,clinical/host-associated material
+253022,feces/stool
+125011,food/meat
+91539,gut content
+51901,water
+41817,metadata descriptor / non-source
+38447,food
+38207,environmental material
+32761,upper respiratory tract
+26817,soil
+26617,healthcare-associated environment
+24937,culture
+19400,clinical fluid/material
+17337,upper respiratory site
+17009,plant-associated material
+16396,food/dairy
+12246,sediment
+10871,whole organism
+10772,swab
+8453,wastewater/sewage
+6194,oral cavity
+6127,urogenital site
+5916,surface sample
+5631,agricultural environment
+4843,respiratory sample
+4117,host-associated context
+3622,laboratory environment
+3476,environmental/geologic material
+3225,culture/isolate
+3215,single cell
+2818,poultry
+2597,built environment
+2114,medical device
+1832,food/produce
+1751,sample
+1677,agricultural fecal material
+933,urogenital/gastrointestinal site
+644,surface/sample collection material
+622,aquatic food product
+589,animal tissue/site
+508,molecular extract
+411,gut/host-associated material
+395,wastewater/organic waste
+299,food/plant product
+101,culture medium
+93,cloacal sample
+43,culture/assembly
+36,biological/clinical product
+35,host-associated organism
+11,Klíčava reservoir
+8,Cortex
+8,hydrothermal vent
+7,Římov reservoir
+6,rock
+5,Hydrothermal Plume
+4,Große Fuchskuhle SW lake
+3,Maggiore lake
+3,Lake Washington
+3,Primary rapid sand filter
+3,Wall biofilm
+2,Bioreactor
+2,Hallstätter See lake
+2,Volvi lake
+2,Input used in hydraulically fractured shales
+2,Lugano lake
+2,Landštejn reservoir
+2,Tałtowisko lake
+2,NEUS_C leachate from a leachate well at an active municipal landfill in the North Eastern United States
+2,aquatic biome
+2,Whole polyp cell suspension GFPlow/RFPlow
+2,Whole polyp cell suspension neuron
+2,Thunersee lake
+2,Most lake
+2,hydrothermal plume
+2,Bottom 10cm of land fast sea ice
+2,Redox gradient
+1,tissue
+1,Amoebophrya sp. ex Karlodinium veneficum
+1,urban
+1,Amadorio reservoir
+1,Slapy reservoir
+1,Cep lake
+1,"holomictic Lake 442, 16.5 m depth"
+1,leachate from a leachate well at an active municipal landfill in Southern Ontario
+1,Čertovo lake
+1,cultured embryonic stem cells
+1,Vechten lake
+1,Greifensee lake
+1,Zurich (Zürichsee) lake
+1,Große Fuchskuhle NE lake
+1,Pavin lake
+1,Cinciș reservoir
+1,Milada lake
+1,Kučići lake
+1,hydrocarbon
+1,Garda lake
+1,NEUS_B leachate from a leachate well at an active municipal landfill in the North Eastern United States
+1,brine pool
+1,Saanich Inlet
+1,Tui Malila hydrothermal plume 10m
+1,Tahi Moana Above plume background
+1,Mariner hydrothermal plume 25m
+1,free living fraction (5 micron - 0.22 micron)
+1,Peruvian upwelling
+1,Suspended Particulate Matter (SPM) from the Black Sea western gyre
+1,Mediterranean Sea
+1,marine
+1,Bauxite residue
+1,biofilm
