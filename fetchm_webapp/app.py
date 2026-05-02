@@ -2570,6 +2570,11 @@ HOST_ONLY_SAMPLE_TYPE_TERMS = {
     "whole organism",
 }
 
+NON_COUNTRY_OUTPUT_TERMS = {
+    "central arctic ocean/eurasian basin",
+    "suburb of beijing",
+}
+
 SAMPLE_TYPE_MATERIAL_PATTERN = re.compile(
     r"\b("
     r"blood|feces|faeces|fecal|faecal|stool|urine|sputum|swab|tissue|milk|meat|gut|saliva|"
@@ -2591,6 +2596,20 @@ def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
 def sanitize_sample_type_standardization(value: Any) -> str:
     text = "" if value is None else str(value).strip()
     return "" if sample_type_rule_is_host_only(text, text) else text
+
+
+def enforce_clean_sample_type_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    if "Sample_Type_SD" not in frame.columns:
+        return frame
+    cleaned = frame["Sample_Type_SD"].apply(sanitize_sample_type_standardization)
+    invalid_mask = frame["Sample_Type_SD"].fillna("").astype(str).str.strip().ne("") & cleaned.eq("")
+    frame["Sample_Type_SD"] = cleaned
+    for column in ["Sample_Type_SD_Broad", "Sample_Type_SD_Detail", "Sample_Type_Ontology_ID"]:
+        if column in frame.columns:
+            frame.loc[invalid_mask, column] = ""
+    if "Sample_Type_SD_Method" in frame.columns:
+        frame.loc[invalid_mask, "Sample_Type_SD_Method"] = "missing"
+    return frame
 
 
 def normalize_standardization_lookup(value: Any) -> str:
@@ -12591,10 +12610,17 @@ def write_taxon_metadata_outputs(
         clean_df["Country"] = existing_country.where(derived_country.isna(), derived_country)
     if "Country" in clean_df.columns:
         country_values = clean_df["Country"].fillna("").astype(str).str.strip()
-        valid_country_mask = country_values.map(lambda value: value in COUNTRY_MAPPING or value.lower() in {"", "absent", "unknown"})
+        valid_country_mask = country_values.map(
+            lambda value: (
+                value in COUNTRY_MAPPING
+                and normalize_standardization_lookup(value) not in NON_COUNTRY_OUTPUT_TERMS
+            )
+            or value.lower() in {"", "absent", "unknown"}
+        )
         clean_df.loc[~valid_country_mask, "Country"] = "unknown"
         clean_df["Continent"] = clean_df["Country"].map(lambda value: COUNTRY_MAPPING.get(str(value), {}).get("Continent", "unknown"))
         clean_df["Subcontinent"] = clean_df["Country"].map(lambda value: COUNTRY_MAPPING.get(str(value), {}).get("Subcontinent", "unknown"))
+    clean_df = enforce_clean_sample_type_columns(clean_df)
     clean_path = metadata_output_dir / "ncbi_clean.csv"
     output_columns = comprehensive_columns + ["Country", "Continent", "Subcontinent"]
     save_clean_data(clean_df, [column for column in output_columns if column in clean_df.columns], str(clean_path))
