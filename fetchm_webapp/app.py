@@ -2588,6 +2588,11 @@ def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
     return not SAMPLE_TYPE_MATERIAL_PATTERN.search(source)
 
 
+def sanitize_sample_type_standardization(value: Any) -> str:
+    text = "" if value is None else str(value).strip()
+    return "" if sample_type_rule_is_host_only(text, text) else text
+
+
 def normalize_standardization_lookup(value: Any) -> str:
     text = "" if value is None else str(value).strip().lower()
     text = re.sub(r"\([^)]*\)", " ", text)
@@ -4036,6 +4041,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         ],
         HOST_HEALTH_STATE_SYNONYMS,
     )
+    sample_type = sanitize_sample_type_standardization(sample_type)
+    if not sample_type:
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
     return {
         "Isolation_Source_SD": isolation_source,
         "Isolation_Source_SD_Broad": broad_standardization_category(isolation_source),
@@ -4541,6 +4550,16 @@ def harmonize_geography_metadata(row: dict[str, Any]) -> dict[str, Any]:
         normalized["Country_Confidence"] = ""
         normalized["Country_Evidence"] = ""
         normalized["Geo_Recovery_Status"] = "absent" if normalized["Country"] == "absent" else "unknown"
+        return normalized
+
+    if str(country) not in COUNTRY_MAPPING:
+        normalized["Country"] = "unknown"
+        normalized["Continent"] = "unknown"
+        normalized["Subcontinent"] = "unknown"
+        normalized["Country_Source"] = ""
+        normalized["Country_Confidence"] = ""
+        normalized["Country_Evidence"] = ""
+        normalized["Geo_Recovery_Status"] = "unknown"
         return normalized
 
     normalized["Country"] = country
@@ -12560,7 +12579,15 @@ def write_taxon_metadata_outputs(
     comprehensive_columns = list(df_dedup.columns)
     clean_df = add_geo_columns(df_dedup.copy())
     if "Geographic Location" in clean_df.columns:
-        clean_df["Country"] = clean_df["Geographic Location"].apply(extract_country)
+        derived_country = clean_df["Geographic Location"].apply(extract_country)
+        existing_country = clean_df["Country"] if "Country" in clean_df.columns else pd.Series([""] * len(clean_df), index=clean_df.index)
+        clean_df["Country"] = existing_country.where(derived_country.isna(), derived_country)
+    if "Country" in clean_df.columns:
+        country_values = clean_df["Country"].fillna("").astype(str).str.strip()
+        valid_country_mask = country_values.map(lambda value: value in COUNTRY_MAPPING or value.lower() in {"", "absent", "unknown"})
+        clean_df.loc[~valid_country_mask, "Country"] = "unknown"
+        clean_df["Continent"] = clean_df["Country"].map(lambda value: COUNTRY_MAPPING.get(str(value), {}).get("Continent", "unknown"))
+        clean_df["Subcontinent"] = clean_df["Country"].map(lambda value: COUNTRY_MAPPING.get(str(value), {}).get("Subcontinent", "unknown"))
     clean_path = metadata_output_dir / "ncbi_clean.csv"
     output_columns = comprehensive_columns + ["Country", "Continent", "Subcontinent"]
     save_clean_data(clean_df, [column for column in output_columns if column in clean_df.columns], str(clean_path))

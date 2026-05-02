@@ -6603,7 +6603,7 @@ normally sterile site,,normally sterile site,normally sterile site,Isolation_Sou
 sputum,,sputum,sputum,Isolation_Site_SD,sputum,sputum,clinical/host-associated material,UBERON:0007311,dictionary,high,approved,high-count respiratory site/material correction 2026-04-30
 raw intact chicken,,raw intact chicken,raw intact chicken,Isolation_Source_SD,poultry meat/product,poultry meat/product,food/source material,,dictionary,high,approved,high-count food/source correction 2026-04-30
 pathogen.cl,,pathogen.cl,pathogen cl,Sample_Type_SD,metadata descriptor/non-source,metadata descriptor/non-source,metadata descriptor / non-source,,dictionary,high,approved,high-count administrative descriptor correction 2026-04-30
-whole organism,,whole organism,whole organism,Sample_Type_SD,whole organism,whole organism,,,dictionary,high,approved,high-count sample-type correction 2026-04-30
+whole organism,,whole organism,whole organism,Sample_Type_SD,whole organism,whole organism,,,dictionary,high,needs_review,high-count sample-type correction 2026-04-30 demoted 2026-05-02 Batch 22: host/context term is not a specimen material for Sample_Type_SD.
 hospital,,hospital,hospital,Isolation_Source_SD,healthcare facility,healthcare facility,healthcare-associated environment,,dictionary,high,approved,high-count source correction 2026-04-30
 clinical,,clinical,clinical,Isolation_Source_SD,clinical sample,clinical sample,,,dictionary,high,approved,high-count source correction 2026-04-30
 wound,,wound,wound,Isolation_Site_SD,wound,wound,clinical/host-associated material,,dictionary,high,approved,high-count site correction 2026-04-30
