@@ -1,0 +1,51 @@
+field,approved_value,description,examples
+Isolation_Source_SD_Broad,clinical/host-associated material,Clinical or host-associated biological material,blood; sputum; tissue
+Isolation_Source_SD_Broad,host-associated context,Host-associated context where a specific specimen/source is not available,whole organism; wildlife
+Isolation_Source_SD_Broad,feces/stool,Fecal or stool material,feces; stool; faeces
+Isolation_Source_SD_Broad,food,Food or food product,ready-to-eat food; fermented food
+Isolation_Source_SD_Broad,food/meat,Meat or animal-origin food product,chicken meat; beef; pork
+Isolation_Source_SD_Broad,food/dairy,Dairy food or dairy product,milk; cheese; dairy product
+Isolation_Source_SD_Broad,food/produce,Produce or plant-origin food,spinach; papaya; vegetable
+Isolation_Source_SD_Broad,food/plant product,Processed plant-origin food,peanut butter
+Isolation_Source_SD_Broad,food/processing environment,Food-processing or food-contact environment,food-contact surface
+Isolation_Source_SD_Broad,water,Aquatic or water-associated source,river water; lake water; seawater
+Isolation_Source_SD_Broad,wastewater/sewage,Wastewater sewage or sludge source,wastewater; sewage; activated sludge
+Isolation_Source_SD_Broad,soil,Soil-associated material,soil; rhizosphere soil
+Isolation_Source_SD_Broad,sediment,Sediment-associated material,marine sediment; pond sediment
+Isolation_Source_SD_Broad,environmental material,Generic environmental material,environmental sample
+Isolation_Source_SD_Broad,environmental/geologic material,Geologic or extreme environmental material,rock; hydrothermal vent
+Isolation_Source_SD_Broad,healthcare-associated environment,Healthcare or hospital environment,hospital surface; ICU environment
+Isolation_Source_SD_Broad,agricultural environment,Agricultural or farm environment,farm; dairy farm
+Isolation_Source_SD_Broad,agricultural fecal material,Agricultural fecal material,manure
+Isolation_Source_SD_Broad,animal-associated environment,Animal production or animal-associated environment,poultry house; animal facility
+Isolation_Source_SD_Broad,plant-associated material,Plant-associated non-food material,root; rhizosphere; leaves
+Isolation_Source_SD_Broad,culture,Culture material or culture condition,pure culture; mixed culture
+Isolation_Source_SD_Broad,culture/assembly,Assembly or metagenomic culture descriptor,metagenomic assembly
+Isolation_Source_SD_Broad,culture/isolate,Microbial isolate or culture isolate,microbial isolate
+Isolation_Source_SD_Broad,culture medium,Culture medium,blood agar culture medium
+Isolation_Source_SD_Broad,laboratory environment,Laboratory source or context,laboratory
+Isolation_Source_SD_Broad,built environment,Built environment or built surface,sink; drain; cleanroom floor
+Isolation_Source_SD_Broad,surface sample,Surface sample or surface context,surface
+Isolation_Source_SD_Broad,biofilm,Biofilm source,biofilm; wall biofilm
+Isolation_Source_SD_Broad,respiratory sample,Respiratory sample category,tracheal aspirate; bronchoalveolar lavage
+Isolation_Source_SD_Broad,upper respiratory tract,Upper respiratory tract site,nasopharynx/oropharynx
+Isolation_Source_SD_Broad,upper respiratory site,Upper respiratory site,nasal site
+Isolation_Source_SD_Broad,oral cavity,Oral cavity site,dental plaque; oral cavity
+Isolation_Source_SD_Broad,urogenital site,Urogenital site,urethra; cervix
+Isolation_Source_SD_Broad,gastrointestinal site,Gastrointestinal site,colon; ileum
+Isolation_Source_SD_Broad,gut content,Gut or intestinal content,intestine; stomach; rumen
+Isolation_Source_SD_Broad,tissue,Tissue specimen,FFPE tissue
+Isolation_Source_SD_Broad,swab,Swab specimen category,rectal swab; nasal swab
+Isolation_Source_SD_Broad,clinical fluid/material,Clinical fluid or material,pus; abscess; pleural fluid
+Isolation_Source_SD_Broad,medical device,Medical device or catheter context,catheter
+Isolation_Source_SD_Broad,aquatic food product,Aquatic food product,seafood; fish product
+Isolation_Source_SD_Broad,biological/clinical product,Biological or clinical product,biological product
+Isolation_Source_SD_Broad,molecular extract,Molecular extract,DNA extract
+Isolation_Source_SD_Broad,single cell,Single-cell source,single cell
+Isolation_Source_SD_Broad,sample,Generic sample label,sample
+Isolation_Source_SD_Broad,cloacal sample,Cloacal specimen,cloacal sample
+Isolation_Source_SD_Broad,fermented food,Fermented food,kimchi; fermented food
+Isolation_Source_SD_Broad,surface/sample collection material,Collection material or surface sampling tool,sponge
+Isolation_Source_SD_Broad,gut/host-associated material,Gut-associated host material,intestinal epithelial cells
+Isolation_Source_SD_Broad,wastewater/organic waste,Wastewater or organic waste digestion source,anaerobic digester
+Isolation_Source_SD_Broad,metadata descriptor / non-source,Metadata descriptor rather than biological source,metagenome

@@ -55,6 +55,13 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(broad_standardization_category("Osteomyelitis"), "")
         self.assertEqual(broad_standardization_category("L_cheek"), "")
         self.assertEqual(broad_standardization_category("#REF!"), "")
+        self.assertEqual(broad_standardization_category("whole organism"), "host-associated context")
+        self.assertEqual(broad_standardization_category("poultry"), "host-associated context")
+        self.assertEqual(broad_standardization_category("host-associated organism"), "host-associated context")
+        self.assertEqual(
+            broad_standardization_category("urogenital/gastrointestinal site"),
+            "clinical/host-associated material",
+        )
         self.assertEqual(broad_standardization_category("rectal swab"), "swab")
         self.assertEqual(broad_standardization_category("river water"), "water")
 

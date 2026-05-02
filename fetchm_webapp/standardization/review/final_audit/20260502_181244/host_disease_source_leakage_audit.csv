@@ -1,0 +1,210 @@
+count,field,value,recommended_action
+208,Isolation_Source_SD,infection,route to Host_Disease_SD/Host_Health_State_SD
+185,Isolation_Source_SD,Non-CF Bronchiectasis,route to Host_Disease_SD/Host_Health_State_SD
+180,Isolation_Source_SD,SSTI,route to Host_Disease_SD/Host_Health_State_SD
+131,Isolation_Source_SD,itra-abdominal tract infection,route to Host_Disease_SD/Host_Health_State_SD
+129,Isolation_Source_SD,mastitis,route to Host_Disease_SD/Host_Health_State_SD
+113,Isolation_Source_SD,Osteomyelitis,route to Host_Disease_SD/Host_Health_State_SD
+103,Isolation_Source_SD,intra-abdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+95,Isolation_Source_SD,Contact Case,route to Host_Disease_SD/Host_Health_State_SD
+93,Isolation_Source_SD,Infection,route to Host_Disease_SD/Host_Health_State_SD
+91,Isolation_Source_SD,community acquired,route to Host_Disease_SD/Host_Health_State_SD
+89,Isolation_Source_SD,Diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+86,Isolation_Source_SD,Endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+84,Isolation_Source_SD,aborted uteroplancental unit,route to Host_Disease_SD/Host_Health_State_SD
+75,Isolation_Source_SD,Mastitis,route to Host_Disease_SD/Host_Health_State_SD
+62,Isolation_Source_SD,Leg infection,route to Host_Disease_SD/Host_Health_State_SD
+59,Isolation_Source_SD,Cystic Fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+58,Isolation_Source_SD,Sepsis,route to Host_Disease_SD/Host_Health_State_SD
+57,Isolation_Source_SD,Pneumonia,route to Host_Disease_SD/Host_Health_State_SD
+42,Isolation_Source_SD,Disease,route to Host_Disease_SD/Host_Health_State_SD
+42,Isolation_Source_SD,Infection of surgical site,route to Host_Disease_SD/Host_Health_State_SD
+37,Isolation_Source_SD,Cystic fibrosis attention center,route to Host_Disease_SD/Host_Health_State_SD
+37,Isolation_Source_SD,cystic fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+34,Isolation_Source_SD,aborted fetus,route to Host_Disease_SD/Host_Health_State_SD
+34,Isolation_Source_SD,sepsis,route to Host_Disease_SD/Host_Health_State_SD
+32,Isolation_Source_SD,animal infection,route to Host_Disease_SD/Host_Health_State_SD
+31,Isolation_Source_SD,Intraabdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+26,Isolation_Source_SD,Intra-abdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+20,Isolation_Source_SD,Prosthesis infection,route to Host_Disease_SD/Host_Health_State_SD
+17,Isolation_Source_SD,host infection,route to Host_Disease_SD/Host_Health_State_SD
+12,Isolation_Source_SD,abdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+12,Isolation_Source_SD,Infection site,route to Host_Disease_SD/Host_Health_State_SD
+12,Isolation_Source_SD,CF,route to Host_Disease_SD/Host_Health_State_SD
+11,Isolation_Source_SD,aborted uteroplacental unit,route to Host_Disease_SD/Host_Health_State_SD
+9,Isolation_Source_SD,Associated Infection,route to Host_Disease_SD/Host_Health_State_SD
+8,Isolation_Source_SD,Prosthetic joint infection,route to Host_Disease_SD/Host_Health_State_SD
+8,Isolation_Source_SD,infection control,route to Host_Disease_SD/Host_Health_State_SD
+7,Isolation_Source_SD,udder acute mastitis,route to Host_Disease_SD/Host_Health_State_SD
+7,Isolation_Source_SD,bovine mastitis,route to Host_Disease_SD/Host_Health_State_SD
+7,Isolation_Source_SD,intraabdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+7,Isolation_Source_SD,valvular endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,pneumonia,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Abdominal infection,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 co-cultured with S. maltophilia 4 g/ml treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 monocultured in Synthetic Cystic Fibrosis Media for 24 days in the absence of imipenem,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 monocultured in 4 g/ml imipenem treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 co-cultured with S. maltophilia 1 g/ml treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 monocultured in 1 g/ml imipenem treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 co-cultured with S. maltophilia in Synthetic Cystic Fibrosis Media for 24 days in the absence of imipenem,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 monocultured in 8 g/ml imipenem treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+6,Isolation_Source_SD,Independently evolved isolated clone of PA01 co-cultured with S. maltophilia 8 g/ml treated Synthetic Cystic Fibrosis Media for 24 days,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Yolk sac infection,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,surgical site infection,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Incisional infection,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,implant-asscoiated infection,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Bovine mastitis,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Infection product,route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Leukemia cell line (SEM),route to Host_Disease_SD/Host_Health_State_SD
+5,Isolation_Source_SD,Nosocomial infection,route to Host_Disease_SD/Host_Health_State_SD
+4,Isolation_Source_SD,sepsis (no localising source),route to Host_Disease_SD/Host_Health_State_SD
+4,Isolation_Source_SD,Mastitis Clinica,route to Host_Disease_SD/Host_Health_State_SD
+4,Isolation_Source_SD,Cystic fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+4,Isolation_Source_SD,non cystic fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,disease,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,persistent mastitis,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,transient mastitis,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,prosthetic joint infection,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Mandibular osteomyelitis,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Ovine aborted fetus,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Postoperative infection,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Mastitis Subclinica,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,osteomyelitis,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Footpad infection,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,Aborted fetus,route to Host_Disease_SD/Host_Health_State_SD
+3,Isolation_Source_SD,patients with intra-amniotic infection and premature labor,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,genital infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Serous discharge abd- surgical site infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Ventilator-associated pneumonia,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,joint infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,infant with diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,"Meningitis, Pneumonia",route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Bovine Mastitis,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,endodontic infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Bovine aborted fetus,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,SSTI - R foot,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,SSTI - R foot TMA site,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Osteomyelitis or Infected endoprosthesis,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,88-year old man presenting knee prosthesis infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,83-year old woman with a hip prosthesis infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,left-sided endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Peritoneum infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Surgical site infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,"expectoration, bronchiectasis",route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Cornea/ocular infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Intra-abdominal tract infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,infection site,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,uterus of a mare who aborted a 7-month gestation fetus,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,osteoarticular infection,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Prosthetic joint infection hip,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,aborted calf,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,"Musa sp. plants with Moko disease, from state of Sergipe, Northeastern region of Brazil",route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,disease duck,route to Host_Disease_SD/Host_Health_State_SD
+2,Isolation_Source_SD,Leukemia,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,aborted donkey,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,diarrhea piglet,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,infantile diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,10^9 phage AR1 infection rep 1,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,10^9 phage AR1 infection rep 3,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,10^9 phage AR1 infection rep 2,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,10^9 phage AR1 infection rep 4,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,infection secondary to perforated appendicitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,post-colorectal surgical infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,porcine neonatal diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,udder persistent mastitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"sepsis (no localising source), stss",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Sepsis (bone marrow),route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,subacute endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,a confirmed case of infective endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,mastitis-infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Majorca stay with severe diarrhea bloody,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"infant under 1 year of age, breastfeeding, had prelonged diarrhea",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,SSTI - R forearm,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,SSTI - L flexion tendon,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,urniary tract infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,SaOS-2 infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Community-acquired infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Inoculation Infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Systemic infection site,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Taicang foodborne disease separation and transportation,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Implant infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,sputun of patients with Cystic Fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"Community Acquired Methicillin Resistant Staphylococcus aureus, CA-MRSA, NRS 384, USA300-0114",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,chronic prosthetic knee infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"furunculosis, ST80 PVL carrier, family cluster SSTI",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Hip infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Orthopedic infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Surgical Site Infection (SSI),route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,vascular prosthesis infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,infective endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,katheter related infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Pericardium infection infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,A smear of the retroauricular fold of a newborn with intrauterine infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,pulmonary infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Intracranial infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Knee infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,surgical infection site,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,strain K3574 exposed to 15 days of lytic phage infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Parasitic infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Viral infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Surgical infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"expectoration, cystic fibrosis",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,cystic fibrosis airway,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,footpad infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,individual with cystic fibrosis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,cystic fibrosis chronic infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,infant with community-acquired diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,sepsis/hemoculture,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,CF airways,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Cases of diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,farm6; Vertebral osteomyelitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,farm7; Vertebral osteomyelitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,disease lesion from mucosa and submucosa of the maxilla,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,endocarditis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Dog with mastitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,moribund postlarvae suffering from translucent postlarvae disease,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Ulcus infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"separated from the corpses of silkworms that had died due to Bb natural infection in Daiyue district, Taian city, Shandong province, China.",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,patients with disseminated infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Bronchiectasis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,mastitis infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Bronchoscopy washings of patient with chronic lymphocytic leukemia,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,CF Maxillary Sinus,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Non CF tumor irradiated,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Non-CF Ovarian cyst,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,non-CF bronch wash,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,non-CF,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,CF bronchial alveolar lavage,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,non-CF infant bronchial alveolar lavage,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,nosocomial infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,lesions of Schizothorax grahami suffering from ulcer disease,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Watery diarrhea,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"semen, genitourinary infection",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,leg infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,lungs of dead pneumonia animals,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,upper lobe fibrocavitary form of pulmonary disease,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,myelogenous leukemia cell line,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Prosthetic joint infection shoulder,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Implant related infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Prosthetic joint infection Knee,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,pleuropulmonary infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,aborted fetuses,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,BALB/c mice 13 weeks after infection with Brucella melitensis 16M,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,BALB/c mice 1 week after infection with Brucella melitensis 16M,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,plants with Moko disease,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,infection in a cat,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,periodontal disease in hamsters,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,bronch wash cf,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"Peritoneum, aborted fetus",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,aborted bovine fetus,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,bark of jackfruit with gummosis disease,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,hip infection,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,udder/mastitis,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"septicemia in a late-term, aborted, caprine fetus",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,"Domestic dog with endocarditis, North Carolina",route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,aborted tissues of horses,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Cystic Fibrosis Patients,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Aborted piglet fetus,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,Periodontal pocket of an adult patient with periodontal disease in 1995,route to Host_Disease_SD/Host_Health_State_SD
+1,Isolation_Source_SD,chronic myeloid leukemia,route to Host_Disease_SD/Host_Health_State_SD

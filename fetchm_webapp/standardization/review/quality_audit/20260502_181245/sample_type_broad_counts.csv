@@ -1,0 +1,50 @@
+count,sample_type_sd_broad
+377744,clinical/host-associated material
+233951,feces/stool
+125713,food/meat
+110742,culture/assembly
+92766,culture
+69413,swab
+35955,metadata descriptor / non-source
+31491,gut content
+30586,water
+29470,food
+27846,environmental material
+22886,clinical fluid/material
+20973,upper respiratory tract
+12123,food/dairy
+11788,soil
+11330,culture/isolate
+11146,upper respiratory site
+10556,single cell
+9221,urogenital site
+7192,respiratory sample
+6069,plant-associated material
+5128,sample
+5073,food/produce
+4829,sediment
+4418,wastewater/sewage
+4273,agricultural environment
+3981,surface sample
+3433,agricultural fecal material
+3270,host-associated context
+2821,oral cavity
+2667,built environment
+2598,food/processing environment
+2103,medical device
+1478,molecular extract
+1364,laboratory environment
+1232,aquatic food product
+411,gut/host-associated material
+354,surface/sample collection material
+319,tissue
+293,food/plant product
+274,healthcare-associated environment
+195,environmental/geologic material
+102,fermented food
+93,cloacal sample
+66,wastewater/organic waste
+59,animal tissue/site
+36,biological/clinical product
+1,cultured embryonic stem cells
+1,marine

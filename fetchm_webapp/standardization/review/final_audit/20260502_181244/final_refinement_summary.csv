@@ -1,0 +1,12 @@
+metric,value
+latest_audit_timestamp,20260502_181244
+git_commit,unknown
+files_scanned,5066
+rows_scanned,2598486
+file_errors,0
+unique_isolation_source_broad_values,105
+noisy_isolation_source_broad_values,58
+noisy_isolation_source_broad_rows,124
+body_site_leakage_values,518
+disease_leakage_values,209
+raw_code_leakage_values,374

@@ -20,7 +20,7 @@ from app import app, get_db, metadata_value_is_missing, normalize_standardizatio
 from lib.fetchm_runtime.metadata import COUNTRY_MAPPING  # noqa: E402
 
 
-APPROVED_BROAD_VALUES = {
+DEFAULT_APPROVED_BROAD_VALUES = {
     "clinical/host-associated material",
     "feces/stool",
     "food",
@@ -73,6 +73,23 @@ APPROVED_BROAD_VALUES = {
     "gut/host-associated material",
     "wastewater/organic waste",
 }
+
+
+def load_approved_broad_values() -> set[str]:
+    path = ROOT / "standardization" / "approved_broad_categories.csv"
+    values = set(DEFAULT_APPROVED_BROAD_VALUES)
+    if not path.exists():
+        return values
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            value = str(row.get("approved_value") or "").strip()
+            if value:
+                values.add(value)
+    return values
+
+
+APPROVED_BROAD_VALUES = load_approved_broad_values()
+APPROVED_BROAD_NORMALIZED_VALUES = {normalize_standardization_lookup(value) for value in APPROVED_BROAD_VALUES}
 
 BODY_SITE_PATTERN = re.compile(
     r"\b(?:"
@@ -172,7 +189,7 @@ def classify_broad_value(value: str) -> tuple[str, str, str, str]:
     normalized = normalize_standardization_lookup(text)
     if not present(text):
         return "acceptable_broad_category", "", "", "blank broad value"
-    if text in APPROVED_BROAD_VALUES or normalized in {normalize_standardization_lookup(v) for v in APPROVED_BROAD_VALUES}:
+    if text in APPROVED_BROAD_VALUES or normalized in APPROVED_BROAD_NORMALIZED_VALUES:
         return "acceptable_broad_category", "", "", "approved controlled broad category"
     if text in COUNTRY_MAPPING or GEOGRAPHY_HINT_PATTERN.search(text):
         return "geography_in_source_broad", "Country/Geography", "", "geography belongs in geography fields, not source broad"

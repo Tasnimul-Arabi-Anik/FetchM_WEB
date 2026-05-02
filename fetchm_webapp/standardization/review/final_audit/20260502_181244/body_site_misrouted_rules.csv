@@ -1,0 +1,519 @@
+count,field,value,recommended_action
+33197,Isolation_Source_SD,rectum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+17337,Isolation_Source_SD,nasal site,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+11855,Isolation_Source_SD,skin,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+9221,Sample_Type_SD_Broad,urogenital site,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6194,Isolation_Source_SD_Broad,oral cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6127,Isolation_Source_SD_Broad,urogenital site,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5385,Isolation_Source_SD,oral cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2821,Sample_Type_SD_Broad,oral cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1364,Isolation_Source_SD,skin/body-surface swab,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1313,Isolation_Source_SD,vaginal site,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+905,Isolation_Source_SD,pleural fluid,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+883,Isolation_Source_SD,urogenital,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+674,Isolation_Source_SD,vaginal swab,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+536,Isolation_Source_SD,urogenital swab,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+532,Isolation_Source_SD,pancreas,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+274,Isolation_Source_SD,colon contents,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+199,Isolation_Source_SD,Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+188,Isolation_Source_SD,Right-Popliteal-Fossa,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+185,Isolation_Source_SD,colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+182,Isolation_Source_SD,Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+178,Isolation_Source_SD,recto-anal junction,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+169,Isolation_Source_SD,Perineum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+166,Isolation_Source_SD,cloaca,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+158,Isolation_Source_SD,Perirectal,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+155,Isolation_Source_SD,Left-Popliteal-Fossa,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+144,Isolation_Source_SD,perineum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+143,Isolation_Source_SD,tonsil,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+141,Isolation_Source_SD,ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+128,Isolation_Source_SD,Bronch,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+125,Isolation_Source_SD,Forehead,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+123,Isolation_Source_SD,Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+116,Isolation_Source_SD,Ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+109,Isolation_Source_SD,Uterus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+103,Isolation_Source_SD,Anus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+102,Isolation_Source_SD,uterus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+102,Isolation_Source_SD,bronchial,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+101,Isolation_Source_SD,Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+99,Isolation_Source_SD,sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+98,Isolation_Source_SD,Umbilicus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+98,Isolation_Source_SD,Chin,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+96,Isolation_Source_SD,Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+87,Isolation_Source_SD,Bronchial Wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+82,Isolation_Source_SD,Conjunctiva,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+76,Isolation_Source_SD,foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+75,Isolation_Source_SD,Healthcare worker (nasal),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+75,Isolation_Source_SD,Axilla,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+71,Isolation_Source_SD,leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+67,Isolation_Source_SD,Paranasal sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+66,Isolation_Source_SD,Sacrum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+62,Isolation_Source_SD,pleural effusion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+62,Isolation_Source_SD,foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+62,Isolation_Source_SD,Leg infection,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+58,Isolation_Source_SD,Bronchial Wash (Lavage),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+57,Isolation_Source_SD,anus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+54,Isolation_Source_SD,Bronchial aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+53,Isolation_Source_SD,axilla,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+52,Isolation_Source_SD,colon content,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+51,Isolation_Source_SD,bronchial alveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+48,Isolation_Source_SD,bronchial wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+47,Isolation_Source_SD,bronch,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+46,Isolation_Source_SD,pleural cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+46,Isolation_Source_SD,Tonsil,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+45,Isolation_Source_SD,Pleural effusion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+42,Isolation_Source_SD,"Lavage, Bronchial",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+41,Isolation_Source_SD,Bronchial lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+39,Isolation_Source_SD,Neck/Axilla,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+39,Isolation_Source_SD,sacrum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+38,Isolation_Source_SD,Bronchial,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+36,Isolation_Source_SD,Retail Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+32,Isolation_Source_SD,bronchial secretions,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+32,Isolation_Source_SD,bronchial washing,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+32,Isolation_Source_SD,bronchial washings,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+32,Isolation_Source_SD,nasal swab,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+30,Isolation_Source_SD,Abattoir Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+28,Isolation_Source_SD,perirectal,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+27,Isolation_Source_SD,Bronchial alveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+23,Isolation_Source_SD,bronchial lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+21,Isolation_Source_SD,breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+20,Isolation_Source_SD,chronic leg ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+20,Isolation_Source_SD,Bronchial wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+19,Isolation_Source_SD,bronchial aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+18,Isolation_Source_SD,COLON,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+18,Isolation_Source_SD,porcine pleural cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+18,Isolation_Source_SD,Diabetic foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+17,Isolation_Source_SD,frog leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+17,Isolation_Source_SD,turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+17,Isolation_Source_SD,Palm,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+16,Isolation_Source_SD,Blind Protected Bronchial Sampling,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+15,Isolation_Source_SD,Bronchial Washing,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+14,Isolation_Source_SD,umbilicus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+14,Isolation_Source_SD,uterus (Bos taurus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+13,Isolation_Source_SD,urogenital/reproductive swab,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,frozen frog leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,Breast (tenderloin),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,conjunctiva,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,descending colon mucosa,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,"Leg, Left",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,Bronch wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+12,Isolation_Source_SD,Infraorbital sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+11,Isolation_Source_SD,Foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+11,Isolation_Source_SD,Diabetic Foot Ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+10,Isolation_Source_SD,descending colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+10,Isolation_Source_SD,Bronchial washing,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+10,Isolation_Source_SD,Bronchial Alveolar Lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+10,Isolation_Source_SD,Bronchial Lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+10,Isolation_Source_SD,leg ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+9,Isolation_Source_SD,"Breast (BLSL, fillets)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+9,Isolation_Source_SD,Bronchial secretions,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+9,Isolation_Source_SD,Bronchial washings,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+9,Isolation_Source_SD,high protein dispersibility index,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,large colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,ascending colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,Pleural liquid,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,Bronch Wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,turkey breast sandwich,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+8,Isolation_Source_SD,bronchial brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,skinless breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,Pleural Cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,transcending colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,Pleural Effusion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,ascending colon lumen,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,descending colon lumen,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,bronch wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,transverse colon lumen,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,Bronchial washing (contralateral lung; no tumour),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+7,Isolation_Source_SD,fermented palm sap,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,Breast (BLSL),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,"Breast (BLSL, thin)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,Porcine Colon (Sus scrofa domesticus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,Pleural,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,rectoanal junction,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,Foot/Hoof,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,bronchial brushing,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,left foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,left leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,"Washing, Bronchial",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+6,Isolation_Source_SD,breast specimens,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,Ground (breast),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,"Breast (BLSL, indiv. Wrapped)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,colon (Sus scrofa domesticus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,SACRUM,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,pleural,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,Bovine Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,palatine tonsil,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,right leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,right foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,Lavage - Bronchial,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,MCF10A breast epithelial cells,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,Breast Pump,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+5,Isolation_Source_SD,Right conjunctiva of a child with trachoma,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,Breast tenders (BLSL),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,Breast (BLSL strips),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,porcine colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,BREAST,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,lamb leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,cloaca from white stork nestling,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,colon epithelium,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,porcine ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,"Foot, Right",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,"FOOT,RIGHT",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,PLEURAL LIQUID,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,LEG,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,Bronchial aspirates,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,Bronchial Washings,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,"Leg, Right",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,ENT/Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,alveolar bronchial lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+4,Isolation_Source_SD,ileum mucosa,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,ILEUM,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Breast tenderloins,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,snake cloaca,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Leg Quarters,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,thin sliced breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,canine colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Maxillary sinus of a horse,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Distal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,transverse colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,ascending colon mucosa,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,sinus puncture,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Bronchial asp.,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,pleural fuid,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Sinus (carrier),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Colon content of wild mouse,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,diabetic foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Advanced resistive exercise device (ARED) foot platform Node 3,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Bronchial Brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,CURED TURKEY BREAST (MAPLE HONEY),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Left Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Right Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Right leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Palm tree rhizome,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Bronchial Epithelial Cells,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,foot rot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,Colon adenocarcinoma,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+3,Isolation_Source_SD,foot of flamingo,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Cicken Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,bovine colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,colon snowy owl,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,colon ring-billed gull,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,cloaca (Gallus gallus domesticus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,canine bronchial lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,uterus (Canis lupus familiaris),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,bronchial perfusate,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,bronch lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Tonsil scrape,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,pleural exudate,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Pleural empyema,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,frontal sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Porcine Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Terminal ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,SSTI - R foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,SSTI - R foot TMA site,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,breast abcess,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,cheek,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Proximal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Foot Ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,pleural space,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,"AXILLA,LEFT",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,BRONCHIAL WASHING,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Pleural cavity,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Bronchial Aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,"Horse, uterus",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,bronchial specimen,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Left Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,maxillary sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Deli Turkey Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,HONEY MAPLE GLAZE TURKEY BREAST,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,smoked turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,king crab leg and claw,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,king crab leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Leg ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Lavage-Bronchial,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Right Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Bronchial; washing,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,sacrum ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Right foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,BRONCHIAL ALVEOLAR LAVAGE,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Left leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,"Foot, Left",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,uterus of a mare who aborted a 7-month gestation fetus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Bronchial Alveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Bronchial washing (lung tumour site),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Bronch Lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,bronchial exudate,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,"FOOT,LEFT",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,BRONCHIAL,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Maxillary sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Porcine ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,"Ileum, payer's patch",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,uterus cytobrush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Breast cancer PDX HCI-005 tumour,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Lumen Ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,colon cells,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,cloaca content,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,terminal ileum of healthy man,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,termite mound on Mexican Fan Palm,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,sinus nasalis,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,Sinus infraorbitalis,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,left index finger,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+2,Isolation_Source_SD,ileum of an ant,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Animal ileum and colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Animal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,frozen palm nut,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,PLEURAL,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"COLON, INTEST",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pool of foot pad and pericardium,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,marinated quail leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Breast (BLSL, individuals)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Colon segment,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bearded dragon cloaca,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,reptile cloaca,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon (Equus caballus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,spiral colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Porcine Pleural (Sus scrofa domesticus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pooled ileum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,frozen rabbit leg quarter,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon rodent,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon double-crested cormorant,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon bald eagle,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,equine necropsy colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,porcine colon (Sus scrofa domesticus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,turkey breast strip,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,leg quarter,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon mouse,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,frozen farmed frog leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Uterus With Oviduct,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,ileum digesta,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Fl Pleural,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sigmoid Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,distal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Chicen Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Turkey Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,PERIRECTAL,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Cloaca of Uria lomvia,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,R Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,perirectal area,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Descending colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Ascending colon brush,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,canine uterus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"""Uterus,Uterus """,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,foot pad lesion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bovine uterus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,cervidae european roe colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,equine uterus (Equus caballus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,small colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,canine foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Anal Gland Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,cheek trim,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,abcess-perirectal,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Gewebe Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot Lesion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,PLEURAL FL,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Dog tonsil,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pleural liquid,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Infected foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Dog tonsil (Ladlow et al., 2006)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sinus Exudate,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,RIGHT DORSAL FOOT,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Post-Dip-Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Fetal umbilicus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bovine Large colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon adenocarcinoma surgical section,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Equine Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Canine Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,LEFT FOOT,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,foot mhk5,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,lower leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,swollen leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Farmer Foot-ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"CHEEK,LEFT",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"LEG,LOWER LEFT",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"blister, right cheek",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,tarsal (relating to the tarsal root of the foot),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,R Breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Pleural port,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Mass on leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Perineum/Mouth,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,draining tract on foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"ares, bilateral axilla, umbilical stump, and inguinal region",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,hypothenar palm,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,leg abcess,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot pad,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bronchial alveaolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pleural puncture,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,uterus discharge,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Breast, Left",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Ulcer Right Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Screen: anus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,right lower leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,leg thigh,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Decubitus Sacrum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"right sacroiliac joint, ilium and sacrum (S1-S2 level)",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Dog, uterus",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pleural tap,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Tonsil (Canis Lupus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Uterus (Equus Caballus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bronchial aveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot panel of ARED on ISS,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,pleural punctate,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,ARED foot platform of International Space Station,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,72-year-old male with cerebral infarction after colon carcinoma resection,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,left breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Intracranial sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Ulcer foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,BRONCHIAL WASH,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Left breast pocket,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bronchial; lavage RUL,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Smoked boneless turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,toothpick leg skewers,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,smoked turkey breast sandwich,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,sliced turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,roasted turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,hickory turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,cajun turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,deli turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,honey glazed turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,smoked boneless turkey breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,spinner leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,canine tonsil,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,cooked crab leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bronchial alveolar,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,healthy cheek,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Leg-left,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot left,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot right,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Leg-right,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"leg, left",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bronchial secret,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Cat, tonsil",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,L axilla burn,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Maxillary Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,foot burn,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Cheek,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,GI: Small Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"leg,foot or decubitus ulcers",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sacrum Ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Patient24 Bronchial aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Patient22 Bronchial aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Patient15 Bronchial aspiration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,right breast,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,C misc (sinus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,exudate (leg),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sacrum Lesion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Left lower leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sacrum counds,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Right foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bronchial wash (lavage),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Right axilla fascia,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"leg, right",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bronchial asp,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Bronchial wash specimen,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Left Leg Ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,R foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,CWOUND - RIGHT FOOT,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Would Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Ulcer; foot left,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Ulcer; leg left,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Small Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,leg burn,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Leg ulceration,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Exudate (leg),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Diabetic Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Pleural Tube,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Arm/Leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,left foot heel,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Exudate; foot, right",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,left axilla,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,descending Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Perianal sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Index finger,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Right lateral foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Left foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Leg press , Facility 2000",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,tonsil crypt,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,SW48 colon cancer cell line,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,FOOT ULCER,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,breast tumour,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Pleural fibrin,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Lavage -Bronchial,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,palm oil wastes,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,sigmoid colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,near palm tree,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,palm tree,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Mycetoma on foot of a 20-year-old male,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,mycetoma on foot of a 20-year old male,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,mycetoma on foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,adenocarcinoma in distal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,transverse colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"bronchial lavage, 49-yr-old woman",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,mouse foot pads,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,PX colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,maxillary sinus lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,breast seroma,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,CF Maxillary Sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,ethmoid sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,non-CF bronch wash,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,CF bronchial alveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,non-CF infant bronchial alveolar lavage,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Uterus (Equus caballus),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Mature oil palm fruits,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,slough from diabetec foot ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Lumen Ascending Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Colon digesta,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,SINUS,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sinus tract discharge,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,uterus of a maiden mare,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Foot Swap,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,penguin (cloaca),route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,leg infection,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Breast pump,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,feeding tube from breast pump,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Uterus Endometrium,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"lungs, pleural cavity",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Uterus/udder,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Hock And Foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,skin lesion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,breast-fed lamb,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,sebaceous gland in acne affected area on cheek of male with severe acne,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,acne affected area on cheek of male with moderate acne,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,breast of healthy woman,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,ovaries/uterus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Breast Feeding,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Lumen Descending Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Lumen Transverse Colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Breast cancer cell line,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Lower leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,colon adenocarcinoma,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Adjacent normal colon,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,malignant pleural effusion,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Conjunctiva of a European starling (Sturnus vulgaris) with conjunctivitis,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Chinese hamster conjunctiva,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"uterus, caruncle",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Madura foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"mycetomatous lesion of the thigh, leg, and foot",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,foot of a periwinkle,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,foot of periwinkle,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,ileum content,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,antral sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,bronch wash cf,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"turtle cloaca, Testudo graeca",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,black leg symptoms of Solanum tuberosum,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,perirectal light organ,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Sliced veal leg,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,facial sinus,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Turkey poult cloaca,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Conjunctiva, conjunctivitis",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Right cheek,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,diabetic foot ulcers,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,3-Breast-Her2-ampl,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,8-Breast-WT,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,mycetoma of the foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,breast incision,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,diabetic foot,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,"Accumulated dirt at foot of stairs near Artist's Center Bldg., Akasaka District",route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,Fermenting Elaeis palm sap,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,lower leg ulcer,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,palm brown sugar,route to Isolation_Site_SD or Host_Anatomical_Site_SD
+1,Isolation_Source_SD,palm sap,route to Isolation_Site_SD or Host_Anatomical_Site_SD

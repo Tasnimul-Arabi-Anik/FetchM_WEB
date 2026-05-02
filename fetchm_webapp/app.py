@@ -1704,7 +1704,7 @@ ISOLATION_SOURCE_SYNONYMS = {
     "meat": "meat product",
     "beef": "beef/meat product",
     "pork": "pork/meat product",
-    "poultry": "poultry",
+    "poultry": "host-associated context",
     "chicken meat": "poultry meat/product",
     "turkey meat": "turkey meat/product",
     "seafood": "seafood/aquatic food product",
@@ -2358,7 +2358,7 @@ STANDARDIZATION_BROAD_CATEGORIES = {
     "meat": "food/meat",
     "chicken meat": "food/meat",
     "turkey meat": "food/meat",
-    "poultry": "poultry",
+    "poultry": "host-associated context",
     "poultry meat": "food/meat",
     "pork": "food/meat",
     "beef": "food/meat",
@@ -2417,10 +2417,10 @@ STANDARDIZATION_BROAD_CATEGORIES = {
     "gut content": "gut content",
     "cloacal sample": "cloacal sample",
     "manure": "agricultural fecal material",
-    "whole organism": "whole organism",
-    "human": "host-associated organism",
-    "pig": "host-associated organism",
-    "chicken": "host-associated organism",
+    "whole organism": "host-associated context",
+    "human": "host-associated context",
+    "pig": "host-associated context",
+    "chicken": "host-associated context",
 }
 
 STANDARDIZATION_BROAD_CATEGORIES.update(
@@ -2481,7 +2481,9 @@ STANDARDIZATION_BROAD_CATEGORIES.update(
         "metadata descriptor/non-source": "metadata descriptor / non-source",
         "urinary tract": "urogenital site",
         "rectum": "gut content",
-        "rectovaginal site": "urogenital/gastrointestinal site",
+        "rectovaginal site": "clinical/host-associated material",
+        "urogenital/gastrointestinal site": "clinical/host-associated material",
+        "host-associated organism": "host-associated context",
         "groin": "clinical/host-associated material",
         "bile": "clinical fluid/material",
         "bloodstream": "clinical fluid/material",
@@ -2682,7 +2684,7 @@ def apply_core_standardization_overrides() -> None:
             "chicken meat": "chicken meat",
             "turkey meat": "turkey meat",
             "poultry meat": "poultry meat",
-            "poultry": "poultry",
+            "poultry": "host-associated context",
             "pork": "pork",
             "beef": "beef",
             "fish product": "fish product",
@@ -3879,7 +3881,7 @@ def isolation_source_material_context(value: Any) -> str:
             return standardized
 
     if cleaned == "poultry":
-        return "poultry"
+        return ""
     if re.search(r"\b(caecal|cecal|caecum|cecum|intestin|gastrointestinal|gut)\b", raw_lower) or re.search(r"\b(caecal|cecal|caecum|cecum|intestin|gastrointestinal|gut)\b", cleaned):
         return "gut content"
     if re.search(r"\b(csf|cerebrospinal fluid)\b", cleaned):
