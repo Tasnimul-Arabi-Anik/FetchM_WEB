@@ -1,0 +1,1001 @@
+count,host_original,host_sd,taxid,host_method
+2374,infant feces,Homo sapiens,9606,context_dictionary
+807,human gut metagenome,Homo sapiens,9606,context_cleaned_match
+662,dairy calf feces,Bos taurus,9913,context_dictionary
+482,dairy cattle manure,Bos taurus,9913,context_cleaned_match
+411,WT Mouse intestinal epithelial cells,Mus musculus,10090,context_cleaned_match
+362,"Feces, Gull (Larus spp.)",Laridae,8911,context_broad_dictionary
+355,human - faeces,Homo sapiens,9606,context_cleaned_match
+308,human gut,Homo sapiens,9606,context_cleaned_match
+307,"human, animal or environmental",Homo sapiens,9606,context_cleaned_match
+300,bovine manure,Bos taurus,9913,context_cleaned_match
+286,human oral metagenome,Homo sapiens,9606,context_cleaned_match
+284,Chicken faeces,Gallus gallus,9031,context_cleaned_match
+284,water deer,Hydropotes inermis,9883,dictionary
+277,cattle feces,Bos taurus,9913,context_cleaned_match
+252,"Human, Stool",Homo sapiens,9606,context_cleaned_match
+250,cattle fecal samples,Bos taurus,9913,context_cleaned_match
+244,"broiler, feces",Gallus gallus,9031,context_cleaned_match
+229,Calf fecal composite,Bos taurus,9913,context_dictionary
+228,cattle manure,Bos taurus,9913,context_cleaned_match
+199,water buffalo,Bubalus bubalis,89462,dictionary
+190,soil adjacent to human cadaver hip,Homo sapiens,9606,context_cleaned_match
+176,Cattle faeces,Bos taurus,9913,context_cleaned_match
+168,human feces metagenome,Homo sapiens,9606,context_cleaned_match
+155,chicken meat,Gallus gallus,9031,cleaned_match
+149,Fermented cow milk,Bos taurus,9913,context_cleaned_match
+142,Pooled cattle faecal samples collected from floor of farm,Bos taurus,9913,context_cleaned_match
+132,poultry manure,Aves,8782,context_broad_dictionary
+129,Chicken feces,Gallus gallus,9031,context_cleaned_match
+126,Pooled sheep faecal samples collected from floor of farm,Ovis aries,9940,context_cleaned_match
+122,Pooled pig faecal samples collected from floor of farm,Sus scrofa,9823,context_cleaned_match
+118,mouse gut metagenome,Mus musculus,10090,context_cleaned_match
+113,canine feces,Canis lupus familiaris,9615,context_cleaned_match
+110,human feces,Homo sapiens,9606,context_cleaned_match
+103,Feral swine feces,Sus scrofa,9823,context_cleaned_match
+97,the intestinal tract of small mammals,Mammalia,40674,context_broad_dictionary
+96,bovine feces,Bos taurus,9913,context_cleaned_match
+96,chicken feces,Gallus gallus,9031,context_cleaned_match
+96,chicken manure swab,Gallus gallus,9031,context_cleaned_match
+84,chick bedding sample/shipment liner from hatchery,Gallus gallus,9031,context_broad_dictionary
+83,mosquito larval water,Culicidae,7157,context_broad_dictionary
+82,Pig stool,Sus scrofa,9823,context_cleaned_match
+80,dairy cattle manure digester,Bos taurus,9913,context_cleaned_match
+76,dairy cattle manure (Bos taurus),Bos taurus,9913,context_cleaned_match
+76,cow's milk,Bos taurus,9913,context_cleaned_match
+76,Isolated from feces from dairy calf,Bos taurus,9913,context_dictionary
+75,meat chicken,Gallus gallus,9031,cleaned_match
+71,Raw sheep milk,Ovis aries,9940,context_cleaned_match
+69,animal feces,Metazoa,33208,context_broad_dictionary
+65,Human faeces,Homo sapiens,9606,context_cleaned_match
+64,rat gut,Rattus norvegicus,10116,context_cleaned_match
+63,raw cow milk,Bos taurus,9913,context_cleaned_match
+63,Human rectal swab,Homo sapiens,9606,context_cleaned_match
+63,canine urine,Canis lupus familiaris,9615,context_cleaned_match
+63,pig gut metagenome,Sus scrofa,9823,context_cleaned_match
+63,human stool,Homo sapiens,9606,context_cleaned_match
+59,chicken manure,Gallus gallus,9031,context_cleaned_match
+56,Canine feces,Canis lupus familiaris,9615,context_cleaned_match
+56,"""dairy cattle manure, Bos taurus""",Bos taurus,9913,context_cleaned_match
+55,Chicken environment,Gallus gallus,9031,context_cleaned_match
+52,Swine manure pit,Sus scrofa,9823,context_cleaned_match
+50,cow milk,Bos taurus,9913,context_cleaned_match
+48,broiler chicken feces,Gallus gallus,9031,context_cleaned_match
+48,feedlot cattle feces,Bos taurus,9913,context_cleaned_match
+48,Pooled sheep fecal samples collected from floor of farm,Ovis aries,9940,context_cleaned_match
+47,ICU patient rectal swab,Homo sapiens,9606,context_dictionary
+47,bacteria culture,Bacteria,2,context_dictionary
+46,"Human, Faeces",Homo sapiens,9606,context_cleaned_match
+46,human metagenome,Homo sapiens,9606,cleaned_match
+45,chicken gut metagenome,Gallus gallus,9031,context_cleaned_match
+44,"broiler, faeces",Gallus gallus,9031,context_cleaned_match
+44,feral swine feces,Sus scrofa,9823,context_cleaned_match
+44,Human stool,Homo sapiens,9606,context_cleaned_match
+42,chicken gut,Gallus gallus,9031,context_cleaned_match
+42,Water Buffalo,Bubalus bubalis,89462,dictionary
+40,"Fattening pig, feces",Sus scrofa,9823,context_cleaned_match
+40,Dog faeces,Canis lupus familiaris,9615,context_cleaned_match
+40,Fermented yak milk,Bos grunniens,30521,context_cleaned_match
+39,Human gut stool,Homo sapiens,9606,context_cleaned_match
+39,chicken offal or meat,Gallus gallus,9031,cleaned_match
+39,Bacteria culture,Bacteria,2,context_dictionary
+38,feces livestock,Mammalia,40674,context_broad_dictionary
+38,swine caecal sample,Sus scrofa,9823,context_cleaned_match
+38,pig farm environment,Sus scrofa,9823,context_cleaned_match
+37,Animal-Swine-Feces,Sus scrofa,9823,context_cleaned_match
+36,cloacal swab from wild animal,Metazoa,33208,context_broad_dictionary
+36,Pooled cattle fecal samples collected from floor of farm,Bos taurus,9913,context_cleaned_match
+36,Human fecal samples,Homo sapiens,9606,context_cleaned_match
+36,Korean adult feces,Homo sapiens,9606,context_dictionary
+35,chicken (food),Gallus gallus,9031,context_dictionary
+35,"cattle feces, cows",Bos taurus,9913,context_cleaned_match
+34,Pooled faeces sample collected from floor of poultry farm,Aves,8782,context_broad_dictionary
+32,Poultry faeces,Aves,8782,context_broad_dictionary
+31,Bovine Faeces,Bos taurus,9913,context_cleaned_match
+30,milk-raw bovine,Bos taurus,9913,context_cleaned_match
+30,rodent feces,Rodentia,9989,context_broad_dictionary
+28,human feces in bioreactor,Homo sapiens,9606,context_cleaned_match
+27,yak feces,Bos grunniens,30521,context_cleaned_match
+27,de-identified patient sample,Homo sapiens,9606,context_dictionary
+27,Fecal samples of broiler chickens,Gallus gallus,9031,context_cleaned_match
+26,Pig faeces,Sus scrofa,9823,context_cleaned_match
+26,broiler environment - boot swab,Gallus gallus,9031,context_cleaned_match
+26,retail raw whole milk cow,Bos taurus,9913,context_cleaned_match
+26,mouse gut,Mus musculus,10090,context_cleaned_match
+25,environmental bovine,Bos taurus,9913,context_cleaned_match
+24,flock environment broiler (Gallus gallus),Gallus gallus,9031,context_cleaned_match
+23,Cattle feces,Bos taurus,9913,context_cleaned_match
+23,bovine milk,Bos taurus,9913,context_cleaned_match
+23,gut of vertebrate mammal,Mammalia,40674,context_broad_dictionary
+23,human blood monocytes,Homo sapiens,9606,context_dictionary
+22,Bovine faeces,Bos taurus,9913,context_cleaned_match
+22,Human (feces),Homo sapiens,9606,context_dictionary
+22,Pooled pig fecal samples collected from floor of farm,Sus scrofa,9823,context_cleaned_match
+22,Grass with Chicken Manure,Gallus gallus,9031,context_cleaned_match
+22,Pig (baby) - fecal,Sus scrofa,9823,context_cleaned_match
+21,environmental swabs collected from manure belts in poultry house,Aves,8782,context_broad_dictionary
+21,Environment of broiler farm,Gallus gallus,9031,context_cleaned_match
+20,Canine Urine (Canis lupus familiaris),Canis lupus familiaris,9615,context_cleaned_match
+20,Porcine: Feces,Sus scrofa,9823,context_cleaned_match
+20,animal rectal swab,Metazoa,33208,context_broad_dictionary
+19,chicken field feces,Gallus gallus,9031,context_cleaned_match
+19,Pig feces,Sus scrofa,9823,context_cleaned_match
+19,"Human, Feces",Homo sapiens,9606,context_cleaned_match
+19,Feces of three-weeks old elephant,Elephantidae,9780,context_broad_dictionary
+19,Bacteria isolated in solid culture medium,Bacteria,2,context_dictionary
+19,Pure culture of bacteria,Bacteria,2,context_dictionary
+18,"Human, Blood culture",Homo sapiens,9606,context_cleaned_match
+18,cow feces,Bos taurus,9913,context_cleaned_match
+18,Sus scrofa domesticus: environment,Sus scrofa,9823,cleaned_match
+18,swine feces,Sus scrofa,9823,context_cleaned_match
+18,raw sheep milk,Ovis aries,9940,context_cleaned_match
+17,feline feces,Felis catus,9685,context_cleaned_match
+17,raw bovine milk,Bos taurus,9913,context_cleaned_match
+17,fecal composite of dairy cows,Bos taurus,9913,context_broad_dictionary
+17,fermented cow milk,Bos taurus,9913,context_cleaned_match
+17,termite gut,Termitoidae,1912919,context_broad_dictionary
+16,poultry manure (Gallus gallus domesticus),Aves,8782,context_broad_dictionary
+16,Human feces,Homo sapiens,9606,context_cleaned_match
+16,livestock feces,Mammalia,40674,context_broad_dictionary
+16,Canine Feces,Canis lupus familiaris,9615,context_cleaned_match
+16,manure bird scat,Aves,8782,context_broad_dictionary
+16,cat and dog feces,Canis lupus familiaris,9615,context_cleaned_match
+16,human saliva metagenome,Homo sapiens,9606,context_dictionary
+16,Human milk sample,Homo sapiens,9606,context_dictionary
+15,pig feces,Sus scrofa,9823,context_cleaned_match
+15,Human blood,Homo sapiens,9606,context_dictionary
+15,pig manure,Sus scrofa,9823,context_cleaned_match
+15,Canine urine,Canis lupus familiaris,9615,context_cleaned_match
+15,Control bovine manure (before application),Bos taurus,9913,context_cleaned_match
+15,"Patient feces collected by the Laboratory Department of Children's Hospital of Jinan City, Shandong Province",Homo sapiens,9606,context_dictionary
+15,pig stool,Sus scrofa,9823,context_cleaned_match
+15,"Feces, Gull (Leucophaeus pipixcan)",Laridae,8911,context_broad_dictionary
+15,milk from animal with mastitis,Metazoa,33208,context_broad_dictionary
+15,Control Grass (No Manure),Poaceae,4479,context_broad_dictionary
+15,water from beech tree-hole,Viridiplantae,33090,context_broad_dictionary
+14,Duck feces,Anas platyrhynchos,8839,context_cleaned_match
+14,dog feces,Canis lupus familiaris,9615,context_cleaned_match
+14,Pond water collected in a bird sanctuary,Aves,8782,context_broad_dictionary
+14,raw goat milk,Capra hircus,9925,context_cleaned_match
+14,"turkey, faecal samples",Meleagris gallopavo,9103,context_cleaned_match
+14,Feces of six-years-old elephant,Elephantidae,9780,context_broad_dictionary
+14,Chichen meat,Gallus gallus,9031,broad_dictionary
+14,kelp blade whole tissue extract,Phaeophyceae,2870,context_broad_dictionary
+13,feces animal,Metazoa,33208,context_broad_dictionary
+13,wild boar feces,Sus scrofa,9823,context_cleaned_match
+13,Environment of broiler farms,Gallus gallus,9031,context_cleaned_match
+13,cow manure,Bos taurus,9913,context_cleaned_match
+13,ICU patient oral swab,Homo sapiens,9606,context_dictionary
+13,"calf, feces",Bos taurus,9913,context_dictionary
+13,"Poultry House, Faecal",Aves,8782,broad_dictionary
+13,Animal feces,Metazoa,33208,context_broad_dictionary
+13,fermented camel milk,Camelus dromedarius,9838,context_cleaned_match
+12,feces avian,Aves,8782,context_broad_dictionary
+12,Isolated from feces from dairy cow,Bos taurus,9913,context_cleaned_match
+12,Goat faeces,Capra hircus,9925,context_cleaned_match
+12,bovine faeces,Bos taurus,9913,context_cleaned_match
+12,Infant feces,Homo sapiens,9606,context_dictionary
+12,human gut metagenome,Homo sapiens,9606,cleaned_match
+12,Salmo salar metagenome,Salmo salar,8030,cleaned_match
+12,biofilm scrapped from cow tibia surface after nine month of incubation underwater in a fjord,Bos taurus,9913,context_cleaned_match
+11,Animal-Beefcattle-Feces,Metazoa,33208,context_broad_dictionary
+11,Bovine (Fecal),Bos taurus,9913,context_dictionary
+11,Pig product,Sus scrofa,9823,cleaned_match
+11,retail raw cow milk,Bos taurus,9913,context_cleaned_match
+11,bos taurus feces,Bos taurus,9913,context_cleaned_match
+11,honeybee metagenome,Apis mellifera,7460,context_cleaned_match
+11,fish gut metagenome,Actinopterygii,7898,context_broad_dictionary
+11,Raw goat milk,Capra hircus,9925,context_cleaned_match
+11,a feces sample of swine origin,Sus scrofa,9823,context_cleaned_match
+11,"Feces, Bald Eagle (Haliaeetus leucocephalus)",Aves,8782,context_broad_dictionary
+11,Plant tissue,Viridiplantae,33090,context_broad_dictionary
+11,Pig (sow) - fecal,Sus scrofa,9823,context_cleaned_match
+10,Wild bird feces,Aves,8782,context_broad_dictionary
+10,Poultry faecal material,Aves,8782,context_broad_dictionary
+10,"pig, feces",Sus scrofa,9823,context_cleaned_match
+10,"cattle feces, juveniles",Bos taurus,9913,context_cleaned_match
+10,Whole fish sold as mackerel tuna; Surface swab,Actinopterygii,7898,context_broad_dictionary
+10,environmental swabs sponge,Porifera,6040,context_broad_dictionary
+10,Background Grass (no manure on field),Poaceae,4479,context_broad_dictionary
+10,feces from wild bird,Aves,8782,context_broad_dictionary
+10,fish gut; co-assembled from multi-host: Procypris rabaudi;Hemiculterella sauvagei;Pseudogyrinocheilus prochilus;Acrossocheilus yunnanensis;Onychostoma simum;Ageneiogarra imberba;Homatula variegata;Carassius auratus;Tachysurus fulvidraco;Pseudorasbora parva;Zacco platypus;Opsariichthys bidens;Saurogobio dabryi;Glyptothorax sinensis;Jinshaia sinensis;Paramisgurnus dabryanus,Actinopterygii,7898,context_broad_dictionary
+10,Goat raw milk Rocamadour,Capra hircus,9925,context_cleaned_match
+10,Bee Gut Microbe,Anthophila,2867191,context_broad_dictionary
+9,Animal-Poultry-Feces,Aves,8782,context_broad_dictionary
+9,water for animals,Metazoa,33208,context_broad_dictionary
+9,chicken water,Gallus gallus,9031,context_cleaned_match
+9,Bovine (Meat),Bos taurus,9913,context_dictionary
+9,Milk: Raw bovine,Bos taurus,9913,context_cleaned_match
+9,fecal pasture close to dairy cow,Bos taurus,9913,context_cleaned_match
+9,retail raw whole milk goat,Capra hircus,9925,context_cleaned_match
+9,calves faeces,Bos taurus,9913,context_dictionary
+9,broiler ceacal sample,Gallus gallus,9031,context_cleaned_match
+9,Bovine manure treated grass (week 5),Bos taurus,9913,context_cleaned_match
+9,goat milk,Capra hircus,9925,context_cleaned_match
+9,Chicken manure compost,Gallus gallus,9031,cleaned_match
+9,human skin metagenome,Homo sapiens,9606,context_dictionary
+9,Milk cow,Bos taurus,9913,cleaned_match
+9,Chicken (meat),Gallus gallus,9031,context_dictionary
+9,human milk,Homo sapiens,9606,context_dictionary
+9,Grass with Cow Manure,Bos taurus,9913,context_cleaned_match
+9,Swine manure,Sus scrofa,9823,context_cleaned_match
+9,human left ventricle apex tissue,Homo sapiens,9606,context_dictionary
+8,Migratory bird feces,Aves,8782,context_broad_dictionary
+8,equine feces (Equus caballus),Equus caballus,9796,context_cleaned_match
+8,bird feces,Aves,8782,context_broad_dictionary
+8,canine:feces,Canis lupus familiaris,9615,context_cleaned_match
+8,livestock feces(cattle),Mammalia,40674,context_broad_dictionary
+8,Feline feces,Felis catus,9685,context_cleaned_match
+8,Cow milk,Bos taurus,9913,context_cleaned_match
+8,environment of equine clinic,Equus caballus,9796,context_cleaned_match
+8,Feces of Homo sapiens (GER),Homo sapiens,9606,context_cleaned_match
+8,cat gut,Felis catus,9685,context_cleaned_match
+8,rabbit gut,Oryctolagus cuniculus,9986,context_cleaned_match
+8,Bovine raw milk,Bos taurus,9913,context_cleaned_match
+8,Buffalo milk,Bubalus bubalis,89462,context_broad_dictionary
+8,Milk-raw bovine,Bos taurus,9913,context_cleaned_match
+8,rectal swab from sic cow,Bos taurus,9913,context_cleaned_match
+8,fermented goat milk,Capra hircus,9925,context_cleaned_match
+8,bacteria pure culture,Bacteria,2,context_dictionary
+8,kelp blade surface swab,Phaeophyceae,2870,context_broad_dictionary
+7,Animal stool,Metazoa,33208,context_broad_dictionary
+7,Pigeon feces,Columba livia,8932,context_cleaned_match
+7,Poultry manure,Aves,8782,context_broad_dictionary
+7,"Human, Urine",Homo sapiens,9606,context_dictionary
+7,"Environment, animals",Metazoa,33208,context_broad_dictionary
+7,Feces of Homo sapiens (DK),Homo sapiens,9606,context_cleaned_match
+7,"Faecal sample from Parma wallaby, Notamacropus parma",Macropodidae,9307,context_broad_dictionary
+7,cloaca swab from retail chicken,Gallus gallus,9031,context_cleaned_match
+7,cat and dog urine,Canis lupus familiaris,9615,context_cleaned_match
+7,Rectal swab of live bovine cattle,Bos taurus,9913,context_cleaned_match
+7,Cow feces,Bos taurus,9913,context_cleaned_match
+7,Dog Environment,Canis lupus familiaris,9615,context_cleaned_match
+7,Bovine manure,Bos taurus,9913,context_cleaned_match
+7,Chicken fecal,Gallus gallus,9031,context_cleaned_match
+7,human blood,Homo sapiens,9606,context_dictionary
+7,Pig rectum feces,Sus scrofa,9823,context_cleaned_match
+7,fresh water tilapia tank,Tilapia,8126,context_broad_dictionary
+7,horse manure,Equus caballus,9796,context_cleaned_match
+7,murine gut,Mus musculus,10090,context_cleaned_match
+7,bacteria cell culture,Bacteria,2,context_dictionary
+7,"pool of bioreactors CSTR01a, CSTR02a, and CSTR03a; thermophilic anaerobic digestion of cattle manure in continuous reactors for biogas production (methane)",Bos taurus,9913,context_cleaned_match
+6,Chicken House Swab,Gallus gallus,9031,context_cleaned_match
+6,blood clams,Bivalvia,6544,context_broad_dictionary
+6,environmental avian,Aves,8782,context_broad_dictionary
+6,Bovine Stool,Bos taurus,9913,context_cleaned_match
+6,Cow milk from bulk tank,Bos taurus,9913,context_cleaned_match
+6,Feces of Homo sapiens (DRC),Homo sapiens,9606,context_cleaned_match
+6,Feces of Homo sapiens (CIV),Homo sapiens,9606,context_cleaned_match
+6,"Faecal sample from Northern nailtail wallaby, Onychogalea unguifera",Macropodidae,9307,context_broad_dictionary
+6,Control porcine manure (before application),Sus scrofa,9823,context_cleaned_match
+6,feces chicken house,Gallus gallus,9031,context_cleaned_match
+6,poultry house fecal,Aves,8782,context_broad_dictionary
+6,cow manure scat soil,Bos taurus,9913,context_cleaned_match
+6,derived from human gut metagenome,Homo sapiens,9606,context_cleaned_match
+6,feline urine,Felis catus,9685,context_cleaned_match
+6,sewage plant,Viridiplantae,33090,context_dictionary
+6,"Feces, Black Kite (Milvus migrans)",Milvus,43517,context_broad_dictionary
+6,"Feces, Gull (Larus michahellis)",Laridae,8911,context_broad_dictionary
+6,sour cow milk,Bos taurus,9913,context_cleaned_match
+6,Goose faeces,Anser anser,8843,context_cleaned_match
+6,human skin swab,Homo sapiens,9606,context_dictionary
+6,a feces sample of chicken origin,Gallus gallus,9031,context_cleaned_match
+6,sheep milk cheese,Ovis aries,9940,context_cleaned_match
+6,fish gut; co-assembled from multi-host: Acrossocheilus yunnanensis;Onychostoma simum;Ageneiogarra imberba;Hemibagrus macropterus;Acrossocheilus monticola;Siniperca knerii;Rhinogobio typus;Tachysurus crassilabris;Spinibarbus sinensis;Platysmacheilus nudiventris;Hemibarbus labeo;Carassius auratus;Sinogastromyzon sichangensis;Tachysurus vachellii;Tachysurus fulvidraco;Hemiculter leucisculus;Hemiculter tchangi;Saurogobio punctatus;Squalidus argentatus;Silurus asotus;Pseudobagrus truncatus,Actinopterygii,7898,context_broad_dictionary
+6,sewage from chicken farm,Gallus gallus,9031,context_cleaned_match
+6,natural fermented cow's milk,Bos taurus,9913,context_cleaned_match
+6,horse faeces,Equus caballus,9796,context_cleaned_match
+6,Cattle/Water,Bos taurus,9913,context_cleaned_match
+6,raw buffalo milk,Bubalus bubalis,89462,context_broad_dictionary
+6,Animal Tissue,Metazoa,33208,context_broad_dictionary
+6,plant tissue,Viridiplantae,33090,context_broad_dictionary
+6,biofilm; non-axenic culture containing Capilliphycus salinus and associated bacteria,Bacteria,2,context_dictionary
+6,Mayonnaise-based potato salad (ready-to-eat food),Solanum tuberosum,4113,context_cleaned_match
+5,laying hens environment - boot swab,Gallus gallus,9031,context_broad_dictionary
+5,feces equine,Equus caballus,9796,context_cleaned_match
+5,Bovine stool,Bos taurus,9913,context_cleaned_match
+5,turkey environmental,Meleagris gallopavo,9103,context_cleaned_match
+5,chicken dirty pool tissue,Gallus gallus,9031,context_cleaned_match
+5,"Turkey hen, feces",Meleagris gallopavo,9103,context_cleaned_match
+5,sus scrofa feces,Sus scrofa,9823,context_cleaned_match
+5,Feces of Gorilla gorilla gorilla (GAB),Gorilla,9592,context_broad_dictionary
+5,healthy cattle faeces,Bos taurus,9913,context_cleaned_match
+5,feces chicken house middle,Gallus gallus,9031,context_cleaned_match
+5,feces chicken house back,Gallus gallus,9031,context_cleaned_match
+5,sponge feces,Porifera,6040,context_broad_dictionary
+5,Human clinical faeces,Homo sapiens,9606,context_dictionary
+5,dairy cow feces (Bos taurus),Bos taurus,9913,context_cleaned_match
+5,sour cow milk fermented,Bos taurus,9913,context_cleaned_match
+5,Dog stool,Canis lupus familiaris,9615,context_cleaned_match
+5,Pig specific (nasal swab),Sus scrofa,9823,context_cleaned_match
+5,canine ear swab,Canis lupus familiaris,9615,context_cleaned_match
+5,patient environment,Homo sapiens,9606,context_dictionary
+5,human urine,Homo sapiens,9606,context_dictionary
+5,Grass with Pig Manure,Sus scrofa,9823,context_cleaned_match
+5,human breast milk,Homo sapiens,9606,context_dictionary
+5,Sour horse milk,Equus caballus,9796,context_cleaned_match
+5,aquaculture water of Penaeus vannamei,Penaeus vannamei,6689,context_cleaned_match
+5,gut of abalone,Haliotis,6452,context_broad_dictionary
+5,Aquatic bird feces,Aves,8782,context_broad_dictionary
+5,Poultry manure,Aves,8782,broad_dictionary
+5,Pig manure,Sus scrofa,9823,context_cleaned_match
+5,Fish and aquatic environment of Lake Victoria,Actinopterygii,7898,context_broad_dictionary
+5,Fermented mare milk,Equus caballus,9796,context_broad_dictionary
+5,fish gut; co-assembled from multi-host: Siniperca knerii;Sinogastromyzon szechuanensis;Onychostoma simum;Leptobotia elongata,Actinopterygii,7898,context_broad_dictionary
+5,Water from infected fish farm,Actinopterygii,7898,context_broad_dictionary
+5,horse feces,Equus caballus,9796,context_cleaned_match
+5,feces of bat,Chiroptera,9397,context_broad_dictionary
+5,Leaf surface of Corylus cornuta from Eastern Canada,corylus,13450,context_broad_dictionary
+5,sponge tissue,Porifera,6040,context_broad_dictionary
+4,Swine (Meat),Sus scrofa,9823,context_dictionary
+4,Chicken Environment,Gallus gallus,9031,context_cleaned_match
+4,feces inside chicken tractor,Gallus gallus,9031,context_cleaned_match
+4,laying hen faeces,Gallus gallus,9031,context_broad_dictionary
+4,"Human, Rectal swab",Homo sapiens,9606,context_cleaned_match
+4,feces dirt from tomato field,Solanum lycopersicum,4081,context_cleaned_match
+4,Animal - Chicken-Environment swab,Gallus gallus,9031,context_cleaned_match
+4,animal feed blood meal,Metazoa,33208,context_broad_dictionary
+4,retail raw whole cow milk,Bos taurus,9913,context_cleaned_match
+4,Calf's feces,Bos taurus,9913,context_dictionary
+4,Tibetan antelope feces,Pantholops hodgsonii,59538,context_cleaned_match
+4,Poultry water,Aves,8782,context_broad_dictionary
+4,"Faecal sample from Agile wallaby, Notamacropus agilis",Macropodidae,9307,context_broad_dictionary
+4,"Faecal sample from Common wombat, Vombatus ursinus",Vombatidae,29137,context_broad_dictionary
+4,Porcine manure treated grass (week 1),Sus scrofa,9823,context_cleaned_match
+4,"Pig Feces, Farm",Sus scrofa,9823,context_cleaned_match
+4,Calf fecal,Bos taurus,9913,context_dictionary
+4,feces chicken house front,Gallus gallus,9031,context_cleaned_match
+4,fecal swabs from commercial chicken farm,Gallus gallus,9031,context_cleaned_match
+4,Fresh water fish,Actinopterygii,7898,broad_dictionary
+4,Raw Cow Milk,Bos taurus,9913,context_cleaned_match
+4,Sheep feces,Ovis aries,9940,context_cleaned_match
+4,Chicken cloacal swab (Gallus gallus),Gallus gallus,9031,context_cleaned_match
+4,Swine feces,Sus scrofa,9823,context_cleaned_match
+4,Pig Special Project (Sampling of Livestock and Poultry Environment),Sus scrofa,9823,context_cleaned_match
+4,cow sheep milk cheese,Bos taurus,9913,context_cleaned_match
+4,fish gut; co-assembled from multi-host: Triplophysa bleekeri;Pseudorasbora parva;Triplophysa daqiaoensis;Homatula variegata;Abbottina rivularis;Schizothorax davidi;Paramisgurnus dabryanus;Claea dabryi;Triplophysa stoliczkai;Misgurnus anguillicaudatus,Actinopterygii,7898,context_broad_dictionary
+4,fish gut; co-assembled from multi-host: Percocypris pingi;Hemiculterella sauvagei;Rhinogobius similis;Discogobio yunnanensis;Pseudogyrinocheilus prochilus;Glyptothorax fokiensis;Hemiculter leucisculus,Actinopterygii,7898,context_broad_dictionary
+4,Pig (nursery) - fecal,Sus scrofa,9823,context_cleaned_match
+4,feces from giant panda,panda,212257,context_broad_dictionary
+4,sour goat milk,Capra hircus,9925,context_cleaned_match
+4,catfish Homogenized Tissue Dillution,Siluriformes,7997,context_broad_dictionary
+4,adult red blood cells,Homo sapiens,9606,context_dictionary
+4,individual cow milk,Bos taurus,9913,context_cleaned_match
+4,Sea sponge tissue,Porifera,6040,context_broad_dictionary
+4,fish gut,Actinopterygii,7898,context_broad_dictionary
+4,enriched culture from Antartic soil contaminated with penguin feces,Spheniscidae,9231,context_broad_dictionary
+4,Fecal samples from slaughtered sheep,Ovis aries,9940,context_cleaned_match
+4,goat milk from farm,Capra hircus,9925,context_cleaned_match
+4,"strawberry, ragi, and rice with milk cereal",Oryza sativa,4530,context_cleaned_match
+4,milk-based infant and baby foods,Homo sapiens,9606,context_dictionary
+4,Water from fish tank,Actinopterygii,7898,context_broad_dictionary
+4,poultry feces,Aves,8782,context_broad_dictionary
+4,the intestinal contents of Marmot,Marmota,9992,context_broad_dictionary
+3,water source from yak farm,Bos grunniens,30521,context_cleaned_match
+3,Turtle water,Testudines,8459,context_broad_dictionary
+3,porcine feces,Sus scrofa,9823,context_cleaned_match
+3,Chicken - Boot swab,Gallus gallus,9031,context_cleaned_match
+3,Duck faeces,Anas platyrhynchos,8839,context_cleaned_match
+3,intestinal contents of broiler,Gallus gallus,9031,context_cleaned_match
+3,sheep shelter feces,Ovis aries,9940,context_cleaned_match
+3,calf feces,Bos taurus,9913,context_dictionary
+3,chick bedding sample,Gallus gallus,9031,context_broad_dictionary
+3,equine hospital environmental,Equus caballus,9796,context_cleaned_match
+3,cow manure (Bos primigenius),Bos taurus,9913,context_cleaned_match
+3,equine feces (Equus ferus caballus),Equus caballus,9796,context_cleaned_match
+3,chicken evisceration tank water (Gallus gallus),Gallus gallus,9031,context_cleaned_match
+3,Human Feces,Homo sapiens,9606,context_cleaned_match
+3,cloacal swab live duck,Anas platyrhynchos,8839,context_cleaned_match
+3,poultry water,Aves,8782,context_broad_dictionary
+3,"Animal clinical, bovine feces",Bos taurus,9913,context_cleaned_match
+3,livestock feces (cattle),Mammalia,40674,context_broad_dictionary
+3,External surface of flies,Diptera,7147,context_broad_dictionary
+3,Human urine sample,Homo sapiens,9606,context_cleaned_match
+3,poultry caceal sample,Aves,8782,context_broad_dictionary
+3,pig ceacal sample,Sus scrofa,9823,context_cleaned_match
+3,Sheep manure,Ovis aries,9940,context_cleaned_match
+3,Hand swab from chicken handler,Gallus gallus,9031,context_cleaned_match
+3,Human biopsy,Homo sapiens,9606,context_cleaned_match
+3,Feline urine,Felis catus,9685,context_cleaned_match
+3,cattle manure with soil,Bos taurus,9913,context_cleaned_match
+3,retail raw whole goat milk,Capra hircus,9925,context_cleaned_match
+3,soil bird dropping manure,Aves,8782,context_broad_dictionary
+3,feces goose branta,Anser anser,8843,context_cleaned_match
+3,feces duck,Anas platyrhynchos,8839,context_cleaned_match
+3,raw whole milk cow,Bos taurus,9913,context_cleaned_match
+3,Whole fish sold as Asian bighead carp; Surface swab,Actinopterygii,7898,context_broad_dictionary
+3,camel milk,Camelus dromedarius,9838,context_cleaned_match
+3,yak milk,Bos grunniens,30521,context_cleaned_match
+3,sheep gut metagenome,Ovis aries,9940,context_cleaned_match
+3,chicken fecal material,Gallus gallus,9031,context_cleaned_match
+3,Poultry meat,Aves,8782,broad_dictionary
+3,Camel milk,Camelus dromedarius,9838,context_cleaned_match
+3,Pig (body surface),Sus scrofa,9823,context_dictionary
+3,canine skin swab,Canis lupus familiaris,9615,context_cleaned_match
+3,human fecal sample,Homo sapiens,9606,context_cleaned_match
+3,bulk-tank raw milk of sheep farms,Ovis aries,9940,context_cleaned_match
+3,raw cow milk hard cheese,Bos taurus,9913,context_cleaned_match
+3,animal nasal swab,Metazoa,33208,context_broad_dictionary
+3,Chicken manure,Gallus gallus,9031,context_cleaned_match
+3,Raw cow milk,Bos taurus,9913,context_cleaned_match
+3,ground water from background well at DOE's FRC site at Oak Ridge,Quercus,3511,context_broad_dictionary
+3,animals feces,Metazoa,33208,context_broad_dictionary
+3,Cleopatra sp. freshwater snail feces,Gastropoda,6448,context_broad_dictionary
+3,adult mosquito gut,Homo sapiens,9606,context_dictionary
+3,pigeon farm environment,Columba livia,8932,context_cleaned_match
+3,Dromedary milk,Camelus dromedarius,9838,context_cleaned_match
+3,Fermented camel milk,Camelus dromedarius,9838,context_cleaned_match
+3,Fermented goat milk,Capra hircus,9925,context_cleaned_match
+3,fish gut; co-assembled from multi-host: Ancherythroculter kurematsui;Megalobrama pellegrini;Rhinogobio cylindricus;Coreius guichenoti;Rhinogobio ventralis;Xenophysogobio boulengeri;Squalidus wolterstorffi;Hemiculter bleekeri;Ancherythroculter nigrocauda;Chanodichthys mongolicus;Chanodichthys dabryi;Rhinogobius similis;Liobagrus marginatoides;Tachysurus eupogon,Actinopterygii,7898,context_broad_dictionary
+3,Bird feces(Common Greenshank),Aves,8782,context_broad_dictionary
+3,"Water/River, Aquatic Animal, Water",Metazoa,33208,context_broad_dictionary
+3,the gut of abalone,Haliotis,6452,context_broad_dictionary
+3,Araca mangrove water,Viridiplantae,33090,context_broad_dictionary
+3,Bacteria pure culture,Bacteria,2,context_dictionary
+3,"compost was generated exclusively from plant-based material, recycled equine manure in composters enriched with California worms (Eisenia foetida).",Equus caballus,9796,context_cleaned_match
+3,Bos taurus feces,Bos taurus,9913,context_cleaned_match
+3,Human clinical sample,Homo sapiens,9606,context_cleaned_match
+3,fish gut; co-assembled from multi-host: Barbodes semifasciolatus;Rasbora steineri;Sinibrama melrosei;Culter alburnus;Oreochromis niloticus;Pseudobagrus tenuifurcatus;Carassius auratus,Oreochromis niloticus,8128,context_cleaned_match
+3,Termite Gut,Termitoidae,1912919,context_broad_dictionary
+3,human stool sample,Homo sapiens,9606,context_cleaned_match
+3,Feces of healthy 3-month-old male infants,Homo sapiens,9606,context_dictionary
+3,a nose swab sample of swine origin,Sus scrofa,9823,context_cleaned_match
+3,Blood Cockle (Internal),Cardiidae,6547,context_broad_dictionary
+3,clinical sample from human,Homo sapiens,9606,context_cleaned_match
+3,infant faecal,Homo sapiens,9606,context_dictionary
+3,Cabbage kimchi inoculated with MRS-enriched fecal LAB,Brassica oleracea,3712,context_broad_dictionary
+3,fish gut; co-assembled from multi-host: Leiocassis longirostris;Culter alburnus;Hemiculter tchangi;Ancherythroculter wangi;Tachysurus nitidus;Siniperca knerii;Myxocyprinus asiaticus;Pseudolaubuca sinensis;Pseudobrama simoni;Hypophthalmichthys nobilis;Hypophthalmichthys molitrix;Megalobrama amblycephala;Chanodichthys dabryi;Ancherythroculter nigrocauda;Coreius heterodon;Coreius guichenoti;Gnathopogon imberbis;Siniperca chuatsi;Liobagrus nigricauda;Rhinogobius similis;Silurus meridionalis,Actinopterygii,7898,context_broad_dictionary
+3,Goat raw milk Plardon,Capra hircus,9925,context_cleaned_match
+3,"Early seed surface sterilization rinse, including the placenta and fruit pulp tissues",Viridiplantae,33090,context_broad_dictionary
+3,Apodemus sylvaticus Tissue Culture,apodemus,10128,context_broad_dictionary
+3,camel milk products,Camelus dromedarius,9838,context_cleaned_match
+3,"5 liters of water from the Tucurui Power Plant Reservoir, point M5 collected 50cm beneath the lake surface, then filtered by negative pressure for posterior culture in BG-11 medium",Viridiplantae,33090,context_broad_dictionary
+3,milk powder manufacturing plant,Viridiplantae,33090,context_broad_dictionary
+3,fish gut; co-assembled from multi-host: Silurus asotus;Schizothorax sinensis;Belligobio nummifer;Cobitis sinensis;Homatula potanini,Actinopterygii,7898,context_broad_dictionary
+3,fish gut; co-assembled from multi-host: Procypris rabaudi;Onychostoma simum;Siniperca knerii,Actinopterygii,7898,context_broad_dictionary
+3,Alexandrium ostenfeldii (Culture KO287),Alexandrium ostenfeldii,40986,dictionary
+3,elephant manure,Elephantidae,9780,context_broad_dictionary
+2,fresh feces from backyard birds,Aves,8782,context_broad_dictionary
+2,ANIMAL STOOL,Metazoa,33208,context_broad_dictionary
+2,Chicken Feces,Gallus gallus,9031,context_cleaned_match
+2,Fish (Food),Actinopterygii,7898,context_broad_dictionary
+2,goat's milk cheese,Capra hircus,9925,context_cleaned_match
+2,Cow manure,Bos taurus,9913,context_cleaned_match
+2,livestock manure,Mammalia,40674,context_broad_dictionary
+2,Swab from Broiler shed,Gallus gallus,9031,context_cleaned_match
+2,Retail raw cow milk,Bos taurus,9913,context_cleaned_match
+2,chicken bedding sample,Gallus gallus,9031,context_cleaned_match
+2,water with snail shell,Gastropoda,6448,context_broad_dictionary
+2,feces bovine,Bos taurus,9913,context_cleaned_match
+2,corn snake cage swab,Zea mays,4577,context_cleaned_match
+2,sprout water alfalfa,Medicago sativa,3879,context_cleaned_match
+2,pond water applied to tomato plant,Solanum lycopersicum,4081,context_cleaned_match
+2,Poultry Water,Aves,8782,context_broad_dictionary
+2,whole fresh water goby fish,Actinopterygii,7898,context_broad_dictionary
+2,environmental turtle tank,Testudines,8459,context_broad_dictionary
+2,turkey house lairage swab,Meleagris gallopavo,9103,context_cleaned_match
+2,turkey house feeder swab,Meleagris gallopavo,9103,context_cleaned_match
+2,Cloacal swab from turkey breeder farm,Meleagris gallopavo,9103,context_cleaned_match
+2,Human (urine),Homo sapiens,9606,context_dictionary
+2,environmental-chicken,Gallus gallus,9031,context_cleaned_match
+2,water from well used for irrigation of alfalfa sprout,Medicago sativa,3879,context_cleaned_match
+2,equine environment,Equus caballus,9796,context_cleaned_match
+2,avian water,Aves,8782,context_broad_dictionary
+2,environmental feline,Felis catus,9685,context_cleaned_match
+2,swine farm truck swab,Sus scrofa,9823,context_cleaned_match
+2,swine lairage swab,Sus scrofa,9823,context_cleaned_match
+2,spent irrigation water from alfalfa sprout,Medicago sativa,3879,context_cleaned_match
+2,Piglet feces,Sus scrofa,9823,context_broad_dictionary
+2,Cattle (Miced meat),Bos taurus,9913,context_dictionary
+2,"Animal non-clinical, bovine feces",Bos taurus,9913,context_cleaned_match
+2,Cattle swab,Bos taurus,9913,context_cleaned_match
+2,Turkey swab,Meleagris gallopavo,9103,context_cleaned_match
+2,kite (cloacal swab),Milvus,43517,context_broad_dictionary
+2,"Environment, poultry farm",Aves,8782,context_broad_dictionary
+2,Beef Cattle Feces - Rectal Grab,Bos taurus,9913,context_cleaned_match
+2,Cow milk from retailer,Bos taurus,9913,context_cleaned_match
+2,Waterfowl manure,Anseriformes,8826,context_broad_dictionary
+2,"Faecal sample from Lumholtz's tree kangaroo, Dendrolagus lumholtzi",Macropodidae,9307,context_broad_dictionary
+2,retail raw skim milk cow,Bos taurus,9913,context_cleaned_match
+2,Cattle fecal matter,Bos taurus,9913,context_cleaned_match
+2,Fecal sample from a deer,Cervidae,9850,context_broad_dictionary
+2,cow pasture fecal,Bos taurus,9913,context_cleaned_match
+2,sheep lairage swab,Ovis aries,9940,context_cleaned_match
+2,Chicken slaughterhouse splitting water,Gallus gallus,9031,context_cleaned_match
+2,chicken house manure pile,Gallus gallus,9031,context_cleaned_match
+2,Bird feces in calf shed,Bos taurus,9913,context_dictionary
+2,Yak feces,Bos grunniens,30521,context_cleaned_match
+2,Healthy human (stool),Homo sapiens,9606,context_cleaned_match
+2,"Bovine (bobby calf, fecal)",Bos taurus,9913,context_dictionary
+2,healthy human stool samples,Homo sapiens,9606,context_cleaned_match
+2,bovine fecal sample,Bos taurus,9913,context_cleaned_match
+2,tissue and/or biological fluid swine,Sus scrofa,9823,context_cleaned_match
+2,feces seagull,Laridae,8910,context_broad_dictionary
+2,cattle fecal,Bos taurus,9913,context_cleaned_match
+2,alpaca feces,Vicugna pacos,30538,context_cleaned_match
+2,a anal swab sample of swine origin,Sus scrofa,9823,context_cleaned_match
+2,canine tissue,Canis lupus familiaris,9615,context_cleaned_match
+2,Chicken blood (Gallus gallus),Gallus gallus,9031,context_cleaned_match
+2,meat duck,Anas platyrhynchos,8839,cleaned_match
+2,feces market swine (Sus scrofa),Sus scrofa,9823,context_cleaned_match
+2,feces beef cow (Bos taurus),Bos taurus,9913,context_cleaned_match
+2,steer feces (Bos taurus),Bos taurus,9913,context_dictionary
+2,"stool of a child hospitalized at icddr,b hospital in Dhaka",Homo sapiens,9606,context_dictionary
+2,Raw milk-bovine,Bos taurus,9913,context_cleaned_match
+2,Canine Stool,Canis lupus familiaris,9615,context_cleaned_match
+2,Chicken fecal material,Gallus gallus,9031,context_cleaned_match
+2,turkey offal or meat,Meleagris gallopavo,9103,cleaned_match
+2,"Cow, fecal",Bos taurus,9913,context_cleaned_match
+2,"Human, fecal",Homo sapiens,9606,context_cleaned_match
+2,Layer chicken feces from Layer poultry farm using intensive farming (indoor),Gallus gallus,9031,context_cleaned_match
+2,Pig farm environment,Sus scrofa,9823,context_cleaned_match
+2,canine mouth swab,Canis lupus familiaris,9615,context_cleaned_match
+2,swine nasal swab,Sus scrofa,9823,context_cleaned_match
+2,Raw cow's milk,Bos taurus,9913,context_cleaned_match
+2,Duck cloacal swab,Anas platyrhynchos,8839,context_cleaned_match
+2,Chicken feces from layer chicken farm,Gallus gallus,9031,context_cleaned_match
+2,Animal manure,Metazoa,33208,context_broad_dictionary
+2,Korean infant feces,Homo sapiens,9606,context_dictionary
+2,mice gut,Murinae,39107,context_broad_dictionary
+2,Chicken feces,Gallus gallus,9031,cleaned_match
+2,giant panda feces,panda,212257,context_broad_dictionary
+2,feces cattle (Bos taurus),Bos taurus,9913,context_cleaned_match
+2,raw cow milk vermeer hard cheese,Bos taurus,9913,context_cleaned_match
+2,Human milk,Homo sapiens,9606,context_dictionary
+2,environment corn silage,Zea mays,4577,context_cleaned_match
+2,cow goat raw milk cheese,Bos taurus,9913,context_cleaned_match
+2,raw milk bovine,Bos taurus,9913,context_cleaned_match
+2,pasteurized cow milk cheese,Bos taurus,9913,context_cleaned_match
+2,Bat fecal droppings,Chiroptera,9397,context_broad_dictionary
+2,Leaf surface of Northern white-cedar (Thuja occidentalis) from Eastern Canada,Thuja occidentalis,3317,context_broad_dictionary
+2,"spoiled, untreated cow's milk",Bos taurus,9913,context_cleaned_match
+2,surface-sterilized wheat seeds,Triticum aestivum,4565,context_cleaned_match
+2,"Water line, poultry barn",Aves,8782,context_broad_dictionary
+2,"Environment, poultry barn",Aves,8782,context_broad_dictionary
+2,"Faecal sample from Red kangaroo, Osphranter rufus",Macropodidae,9307,context_broad_dictionary
+2,Dairy cattle manure,Bos taurus,9913,context_cleaned_match
+2,chicken fecal,Gallus gallus,9031,context_cleaned_match
+2,Pig (grower) - fecal,Sus scrofa,9823,context_cleaned_match
+2,Livestock manure,Mammalia,40674,context_broad_dictionary
+2,feces of a diseased cow,Bos taurus,9913,context_cleaned_match
+2,poultry meat,Aves,8782,broad_dictionary
+2,Yak milk,Bos grunniens,30521,context_cleaned_match
+2,Fermented cattle milk,Bos taurus,9913,context_cleaned_match
+2,swab samples of pig,Sus scrofa,9823,context_cleaned_match
+2,Avian Environment,Aves,8782,context_broad_dictionary
+2,fish gut; co-assembled from multi-host: Ctenopharyngodon idella;Silurus meridionalis;Carassius auratus;Ameiurus nebulosus;Hemiculter tchangi;Hemibarbus maculatus;Luciobarbus capito,Actinopterygii,7898,context_broad_dictionary
+2,salt water crab tank,Brachyura,6752,context_broad_dictionary
+2,Eel tank water,Anguilliformes,7933,context_broad_dictionary
+2,mouse intestinal villus cells,Mus musculus,10090,context_cleaned_match
+2,insect gut,Insecta,50557,context_broad_dictionary
+2,Rabbit feces,Oryctolagus cuniculus,9986,context_cleaned_match
+2,Arabidopsis thaliana seedling from surface sterilized seed,Arabidopsis thaliana,3702,context_cleaned_match
+2,Insect gut,Insecta,50557,context_broad_dictionary
+2,220 cm below water surface of man-made lake,Homo sapiens,9606,context_cleaned_match
+2,"Tissue, animal",Metazoa,33208,context_broad_dictionary
+2,Milk from the udder of a cow with mastitis,Bos taurus,9913,context_cleaned_match
+2,Fish gut,Actinopterygii,7898,context_broad_dictionary
+2,pure culture bacteria,Bacteria,2,context_dictionary
+2,pure bacteria culture,Bacteria,2,context_dictionary
+2,plant root sample,Viridiplantae,33090,context_broad_dictionary
+2,Sheep Milk,Ovis aries,9940,context_cleaned_match
+2,sheep milk from farm,Ovis aries,9940,context_cleaned_match
+2,infant gut microbiota,Homo sapiens,9606,context_dictionary
+2,Feces of healthy 12 day male infants,Homo sapiens,9606,context_dictionary
+2,lake water cyanobacterial bloom contaminated with bovine manure,Bos taurus,9913,context_cleaned_match
+2,"bat, faeces",Chiroptera,9397,context_broad_dictionary
+2,Traditional Fermented Yak Milk,Bos grunniens,30521,context_cleaned_match
+2,rat (gut),Rattus norvegicus,10116,context_dictionary
+2,American Alligator's water tank,alligator,8495,context_broad_dictionary
+2,Sewage from swine farm,Sus scrofa,9823,context_cleaned_match
+2,"wheat, apple, and banana with milk cereal",Malus domestica,3750,context_cleaned_match
+2,"banana, ragi, and rice with milk cereal",Oryza sativa,4530,context_cleaned_match
+2,"mango, rago, and rice with milk cereal",Oryza sativa,4530,context_cleaned_match
+2,"mango, ragi, and rice with milk cereal",Oryza sativa,4530,context_cleaned_match
+2,fish gut; co-assembled from multi-host: Siniperca knerii;Onychostoma simum;Leptobotia elongata;Procypris rabaudi,Actinopterygii,7898,context_broad_dictionary
+2,feces of 3-year-old healthy male child,Homo sapiens,9606,context_dictionary
+2,Plant sample,Viridiplantae,33090,context_broad_dictionary
+2,Goat milk cheese,Capra hircus,9925,context_cleaned_match
+2,Outdoor water tank from infected fish farm,Actinopterygii,7898,context_broad_dictionary
+2,Canis lupus familiaris feces,Canis lupus,9612,context_cleaned_match
+2,Fresh equine feces,Equus caballus,9796,context_cleaned_match
+2,bacteria cells (from culture that grew from a isolated colony),Bacteria,2,context_broad_dictionary
+2,Pure culture of Gram (+) bacteria,Bacteria,2,context_dictionary
+2,breast milk from healthy nursing mother,Homo sapiens,9606,context_dictionary
+2,sheep milk,Ovis aries,9940,context_cleaned_match
+2,"human with endocarditis, blood",Homo sapiens,9606,context_cleaned_match
+2,Human fecal sample,Homo sapiens,9606,context_cleaned_match
+2,Blueberry fermentation broth,Vaccinium,13749,context_broad_dictionary
+2,faecal of marmot,Marmota,9992,context_broad_dictionary
+2,goat cheese (raw milk),Capra hircus,9925,context_cleaned_match
+2,raw cow's milk,Bos taurus,9913,context_cleaned_match
+2,Sphagnum peat bog gray layer sample,Sphagnum,13804,context_broad_dictionary
+2,Pantholops hodgsonii feces,Pantholops hodgsonii,59538,context_cleaned_match
+2,Diarrheic Human Stool,Homo sapiens,9606,context_cleaned_match
+2,Healthy Human Stool,Homo sapiens,9606,context_cleaned_match
+2,water poultry,Aves,8782,broad_dictionary
+2,livestock manure compost,Mammalia,40674,broad_dictionary
+2,Blood - animal United Kingdom,Metazoa,33208,context_broad_dictionary
+2,fish gut; co-assembled from multi-host: Silurus asotus;Liobagrus marginatus;Hypophthalmichthys nobilis;Rhinogobius cliffordpopei;Glyptothorax sinensis;Cyprinus carpio;Culter alburnus,Actinopterygii,7898,context_broad_dictionary
+2,crocodile pond water,Crocodylia,8500,context_broad_dictionary
+2,Adult Bee Gut,Homo sapiens,9606,context_dictionary
+2,a piece of sunken bamboo in the marine environment,Bambuseae,147376,context_broad_dictionary
+2,sour yak milk,Bos grunniens,30521,context_cleaned_match
+2,Ulva culture,ulva,3118,context_broad_dictionary
+2,Pure culture of Bacteria,Bacteria,2,context_dictionary
+2,Adult flesh fly mid gut,Homo sapiens,9606,context_dictionary
+2,Kelp sample,Phaeophyceae,2870,context_broad_dictionary
+2,feces of mice,Murinae,39107,context_broad_dictionary
+2,single cell amplified by MDA; termite gut,Termitoidae,1912919,context_broad_dictionary
+1,"Poultry, fresh feces",Aves,8782,context_broad_dictionary
+1,"""Water, sheep area""",Ovis aries,9940,context_cleaned_match
+1,Environmental-turtle tank water,Testudines,8459,context_broad_dictionary
+1,Chicken rectal swab,Gallus gallus,9031,context_cleaned_match
+1,OTHER ;TURTLE WATER,Testudines,8459,context_broad_dictionary
+1,OTHER ;TURTLE B SWAB,Testudines,8459,context_broad_dictionary
+1,Poultry-Environmental,Aves,8782,context_broad_dictionary
+1,OTHER ;TURTLE A SWAB,Testudines,8459,context_broad_dictionary
+1,farm B1 of integrated broiler supply chain (Drag swab),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-5),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-4),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-3),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-6),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-2),Gallus gallus,9031,context_cleaned_match
+1,cecal feces of duck slaughterhouse B,Anas platyrhynchos,8839,context_cleaned_match
+1,farm A2 of integrated broiler supply chain (Drag swab),Gallus gallus,9031,context_cleaned_match
+1,farm B2 of integrated broiler supply chain (Drag swab-1),Gallus gallus,9031,context_cleaned_match
+1,water snake,Serpentes,8570,broad_dictionary
+1,Ovine (Fecal),Ovis aries,9940,context_dictionary
+1,Cat (Fecal),Felis catus,9685,context_dictionary
+1,Ostrich (Fecal),ostrich,8801,context_dictionary
+1,Trawl swab of 27-day-old poultry litter,Aves,8782,context_broad_dictionary
+1,Trawl swab of 26-day-old poultry litter,Aves,8782,context_broad_dictionary
+1,Canine faeces,Canis lupus familiaris,9615,context_cleaned_match
+1,Avian faecal - Swab,Aves,8782,context_broad_dictionary
+1,Duck - Environmental house swab,Anas platyrhynchos,8839,context_cleaned_match
+1,Porcine necropsy - Swab,Sus scrofa,9823,context_cleaned_match
+1,Ovine Small intestinal contents- clinical sample,Ovis aries,9940,context_cleaned_match
+1,Snake faeces,Serpentes,8570,context_broad_dictionary
+1,Chicken slaughterhouse environment,Gallus gallus,9031,context_cleaned_match
+1,poultry fecal,Aves,8782,context_broad_dictionary
+1,broiler farm boot swab,Gallus gallus,9031,context_cleaned_match
+1,broiler environment - boot sock,Gallus gallus,9031,context_cleaned_match
+1,turkey environment - boot swab,Meleagris gallopavo,9103,context_cleaned_match
+1,Broiler feces from crates,Gallus gallus,9031,context_cleaned_match
+1,Fresh water fish Catla catla,Actinopterygii,7898,context_broad_dictionary
+1,BEARDED DRAGON FECES,Pogona vitticeps,103695,context_broad_dictionary
+1,Broiler feces,Gallus gallus,9031,context_cleaned_match
+1,non-ruminant blood meal,Ruminantia,9845,context_broad_dictionary
+1,geese pen boot swab,geese,8842,context_broad_dictionary
+1,Swab/Bamboo basket,Bambuseae,147376,context_broad_dictionary
+1,water fowl,Aves,8782,broad_dictionary
+1,Environmental surface sponge,Porifera,6040,context_broad_dictionary
+1,cat feces,Felis catus,9685,context_cleaned_match
+1,Bovine Mixed Tissue,Bos taurus,9913,context_cleaned_match
+1,poultry broth,Aves,8782,context_broad_dictionary
+1,"Bearded Dragon, swab",Pogona vitticeps,103695,context_broad_dictionary
+1,dog tissue,Canis lupus familiaris,9615,context_cleaned_match
+1,equine joint swab,Equus caballus,9796,context_cleaned_match
+1,feces snake,Serpentes,8570,context_broad_dictionary
+1,bovine feed blood meal,Bos taurus,9913,context_cleaned_match
+1,python water,python,37579,context_broad_dictionary
+1,Duck Pemise. Environmental drag booties from the duck barn floor,Anas platyrhynchos,8839,context_cleaned_match
+1,porcine fecal swab,Sus scrofa,9823,context_cleaned_match
+1,animal stool,Metazoa,33208,context_broad_dictionary
+1,fresh water fish,Actinopterygii,7898,context_broad_dictionary
+1,bovine environmental milk filter,Bos taurus,9913,context_cleaned_match
+1,blood equine,Equus caballus,9796,context_cleaned_match
+1,environmental clean incubator pheasant barn,Phasianidae,9005,context_broad_dictionary
+1,turkey house waterer swab,Meleagris gallopavo,9103,context_cleaned_match
+1,Bovine mixed tissue-lymph node and intestine,Bos taurus,9913,context_cleaned_match
+1,Lizard faeces,Sauria,32561,context_broad_dictionary
+1,"Lizard, faeces",Sauria,32561,context_broad_dictionary
+1,Rodent faeces,Rodentia,9989,context_broad_dictionary
+1,Lizard Faeces,Sauria,32561,context_broad_dictionary
+1,Pogona vitticeps: Feces,Pogona,103695,context_broad_dictionary
+1,Chicken tissue,Gallus gallus,9031,context_cleaned_match
+1,Poultry house water,Aves,8782,context_broad_dictionary
+1,Boot swab from broiler chicken at slaughter house,Gallus gallus,9031,context_cleaned_match
+1,Human (blood),Homo sapiens,9606,context_dictionary
+1,Babgladeshi Fresh Water Fish (Bacha),Actinopterygii,7898,context_broad_dictionary
+1,environmental-quail,Coturnix japonica,93934,context_broad_dictionary
+1,Animal - Chicken-Feces,Gallus gallus,9031,context_cleaned_match
+1,Animal - Porcine-Feces,Sus scrofa,9823,context_cleaned_match
+1,Animal - Avian-Environment swab,Aves,8782,context_broad_dictionary
+1,chicken intestinal,Gallus gallus,9031,context_cleaned_match
+1,Environment feeding stuffs plant,Viridiplantae,33090,broad_dictionary
+1,cooked turkey stuffed with mushroms and chestnuts (pork in the meat),Meleagris gallopavo,9103,context_cleaned_match
+1,boot swab from broiler farm,Gallus gallus,9031,context_cleaned_match
+1,"Bovine; diarrhoea, faecal isolate",Bos taurus,9913,context_cleaned_match
+1,"animal, fecal content at slaughterhouse",Metazoa,33208,context_broad_dictionary
+1,porcine tissue pool (Sus scrofa domesticus),Sus scrofa,9823,context_cleaned_match
+1,bangladeshi fresh water fish kajoli,Actinopterygii,7898,context_broad_dictionary
+1,"Animal Isolate, Animal Stool",Metazoa,33208,context_broad_dictionary
+1,bovine environmental bird feces,Bos taurus,9913,context_cleaned_match
+1,water used to process fresh tomato,Solanum lycopersicum,4081,context_cleaned_match
+1,porcine feces (Sus scrofa domesticus),Sus scrofa,9823,context_cleaned_match
+1,bovine tissue pool (Bos taurus),Bos taurus,9913,context_cleaned_match
+1,bovine environmental plant leaves,Bos taurus,9913,context_cleaned_match
+1,avian environmental incubator,Aves,8782,context_broad_dictionary
+1,bovine water,Bos taurus,9913,context_cleaned_match
+1,feces giraffe (Cervus camelopardali),Giraffa camelopardalis,9894,context_broad_dictionary
+1,water buffalo cheek with rope toy dog treat,Canis lupus familiaris,9615,context_cleaned_match
+1,Human gut,Homo sapiens,9606,cleaned_match
+1,hydrolyzed blood and feather animal meal,Metazoa,33208,context_broad_dictionary
+1,"Animal Feed, Environment, Feed Mill",Metazoa,33208,context_broad_dictionary
+1,equine feces,Equus caballus,9796,context_cleaned_match
+1,"Human, Blood",Homo sapiens,9606,context_dictionary
+1,granola milk and blueberry,Vaccinium,13749,context_broad_dictionary
+1,tomato surface,Solanum lycopersicum,4081,context_cleaned_match
+1,fresh water fish Puntius chola,Actinopterygii,7898,context_broad_dictionary
+1,small unnamed meltwater lake contaminated with bird feces,Aves,8782,context_broad_dictionary
+1,cow bull swab,Bos taurus,9913,context_cleaned_match
+1,Turkey Swab,Meleagris gallopavo,9103,context_cleaned_match
+1,Cow/bull swab,Bos taurus,9913,context_cleaned_match
+1,Cattle Swab,Bos taurus,9913,context_cleaned_match
+1,Steer/Heifer swab,Bos taurus,9913,context_dictionary
+1,Swine swab,Sus scrofa,9823,context_cleaned_match
+1,sheep mixed feed ration non medicated milk replacer,Ovis aries,9940,context_cleaned_match
+1,fish water,Actinopterygii,7898,context_broad_dictionary
+1,unripe raw goat milk cheese,Capra hircus,9925,context_cleaned_match
+1,environmental porcine,Sus scrofa,9823,context_cleaned_match
+1,bovine raw milk,Bos taurus,9913,context_cleaned_match
+1,Human urine,Homo sapiens,9606,context_dictionary
+1,dried poultry blood,Aves,8782,context_broad_dictionary
+1,turtle tank water,Testudines,8459,context_broad_dictionary
+1,canine blood,Canis lupus familiaris,9615,context_cleaned_match
+1,Adelie's penguin feces,Spheniscidae,9231,context_broad_dictionary
+1,Zoo pooled sample - tapir/rhea/capybara/swan/goose,Anser anser,8843,context_cleaned_match
+1,floor swab at a pig slaughterhouse,Sus scrofa,9823,context_cleaned_match
+1,"Water/River, Livestock, Untreated run-off water from cattle feedlot",Bos taurus,9913,context_cleaned_match
+1,Dog's feces,Canis lupus familiaris,9615,context_cleaned_match
+1,soft sheep milk cheese,Ovis aries,9940,context_cleaned_match
+1,Collected from calf feces,Bos taurus,9913,context_dictionary
+1,water from ornamental fish tank,Actinopterygii,7898,context_broad_dictionary
+1,bovine gut,Bos taurus,9913,context_cleaned_match
+1,"""feces, feral swine""",Sus scrofa,9823,context_cleaned_match
+1,Sika deer feces,Cervidae,9850,context_broad_dictionary
+1,swab environment pig farms,Sus scrofa,9823,context_cleaned_match
+1,polar bear feces,Ursidae,9632,context_broad_dictionary
+1,wolf intestinal content,Canis lupus,9612,context_broad_dictionary
+1,Rat feces,Rattus norvegicus,10116,context_cleaned_match
+1,"Roe deer, feces",Cervidae,9850,context_broad_dictionary
+1,Water tank of tropical fish,Actinopterygii,7898,context_broad_dictionary
+1,Mare placental tissue,Equus caballus,9796,context_broad_dictionary
+1,feces of a female patient,Homo sapiens,9606,context_dictionary
+1,mouse intestinal content,Mus musculus,10090,context_cleaned_match
+1,"Faecal sample from Koala, Phascolarctos cinereus",Phascolarctos cinereus,38626,context_broad_dictionary
+1,"Faecal sample from Southern hairy-nosed wombat, Lasiorhinus latifrons",Vombatidae,29137,context_broad_dictionary
+1,turkey ceacal sample,Meleagris gallopavo,9103,context_cleaned_match
+1,human-gut,Homo sapiens,9606,context_cleaned_match
+1,Rectal swab of Dairy cattle,Bos taurus,9913,context_cleaned_match
+1,Lab bacteria culture,Bacteria,2,context_dictionary
+1,Vagina swab of pregnant woman,Homo sapiens,9606,context_cleaned_match
+1,"soft, semi-soft cheese made from cow's milk",Bos taurus,9913,context_cleaned_match
+1,retail raw whole milk sheep,Ovis aries,9940,context_cleaned_match
+1,Porcine manure treated grass (week 3),Sus scrofa,9823,context_cleaned_match
+1,Poultry manure treated grass (week 3),Aves,8782,context_broad_dictionary
+1,Porcine manure treated grass (week 10),Sus scrofa,9823,context_cleaned_match
+1,roe deer faeces,Cervidae,9850,context_broad_dictionary
+1,healthy cattle milk,Bos taurus,9913,context_cleaned_match
+1,Canine bladder tissue and stones,Canis lupus familiaris,9615,context_cleaned_match
+1,Wild bird fecal,Aves,8782,context_broad_dictionary
+1,Bovine Milk Filter_M4F2a,Bos taurus,9913,context_cleaned_match
+1,Bovine Milk Filter_M1F2,Bos taurus,9913,context_cleaned_match
+1,Bovine Milk Filter_M2Fa2,Bos taurus,9913,context_cleaned_match
+1,Bovine Milk Filter_M3F2a,Bos taurus,9913,context_cleaned_match
+1,Pig slaughterhouse plucking water,Sus scrofa,9823,context_cleaned_match
+1,antelope blesbock feces,Antilopinae,9948,context_broad_dictionary
+1,canine wound swab,Canis lupus familiaris,9615,context_cleaned_match
+1,commercial raw goat milk,Capra hircus,9925,context_cleaned_match
+1,Water on pig farm,Sus scrofa,9823,context_cleaned_match
+1,Processing environment sponge from retailer,Porifera,6040,context_broad_dictionary
+1,Environment sponge from processin plant,Viridiplantae,33090,context_broad_dictionary
+1,Livestock feces,Mammalia,40674,context_broad_dictionary
+1,poultry fecal material,Aves,8782,context_broad_dictionary
+1,"cowshed, probably of bovine fecal origin",Bos taurus,9913,context_cleaned_match
+1,cattle milk,Bos taurus,9913,context_cleaned_match
+1,Pig (faeces),Sus scrofa,9823,context_dictionary
+1,"wildlife fecal samples in bovine feedlots collected in Colorado, USA",Bos taurus,9913,context_cleaned_match
+1,Bird (Egret) feces BE2,Aves,8782,context_broad_dictionary
+1,goose anus swab,Anser anser,8843,context_cleaned_match
+1,human feces of different individuals,Homo sapiens,9606,context_cleaned_match
+1,stray fox fecal sample,Vulpes vulpes,9627,context_broad_dictionary
+1,feces primate douc langur,Primates,9443,context_broad_dictionary
+1,feline urine (Felis catus),Felis catus,9685,context_cleaned_match
+1,bovine water lairage,Bos taurus,9913,context_cleaned_match
+1,goat milk cheese,Capra hircus,9925,context_cleaned_match
+1,swine faeces,Sus scrofa,9823,context_cleaned_match
+1,canine urine; stent,Canis lupus familiaris,9615,context_cleaned_match
+1,canine bladder mucosa; bladder biopsy,Canis lupus familiaris,9615,context_cleaned_match
+1,Raw Milk from bovine,Bos taurus,9913,context_cleaned_match
+1,Canine fecal sample,Canis lupus familiaris,9615,context_cleaned_match
+1,pig fecal,Sus scrofa,9823,context_cleaned_match
+1,Enviromental avian faeces in farm,Aves,8782,context_broad_dictionary
+1,Fox Fecal swab,Vulpes vulpes,9627,context_broad_dictionary
+1,Avian feces,Aves,8782,context_broad_dictionary
+1,Raw milk of cow,Bos taurus,9913,context_cleaned_match
+1,feces young chicken (Gallus gallus domesticus),Gallus gallus,9031,context_cleaned_match
+1,heifer feces (Bos taurus),Bos taurus,9913,context_dictionary
+1,feces young turkey (Meleagris gallopavo),Meleagris gallopavo,9103,context_cleaned_match
+1,Rectal swab of cattle in slaughterhouse,Bos taurus,9913,context_cleaned_match
+1,chicken feces houseback,Gallus gallus,9031,context_cleaned_match
+1,bean water source,Phaseolus,3883,context_broad_dictionary
+1,cow fecal manure,Bos taurus,9913,context_cleaned_match
+1,human skin metagenome,Homo sapiens,9606,dictionary
+1,"Faecal sample from Eastern grey kangaroo, Macropus giganteus",Macropodidae,9307,context_broad_dictionary
+1,"Fish tank water, 31.8 degrees Celsius",Actinopterygii,7898,context_broad_dictionary
+1,Cheese produced from raw cow's milk,Bos taurus,9913,context_cleaned_match
+1,Milk from cow with mastitis,Bos taurus,9913,context_cleaned_match
+1,Fish parts (slab) sold as snakehead-toman; Surface swab,Actinopterygii,7898,context_broad_dictionary
+1,Whole fish sold as black tilapia; Surface swab,Actinopterygii,7898,context_broad_dictionary
+1,Fish part (head) sold as Asian bighead carp; Surface swab,Actinopterygii,7898,context_broad_dictionary
+1,fermented yak milk,Bos grunniens,30521,context_cleaned_match
+1,tissue from oliver flounder,Pleuronectiformes,8252,context_broad_dictionary
+1,suusac fermented camel milk,Camelus dromedarius,9838,context_cleaned_match
+1,blood of a 58-year-old endometrial cancer patient who had type 2 diabetes mellitus and relapsed after radiotherapy with multiple metastases to the lungs and abdominal cavity,Homo sapiens,9606,context_dictionary
+1,24 hour old goat milk,Capra hircus,9925,context_cleaned_match
+1,Dahi traditional fermented cow milk,Bos taurus,9913,context_cleaned_match
+1,cow milk with mastilis pathology,Bos taurus,9913,context_cleaned_match
+1,human sample,Homo sapiens,9606,context_cleaned_match
+1,Goose feces,Anser anser,8843,context_cleaned_match
+1,Falcon feces,Aves,8782,context_broad_dictionary
+1,diarrheic stool of a child,Homo sapiens,9606,context_dictionary
+1,"Herring gull cloacal swab, Larus argintatus",Laridae,8911,context_broad_dictionary
+1,Milk Milk-raw bovine,Bos taurus,9913,context_cleaned_match
+1,Milk Raw Cow Milk,Bos taurus,9913,context_cleaned_match
+1,raw retail cow milk,Bos taurus,9913,context_cleaned_match
+1,Bacteria Culture,Bacteria,2,context_dictionary
+1,Turkey feces,Meleagris gallopavo,9103,context_cleaned_match
+1,raw cream from cow milk,Bos taurus,9913,context_cleaned_match
+1,Water in turkey house,Meleagris gallopavo,9103,context_cleaned_match
+1,"Goat, fecal",Capra hircus,9925,context_cleaned_match
+1,"Wild pig, fecal",Sus scrofa,9823,context_cleaned_match
+1,"Alpaca, fecal",Vicugna pacos,30538,context_cleaned_match
+1,"Poultry House, faecal",Aves,8782,broad_dictionary
+1,Swine stool,Sus scrofa,9823,context_cleaned_match
+1,Chicken feces (Gallus gallus),Gallus gallus,9031,context_cleaned_match
+1,"Domestic goose, fecal",Anser anser,8843,context_cleaned_match
+1,"Herring gull, cloacal swab",Laridae,8911,context_broad_dictionary
+1,Monkey living indoor room floor swab,Simiiformes,314293,context_broad_dictionary
+1,bulk tank bovine milk,Bos taurus,9913,context_cleaned_match
+1,Mastitic bovine milk,Bos taurus,9913,context_cleaned_match
+1,goat farm nasal swab,Capra hircus,9925,context_cleaned_match
+1,human feces patient 2 outbreak technical replicate 4,Homo sapiens,9606,context_cleaned_match
+1,human feces patient 2 outbreak technical replicate 3,Homo sapiens,9606,context_cleaned_match
+1,human feces patient 2 outbreak technical replicate 1,Homo sapiens,9606,context_cleaned_match
+1,human feces patient 2 outbreak technical replicate 2,Homo sapiens,9606,context_cleaned_match
+1,Pig nasal swab,Sus scrofa,9823,context_cleaned_match
+1,Dairy Goat Milk,Capra hircus,9925,context_cleaned_match
+1,"Human faeces of child with acute, non-specific diarrhea",Homo sapiens,9606,context_cleaned_match
+1,Feces of Gorilla beringei beringei,Gorilla,9592,context_broad_dictionary
+1,raw camel milk,Camelus dromedarius,9838,context_cleaned_match
+1,Pig (nasal swab),Sus scrofa,9823,context_dictionary
+1,Sample Goose Intestine,Anser anser,8843,context_cleaned_match
+1,canine draining tract swab,Canis lupus familiaris,9615,context_cleaned_match
+1,canine lesion swab,Canis lupus familiaris,9615,context_cleaned_match
+1,canine incision swab,Canis lupus familiaris,9615,context_cleaned_match
+1,canine nasal swab,Canis lupus familiaris,9615,context_cleaned_match
+1,Canine Blood (Canis lupus familiaris),Canis lupus familiaris,9615,context_cleaned_match
+1,retail cow milk,Bos taurus,9913,context_cleaned_match
+1,Sheep placental tissue,Ovis aries,9940,context_cleaned_match
+1,Buffalo Milk,Bubalus bubalis,89462,context_broad_dictionary
+1,Animal faecal matter,Metazoa,33208,context_broad_dictionary
+1,isolated from blood of a patient with liver abscess and meningitis,Homo sapiens,9606,context_dictionary
+1,the surface of the patient's locker,Homo sapiens,9606,context_dictionary
+1,Feces of mice,Murinae,39107,context_broad_dictionary
+1,lettuce leaf sample,Lactuca sativa,4236,context_broad_dictionary
+1,bovine mastitis milk,Bos taurus,9913,context_cleaned_match
+1,water samples from chicken farms,Gallus gallus,9031,context_cleaned_match
+1,anal swab of chicken,Gallus gallus,9031,context_cleaned_match
+1,"Feces, Gull (Larus cachinnans)",Laridae,8911,context_broad_dictionary
+1,cancer patient stool,Homo sapiens,9606,context_dictionary
+1,adult insects fed liquid diet (100% cellulose matrix soaked in 11% saccharose in water),Homo sapiens,9606,context_dictionary
+1,animal gut,Metazoa,33208,context_broad_dictionary
+1,milk from dairy animals with mastitis,Metazoa,33208,context_broad_dictionary
+1,environment contaminated by Homo sapiens patients,Homo sapiens,9606,context_cleaned_match
+1,Psittacus erithacus feces,psittacus,13239,context_broad_dictionary
+1,wild yak feces,Bos grunniens,30521,context_cleaned_match
+1,a blood sample of swine origin,Sus scrofa,9823,context_cleaned_match
+1,non mosquito Diptera environment,Culicidae,7157,context_broad_dictionary
+1,feline tissue,Felis catus,9685,context_cleaned_match
+1,gut of black soldier fly larvae,Diptera,7147,context_broad_dictionary
+1,water from livestock farm,Mammalia,40674,context_broad_dictionary
+1,Raw Jersey bovine milk beer washed tomme cheese,Bos taurus,9913,context_cleaned_match
+1,meat plant,Viridiplantae,33090,broad_dictionary
+1,"mammal, other: Fecal",Mammalia,40674,context_broad_dictionary
+1,"animal, non-clinical: Intestinal content of Clethrionomys glareolus",Metazoa,33208,context_broad_dictionary
+1,raw milk: raw sheep's milk,Ovis aries,9940,context_cleaned_match
+1,whole raw cow milk,Bos taurus,9913,context_cleaned_match
+1,cabbage PBS wash water,Brassica oleracea,3712,context_broad_dictionary
+1,Mushroom environment,Agaricales,5338,context_broad_dictionary
+1,Milk - Raw Bovine,Bos taurus,9913,context_cleaned_match
+1,raw sheep milk,Ovis aries,9940,cleaned_match
+1,"""swab, orange transport dolly""",Citrus sinensis,2711,context_cleaned_match
+1,Tissue of rabbit,Oryctolagus cuniculus,9986,context_cleaned_match
+1,swab cutting board-raw poultry,Aves,8782,context_broad_dictionary
+1,duck stream water,Anas platyrhynchos,8839,context_cleaned_match
+1,Raw camel milk,Camelus dromedarius,9838,context_cleaned_match
+1,swab of tray for fish,Actinopterygii,7898,context_broad_dictionary
+1,"Raw Milk, Bovine",Bos taurus,9913,context_cleaned_match
+1,composted poultry manure,Aves,8782,context_broad_dictionary
+1,Milk- Raw Bovine Milk - Raw Bovine,Bos taurus,9913,context_cleaned_match
+1,Milk sample from reservoir of milking cow (animal),Bos taurus,9913,context_cleaned_match
+1,Dairy plant (environmental),Viridiplantae,33090,context_broad_dictionary
+1,Cattle farm water,Bos taurus,9913,context_cleaned_match
+1,fresh water crayfish,Astacidea,6724,context_broad_dictionary
+1,sheep milk ricotta cheese,Ovis aries,9940,context_cleaned_match
+1,animal tissue,Metazoa,33208,context_broad_dictionary
+1,milk bovine,Bos taurus,9913,context_cleaned_match
+1,Poultry sample from Republic of Moldavia,Aves,8782,context_broad_dictionary
+1,beef sausage sample from Turkey,Meleagris gallopavo,9103,context_cleaned_match
+1,cow milk cheese,Bos taurus,9913,context_cleaned_match
+1,raw milk - goat,Capra hircus,9925,context_cleaned_match
+1,rabbit tissue (derivative of EGD strain),Oryctolagus cuniculus,9986,context_cleaned_match
+1,human blood culture,Homo sapiens,9606,context_cleaned_match
+1,Intestinal contents of plateau pika,Ochotona,9977,context_broad_dictionary
+1,Moss on a rocky surface,Bryophyta,3208,context_broad_dictionary
+1,Enriched cattle feces,Bos taurus,9913,context_cleaned_match
+1,Human urine,Homo sapiens,9606,dictionary
+1,goose feces on soil,Anser anser,8843,context_cleaned_match
+1,Downstream water from sink in patient's room 44,Homo sapiens,9606,context_dictionary
+1,Water from sink in patient's room 32,Homo sapiens,9606,context_dictionary
+1,migratory bird stool,Aves,8782,context_broad_dictionary
+1,Plant-associated environment,Viridiplantae,33090,context_broad_dictionary
+1,a feces sample of migratory birds origin,Aves,8782,context_broad_dictionary
+1,microalgae culture,Viridiplantae,33090,context_broad_dictionary
+1,Potato tuber surface,Solanum tuberosum,4113,context_cleaned_match
+1,Buffalo raw milk refrigeration tanks,Bubalus bubalis,89462,context_broad_dictionary
+1,"root surface of cotton, Charles Howell",Gossypium,3633,context_broad_dictionary
+1,water lily,Lilium,4688,context_broad_dictionary
+1,horse trough water,Equus caballus,9796,context_cleaned_match
+1,horse water trough,Equus caballus,9796,context_cleaned_match
+1,"mosquito gut, after a blood meal",Culicidae,7157,context_broad_dictionary
+1,from the surface coat protein of pine wood nematode,Nematoda,6231,context_broad_dictionary
+1,"Water bottle, Animal room",Metazoa,33208,context_broad_dictionary
+1,"water bottle, animal room",Metazoa,33208,context_broad_dictionary
+1,Mulberry blight tissue,Morus,3497,context_broad_dictionary
+1,fish tissue,Actinopterygii,7898,context_broad_dictionary
+1,fine largemouth bass breeding body of water,Actinopterygii,7898,context_broad_dictionary
+1,"Intestinal tract of a honey bee, Apis mellifera",Apis mellifera,7460,context_cleaned_match
+1,cattle raw milk,Bos taurus,9913,context_cleaned_match
+1,Cow Faeces: Organized dairy production system,Bos taurus,9913,context_cleaned_match
+1,"Faecal sample from Red-necked wallaby, Notamacropus rufogriseus",Macropodidae,9307,context_broad_dictionary
+1,"Fresh cabbage sample collected from a public market in Santo Domingo, Dominican Republic.",Brassica oleracea,3712,context_broad_dictionary
+1,feces of beef cattle,Bos taurus,9913,context_cleaned_match
+1,"veterinary teaching equine hospital, swab from a drawer in a surgical unit",Equus caballus,9796,context_cleaned_match
+1,Livestock manure and biogas slurry,Mammalia,40674,context_broad_dictionary
+1,fecal of pig,Sus scrofa,9823,context_cleaned_match
+1,the feces of a colorectal cancer patient,Homo sapiens,9606,context_dictionary
+1,Sheep - fecal,Ovis aries,9940,context_cleaned_match
+1,environment of live poultry market,Aves,8782,context_broad_dictionary
+1,HUMAN BREAST MILK,Homo sapiens,9606,context_dictionary
+1,Contaminant of pasteurized cow's milk,Bos taurus,9913,context_cleaned_match
+1,traditionally fermented mare's milk (koumiss),Equus caballus,9796,context_broad_dictionary
+1,bovine milk 1,Bos taurus,9913,context_cleaned_match
+1,bovine milk 2,Bos taurus,9913,context_cleaned_match
+1,vulture feces,Aves,8782,context_broad_dictionary
+1,dairy cattle fecal,Bos taurus,9913,context_cleaned_match
+1,blood of a hospitalized patient,Homo sapiens,9606,context_dictionary
+1,Fermented sheep milk,Ovis aries,9940,context_cleaned_match
+1,water purification plant,Viridiplantae,33090,context_broad_dictionary
+1,Infant faeces,Homo sapiens,9606,context_dictionary
+1,Sour yak milk,Bos grunniens,30521,context_cleaned_match
+1,Fresh mare's milk,Equus caballus,9796,context_broad_dictionary
+1,Pakistani water buffalo,Bubalus bubalis,89462,cleaned_match
+1,rectal swab samples of pig,Sus scrofa,9823,context_cleaned_match
+1,swab sample of pig,Sus scrofa,9823,context_cleaned_match
+1,fresh water sturgeon tank,Acipenseridae,7902,context_broad_dictionary
+1,human blood,Homo sapiens,9606,dictionary
+1,fish gut; co-assembled from multi-host: Culter oxycephaloides;Silurus asotus;Xenocypris davidi;Xenocypris fangi;Distoechodon tumirostris,Actinopterygii,7898,context_broad_dictionary
+1,Kelp after surface disinfection,Phaeophyceae,2870,context_broad_dictionary
+1,animal-associated environment [ENVO:01001002],Metazoa,33208,context_broad_dictionary
+1,Water for soft-shelled turtle,Testudines,8459,context_broad_dictionary
+1,fish farm water sample,Actinopterygii,7898,context_broad_dictionary
+1,stool of 63 year old male,Homo sapiens,9606,context_dictionary
+1,migratory birds feces,Aves,8782,context_broad_dictionary
+1,Inner surface of containers in a mollusc hatchery,Mollusca,6447,context_broad_dictionary
+1,"Surface wound of a diseased fine flounder, Paralichthys adspersus",Pleuronectiformes,8252,context_broad_dictionary
+1,"Healthy culture Manila clam, Ruditapes philippinarum",Veneroida,6565,context_broad_dictionary
+1,kelp frond surface,Phaeophyceae,2870,context_broad_dictionary
+1,kelp tissue,Phaeophyceae,2870,context_broad_dictionary

@@ -1,0 +1,1001 @@
+count,host_sd,taxid,rank
+1143580,Homo sapiens,9606,species
+111857,Gallus gallus,9031,species
+68771,Bos taurus,9913,species
+44702,Sus scrofa,9823,species
+23326,Meleagris gallopavo,9103,species
+16297,Canis lupus familiaris,9615,subspecies
+11313,Sus scrofa domesticus,9825,subspecies
+8020,Aves,8782,class
+6716,Ovis aries,9940,species
+6117,Equus caballus,9796,species
+4808,Mus musculus,10090,species
+4597,Metazoa,33208,kingdom
+3028,Felis catus,9685,species
+2586,Anas platyrhynchos,8839,species
+2424,Actinopterygii,7898,superclass
+2343,Capra hircus,9925,species
+2287,Oryza sativa,4530,species
+2142,Viridiplantae,33090,kingdom
+1955,Solanum lycopersicum,4081,species
+1697,Zea mays,4577,species
+1583,Macrocystis pyrifera,35122,species
+1576,Solanum tuberosum,4113,species
+1496,Bos grunniens,30521,species
+1466,Diptera,7147,order
+1159,Arabidopsis thaliana,3702,species
+1096,Pantholops hodgsonii,59538,species
+1083,Bacteria,2,domain
+1032,Glycine max,3847,species
+1028,Capsicum,4071,genus
+1004,Citrus sinensis,2711,species
+980,Marmota himalayana,93163,species
+956,Triticum aestivum,4565,species
+908,Citrus,2706,genus
+822,Andrias davidianus,141262,species
+811,Oryctolagus cuniculus,9986,species
+768,Apis mellifera,7460,species
+764,Cicer arietinum,3827,species
+741,Cucumis sativus,3659,species
+683,Cervidae,9850,family
+675,Brassica oleracea,3712,species
+646,Salmo salar,8030,species
+639,Allium cepa,4679,species
+638,Camelus dromedarius,9838,species
+623,Pistacia vera,55513,species
+618,Laridae,8911,genus
+618,Oncorhynchus mykiss,8022,species
+613,Phaseolus vulgaris,3885,species
+594,Lactuca sativa,4236,species
+586,Ostreidae,6563,family
+582,Rattus norvegicus,10116,species
+553,Chroicocephalus novaehollandiae,2547444,species
+505,Columba livia,8932,species
+500,Mammalia,40674,class
+498,Porifera,6040,phylum
+487,Culicidae,7157,family
+473,Penaeus vannamei,6689,species
+472,Medicago sativa,3879,species
+460,Salmonidae,8015,family
+458,Rodentia,9989,order
+452,Malus domestica,3750,species
+441,Salmonella enterica,28901,species
+435,Bubalus bubalis,89462,species
+434,Lepus europaeus,9983,species
+411,Procyon lotor,9654,species
+401,Meriones unguiculatus,10047,species
+391,Cervus canadensis,1574408,species
+383,Trifolium repens,3899,species
+379,Hordeum vulgare,4513,species
+378,Nicotiana tabacum,4097,species
+366,Platygyra acuta,983579,species
+360,Dendrobranchiata,6684,suborder
+358,Oulastrea crispata,154329,species
+357,Anser anser,8843,species
+351,Canis lupus,9612,species
+345,Macaca mulatta,9544,species
+337,Oreochromis niloticus,8128,species
+334,Prunus avium,42229,species
+333,Vitis vinifera,29760,species
+322,Ciconia ciconia,8928,species
+317,Lens culinaris,3864,species
+310,Tilapia,8126,genus
+310,Zostera marina,29655,species
+309,Equus kiang,94398,species
+307,Neogale vison,452646,species
+287,Arachis hypogaea,3818,species
+284,Cetonia aurata,290679,species
+284,Hydropotes inermis,9883,species
+260,Larus cachinnans,119609,species
+251,Campylobacter jejuni,197,species
+247,Magallana gigas,29159,species
+246,Testudines,8459,order
+246,Rattus flavipectus,69074,species
+245,Ifremeria nautilei,71812,species
+243,Corvus,30420,genus
+237,Sporobolus alterniflorus,29706,species
+234,Drosophila melanogaster,7227,species
+229,Prunus persica,3760,species
+229,Actinidia,3624,genus
+224,Odocoileus virginianus,9874,species
+219,Marmota,9992,genus
+213,Macaca fascicularis,9541,species
+210,Stomoxys,35569,genus
+204,Enhydra lutris nereis,1049777,subspecies
+202,Camellia sinensis,4442,species
+201,Saccharomyces cerevisiae,4932,species
+199,Myodes glareolus,447135,species
+198,Agama agama,103336,species
+197,Vicugna pacos,30538,species
+195,Phaseolus,3883,genus
+194,Erinaceidae,9363,family
+192,Brachyura,6752,infraorder
+188,Sciurus vulgaris,55149,species
+185,Veneroida,6565,species
+184,Acmispon wrangelianus,118929,species
+183,Formicidae,36668,family
+180,Neotoma albigula,42408,species
+180,Skeletonema costatum,2843,species
+172,Chroicocephalus,1129741,genus
+171,Bathymodiolus septemdierum,220392,species
+168,Anthozoa,6101,class
+165,Poaceae,4479,family
+160,Anura,8342,order
+160,Sargassum hemiphyllum,127544,species
+156,Pyrus communis,23211,species
+155,Vulpes vulpes,9627,species
+154,Otaria byronia,161932,species
+154,Bovinae,27592,subfamily
+153,Saccharum officinarum,4547,species
+148,Insecta,50557,class
+144,Agaricales,5338,order
+143,Siluriformes,7997,genus
+142,Mollusca,6447,phylum
+142,Phaeophyceae,2870,class
+142,Crassostrea virginica,6565,species
+140,Mangifera indica,29780,species
+140,Cervus elaphus,9860,species
+140,Phocidae,9709,family
+139,Phascolarctos cinereus,38626,species
+137,Capsicum annuum,4072,species
+135,Vicia sativa,3908,species
+128,Anatidae,8830,family
+127,Bivalvia,6544,class
+127,Primates,9443,order
+127,Acmispon brachycarpus,390700,species
+126,Mytilus edulis complex,6579,species
+126,Streptococcus pneumoniae,1313,species
+125,Milvus milvus,43518,species
+125,Apis cerana,7461,species
+124,Reptilia,8457,clade
+123,Ursus americanus,9643,species
+123,Marmota baibacina,93157,species
+122,Mytilidae,6547,family
+121,Lathyrus oleraceus,3888,species
+121,Spermophilus dauricus,99837,species
+120,Decapodiformes,55155,genus
+120,Musa,4640,genus
+120,Ixodida,6935,order
+119,Meleagris,9102,genus
+119,Bos primigenius taurus,9913,species
+119,Siphonaptera,7509,order
+117,Anacardium occidentale,171929,species
+114,Juglans regia,51240,species
+114,Simiiformes,314293,infraorder
+114,Brassica napus,3708,species
+113,Caenorhabditis elegans,6239,species
+113,Ixodes ricinus,34613,species
+111,Chiroptera,9397,order
+110,Bison,9900,genus
+110,Fungi,4751,kingdom
+110,Corvus frugilegus,75140,species
+110,Danio rerio,7955,species
+109,Populus alba,43335,species
+109,Dermacentor nuttalli,1046038,species
+107,Pteropus poliocephalus,9403,species
+107,Alviniconcha boucheti,1491183,species
+106,Pteropus livingstonii,589508,species
+105,Pisum sativum,3888,species
+105,Diaphorina citri,121845,species
+104,Serpentes,8570,infraorder
+103,Larus michahellis,119627,species
+102,Erinaceus europaeus,9365,species
+102,Rattus,10114,genus
+102,Vulpes zerda,68732,species
+101,Sorghum bicolor,4558,species
+100,Coloeus monedula,30423,species
+100,Agaricus bisporus,5341,species
+99,Phalacrocorax carbo,9209,species
+97,Cyprinus carpio,7962,species
+97,Callopsylla dolabris,2480015,species
+97,Ctena,102298,genus
+95,Ictalurus punctatus,7998,species
+94,Gastropoda,6448,class
+94,Apodemus agrarius,39030,species
+93,Vulpes lagopus,494514,species
+93,Canis latrans,9614,species
+93,Musca domestica,7370,species
+91,Vaccinium corymbosum,69266,species
+90,Indigofera argentea,198858,species
+89,Oncorhynchus tshawytscha,74940,species
+89,Siphamia tubifer,1536898,species
+88,Guinea fowl,8990,family
+88,Clupeidae,7950,species
+88,Mytilus galloprovincialis,29158,species
+85,Coffea arabica,13443,species
+85,Ixodes scapularis,6945,species
+84,Bombyx mori,7091,species
+84,Larimichthys crocea,215358,species
+84,Acmispon strigosus,1240363,species
+82,Lates calcarifer,8187,species
+81,Sus,9822,genus
+81,Microtus obscurus,523745,species
+80,Larus dominicanus,37036,species
+80,Nematoda,6231,phylum
+80,Gasterosteus aculeatus,69293,species
+79,Apodemus flavicollis,54292,species
+78,Ixodes persulcatus,34615,species
+77,Capreolus capreolus,9858,species
+77,Dicentrarchus labrax,13489,species
+77,Anthophila,2867191,genus
+75,basil,39350,species
+75,Streptococcus agalactiae,1311,species
+75,Oropsylla silantiewi,1461318,species
+73,Laridae,8910,family
+73,lobster,6704,family
+73,Petroselinum crispum,4043,species
+72,Phalacrocorax auritus,56069,species
+71,octopus,6643,genus
+71,Gossypium,3633,genus
+71,Pelargonium,4030,genus
+71,Paris polyphylla var. yunnanensis,221260,varietas
+70,Mytilidae,6548,genus
+70,Murinae,39107,subfamily
+70,Trichosurus vulpecula,9337,species
+70,Syngnathus typhle,161592,species
+69,Equus sp.,46122,species
+69,Cajanus cajan,3821,species
+69,Rubus idaeus,32247,species
+69,Dermacentor silvarum,543639,species
+68,Hoplobatrachus rugulosus,110072,species
+68,Junco hyemalis,40217,species
+67,Raphanus sativus,3726,species
+65,Quercus,3511,genus
+65,Channel catfish,7998,species
+65,Xenopsylla cheopis,163159,species
+64,Periplaneta americana,6978,species
+64,Glyptotermes sp.,90059,species
+64,Scorpiurus muricatus,997354,species
+64,Clathrolucina costata,1899378,species
+63,Elephantidae,9780,family
+63,Gliricidia sepium,167663,species
+63,Thalassiosira minuscula,385413,species
+62,Mediolabrus comicus,2590921,species
+61,Spinus pinus,2201931,species
+61,Cucurbita,3660,genus
+61,Anguilliformes,7933,order
+61,Plasmodium falciparum,5833,species
+60,Beta vulgaris,161934,species
+60,Citrullus lanatus,3654,species
+59,Helianthus annuus,4232,species
+59,Penaeus monodon,6687,species
+59,Medicago lupulina,47085,species
+58,Pinus,3337,genus
+58,Vaccinium,13749,genus
+58,Cetartiodactyla,91561,order
+58,Prunus domestica,3758,species
+58,Oncorhynchus kisutch,8019,species
+58,Guazuma ulmifolia,93772,species
+58,Gerbillinae,10045,subfamily
+57,Eudocimus albus,371913,species
+57,Caprinae,9963,subfamily
+57,Populus,3689,genus
+57,Lolium perenne,4522,species
+57,Tectona grandis,41396,species
+57,Melaleuca quinquenervia,164942,species
+56,Larus smithsonianus,243888,species
+56,Equus asinus,9793,species
+56,Pelargonium x hortorum,4031,species
+56,White button Mushroom,5341,species
+56,Anthurium,78377,genus
+55,Anser,8842,genus
+55,Scombridae,13676,species
+55,apodemus,10128,genus
+55,Drosophila,7215,genus
+55,Prunus dulcis,3755,species
+55,Cyclopterus lumpus,8103,species
+55,Pennisetum glaucum,4543,species
+55,Cicer reticulatum,90898,species
+55,Medicago,3877,genus
+55,Skeletonema tropicum,267982,species
+54,Cervus nippon,9863,species
+54,Anadara tuberculosa,173065,species
+54,Pyropia haitanensis,1262161,species
+54,Euprymna scolopes,6613,species
+54,Gossypium hirsutum,3635,species
+53,Pan troglodytes,9598,species
+52,Termitoidae,1912919,no rank
+52,Montastraea cavernosa,63558,species
+52,Epibolus pulchripes,1437184,species
+51,Phasianus colchicus,9054,species
+51,Lama glama,9844,species
+51,Sturnus vulgaris,9172,species
+51,Larus sp.,3435965,species
+51,Litoditis marina,1654675,species
+50,Pogona vitticeps,103695,species
+50,Columbidae,8930,family
+50,Grass carp,7959,species
+50,Rattus tanezumi,35732,species
+50,Procambarus clarkii,6728,species
+50,Olea europaea,4146,species
+50,Charadriiformes,8906,order
+50,Fagus crenata,28929,species
+49,Coturnix japonica,93934,species
+49,Microtus agrestis,29092,species
+49,Hypothenemus hampei,57062,species
+49,Actinidia chinensis,3625,species
+48,Astacidea,6724,superfamily
+48,Macropodidae,9307,family
+48,Brassica,3705,genus
+48,Pangasianodon hypophthalmus,310915,species
+48,Milvus migrans,52810,species
+48,Chrysomya,45449,genus
+48,Brassica rapa var. parachinensis,320797,varietas
+48,Actinidia deliciosa,3627,species
+47,Meles meles,9662,species
+47,Brassica rapa,3711,species
+47,Trifolium pratense,57577,species
+47,Ircinia ramosa,281041,species
+47,Ctena imbricatula,881214,species
+46,Struthio camelus,8801,species
+46,Osphranter rufus,9321,species
+46,carrot,4039,species
+46,Scophthalmus maximus,52904,species
+46,Medicago truncatula,3880,species
+46,Enhydra lutris kenyoni,391180,subspecies
+46,Porites lutea,51062,species
+46,Loripes orbiculatus,2003426,species
+46,Acropora solitaryensis,513077,species
+45,Ovis canadensis,37174,species
+45,Faba bean,3906,species
+45,Musa sp.,46838,species
+45,Corylus avellana,13451,species
+44,Tursiops truncatus,9739,species
+44,Anseriformes,8826,order
+44,Zophobas morio,2755281,species
+44,Macaca,9539,genus
+44,Plateau pika,130825,species
+44,Citellophilus tesquorum,506900,species
+43,Papio,9554,genus
+43,Anoplopoma fimbria,229290,species
+43,Quercus agrifolia,97693,species
+42,Cavia porcellus,10141,species
+42,Carassius auratus,7957,species
+42,Rhopaloeides odorabile,476028,species
+41,Bambuseae,147376,tribe
+41,Leptonychotes weddellii,9713,species
+41,Anolis marmoratus,41898,species
+41,Bombus terrestris,30195,species
+41,Erysimum sp.,3462396,species
+40,Panthera leo,9689,species
+40,Hydrochoerus hydrochaeris,10149,species
+40,Ambystoma altamirani,354123,species
+40,Solanum virginianum,223891,species
+40,Ixodes pacificus,29930,species
+39,Larus delawarensis,126683,species
+39,Sauria,32561,clade
+39,Rattus rattus,10117,species
+38,kale,3713,varietas
+38,Paralichthys olivaceus,8255,species
+38,Vicia faba,3906,species
+38,Eopycna repanda,2961907,species
+37,Passer domesticus,48849,species
+37,Cygnus olor,8869,species
+37,Spinacia oleracea,3562,species
+36,Decapoda,6683,order
+36,Haliotis,6452,genus
+36,Lumbricina,6391,suborder
+36,Bos indicus,9915,species
+36,Eucalyptus,3932,genus
+36,Mytilus sp.,61855,species
+36,Ictalurus punctatus x Ictalurus furcatus,1491728,species
+36,Wolbachia,953,genus
+36,Isopora palifera,105615,species
+35,radish,3726,species
+35,Milvus lineatus,329121,species
+35,Crested ibis,128390,species
+35,Urocitellus parryii,9999,species
+35,Bryophyta,3208,clade
+35,Galaxea fascicularis,46745,species
+34,Psittaciformes,9223,order
+34,Alces alces,9852,species
+34,Lepus sp.,137772,species
+34,Callitrichidae,9480,subfamily
+34,Ecteinascidia turbinata,284476,species
+34,Columbina passerina,111974,species
+34,Eopycna coelestia,2961901,species
+34,Anasa tristis,236421,species
+33,Leucophaeus pipixcan,690715,species
+33,Sarracenia purpurea,45176,species
+33,Spongilla sp.,56705,species
+33,Fragaria x ananassa,3747,species
+32,Lepidoptera,7088,order
+32,Pectinidae,6570,species
+32,Pelecanus thagus,1108811,species
+32,Zalophus californianus,9704,species
+32,Lupinus angustifolius,3871,species
+32,Acropora palmata,6131,species
+32,Quercus robur,38942,species
+32,Astragalus pelecinus,47093,species
+32,Hyalomma asiaticum,266040,species
+31,Panthera tigris,9694,species
+31,Somateria fischeri,50367,species
+31,Chroicocephalus ridibundus,1192867,species
+31,Spheniscidae,9231,family
+31,Achatina achatina,1442373,species
+31,Mirounga leonina,9715,species
+31,Equidae,9788,family
+31,Hedera helix,4052,species
+31,Aedes aegypti,7159,species
+31,Heterorhabditis bacteriophora,37862,species
+31,Quercus rubra,3512,species
+30,Pleuronectiformes,8252,order
+30,Morus,3497,genus
+30,Larus argentatus,35669,species
+30,Lotus burttii,645164,species
+30,Vaccinium macrocarpon,13750,species
+30,Tscherskia triton,329627,species
+30,Prochlorococcus,1218,genus
+29,Sciuridae,55153,family
+29,Cucumis melo,3656,species
+29,Milvus,43517,genus
+29,Delphinidae,9726,family
+29,Ochotona curzoniae,130825,species
+29,Flammulina velutipes,38945,species
+29,Arthropoda,6656,phylum
+29,Rhodophyta,2763,phylum
+29,Dactylis glomerata,4509,species
+29,Solanum dulcamara,45834,species
+29,Diatomea,2836,phylum
+28,Pelecanus erythrorhynchos,33618,species
+28,Canis,9611,genus
+28,Branta canadensis,8853,species
+28,Gryllidae,6995,family
+28,Spheniscus magellanicus,37081,species
+28,Suricata suricatta,37032,species
+28,Chelonoidis carbonarius,50047,species
+28,Cannabis sativa,3483,species
+28,Theobroma grandiflorum,108881,species
+28,Alnus alnobetula subsp. fruticosa,253214,subspecies
+28,Micropterus salmoides,27706,species
+28,Mimosa pudica,76306,species
+28,Nasturtium officinale,65948,species
+28,Hirudo verbana,311461,species
+28,Leucanthemum,99071,genus
+28,Hyalomma scupense,1260755,species
+27,Canola,138011,varietas
+27,Didelphidae,9265,family
+27,Grus grus,40816,species
+27,Ruminantia,9845,suborder
+27,Lepus,9980,genus
+27,Tapirus terrestris,9801,species
+27,Sparus aurata,8175,species
+27,Ctenopharyngodon idella,7959,species
+27,Thryonomys swinderianus,10169,species
+27,Triticum turgidum subsp. durum,4567,subspecies
+27,Tenebrio molitor,7067,species
+27,Ginkgo biloba,3311,species
+27,Apostichopus japonicus,307972,species
+27,Rosa,3764,genus
+27,Meriones meridianus,261754,species
+27,Ophiactis savignyi,154024,species
+27,Medicago polymorpha,47084,species
+27,Heterorhabditis,37861,genus
+26,Cricetinae,10026,subfamily
+26,Panthera tigris altaica,74533,subspecies
+26,Ailuropoda melanoleuca,9646,species
+26,Oreochromis sp.,3139419,species
+26,Nematostella vectensis,45351,species
+26,Coleus scutellarioides,4142,species
+26,Tribulus terrestris,210369,species
+26,Phyllospongia foliascens,593584,species
+26,Thalassiosira rotula,49265,species
+26,Minutocellus polymorphus,265543,species
+26,Metrosideros polymorpha,101976,species
+26,Ditylum brightwellii,49249,species
+26,Euprymna morsei,70204,species
+25,Sus sp.,9826,species
+25,Sepiidae,6608,family
+25,Ailurus fulgens,9649,species
+25,Trichiuridae,27770,family
+25,Gorilla gorilla,9593,species
+25,Arion vulgaris,1028688,species
+25,Citrullus colocynthis,252529,species
+25,Steinernema,34507,genus
+25,Daphnia magna,35525,species
+25,Lolium rigidum,89674,species
+25,Catharanthus roseus,4058,species
+25,Biomphalaria glabrata,6526,species
+25,Rhombomys opimus,186474,species
+25,Ixodes crenulatus,2755510,species
+25,Orius laevigatus,82742,species
+25,Codakia orbicularis,13016,species
+24,Capra sp.,61294,species
+24,Herpestidae,9697,family
+24,Molothrus ater,84834,species
+24,Nelumbo nucifera,4432,species
+24,Citrus limon,2708,species
+24,Bison bison,9901,species
+24,Coffea,13442,genus
+24,Petrochelidon pyrrhonota,72884,species
+24,Crocodylus acutus,48399,species
+24,Phoca vitulina,9720,species
+24,Klebsiella pneumoniae,573,species
+24,Raphanus raphanistrum subsp. sativus,3726,species
+24,Cucurbita pepo,3663,species
+24,Avicennia marina,82927,species
+24,Coleoptera,7041,order
+24,Siniperca knerii,214812,species
+24,Xenopsylla conformis,1530113,species
+24,Plasmodium vivax,5855,species
+24,Trieres regia,1335017,species
+24,Thalassiosira tenera,291031,species
+24,Tiger frog,103373,species
+23,Gorilla gorilla gorilla,9595,subspecies
+23,Bos primigenius,9909,species
+23,Nectomys,29116,genus
+23,Carduelis chloris,37601,species
+23,Chinese cabbage,51351,subspecies
+23,Megadyptes antipodes,37085,species
+23,Toxicodendron radicans,43853,species
+23,Trinervitermes sp.,3092881,species
+23,Cucurbita pepo subsp. pepo,3664,subspecies
+23,Procypris rabaudi,367866,species
+23,Lotus corniculatus,47247,species
+23,Beta vulgaris subsp. vulgaris,3555,subspecies
+23,Mastotermes darwiniensis,13139,species
+23,Alexandromys oeconomus,2162900,species
+23,Neotermes castaneus,223394,species
+23,Atlantic cod,8049,species
+23,Alviniconcha marisindica,1491186,species
+23,Polygala myrtifolia,292129,species
+22,Limosa lapponica,161683,species
+22,Odocoileus hemionus,9872,species
+22,Equus quagga,89248,species
+22,Puma concolor,9696,species
+22,Saguinus oedipus,9490,species
+22,Callithrix jacchus,9483,species
+22,Halichoerus grypus,9711,species
+22,Rusa unicolor,662561,species
+22,Saccharum hybrid cultivar,128810,species
+22,Dictyostelium discoideum,44689,species
+22,Salvelinus fontinalis,8038,species
+22,Ruditapes decussatus,104385,species
+22,Orbicella faveolata,48498,species
+22,Colpophyllia natans,242718,species
+22,Sargassum sp.,74090,species
+22,Alnus glutinosa,3517,species
+22,Cladocopium sp. CButler-2023c,3025019,species
+22,Dioon edule,58033,species
+22,Phacoides pectinatus,244486,species
+21,Antigone canadensis pulla,96785,subspecies
+21,Bubulcus ibis,110668,species
+21,Python regius,51751,species
+21,Bufonidae,8382,family
+21,Martes,9658,genus
+21,Ursidae,9632,family
+21,Pan troglodytes verus,37012,subspecies
+21,Zingiber officinale,94328,species
+21,Actinidia chinensis var. chinensis,1590841,varietas
+21,Sugar beet,3555,subspecies
+21,Lagria villosa,1337086,species
+21,Vigna radiata,157791,species
+21,Acinonyx jubatus,32536,species
+21,Alhagi maurorum,47037,species
+21,Ursus maritimus,29073,species
+21,Brassica rapa subsp. pekinensis,51351,subspecies
+21,Euphorbia pulcherrima,37495,species
+21,Rosa sp.,36598,species
+21,Pygoscelis adeliae,9238,species
+21,Trifolium hybridum,74517,species
+21,Braarudosphaera bigelowii,373042,species
+21,Picea engelmannii,3334,species
+21,Leptoglossus zonatus,1228019,species
+20,Gekkonidae,8561,family
+20,Giraffa camelopardalis,9894,species
+20,Equus,9789,genus
+20,Cygnus,8867,genus
+20,Polysticta stelleri,182797,species
+20,Desmodus rotundus,9430,species
+20,Chlorocebus sabaeus,60711,species
+20,Anas poecilorhyncha,75854,species
+20,Manis javanica,9974,species
+20,Rhesus monkey,9544,species
+20,Vombatidae,29137,species
+20,Blattodea,85823,order
+20,Elaeis guineensis,51953,species
+20,Ochotona,9977,genus
+20,Triticum sp.,4569,species
+20,Plecoglossus altivelis,61084,species
+20,Populus euphratica,75702,species
+20,Ardeola bacchus,188375,species
+20,Strongylocentrotus intermedius,7667,species
+20,Vigna unguiculata,3917,species
+20,Pongo pygmaeus,9600,species
+20,Sphagnum,13804,genus
+20,Brassica rapa subsp. chinensis,93385,subspecies
+20,Hedera algeriensis,85349,species
+20,Cornitermes,62946,genus
+20,Incisitermes marginipennis,529878,species
+20,Neotermes cubanus,2049371,species
+20,Haslea ostrearia,67476,species
+20,Steinernema affine,162469,species
+19,Sterna hirundo,108405,species
+19,Psittacidae,9224,family
+19,Perca,8166,genus
+19,Felis silvestris catus,9685,species
+19,Bos,9903,genus
+19,Colocasia esculenta,4460,species
+19,geese,8842,genus
+19,Fringillidae,9133,family
+19,Mytilus edulis,6550,species
+19,Apodemus sylvaticus,10129,species
+19,Rousettus aegyptiacus,9407,species
+19,Oreochromis mossambicus,8127,species
+19,Gadus,8048,genus
+19,nectarine,323851,varietas
+19,Actinidia sp.,3482296,species
+19,Procubitermes undulans,1934595,species
+19,phoenix,4719,genus
+19,Hodotermes mossambicus,187541,species
+19,Spermophilus pygmaeus,99855,species
+19,Acyrthosiphon pisum,7029,species
+19,Onychostoma simum,369674,species
+19,Vachellia karroo,138024,species
+19,Thysanoptera,30262,order
+19,Favites,126654,genus
+19,Amorphophallus konjac,78372,species
+18,Grus americana,9117,species
+18,python,37579,genus
+18,Trachemys scripta,34903,species
+18,Haliaeetus leucocephalus,52644,species
+18,Gallus,9030,genus
+18,Capra pyrenaica,80419,species
+18,Leptailurus serval,61405,species
+18,Urocyon cinereoargenteus,55040,species
+18,Gorilla,9592,genus
+18,Campylobacter coli,195,species
+18,Galleria mellonella,7137,species
+18,Ipomoea batatas,4120,species
+18,Persea americana,3435,species
+18,Xanthosoma sagittifolium,28478,species
+18,Triticum turgidum,4571,species
+18,Incisitermes snyderi,46566,species
+18,Schizopygopsis selincuoensis,2731644,species
+18,Copepoda,6830,class
+18,Brachypodium distachyon,15368,species
+18,Leontopodium nivale subsp. alpinum,49078,subspecies
+18,Columbina talpacoti,504887,species
+18,Emiliania huxleyi,2903,species
+18,Embiratermes neotenicus,1367269,species
+18,Procryptotermes leewardensis,488275,species
+17,Iguana,8516,genus
+17,Coragyps atratus,33614,species
+17,Labeo rohita,84645,species
+17,Buteo buteo,30397,species
+17,Ulva ohnoi,240864,species
+17,Spodoptera frugiperda,7108,species
+17,Panax ginseng,4054,species
+17,Tetraena simplex,2499693,species
+17,Alnus incana subsp. rugosa,109070,subspecies
+17,Janochloa antidotale,3031383,species
+17,Coscinoderma mathewsi,2604249,species
+17,Asian seabass,8187,species
+17,Pocillopora damicornis,46731,species
+17,Hodotermopsis sjostedti,377914,species
+17,Tamarix aphylla,189786,species
+17,Tachysurus fulvidraco,1234273,species
+17,Papio anubis,9555,species
+17,Porotermes adamsoni,105774,species
+17,Osteospermum,118676,species
+17,Fagus grandifolia,60423,species
+17,Agrostis stolonifera,63632,species
+16,Hesperiphona vespertina,670343,species
+16,Antigone canadensis,1977160,species
+16,Spheniscus humboldti,9240,species
+16,Passeridae,9158,family
+16,Phasianidae,9005,family
+16,Muridae,10066,family
+16,Turdus merula,9187,species
+16,Haliaeetus albicilla,8969,species
+16,Mustela putorius,9668,species
+16,Martes zibellina,36722,species
+16,Apium graveolens,4045,species
+16,Zinnia elegans,34245,species
+16,Plantago lanceolata,39414,species
+16,Eisenia andrei,168636,species
+16,Cerastoderma edule,55710,species
+16,Nereocystis luetkeana,117523,species
+16,Halichondria panicea,6063,species
+16,Saccharina japonica,88149,species
+16,Hymenoptera,7399,order
+16,Kalotermes flavicollis,256709,species
+16,Cryptotermes dudleyi,105782,species
+16,Roisinitermes ebogoensis,2483479,species
+16,Bemisia tabaci,7038,species
+16,Ascophyllum nodosum,52969,species
+16,Amoebophrya sp. ex Karlodinium veneficum,581008,species
+16,Pseudotsuga menziesii,3357,species
+16,Skeletonema menzelii,216823,species
+16,Rhizopus microsporus,58291,species
+15,Alectoris chukar,9078,species
+15,Didelphis virginiana,9267,species
+15,Ardea alba,110620,species
+15,Lynx rufus,61384,species
+15,Papio cynocephalus,9556,species
+15,Pandion haliaetus,56262,species
+15,Pangasius pangasius,8001,species
+15,Apodemus chevrieri,129246,species
+15,Nasonia vitripennis,7425,species
+15,Crocus sativus,82528,species
+15,Avena sativa,4498,species
+15,Suaeda maritima,126913,species
+15,Laminaria digitata,80365,species
+15,ulva,3118,genus
+15,Lilium,4688,genus
+15,Petunia x hybrida,4102,species
+15,Sophora davidii,49839,species
+15,Protaetia brevitarsis seulensis,438893,subspecies
+15,Sphaerotermes sphaerothorax,187564,species
+15,Hemiculterella sauvagei,1616773,species
+15,Pygoscelis papua,30457,species
+15,Penaeus japonicus,27405,species
+15,Acropora cytherea,46686,species
+15,Glomeris connexa,1125735,species
+15,Stegodyphus dumicola,202533,species
+15,Prorhinotermes canalifrons,488276,species
+15,Calcaritermes temnocephalus,488281,species
+15,Neotermes meruensis,2580415,species
+15,Crocodylus siamensis,68455,species
+15,Lotus sp.,3137807,species
+15,Tanacetum vulgare,128002,species
+15,Veronica,41720,species
+15,Pinus flexilis,3347,species
+15,Eopycna sp. JRZ-2025a,3456936,species
+14,Pogona,103695,species
+14,Nycticorax nycticorax,8901,species
+14,Boa constrictor,8574,species
+14,House sparrow,48849,species
+14,Ruditapes philippinarum,129788,species
+14,Lemur catta,9447,species
+14,Macaca nigra,54600,species
+14,Pongo,9599,genus
+14,Cetacea,9721,infraorder
+14,Mud crab,6761,species
+14,Lasioglossum,88467,genus
+14,California sea lion,9704,species
+14,Vertebrata,7742,clade
+14,Agalychnis callidryas,197464,species
+14,Morus alba,3498,species
+14,cauliflower,3715,varietas
+14,Lotus japonicus,34305,species
+14,Fraxinus excelsior,38873,species
+14,Thuja occidentalis,3317,species
+14,Prunus sp.,2942660,species
+14,Salix sp.,65566,species
+14,Thale cress,3702,species
+14,Craugastor fitzingeri,228435,species
+14,Trypoxylus dichotomus,273928,species
+14,Shigella flexneri,623,species
+14,Isoptera,1049658,superfamily
+14,Curcuma longa,136217,species
+14,Glycine clandestina,45687,species
+14,coffea,13442,genus
+14,Phallusia nigra,569429,species
+14,Bombus impatiens,132113,species
+14,Acanthamoeba castellanii,5755,species
+14,Reticulitermes flavipes,36989,species
+14,Manihot esculenta,3983,species
+14,Cyprinus rubrofuscus,1221224,species
+14,Saiga tatarica,34875,species
+14,Rubus sp.,3162414,species
+14,Sesbania cannabina,206307,species
+14,Acromyrmex echinatior,103372,species
+14,Neodon fuscus,771787,species
+14,Aplysina aerophoba,289389,species
+14,Lobelia,4382,genus
+14,Amphidinium carterae,2961,species
+14,Thunnus alalunga,8235,species
+14,Ctena orbiculata,244472,species
+14,Haemaphysalis qinghaiensis,297592,species
+14,Diplocolenus abdominalis,1656438,species
+13,Ardea herodias,56072,species
+13,Acanthis flammea,54769,species
+13,Cardinalis cardinalis,98964,species
+13,Amniota,32524,clade
+13,Iguana iguana,8517,species
+13,Chelonia mydas,8469,species
+13,Nyctereutes procyonoides,34880,species
+13,Tenualosa ilisha,373995,species
+13,broccoli,36774,varietas
+13,Panthera pardus,9691,species
+13,Cygnus atratus,8868,species
+13,Turdidae,9183,family
+13,Oryx leucoryx,39411,species
+13,Papio papio,100937,species
+13,Milvus milvus x Milvus migrans,1885040,species
+13,Aquila heliaca,52410,species
+13,Salmo trutta,8032,species
+13,Pica pica,34924,species
+13,Trichopodus pectoralis,313238,species
+13,Chaetophractus villosus,29080,species
+13,lepidoptera,7088,order
+13,Ficus citrifolia,309283,species
+13,Musa acuminata,4641,species
+13,Salix babylonica,75706,species
+13,Lolium multiflorum,4521,species
+13,Finless porpoise,34892,species
+13,Pecten maximus,6579,species
+13,Rhinolophus pusillus,159858,species
+13,Tiger grouper,327785,species
+13,Epinephelus fuscoguttatus,293821,species
+13,Leucanthemum vulgare,99072,species
+13,Plodia interpunctella,58824,species
+13,Peganum harmala,43879,species
+13,Macrotermes natalensis,315803,species
+13,olives,4145,genus
+13,Ensete ventricosum,4639,species
+13,Juglans,16718,genus
+13,Cryptotermes cavifrons,641613,species
+13,Seriola,8160,genus
+13,Cicer echinospermum,90897,species
+13,Hydrophilus acuminatus,1383100,species
+13,Chaetoceros sp.,49240,species
+13,ircinia,275431,genus
+13,Dermacentor andersoni,34620,species
+12,Spinus tristis,54773,species
+12,Alligator mississippiensis,8496,species
+12,Buteo jamaicensis,56263,species
+12,Chanos chanos,29144,species
+12,Serranidae,30867,family
+12,Bubo virginianus,56268,species
+12,Antilocapra americana,9891,species
+12,Mustela putorius furo,9669,subspecies
+12,Seriola lalandi,302047,species
+12,Threskiornis spinicollis,425372,species
+12,Epinephelus lanceolatus,310571,species
+12,Pan paniscus,9597,species
+12,Enhydra lutris,34882,species
+12,Eulemur macaco,30602,species
+12,Ananas comosus,4615,species
+12,Allium sativum,4682,species
+12,Sargassum ilicifolium,246892,species
+12,Salicaceae,3688,family
+12,Macrotermes subhyalinus,138608,species
+12,Macrotermes bellicosus,201577,species
+12,apterostigma,34696,genus
+12,Aesculus hippocastanum,43364,species
+12,Plantago cylindrica,1928669,species
+12,Cichorium intybus,13427,species
+12,populus,3689,genus
+12,Furculitermes sp.,3163232,species
+12,Triplophysa stolickai,3361878,species
+12,Sea urchin,7625,class
+12,Acheta domesticus,6997,species
+12,Kandelia candel,61147,species
+12,Alnus incana,3516,species
+12,Punica granatum,22663,species
+12,Haliclona simulans,492524,species
+12,Xestospongia muta,178552,species
+12,Atriplex,3550,genus
+12,Silurus asotus,30991,species
+12,Eothenomys miletus,259054,species
+12,Pseudogyrinocheilus prochilus,400002,species
+12,Capra ibex,72542,species
+12,Sisymbrium officinale,203582,species
+12,Mirounga angustirostris,9716,species
+12,Hypericum perforatum,65561,species
+12,Acacia saligna,420411,species
+12,Salamandra salamandra,57571,species
+12,Thalassionema frauenfeldii,186022,species
+12,Trachymyrmex septentrionalis,34720,species
+12,Trieres chinensis,1514140,species
+12,Bradypus variegatus,9355,species
+12,Neohaematopinus pacificus,1912104,species
+11,Loxia curvirostra,64802,species
+11,Gruidae,9109,family
+11,ostrich,8801,species
+11,Melopsittacus undulatus,13146,species
+11,Chamelea gallina,138984,species
+11,Giant panda,9646,species
+11,Tadarida brasiliensis,9438,species
+11,Hypophthalmichthys nobilis,7965,species
+11,Dama dama,30532,species
+11,Morone saxatilis,34816,species
+11,Cervus albirostris,1088058,species
+11,Anopheles gambiae,7165,species
+11,Anser indicus,8846,species
+11,Anopheles sinensis,74873,species
+11,mimosa,21013,genus
+11,Daucus carota,4039,species
+11,Amphibia,8292,class
+11,Nerium oleander,63479,species
+11,Rhizocarpon geographicum,88642,species
+11,Cunninghamia lanceolata,28977,species
+11,Glycine soja,3848,species
+11,Artemisia,4219,genus
+11,Dugesia japonica,6161,species
+11,Procapra picticaudata,59540,species
+11,Rhodnius prolixus,13249,species
+11,Argopecten purpuratus,228297,species
+11,Ulva australis,111616,species
+11,Aedes albopictus,7160,species
+11,Connochaetes taurinus,9927,species
+11,Tragelaphus strepsiceros,9946,species
+11,Eisenia fetida,6396,species
+11,Alnus,3515,genus
+11,Vazella pourtalesii,2710537,species
+11,Spinibarbus sinensis,352921,species
+11,Odontotermes sp.,2769369,species
+11,Saltator maximus,460219,species
+11,Ricinus communis,3988,species
+11,Chrysanthemum x morifolium,41568,species
+11,Musa x paradisiaca,89151,species
+11,Phractocephalus hemioliopterus,221419,species
+11,Petaurus norfolcensis,122272,species
+11,Porotermes quadricollis,377978,species
+11,Ulva intestinalis,3116,species
+11,Lupinus micranthus,53230,species
+11,Alexandrium minutum,39455,species
+11,Homalodisca vitripennis,197043,species
+11,Bactericera cockerelli,290155,species
+11,Richardia scabra,60230,species
+11,Solanum melongena,4111,species
+11,Myosotis arvensis,192338,species
+11,Haemaphysalis concinna,523089,species
+11,Acropora cervicornis,6130,species
+11,Echinophthirius horridus,138816,species
+11,Ixodes angustus,35564,species
+11,Haemaphysalis japonica,558168,species
+11,Aporrectodea tuberculata,565146,species
+10,Panthera uncia,29064,species
+10,Coturnix coturnix,9091,species
+10,Perdix perdix,9052,species
+10,Equus zebra,9791,species
+10,Felidae,9681,family
+10,panda,212257,genus
+10,Rhinocerotidae,9803,family
+10,Polysticta stelleri,234623,species
+10,Lutrinae,169417,subfamily
+10,acanthamoeba,5754,genus
+10,oreochromis,8139,genus
+10,Hirundo,43149,genus
+10,Arvicolinae,39087,subfamily
+10,Ceratitis capitata,7213,species
+10,Listeria monocytogenes,1639,species
+10,Sesamum indicum,4182,species
+10,Carica papaya,3649,species
+10,Ambrosia artemisiifolia,4212,species
+10,Asterionella formosa,210441,species
+10,Pyrus,3766,genus
+10,Paullinia cupana,392747,species
+10,Humulus lupulus,3486,species
+10,Brassica nigra,3710,species
+10,Halyomorpha halys,286706,species
+10,Ostrea edulis,37623,species
+10,Acropora,6127,genus
+10,Diploria labyrinthiformis,242715,species
+10,Tachysurus vachellii,175792,species
+10,Montipora capitata,46704,species
+10,Locusta migratoria,7004,species
+10,Bactrocera oleae,104688,species
+10,Galium aparine,29788,species
+10,Euphorbia granulata,1046465,species
+10,Solanum nigrum,4112,species
+10,Heterelmis comalensis,546733,species
+10,Leontopodium alpinum,49078,subspecies
+10,Channa argus,215402,species
+10,Callithrix geoffroyi,52231,species
+10,Bombus pensylvanicus,28643,species
+10,Erysimum cheiri,71232,species
+10,Bombus pascuorum,65598,species
+10,Naemorhedus caudatus,37173,species
+10,Labiotermes labralis,370423,species
+10,Microchloropsis salina,2511165,species
+10,Vavilovia formosa,512756,species
+10,Aeschynomene indica,48135,species
+10,Klyxum echinatum,3283270,species
+10,Sarda sarda,8232,species
+10,Ixodes uriae,59655,species
+10,Neodelphineis sp.,2794243,species
+10,Posidonia oceanica,55489,species
+10,Steinernema kraussei,172742,species
+10,Cryptocercus punctulatus,36984,species
+10,Weddell seal,9713,species
+9,Podiceps nigricollis,85099,species
+9,Leucophaeus atricilla,126679,species
+9,Botaurus,110660,genus
+9,Chlamydosaurus kingii,103699,species
+9,Lepidochelys olivacea,27788,species
+9,Pyrrhula pyrrhula,37607,species
+9,Otariidae,9702,family
