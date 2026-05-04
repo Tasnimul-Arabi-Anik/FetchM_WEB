@@ -1936,6 +1936,17 @@ HOST_DISEASE_SYNONYMS = {
     "pneumonia": "pneumonia",
     "respiratory infection": "respiratory infection",
     "wound infection": "wound infection",
+    "infection": "infection",
+    "intra abdominal infection": "intra-abdominal infection",
+    "itra abdominal tract infection": "intra-abdominal infection",
+    "ssti": "skin and soft tissue infection",
+    "skin and soft tissue infection": "skin and soft tissue infection",
+    "osteomyelitis": "osteomyelitis",
+    "endocarditis": "endocarditis",
+    "bronchiectasis": "bronchiectasis",
+    "non cf bronchiectasis": "bronchiectasis",
+    "leg infection": "skin and soft tissue infection",
+    "infection of surgical site": "surgical site infection",
     "sepsis": "sepsis/bacteremia",
     "bacteremia": "sepsis/bacteremia",
     "bloodstream infection": "sepsis/bacteremia",
@@ -1943,11 +1954,26 @@ HOST_DISEASE_SYNONYMS = {
     "periodontitis": "periodontal disease",
     "dental caries": "dental caries",
     "cystic fibrosis": "cystic fibrosis",
+    "cf": "cystic fibrosis",
     "inflammatory bowel disease": "inflammatory bowel disease",
     "ibd": "inflammatory bowel disease",
     "crohn disease": "inflammatory bowel disease",
     "ulcerative colitis": "inflammatory bowel disease",
     "mastitis": "mastitis",
+    "aborted fetus": "abortion/reproductive disorder",
+    "aborted fetuses": "abortion/reproductive disorder",
+    "aborted calf": "abortion/reproductive disorder",
+    "aborted donkey": "abortion/reproductive disorder",
+    "aborted bovine fetus": "abortion/reproductive disorder",
+    "aborted piglet fetus": "abortion/reproductive disorder",
+    "aborted tissues of horses": "abortion/reproductive disorder",
+    "aborted uteroplacental unit": "abortion/reproductive disorder",
+    "aborted uteroplancental unit": "abortion/reproductive disorder",
+    "septicemia in a late term aborted caprine fetus": "sepsis/bacteremia",
+    "leukemia": "leukemia",
+    "leukemia cell line": "leukemia",
+    "myelogenous leukemia cell line": "leukemia",
+    "chronic myeloid leukemia": "leukemia",
     "listeriosis": "listeriosis",
     "salmonellosis": "salmonellosis",
     "campylobacteriosis": "campylobacteriosis",
@@ -1955,12 +1981,21 @@ HOST_DISEASE_SYNONYMS = {
 
 HOST_HEALTH_STATE_SYNONYMS = {
     "healthy": "healthy",
+    "healthy group": "healthy",
+    "clinically healthy": "healthy",
+    "healthy no disease reported": "healthy",
+    "healthy/no disease reported": "healthy",
+    "control": "healthy",
     "healthy control": "healthy",
     "normal": "healthy",
     "asymptomatic": "asymptomatic",
     "symptomatic": "symptomatic",
     "diseased": "diseased",
     "disease": "diseased",
+    "infection": "diseased",
+    "community acquired": "diseased",
+    "hospital acquired": "diseased",
+    "contact case": "exposure/contact context",
     "sick": "diseased",
     "patient": "patient",
     "hospitalized": "hospitalized",
@@ -2431,10 +2466,19 @@ STANDARDIZATION_BROAD_CATEGORIES.update(
         "activated sludge": "wastewater/sewage",
         "tracheal aspirate/secretion": "respiratory sample",
         "bronchoalveolar lavage fluid": "respiratory sample",
+        "bronchial wash/lavage": "respiratory sample",
         "nasopharynx/oropharynx": "upper respiratory tract",
+        "nasal cavity/sinus/upper respiratory tract": "upper respiratory site",
+        "rectum/perianal region": "gastrointestinal site",
+        "skin/body surface": "clinical/host-associated material",
+        "lower respiratory tract/bronch/pleural cavity": "respiratory sample",
+        "tonsil/oropharyngeal site": "upper respiratory tract",
         "nasal site": "upper respiratory site",
         "oral cavity": "oral cavity",
         "dental plaque": "oral cavity",
+        "urogenital swab": "swab",
+        "urogenital/reproductive swab": "swab",
+        "urogenital reproductive swab": "swab",
         "urethra/penis": "urogenital site",
         "urogenital": "urogenital site",
         "cervix": "urogenital site",
@@ -2548,6 +2592,135 @@ STANDARDIZATION_BROAD_CATEGORIES.update(
         "dairy product": "food/dairy",
         "catfish product": "aquatic food product",
         "anaerobic digester": "wastewater/organic waste",
+        "klicava reservoir": "water",
+        "kli cava reservoir": "water",
+        "kl ava reservoir": "water",
+        "řívov reservoir": "water",
+        "rimov reservoir": "water",
+        "r imov reservoir": "water",
+        "římov reservoir": "water",
+        "mov reservoir": "water",
+        "große fuchskuhle sw lake": "water",
+        "grosse fuchskuhle sw lake": "water",
+        "gro e fuchskuhle sw lake": "water",
+        "maggiore lake": "water",
+        "lake washington": "water",
+        "hallstatter see lake": "water",
+        "hallstätter see lake": "water",
+        "hallst tter see lake": "water",
+        "volvi lake": "water",
+        "lugano lake": "water",
+        "landstejn reservoir": "water",
+        "landštejn reservoir": "water",
+        "land tejn reservoir": "water",
+        "taltowisko lake": "water",
+        "tałtowisko lake": "water",
+        "ta towisko lake": "water",
+        "thunersee lake": "water",
+        "most lake": "water",
+        "garda lake": "water",
+        "zurichsee lake": "water",
+        "zürichsee lake": "water",
+        "z richsee lake": "water",
+        "mediterranean sea": "water",
+        "saanich inlet": "water",
+        "peruvian upwelling": "water",
+        "aquatic biome": "water",
+        "brine pool": "water",
+        "bottom 10cm of land fast sea ice": "environmental/geologic material",
+        "hydrothermal vent": "environmental/geologic material",
+        "hydrothermal plume": "environmental/geologic material",
+        "tui malila hydrothermal plume": "environmental/geologic material",
+        "mariner hydrothermal plume": "environmental/geologic material",
+        "tahi moana above plume background": "environmental/geologic material",
+        "redox gradient": "environmental/geologic material",
+        "rock": "environmental/geologic material",
+        "bauxite residue": "environmental/geologic material",
+        "hydrocarbon": "environmental/geologic material",
+        "input used in hydraulically fractured shales": "environmental/geologic material",
+        "wall biofilm": "biofilm",
+        "bioreactor": "built environment",
+        "primary rapid sand filter": "built environment",
+        "leachate from a leachate well at an active municipal landfill": "environmental material",
+        "neus b leachate from a leachate well at an active municipal landfill in the north eastern united states": "environmental material",
+        "neus c leachate from a leachate well at an active municipal landfill in the north eastern united states": "environmental material",
+        "cultured embryonic stem cells": "culture",
+        "free living fraction": "environmental material",
+        "cortex": "clinical/host-associated material",
+        "whole polyp cell suspension gfplow rfplow": "clinical/host-associated material",
+        "whole polyp cell suspension neuron": "clinical/host-associated material",
+    }
+)
+
+for _approved_broad_category in (
+    "clinical/host-associated material",
+    "host-associated context",
+    "feces/stool",
+    "food",
+    "food/meat",
+    "food/dairy",
+    "food/produce",
+    "food/plant product",
+    "food/processing environment",
+    "water",
+    "wastewater/sewage",
+    "soil",
+    "sediment",
+    "environmental material",
+    "environmental/geologic material",
+    "healthcare-associated environment",
+    "agricultural environment",
+    "agricultural fecal material",
+    "animal-associated environment",
+    "plant-associated material",
+    "culture",
+    "culture/assembly",
+    "culture/isolate",
+    "culture medium",
+    "laboratory environment",
+    "built environment",
+    "surface sample",
+    "biofilm",
+    "respiratory sample",
+    "upper respiratory tract",
+    "upper respiratory site",
+    "oral cavity",
+    "urogenital site",
+    "gastrointestinal site",
+    "gut content",
+    "tissue",
+    "swab",
+    "clinical fluid/material",
+    "medical device",
+    "aquatic food product",
+    "biological/clinical product",
+    "molecular extract",
+    "single cell",
+    "sample",
+    "cloacal sample",
+    "fermented food",
+    "surface/sample collection material",
+    "gut/host-associated material",
+    "wastewater/organic waste",
+    "metadata descriptor / non-source",
+):
+    STANDARDIZATION_BROAD_CATEGORIES.setdefault(_approved_broad_category, _approved_broad_category)
+
+# Keep anatomical specificity in Isolation_Site_SD / Host_Anatomical_Site_SD,
+# not in broad source/sample fields.
+STANDARDIZATION_BROAD_CATEGORIES.update(
+    {
+        "oral cavity": "clinical/host-associated material",
+        "dental plaque": "clinical/host-associated material",
+        "urogenital site": "clinical/host-associated material",
+        "urogenital tract": "clinical/host-associated material",
+        "gastrointestinal site": "clinical/host-associated material",
+        "rectum/perianal region": "clinical/host-associated material",
+        "nasal cavity/sinus/upper respiratory tract": "clinical/host-associated material",
+        "skin/body surface": "clinical/host-associated material",
+        "breast": "clinical/host-associated material",
+        "organ/tissue site": "clinical/host-associated material",
+        "cloaca": "clinical/host-associated material",
     }
 )
 
@@ -2586,6 +2759,249 @@ SAMPLE_TYPE_MATERIAL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+ANATOMICAL_SITE_SYNONYMS = {
+    "rectum": "rectum/perianal region",
+    "rectal": "rectum/perianal region",
+    "recto anal junction": "rectum/perianal region",
+    "rectoanal junction": "rectum/perianal region",
+    "recto-anal junction": "rectum/perianal region",
+    "perirectal": "rectum/perianal region",
+    "perianal": "rectum/perianal region",
+    "anus": "rectum/perianal region",
+    "nasal site": "nasal cavity/sinus/upper respiratory tract",
+    "nasal cavity": "nasal cavity/sinus/upper respiratory tract",
+    "nasal": "nasal cavity/sinus/upper respiratory tract",
+    "nose": "nasal cavity/sinus/upper respiratory tract",
+    "nares": "nasal cavity/sinus/upper respiratory tract",
+    "sinus": "nasal cavity/sinus/upper respiratory tract",
+    "paranasal sinus": "nasal cavity/sinus/upper respiratory tract",
+    "ent sinus": "nasal cavity/sinus/upper respiratory tract",
+    "nasopharynx": "nasopharynx/oropharynx",
+    "nasopharyngeal": "nasopharynx/oropharynx",
+    "oropharynx": "nasopharynx/oropharynx",
+    "pharynx": "nasopharynx/oropharynx",
+    "throat": "nasopharynx/oropharynx",
+    "oral": "oral cavity",
+    "oral cavity": "oral cavity",
+    "mouth": "oral cavity",
+    "dental plaque": "oral cavity",
+    "tooth": "oral cavity",
+    "skin": "skin/body surface",
+    "skin body surface": "skin/body surface",
+    "forehead": "skin/body surface",
+    "foot": "skin/body surface",
+    "leg": "skin/body surface",
+    "chin": "skin/body surface",
+    "palm": "skin/body surface",
+    "axilla": "skin/body surface",
+    "umbilicus": "skin/body surface",
+    "sacrum": "skin/body surface",
+    "popliteal fossa": "skin/body surface",
+    "right popliteal fossa": "skin/body surface",
+    "left popliteal fossa": "skin/body surface",
+    "l index": "skin/body surface",
+    "r index": "skin/body surface",
+    "l palm": "skin/body surface",
+    "r palm": "skin/body surface",
+    "l cheek": "skin/body surface",
+    "r cheek": "skin/body surface",
+    "urogenital": "urogenital tract",
+    "urogenital site": "urogenital tract",
+    "genitourinary tract": "urogenital tract",
+    "urinary tract": "urogenital tract",
+    "urethra": "urogenital tract",
+    "urethral": "urogenital tract",
+    "urethra penis": "urogenital tract",
+    "penis": "urogenital tract",
+    "vagina": "vagina",
+    "vaginal": "vagina",
+    "vaginal site": "vagina",
+    "cervix": "cervix",
+    "ectocervical mucosa": "cervix",
+    "uterus": "uterus",
+    "colon": "gastrointestinal tract",
+    "colon contents": "gastrointestinal tract",
+    "ileum": "gastrointestinal tract",
+    "caecum": "gastrointestinal tract",
+    "cecum": "gastrointestinal tract",
+    "caecal": "gastrointestinal tract",
+    "cecal": "gastrointestinal tract",
+    "intestine": "gastrointestinal tract",
+    "intestinal tract": "gastrointestinal tract",
+    "gastrointestinal tract": "gastrointestinal tract",
+    "gut": "gastrointestinal tract",
+    "gut content": "gastrointestinal tract",
+    "stomach": "gastrointestinal tract",
+    "rumen": "gastrointestinal tract",
+    "cloaca": "cloaca",
+    "cloacae": "cloaca",
+    "bronch": "lower respiratory tract/bronch/pleural cavity",
+    "bronchial": "lower respiratory tract/bronch/pleural cavity",
+    "bronchial wash": "lower respiratory tract/bronch/pleural cavity",
+    "bronchial lavage": "lower respiratory tract/bronch/pleural cavity",
+    "bronchoalveolar lavage": "lower respiratory tract/bronch/pleural cavity",
+    "bronchoalveolar lavage fluid": "lower respiratory tract/bronch/pleural cavity",
+    "lung": "lower respiratory tract/bronch/pleural cavity",
+    "trachea": "lower respiratory tract/bronch/pleural cavity",
+    "pleural fluid": "lower respiratory tract/bronch/pleural cavity",
+    "pleural effusion": "lower respiratory tract/bronch/pleural cavity",
+    "pleural cavity": "lower respiratory tract/bronch/pleural cavity",
+    "tonsil": "tonsil/oropharyngeal site",
+    "breast": "breast",
+    "mammary gland": "breast",
+    "pancreas": "organ/tissue site",
+    "liver": "organ/tissue site",
+    "brain": "organ/tissue site",
+    "kidney": "organ/tissue site",
+    "spleen": "organ/tissue site",
+    "bone": "organ/tissue site",
+    "eye": "organ/tissue site",
+    "ear": "organ/tissue site",
+    "placenta": "organ/tissue site",
+    "lymph node": "organ/tissue site",
+    "heart": "organ/tissue site",
+    "abdomen": "organ/tissue site",
+}
+
+SAMPLE_MATERIAL_EVIDENCE_PATTERN = re.compile(
+    r"\b(?:"
+    r"swab|fluid|effusion|lavage|wash|aspirate|tissue|biopsy|content|contents|feces|faeces|"
+    r"fecal|faecal|stool|saliva|plaque|pus|urine|blood|sputum|milk|meat|carcass|culture|"
+    r"cell line|cells?|clone|isolate"
+    r")\b",
+    re.IGNORECASE,
+)
+
+FOOD_CUT_CONTEXT_PATTERN = re.compile(
+    r"\b(?:retail|abattoir|ground|minced|meat|tenderloin|fillet|fillets|strip|strips|sandwich|frozen|raw|"
+    r"product|poultry|chicken|turkey|lamb|frog|drumstick|leg quarters?)\b",
+    re.IGNORECASE,
+)
+
+
+def food_cut_sample_type(value: Any) -> str:
+    cleaned = normalize_standardization_lookup(value)
+    raw_text = "" if value is None else str(value).strip().lower()
+    searchable = f"{cleaned} {raw_text}"
+    if not cleaned or not FOOD_CUT_CONTEXT_PATTERN.search(searchable):
+        return ""
+    if re.search(r"\b(?:breast|leg|drumstick|tenderloin|fillet|fillets|strip|strips)\b", searchable):
+        return "poultry meat" if re.search(r"\b(?:chicken|turkey|poultry|breast|drumstick)\b", searchable) else "meat"
+    return ""
+
+
+def canonical_anatomical_site(value: Any) -> str:
+    if food_cut_sample_type(value):
+        return ""
+    for candidate in standardization_lookup_variants(value):
+        if candidate in ANATOMICAL_SITE_SYNONYMS:
+            return ANATOMICAL_SITE_SYNONYMS[candidate]
+    cleaned = normalize_standardization_lookup(value)
+    if not cleaned:
+        return ""
+    raw_text = "" if value is None else str(value).strip().lower()
+    searchable = f"{cleaned} {raw_text}"
+    patterns = (
+        (r"\b(rectal|rectum|recto\s*anal|perirectal|perianal|anus)\b", "rectum/perianal region"),
+        (r"\b(nasal|nose|nares|sinus|paranasal)\b", "nasal cavity/sinus/upper respiratory tract"),
+        (r"\b(oral|mouth|dental|tooth|saliva)\b", "oral cavity"),
+        (r"\b(skin|forehead|foot|leg|chin|palm|axilla|umbilicus|sacrum|popliteal|cheek|index|perineum|perineal|tarsal)\b", "skin/body surface"),
+        (r"\b(urogenital|genitourinary|urinary|urethra|urethral|penis|vagina|vaginal|cervix|uterus)\b", "urogenital tract"),
+        (r"\b(colon|ileum|caecum|cecum|intestinal|intestine|gastrointestinal|gut|stomach|rumen|cloaca)\b", "gastrointestinal tract"),
+        (r"\b(bronch|bronchial|bronchoalveolar|pleural|lung|trachea)\b", "lower respiratory tract/bronch/pleural cavity"),
+        (r"\b(tonsil)\b", "tonsil/oropharyngeal site"),
+        (r"\b(breast|mammary)\b", "breast"),
+        (r"\b(pancreas|liver|brain|kidney|spleen|bone|eye|ocular|conjunctiva|ear|placenta|lymph node|heart|abdomen)\b", "organ/tissue site"),
+    )
+    for pattern, label in patterns:
+        if re.search(pattern, searchable):
+            return label
+    return ""
+
+
+def sample_type_from_body_site_context(value: Any) -> str:
+    cleaned = normalize_standardization_lookup(value)
+    if not cleaned:
+        return ""
+    food_cut = food_cut_sample_type(cleaned)
+    if food_cut:
+        return food_cut
+    if re.search(r"\b(rectal|rectum|perirectal|perianal)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "rectal swab"
+    if re.search(r"\b(nasal|nose|nares)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "nasal swab"
+    if re.search(r"\b(oral|mouth)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "oral swab"
+    if re.search(r"\b(skin|body surface)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "skin swab"
+    if re.search(r"\b(vaginal|vagina)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "vaginal swab"
+    if re.search(r"\b(urogenital|urethral|cervix|cervical)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "urogenital swab"
+    if re.search(r"\b(cloacal|cloaca)\b", cleaned) and re.search(r"\bswab\b", cleaned):
+        return "cloacal swab"
+    if re.search(r"\b(bronchoalveolar|bal|balf)\b", cleaned):
+        return "bronchoalveolar lavage fluid"
+    if re.search(r"\bbronchial\b", cleaned) and re.search(r"\b(wash|lavage)\b", cleaned):
+        return "bronchial wash/lavage"
+    if re.search(r"\bpleural\b", cleaned) and re.search(r"\b(fluid|effusion)\b", cleaned):
+        return "pleural fluid"
+    if re.search(r"\b(colon|intestinal|intestine|gut|cecal|caecal|cecum|caecum)\b", cleaned) and re.search(r"\b(content|contents)\b", cleaned):
+        return "gut content"
+    return ""
+
+
+def sample_type_is_site_only(value: Any) -> bool:
+    text = "" if value is None else str(value).strip()
+    if not text:
+        return False
+    if not canonical_anatomical_site(text):
+        return False
+    return not SAMPLE_MATERIAL_EVIDENCE_PATTERN.search(text)
+
+
+def source_context_for_anatomical_site(value: Any) -> str:
+    cleaned = normalize_standardization_lookup(value)
+    if not canonical_anatomical_site(value):
+        return ""
+    if re.search(r"\b(?:pleural|pus|abscess|fluid|effusion|aspirate|drainage)\b", cleaned):
+        return "clinical fluid/material"
+    if re.search(r"\b(?:bronch|bronchoalveolar|tracheal|respiratory|sputum)\b", cleaned):
+        return "respiratory sample"
+    return "clinical/host-associated material"
+
+
+def source_context_for_disease_or_health(value: Any) -> str:
+    standardized, method, _ = standardize_metadata_concept(value, HOST_DISEASE_SYNONYMS)
+    if method != "original" and standardized:
+        return "clinical/host-associated material"
+    standardized, method, _ = standardize_metadata_concept(value, HOST_HEALTH_STATE_SYNONYMS)
+    if method != "original" and standardized:
+        return "clinical/host-associated material"
+    cleaned = normalize_standardization_lookup(value)
+    if re.search(r"\b(?:aborted?|abortion|fetus|fetal|septicemia|leukemia|myeloid)\b", cleaned):
+        return "clinical/host-associated material"
+    return ""
+
+
+def source_context_for_lab_or_metadata_artifact(value: Any) -> tuple[str, str] | None:
+    cleaned = normalize_standardization_lookup(value)
+    if not cleaned:
+        return None
+    if cleaned in {"ref", "#ref"} or "#ref" in str(value).lower():
+        return "", "metadata_error"
+    if re.fullmatch(r"facility(?: [a-z0-9]+)?", cleaned) or cleaned in {"ot", "hcw hand"}:
+        return "healthcare-associated environment", "facility_code_router"
+    if cleaned in {"cxwnd", "roar", "cipa", "esba", "bk", "o"}:
+        return "metadata descriptor / non-source", "metadata_code_router"
+    if re.search(r"\b(?:derived from|parent strain|resistant derivatives|exposed to|ciprofloxacin|atcc)\b", cleaned):
+        return "culture", "lab_artifact_router"
+    if cleaned in {"isolated clone", "isolated organism"}:
+        return "culture/isolate", "lab_artifact_router"
+    if re.search(r"\b(?:dh5a|xl10 gold|xl1 mfr blue|mc1061|electroten blue|synthetic construct)\b", cleaned):
+        return "culture", "lab_artifact_router"
+    return None
+
 
 def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
     proposed = normalize_standardization_lookup(proposed_value)
@@ -2597,7 +3013,7 @@ def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
 
 def sanitize_sample_type_standardization(value: Any) -> str:
     text = "" if value is None else str(value).strip()
-    return "" if sample_type_rule_is_host_only(text, text) else text
+    return "" if sample_type_rule_is_host_only(text, text) or sample_type_is_site_only(text) else text
 
 
 def enforce_clean_sample_type_columns(frame: pd.DataFrame) -> pd.DataFrame:
@@ -2661,10 +3077,19 @@ def apply_core_standardization_overrides() -> None:
             "anal swab": "perianal/anal swab",
             "perianal swab": "perianal/anal swab",
             "perirectal swab": "perianal/anal swab",
+            "urogenital swab": "urogenital swab",
+            "bronchial wash": "bronchial wash/lavage",
+            "bronchial lavage": "bronchial wash/lavage",
+            "bronchoalveolar lavage": "bronchoalveolar lavage fluid",
+            "bronchoalveolar lavage fluid": "bronchoalveolar lavage fluid",
+            "balf": "bronchoalveolar lavage fluid",
+            "pleural fluid": "pleural fluid",
+            "pleural effusion": "pleural fluid",
             "intestinal content": "gut content",
             "intestinal contents": "gut content",
             "gut content": "gut content",
             "gut contents": "gut content",
+            "colon contents": "gut content",
             "metagenomic assembly": "metagenomic assembly",
             "metagenome assembly": "metagenomic assembly",
             "food processing environment": "food processing environment",
@@ -2675,6 +3100,21 @@ def apply_core_standardization_overrides() -> None:
             "comminuted chicken": "chicken meat",
             "nonintact chicken": "chicken meat",
             "chicken breast": "chicken meat",
+            "retail breast": "poultry meat",
+            "abattoir breast": "poultry meat",
+            "breast tenderloins": "poultry meat",
+            "breast fillets": "poultry meat",
+            "breast strips": "poultry meat",
+            "skinless breast": "poultry meat",
+            "turkey breast": "poultry meat",
+            "turkey breast sandwich": "poultry meat",
+            "poultry breast": "poultry meat",
+            "chicken breast": "poultry meat",
+            "lamb leg": "meat",
+            "leg quarters": "poultry meat",
+            "frog leg": "meat",
+            "frozen frog leg": "meat",
+            "drumstick": "poultry meat",
             "young chicken carcass rinse": "chicken meat",
             "ground turkey": "turkey meat",
             "comminuted turkey": "turkey meat",
@@ -2766,18 +3206,22 @@ def apply_core_standardization_overrides() -> None:
             "oral cavity": "oral cavity",
             "oral metagenome": "oral cavity",
             "dental plaque": "dental plaque",
+            "mouth": "oral cavity",
             "urethra": "urethra/penis",
             "urethral": "urethra/penis",
             "penis urethra": "urethra/penis",
             "urogenital": "urogenital",
+            "urogenital site": "urogenital",
             "cervix": "cervix",
             "ectocervical mucosa": "ectocervical mucosa",
+            "uterus": "uterus",
             "pus": "pus",
             "abscess": "abscess",
             "liver abscess": "liver abscess",
             "bodily fluid": "bodily fluid",
             "fluid": "bodily fluid",
             "pleural fluid": "pleural fluid",
+            "pleural effusion": "pleural fluid",
             "drainage": "drainage",
             "aspirate": "aspirate",
             "liver": "liver",
@@ -2790,6 +3234,22 @@ def apply_core_standardization_overrides() -> None:
             "placenta": "placenta",
             "lymph node": "lymph node",
             "skin": "skin",
+            "forehead": "skin",
+            "foot": "skin",
+            "leg": "skin",
+            "chin": "skin",
+            "palm": "skin",
+            "axilla": "skin",
+            "umbilicus": "skin",
+            "sacrum": "skin",
+            "right popliteal fossa": "skin",
+            "left popliteal fossa": "skin",
+            "l index": "skin",
+            "r index": "skin",
+            "l palm": "skin",
+            "r palm": "skin",
+            "l cheek": "skin",
+            "r cheek": "skin",
             "wound": "wound",
             "cecal": "gut content",
             "caecal": "gut content",
@@ -2798,6 +3258,10 @@ def apply_core_standardization_overrides() -> None:
             "cecal content": "gut content",
             "caecal content": "gut content",
             "intestine": "gut content",
+            "colon": "gut content",
+            "ileum": "gut content",
+            "cloaca": "cloacal sample",
+            "cloacae": "cloacal sample",
             "intestinal tract": "gut content",
             "gastrointestinal tract": "gut content",
             "stomach": "gut content",
@@ -3872,6 +4336,9 @@ def isolation_source_material_context(value: Any) -> str:
     if not cleaned:
         return ""
 
+    food_cut = food_cut_sample_type(value)
+    if food_cut:
+        return food_cut
     if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES:
         return ""
     if cleaned in ISOLATION_SOURCE_CONTEXT_OVERRIDES:
@@ -3965,6 +4432,23 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         row.get("BioSample Study Disease"),
         row.get("BioSample Disease State"),
     ]
+    disease_candidate_values = [*host_disease_context, row.get("Isolation Source")]
+    anatomy_context_values = [
+        row.get("Isolation Site"),
+        row.get("BioSample Isolation Site"),
+        row.get("BioSample Body Site"),
+        row.get("BioSample Organism Part"),
+        row.get("BioSample Tissue"),
+        row.get("BioSample Tissue Type"),
+        row.get("BioSample Host Tissue Sampled"),
+        row.get("Sample Type"),
+        row.get("Isolation Source"),
+    ]
+    anatomy_site = next((site for site in (canonical_anatomical_site(value) for value in anatomy_context_values) if site), "")
+    body_site_sample_type = next(
+        (sample for sample in (sample_type_from_body_site_context(value) for value in anatomy_context_values) if sample),
+        "",
+    )
     isolation_source_material = isolation_source_material_context(row.get("Isolation Source"))
     isolation_source, isolation_method, isolation_ontology_id = first_standardized_concept(
         [isolation_source_material, row.get("Isolation Site"), host_as_context],
@@ -3995,6 +4479,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         ],
         ISOLATION_SITE_SYNONYMS,
     )
+    if anatomy_site and (not isolation_site or canonical_anatomical_site(isolation_site)):
+        isolation_site = anatomy_site
+        isolation_site_method = "anatomy_router"
+        isolation_site_ontology_id = ""
     environment_broad, environment_broad_method, environment_broad_ontology_id = first_standardized_concept(
         [
             row.get("Environment (Broad Scale)"),
@@ -4041,7 +4529,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         ENVIRONMENT_MEDIUM_SYNONYMS,
     )
     sample_type, sample_type_method, sample_type_ontology_id = first_standardized_concept(
-        [row.get("Sample Type"), row.get("Isolation Source"), host_as_context, *host_disease_context],
+        [row.get("Sample Type"), isolation_source_material, row.get("Isolation Source"), host_as_context, *host_disease_context],
         SAMPLE_TYPE_SYNONYMS,
     )
     host_sample_type, host_sample_method, host_sample_ontology_id = host_context_sample_type(host_standardization, host_value)
@@ -4051,8 +4539,14 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             host_sample_method,
             host_sample_ontology_id,
         )
+    if body_site_sample_type and (not sample_type or sample_type_is_site_only(sample_type) or sample_type in {"sample"}):
+        sample_type, sample_type_method, sample_type_ontology_id = (
+            body_site_sample_type,
+            "body_site_material_router",
+            CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(body_site_sample_type, ""),
+        )
     host_disease, host_disease_method, host_disease_ontology_id = first_standardized_concept(
-        host_disease_context,
+        disease_candidate_values,
         HOST_DISEASE_SYNONYMS,
     )
     host_health_state, host_health_state_method, host_health_state_ontology_id = first_standardized_concept(
@@ -4062,6 +4556,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
             row.get("BioSample Health State"),
             row.get("BioSample Health Status"),
             row.get("BioSample Host Health"),
+            *disease_candidate_values,
         ],
         HOST_HEALTH_STATE_SYNONYMS,
     )
@@ -4069,6 +4564,24 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     if not sample_type:
         sample_type_method = "missing"
         sample_type_ontology_id = ""
+    source_context = source_context_for_anatomical_site(isolation_source)
+    if source_context:
+        isolation_source = source_context
+        isolation_method = "anatomy_source_router"
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(source_context, "")
+    disease_source_context = source_context_for_disease_or_health(isolation_source)
+    if disease_source_context:
+        isolation_source = disease_source_context
+        isolation_method = "disease_source_router"
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(disease_source_context, "")
+    lab_context = source_context_for_lab_or_metadata_artifact(isolation_source)
+    if lab_context is not None:
+        isolation_source, isolation_method = lab_context
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
+    if host_disease and not host_health_state and host_disease != "healthy/no disease reported":
+        host_health_state = "diseased"
+        host_health_state_method = "disease_inference"
+        host_health_state_ontology_id = ""
     return {
         "Isolation_Source_SD": isolation_source,
         "Isolation_Source_SD_Broad": broad_standardization_category(isolation_source),
@@ -4614,6 +5127,10 @@ def ensure_managed_metadata_schema(row: dict[str, Any]) -> dict[str, Any]:
     secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
     for column in SECONDARY_STANDARDIZATION_COLUMNS:
         normalized[column] = secondary_standardization[column]
+    if not str(normalized.get("Host_Anatomical_Site_SD") or "").strip():
+        anatomical_site = canonical_anatomical_site(secondary_standardization.get("Isolation_Site_SD"))
+        if anatomical_site:
+            normalized["Host_Anatomical_Site_SD"] = anatomical_site
     return normalized
 
 

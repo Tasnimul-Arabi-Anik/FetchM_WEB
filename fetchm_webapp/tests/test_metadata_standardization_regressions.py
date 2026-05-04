@@ -62,8 +62,100 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             broad_standardization_category("urogenital/gastrointestinal site"),
             "clinical/host-associated material",
         )
+        self.assertEqual(broad_standardization_category("Klíčava reservoir"), "water")
+        self.assertEqual(broad_standardization_category("hydrothermal vent"), "environmental/geologic material")
+        self.assertEqual(broad_standardization_category("Wall biofilm"), "biofilm")
         self.assertEqual(broad_standardization_category("rectal swab"), "swab")
+        self.assertEqual(broad_standardization_category("urogenital/reproductive swab"), "swab")
         self.assertEqual(broad_standardization_category("river water"), "water")
+
+    def test_body_site_sample_source_separation(self) -> None:
+        rectal_swab = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "rectal swab"})
+        self.assertEqual(rectal_swab["Sample_Type_SD"], "rectal swab")
+        self.assertEqual(rectal_swab["Isolation_Site_SD"], "rectum/perianal region")
+        self.assertEqual(rectal_swab["Host_Anatomical_Site_SD"], "rectum/perianal region")
+        self.assertEqual(rectal_swab["Isolation_Source_SD"], "clinical/host-associated material")
+
+        nasal_swab = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "nasal swab"})
+        self.assertEqual(nasal_swab["Sample_Type_SD"], "nasal swab")
+        self.assertEqual(nasal_swab["Isolation_Site_SD"], "nasal cavity/sinus/upper respiratory tract")
+
+        bronchial_lavage = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "bronchial lavage"})
+        self.assertEqual(bronchial_lavage["Sample_Type_SD"], "bronchial wash/lavage")
+        self.assertEqual(bronchial_lavage["Isolation_Site_SD"], "lower respiratory tract/bronch/pleural cavity")
+
+        pleural_fluid = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "pleural fluid"})
+        self.assertEqual(pleural_fluid["Sample_Type_SD"], "pleural fluid")
+        self.assertEqual(pleural_fluid["Isolation_Source_SD"], "clinical fluid/material")
+
+        dental_plaque = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "dental plaque"})
+        self.assertEqual(dental_plaque["Sample_Type_SD"], "dental plaque")
+        self.assertEqual(dental_plaque["Sample_Type_SD_Broad"], "clinical/host-associated material")
+        self.assertEqual(dental_plaque["Isolation_Site_SD"], "oral cavity")
+
+        perineum = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Perineum"})
+        self.assertEqual(perineum["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(perineum["Isolation_Site_SD"], "skin/body surface")
+
+        nasal_context = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Healthcare worker (nasal)"})
+        self.assertEqual(nasal_context["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(nasal_context["Isolation_Site_SD"], "nasal cavity/sinus/upper respiratory tract")
+
+        conjunctiva = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Right conjunctiva of a child"})
+        self.assertEqual(conjunctiva["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(conjunctiva["Isolation_Site_SD"], "organ/tissue site")
+
+    def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
+        retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
+        self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")
+        self.assertEqual(retail_breast["Isolation_Source_SD_Broad"], "food/meat")
+        self.assertEqual(retail_breast["Isolation_Site_SD"], "")
+
+        turkey_sandwich = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "turkey breast sandwich"})
+        self.assertEqual(turkey_sandwich["Sample_Type_SD"], "poultry meat")
+        self.assertEqual(turkey_sandwich["Isolation_Source_SD_Broad"], "food/meat")
+        self.assertEqual(turkey_sandwich["Isolation_Site_SD"], "")
+
+        ground_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Ground (breast)"})
+        self.assertEqual(ground_breast["Sample_Type_SD"], "poultry meat")
+        self.assertEqual(ground_breast["Isolation_Source_SD_Broad"], "food/meat")
+        self.assertEqual(ground_breast["Isolation_Site_SD"], "")
+
+        human_breast_milk = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "human breast milk"})
+        self.assertEqual(human_breast_milk["Host_SD"], "Homo sapiens")
+        self.assertEqual(human_breast_milk["Sample_Type_SD"], "milk")
+        self.assertEqual(human_breast_milk["Host_Anatomical_Site_SD"], "breast")
+
+    def test_disease_and_lab_artifacts_do_not_leak_as_source(self) -> None:
+        osteomyelitis = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Osteomyelitis"})
+        self.assertEqual(osteomyelitis["Host_Disease_SD"], "osteomyelitis")
+        self.assertEqual(osteomyelitis["Host_Health_State_SD"], "diseased")
+        self.assertEqual(osteomyelitis["Isolation_Source_SD"], "clinical/host-associated material")
+
+        aborted = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "aborted uteroplacental unit"})
+        self.assertEqual(aborted["Host_Disease_SD"], "abortion/reproductive disorder")
+        self.assertEqual(aborted["Host_Health_State_SD"], "diseased")
+        self.assertEqual(aborted["Isolation_Source_SD"], "clinical/host-associated material")
+
+        leukemia = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Leukemia cell line (SEM)"})
+        self.assertEqual(leukemia["Host_Disease_SD"], "leukemia")
+        self.assertEqual(leukemia["Isolation_Source_SD"], "clinical/host-associated material")
+
+        derived_strain = ensure_managed_metadata_schema(
+            {"Host": "", "Isolation Source": "derived from the strain Pseudomonas aeruginosa ATCC 27853"}
+        )
+        self.assertEqual(derived_strain["Isolation_Source_SD"], "culture")
+        self.assertEqual(derived_strain["Host_SD"], "")
+
+        spreadsheet_error = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "#REF!"})
+        self.assertEqual(spreadsheet_error["Isolation_Source_SD"], "")
+        self.assertEqual(spreadsheet_error["Sample_Type_SD"], "")
+
+        facility = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Facility 4"})
+        self.assertEqual(facility["Isolation_Source_SD"], "healthcare-associated environment")
+
+        raw_code = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "cxwnd"})
+        self.assertEqual(raw_code["Isolation_Source_SD"], "metadata descriptor / non-source")
 
 
 if __name__ == "__main__":

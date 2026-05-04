@@ -1,0 +1,43 @@
+count,isolation_source_sd_broad
+536284,clinical/host-associated material
+253022,feces/stool
+125840,food/meat
+52148,water
+45275,environmental material
+42362,metadata descriptor / non-source
+34529,food
+32761,upper respiratory tract
+27734,healthcare-associated environment
+26816,soil
+26514,culture
+23983,clinical fluid/material
+16995,plant-associated material
+16389,food/dairy
+15004,host-associated context
+12249,sediment
+10571,swab
+9155,tissue
+8453,wastewater/sewage
+5631,agricultural environment
+4479,aquatic food product
+4203,environmental/geologic material
+4189,built environment
+4172,surface sample
+3622,laboratory environment
+3380,culture/isolate
+3213,single cell
+2784,gut content
+2115,medical device
+1832,food/produce
+1746,sample
+1677,agricultural fecal material
+1472,biofilm
+644,surface/sample collection material
+589,animal tissue/site
+507,molecular extract
+433,cloacal sample
+395,wastewater/organic waste
+299,food/plant product
+101,culture medium
+43,culture/assembly
+36,biological/clinical product
