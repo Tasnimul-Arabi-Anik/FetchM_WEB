@@ -49,6 +49,38 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(dh5a["Host_SD"], "")
         self.assertEqual(dh5a["Host_TaxID"], "")
 
+        xl10 = standardize_host_metadata("XL10-gold")
+        self.assertEqual(xl10["Host_SD"], "")
+        self.assertEqual(xl10["Host_TaxID"], "")
+
+        patient = ensure_managed_metadata_schema({"Host": "", "Sample Type": "patient"})
+        self.assertEqual(patient["Sample_Type_SD"], "")
+
+        cattle_feces = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "cattle feces"})
+        self.assertEqual(cattle_feces["Host_SD"], "Bos taurus")
+        self.assertEqual(cattle_feces["Sample_Type_SD"], "feces/stool")
+
+        water_deer = ensure_managed_metadata_schema({"Host": "water deer", "Isolation Source": ""})
+        self.assertEqual(water_deer["Host_SD"], "Hydropotes inermis")
+        self.assertNotEqual(water_deer["Environment_Medium_SD"], "water")
+
+        water_buffalo = ensure_managed_metadata_schema({"Host": "water buffalo", "Isolation Source": ""})
+        self.assertEqual(water_buffalo["Host_SD"], "Bubalus bubalis")
+        self.assertNotEqual(water_buffalo["Environment_Medium_SD"], "water")
+
+    def test_environment_medium_examples(self) -> None:
+        feces = ensure_managed_metadata_schema({"Host": "", "Environment Medium": "feces/stool"})
+        self.assertNotEqual(feces["Environment_Medium_SD"], "feces/stool")
+
+        soil = ensure_managed_metadata_schema({"Host": "", "Environment Medium": "soil"})
+        self.assertEqual(soil["Environment_Medium_SD"], "soil")
+
+        wastewater = ensure_managed_metadata_schema({"Host": "", "Environment Medium": "wastewater"})
+        self.assertEqual(wastewater["Environment_Medium_SD"], "wastewater")
+
+        seawater = ensure_managed_metadata_schema({"Host": "", "Environment Medium": "seawater"})
+        self.assertEqual(seawater["Environment_Medium_SD"], "seawater")
+
     def test_broad_categories_do_not_leak_raw_values(self) -> None:
         self.assertEqual(broad_standardization_category("Marmota himalayana"), "")
         self.assertEqual(broad_standardization_category("Nottingham"), "")

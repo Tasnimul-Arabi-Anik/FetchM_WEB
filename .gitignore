@@ -37,6 +37,7 @@ fetchm_webapp/standardization/review/**/*.tsv
 fetchm_webapp/standardization/review/**/*.txt
 fetchm_webapp/standardization/review/**/*.log
 fetchm_webapp/standardization/*.before_*.csv
+fetchm_webapp/standardization/review/**/20260502_*/
 
 # FetchM Web local backups / variant scratch files
 fetchm_webapp/static/styles.backup.css
