@@ -264,21 +264,23 @@ def controlled_category_rule_quality() -> dict[str, int]:
     with rule_file.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
     approved_rows = [row for row in rows if str(row.get("status") or "").strip().lower() == "approved"]
-    grouped: dict[tuple[str, str, str], set[str]] = {}
+    grouped: dict[tuple[str, str, str], list[dict[str, str]]] = {}
     for row in approved_rows:
         key = (
-            normalize_standardization_lookup(row.get("source_column")),
-            normalize_standardization_lookup(row.get("normalized_value")),
+            str(row.get("source_column") or "").strip().lower(),
+            str(row.get("normalized_value") or "").strip().lower(),
             str(row.get("destination") or "").strip(),
         )
-        grouped.setdefault(key, set()).add(normalize_standardization_lookup(row.get("proposed_value") or row.get("category")))
-    duplicate_keys = sum(1 for values in grouped.values() if len(values) >= 1)
-    duplicate_keys = sum(1 for key in grouped if sum(1 for row in approved_rows if (
-        normalize_standardization_lookup(row.get("source_column")),
-        normalize_standardization_lookup(row.get("normalized_value")),
-        str(row.get("destination") or "").strip(),
-    ) == key) > 1)
-    conflict_keys = sum(1 for values in grouped.values() if len(values) > 1)
+        grouped.setdefault(key, []).append(row)
+    duplicate_keys = sum(1 for entries in grouped.values() if len(entries) > 1)
+    conflict_keys = 0
+    for entries in grouped.values():
+        proposed_values = {
+            str(row.get("proposed_value") or row.get("category") or "").strip().lower()
+            for row in entries
+        }
+        if len(entries) > 1 and len(proposed_values) > 1:
+            conflict_keys += 1
     suspicious_rows = 0
     for row in approved_rows:
         destination = str(row.get("destination") or "").strip()
