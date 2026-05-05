@@ -344,3 +344,61 @@ Acetobacteraceae,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKi
 sea whip gorgonian,non_host_source,Batch 2 host curation 2026-05-05: reviewed source-like descriptor; keep out of Host_SD unless explicit host context is curated
 Methanosarcina mazei strain VKM B-2370,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Archaea; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
 Streptomyces,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+"human, animal or environmental",non_host_source,Batch 3 2026-05-05: reviewed mixed/source descriptor; not a reliable Host_SD value
+Chicken environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+pig farm environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental bovine,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+flock environment broiler (Gallus gallus),non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Environment of broiler farm,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Bacteria isolated in solid culture medium,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+Sus scrofa domesticus: environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Environment of broiler farms,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental swabs sponge,non_host_source,Batch 3 2026-05-05: reviewed mixed/source descriptor; not a reliable Host_SD value
+water for animals,non_host_source,Batch 3 2026-05-05: reviewed mixed/source descriptor; not a reliable Host_SD value
+environment of equine clinic,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+"Environment, animals",non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Dog Environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental avian,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+biofilm; non-axenic culture containing Capilliphycus salinus and associated bacteria,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+turkey environmental,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Fish and aquatic environment of Lake Victoria,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Pig Special Project (Sampling of Livestock and Poultry Environment),non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+equine hospital environmental,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+pigeon farm environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental turtle tank,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental-chicken,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+equine environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental feline,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+"Environment, poultry farm",non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environment corn silage,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+"Environment, poultry barn",non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Avian Environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+pure culture bacteria,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+pure bacteria culture,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+bacteria cells (from culture that grew from a isolated colony),non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+Pure culture of Gram (+) bacteria,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+a piece of sunken bamboo in the marine environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Environmental-turtle tank water,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Poultry-Environmental,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Chicken slaughterhouse environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+broiler environment - boot sock,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Environmental surface sponge,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Duck Pemise. Environmental drag booties from the duck barn floor,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental clean incubator pheasant barn,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental-quail,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Environment feeding stuffs plant,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+bovine environmental plant leaves,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+avian environmental incubator,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+"Animal Feed, Environment, Feed Mill",non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental porcine,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Lab bacteria culture,non_host_source,"Batch 3 2026-05-05: bacterial culture/lab artifact, not host organism"
+Environment sponge from processin plant,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Processing environment sponge from retailer,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environment contaminated by Homo sapiens patients,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+non mosquito Diptera environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Mushroom environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Dairy plant (environmental),non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environmental sponges,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Plant-associated environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+environment of live poultry market,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+animal-associated environment [ENVO:01001002],non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material

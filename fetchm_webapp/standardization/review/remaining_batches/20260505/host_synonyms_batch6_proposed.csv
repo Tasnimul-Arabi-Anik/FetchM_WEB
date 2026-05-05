@@ -1,0 +1,10 @@
+synonym,canonical,taxid,confidence,note
+Possum,Phalangeriformes,38603,medium,Batch 6 final host curation 2026-05-05: reviewed broad possum group; species ambiguous; rank=order
+Otariinae,Otariinae,9709,medium,Batch 6 final host curation 2026-05-05: reviewed sea lion/fur seal subfamily; rank=subfamily
+Phalangeriformes,Phalangeriformes,38603,medium,Batch 6 final host curation 2026-05-05: reviewed possum group; rank=order
+protozoa,Eukaryota,2759,medium,Batch 6 final host curation 2026-05-05: reviewed broad protozoan/eukaryote host; rank=superkingdom
+dinoflagellate,Dinophyceae,2864,medium,Batch 6 final host curation 2026-05-05: reviewed broad dinoflagellate host; rank=class
+anguine,Squamata,8509,medium,Batch 6 final host curation 2026-05-05: reviewed broad snake/lizard adjective; kept broad; rank=order
+Sow,Sus scrofa,9823,high,Batch 6 final host curation 2026-05-05: reviewed common female pig host; rank=species
+Barbera,Vitis vinifera,29760,high,Batch 6 final host curation 2026-05-05: reviewed grape cultivar host/source; rank=species
+Hazelnut,Corylus,13451,medium,Batch 6 final host curation 2026-05-05: reviewed broad hazelnut plant host; rank=genus

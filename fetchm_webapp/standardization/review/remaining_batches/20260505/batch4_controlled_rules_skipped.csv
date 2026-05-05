@@ -1,0 +1,43 @@
+synonym,destination,proposed_value,skipped_reason
+Environmental,Isolation_Source_SD,environmental material,existing approved rule maps to environmental sample
+environmental,Isolation_Source_SD,environmental material,existing approved rule maps to environmental sample
+meat,Sample_Type_SD,meat product,existing approved rule maps to meat
+environmental waters,Environment_Medium_SD,water,existing approved rule maps to environmental water
+"Dairy Farm, Water",Environment_Medium_SD,water,existing approved rule maps to agricultural/aquaculture water
+dairy product,Sample_Type_SD,milk/dairy product,existing approved rule maps to dairy product
+"Food, pork",Isolation_Source_SD,food/food product,existing approved rule maps to pork/meat product
+Milk powder,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk powder
+milk product,Sample_Type_SD,milk/dairy product,existing approved rule maps to dairy product
+Meat,Sample_Type_SD,meat product,existing approved rule maps to meat
+Milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+hot water systems,Environment_Medium_SD,water,existing approved rule maps to built-environment water
+Raw water,Environment_Medium_SD,water,existing approved rule maps to environmental water
+activated sludge,Environment_Medium_SD,sludge,existing approved rule maps to activated sludge
+Grown in Blood agar culture medium.,Sample_Type_SD,bacterial culture,existing approved rule maps to culture medium
+milk products,Sample_Type_SD,milk/dairy product,existing approved rule maps to dairy product
+Grown in Blood agar culture medium,Sample_Type_SD,bacterial culture,existing approved rule maps to culture medium
+"Food, Ground Beef",Isolation_Source_SD,food/food product,existing approved rule maps to beef/meat product
+Water (environment),Environment_Medium_SD,water,existing approved rule maps to environmental water
+Pure culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+salt marsh sediment,Environment_Medium_SD,sediment,existing approved rule maps to salt marsh sediment
+Raw milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+farm water,Environment_Medium_SD,water,existing approved rule maps to agricultural/aquaculture water
+cows milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+Environmental waters,Environment_Medium_SD,water,existing approved rule maps to environmental water
+culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+Bulk Milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+Grown in chocolate agar culture medium,Sample_Type_SD,bacterial culture,existing approved rule maps to culture medium
+Saline Water,Environment_Medium_SD,water,existing approved rule maps to saline/brine water
+fermented milk,Sample_Type_SD,milk/dairy product,existing approved rule maps to milk
+aerobic activated sludge from the secondary sedimentation tank of WWTP of NB production plant,Environment_Medium_SD,sludge,existing approved rule maps to activated sludge
+sediment of Yellow River,Environment_Medium_SD,sediment,existing approved rule maps to river sediment
+Cell culture collection,Sample_Type_SD,bacterial culture,existing approved rule maps to cell culture
+HayFlick modified culture medium,Sample_Type_SD,bacterial culture,existing approved rule maps to culture medium
+Milk thistle,Sample_Type_SD,milk/dairy product,existing approved rule maps to plant material
+river water,Environment_Medium_SD,water,existing approved rule maps to river water
+Milk product,Sample_Type_SD,milk/dairy product,existing approved rule maps to dairy product
+tidal flat sediment,Environment_Medium_SD,sediment,existing approved rule maps to tidal flat sediment
+Tidal flat sediment,Environment_Medium_SD,sediment,existing approved rule maps to tidal flat sediment
+Pond sediment,Environment_Medium_SD,sediment,existing approved rule maps to pond sediment

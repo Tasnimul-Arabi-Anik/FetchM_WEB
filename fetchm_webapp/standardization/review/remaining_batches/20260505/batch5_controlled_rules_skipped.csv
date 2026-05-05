@@ -1,0 +1,192 @@
+synonym,destination,proposed_value,skipped_reason
+healthy people,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+other,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+screening culture,Sample_Type_SD,surveillance sample,confidence is not high
+surveillance,Sample_Type_SD,surveillance sample,confidence is not high
+rectal swab,Sample_Type_SD,rectal swab,existing approved rule maps to rectal/perianal swab
+marine sediment envo 03000033,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+cold water disease,Host_Health_State_SD,diseased,confidence is not high
+disease,Host_Health_State_SD,diseased,confidence is not high
+disease by infectious agent,Host_Health_State_SD,diseased,confidence is not high
+legionaires disease,Host_Health_State_SD,diseased,confidence is not high
+respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+diseased pig,Host_Health_State_SD,diseased,confidence is not high
+parkinson disease,Host_Health_State_SD,diseased,confidence is not high
+gastric disease,Host_Health_State_SD,diseased,confidence is not high
+mucosal tissue from crohns disease patient,Host_Health_State_SD,diseased,confidence is not high
+healthy dairy cow,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+lung disease,Host_Health_State_SD,diseased,confidence is not high
+invasive disease,Host_Health_State_SD,diseased,confidence is not high
+alcoholic liver disease,Host_Health_State_SD,diseased,confidence is not high
+other,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+clinically healthy pig,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+mass screening,Sample_Type_SD,surveillance sample,confidence is not high
+healthy skin,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+peptic ulcer disease,Host_Health_State_SD,diseased,confidence is not high
+dairy other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+south china sea sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+human missing,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+celiac disease,Host_Health_State_SD,diseased,confidence is not high
+tonsil from healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+sour skin disease,Host_Health_State_SD,diseased,confidence is not high
+bovine respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+nontuberculous mycobacterial lung disease,Host_Health_State_SD,diseased,confidence is not high
+alzheimer disease,Host_Health_State_SD,diseased,confidence is not high
+bovine respiratory disease complex,Host_Health_State_SD,diseased,confidence is not high
+cerebrovascular disease hemiplegia,Host_Health_State_SD,diseased,confidence is not high
+disease in fish,Host_Health_State_SD,diseased,confidence is not high
+anthrax disease,Host_Health_State_SD,diseased,confidence is not high
+human missing,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+healthy group,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+cold water disease,Host_Health_State_SD,diseased,confidence is not high
+diseased tissue,Host_Health_State_SD,diseased,confidence is not high
+diseased tissue,Host_Health_State_SD,diseased,confidence is not high
+coronary artery disease,Host_Health_State_SD,diseased,confidence is not high
+non progressive alcoholic liver disease,Host_Health_State_SD,diseased,confidence is not high
+brucella disease,Host_Health_State_SD,diseased,confidence is not high
+glasser s disease,Host_Health_State_SD,diseased,confidence is not high
+marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+mac lung disease,Host_Health_State_SD,diseased,confidence is not high
+pulmonary disease,Host_Health_State_SD,diseased,confidence is not high
+human healthy carriers,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+mycobacterium avium complex disease,Host_Health_State_SD,diseased,confidence is not high
+helicobacter pylori peptic ulcer disease,Host_Health_State_SD,diseased,confidence is not high
+hemorrhagic disease,Host_Health_State_SD,diseased,confidence is not high
+respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+infectious disease,Host_Health_State_SD,diseased,confidence is not high
+lung disease,Host_Health_State_SD,diseased,confidence is not high
+bovine respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+deep marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+coldwater disease,Host_Health_State_SD,diseased,confidence is not high
+diseased pig,Host_Health_State_SD,diseased,confidence is not high
+marine sediment envo 03000033,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+duodenal mucosa of celiac disease patient,Host_Health_State_SD,diseased,confidence is not high
+fire blight diseased leaf,Host_Health_State_SD,diseased,confidence is not high
+foodborne disease,Host_Health_State_SD,diseased,confidence is not high
+pulmonary disease,Host_Health_State_SD,diseased,confidence is not high
+ntm disease,Host_Health_State_SD,diseased,confidence is not high
+peptic ulcer disease,Host_Health_State_SD,diseased,confidence is not high
+marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+crown gall disease,Host_Health_State_SD,diseased,confidence is not high
+marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+sub sea sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+surveillance,Sample_Type_SD,surveillance sample,confidence is not high
+johne s disease,Host_Health_State_SD,diseased,confidence is not high
+peptic ulcer disease,Host_Health_State_SD,diseased,confidence is not high
+enteric disease,Host_Health_State_SD,diseased,confidence is not high
+treponeme associated hoof disease lesion,Host_Health_State_SD,diseased,confidence is not high
+deep sea sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+borrelia miyamotoi disease,Host_Health_State_SD,diseased,confidence is not high
+deep sea sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+tb like disease,Host_Health_State_SD,diseased,confidence is not high
+legionnaire s disease,Host_Health_State_SD,diseased,confidence is not high
+veterinary clinical research other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+veterinary clinical research other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+activated sludge,Environment_Medium_SD,sludge,existing approved rule maps to activated sludge
+gastrointestinal system disease,Host_Health_State_SD,diseased,confidence is not high
+diseased plant,Host_Health_State_SD,diseased,confidence is not high
+carrion s disease,Host_Health_State_SD,diseased,confidence is not high
+lungs of sick pig,Host_Health_State_SD,diseased,confidence is not high
+clinically diseased pig,Host_Health_State_SD,diseased,confidence is not high
+healthy human,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+pulmonary disease chronic obstructive,Host_Health_State_SD,diseased,confidence is not high
+disease carrier,Host_Health_State_SD,diseased,confidence is not high
+total rna control,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+redmouth disease,Host_Health_State_SD,diseased,confidence is not high
+malignant disease,Host_Health_State_SD,diseased,confidence is not high
+diseased cotton,Host_Health_State_SD,diseased,confidence is not high
+alzheimer disease,Host_Health_State_SD,diseased,confidence is not high
+moko disease,Host_Health_State_SD,diseased,confidence is not high
+biliary tract disease,Host_Health_State_SD,diseased,confidence is not high
+cat scratch disease,Host_Health_State_SD,diseased,confidence is not high
+clinically healthy swine,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+blood from patient with systemic infection,Sample_Type_SD,blood,disease phrase should not infer blood specimen
+rectal swab,Sample_Type_SD,rectal swab,existing approved rule maps to rectal/perianal swab
+rectal swab,Sample_Type_SD,rectal swab,existing approved rule maps to rectal/perianal swab
+no disease,Host_Health_State_SD,diseased,confidence is not high
+fish other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+liver disease,Host_Health_State_SD,diseased,confidence is not high
+other aquatic animals,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+meningococcal disease,Host_Health_State_SD,diseased,confidence is not high
+respiratory tract disease,Host_Health_State_SD,diseased,confidence is not high
+adult patient with underlying chronic lung disease,Host_Health_State_SD,diseased,confidence is not high
+screening,Sample_Type_SD,surveillance sample,confidence is not high
+other,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+quality control table,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+moyamoya disease,Host_Health_State_SD,diseased,confidence is not high
+hemiplegia due to cerebrovascular disease,Host_Health_State_SD,diseased,confidence is not high
+healthy phenotype,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+deep marine sediment envo 00002113,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+contaminated soil contaminated water,Environment_Medium_SD,soil,existing approved rule maps to environmental water
+marine sediment envo 03000033 bay envo 00000032,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+food brone disease patient,Host_Health_State_SD,diseased,confidence is not high
+sick pig,Host_Health_State_SD,diseased,confidence is not high
+sick pig lung,Host_Health_State_SD,diseased,confidence is not high
+healthy human,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+sick chicken lung,Host_Health_State_SD,diseased,confidence is not high
+human disease,Host_Health_State_SD,diseased,confidence is not high
+lung of a diseased pig,Host_Health_State_SD,diseased,confidence is not high
+pathogen fecal carriage,Sample_Type_SD,feces/stool,Host Disease value is not a clear specimen material
+urogenital disease,Host_Health_State_SD,diseased,confidence is not high
+marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+healthy chicken intestine,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+mac disease,Host_Health_State_SD,diseased,confidence is not high
+bacterial disease,Host_Health_State_SD,diseased,confidence is not high
+seeds other,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+water processor assembly,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+invasive disease,Host_Health_State_SD,diseased,confidence is not high
+chronic suppurative lung disease,Host_Health_State_SD,diseased,confidence is not high
+chronic kidney disease,Host_Health_State_SD,diseased,confidence is not high
+end stage liver disease,Host_Health_State_SD,diseased,confidence is not high
+diseased field leaf,Host_Health_State_SD,diseased,confidence is not high
+black rot disease,Host_Health_State_SD,diseased,confidence is not high
+leaf scald disease,Host_Health_State_SD,diseased,confidence is not high
+respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+multi ingredient other seeds,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+other,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+environmental other animal,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+nasopharynx of a respiratory disease,Host_Health_State_SD,diseased,confidence is not high
+skin disease,Host_Health_State_SD,diseased,confidence is not high
+diseased cattle,Host_Health_State_SD,diseased,confidence is not high
+lewy body disease,Host_Health_State_SD,diseased,confidence is not high
+corn decline disease,Host_Health_State_SD,diseased,confidence is not high
+ralstonia wilt disease,Host_Health_State_SD,diseased,confidence is not high
+sewage sludge compost,Environment_Medium_SD,sludge,existing approved rule maps to sewage
+glassers disease,Host_Health_State_SD,diseased,confidence is not high
+freshwater lake,Environment_Medium_SD,lake water,existing approved rule maps to freshwater
+diseased stem of tobacco,Host_Health_State_SD,diseased,confidence is not high
+healthy cow,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+control,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+jpl spacecraft assembly facility,Sample_Type_SD,metadata descriptor/non-source,metadata/admin descriptor should not become Sample_Type_SD
+hemorrhagic disease,Host_Health_State_SD,diseased,confidence is not high
+borrelia miyamotoi disease,Host_Health_State_SD,diseased,confidence is not high
+deep marine sediment,Environment_Medium_SD,sediment,existing approved rule maps to marine sediment
+tidal flat sediment,Environment_Medium_SD,sediment,existing approved rule maps to tidal flat sediment
+anaerobic activated sludge of molasses wastewater in a continuous stirred tank reactor,Environment_Medium_SD,sludge,existing approved rule maps to sewage
+male patient with chronic granulomatous disease,Host_Health_State_SD,diseased,confidence is not high
+chronic granulomatous disease,Host_Health_State_SD,diseased,confidence is not high
+tidal flat sediment,Environment_Medium_SD,sediment,existing approved rule maps to tidal flat sediment
+sick organs of a dead chicken,Host_Health_State_SD,diseased,confidence is not high
+chicken disease,Host_Health_State_SD,diseased,confidence is not high
+diseased chicken,Host_Health_State_SD,diseased,confidence is not high
+healthy cattle milk,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+milk from healthy cattle,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+sick cow 3,Host_Health_State_SD,diseased,confidence is not high
+sick cow 1,Host_Health_State_SD,diseased,confidence is not high
+lung from healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+healthy pig slaughterhouse,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+saliva from clinically healthy pig,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+internal organ of diseased cage cultured atlantic salmon in chile,Host_Health_State_SD,diseased,confidence is not high
+healthy chicken,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+associated with tsst 1 mediated disease,Host_Health_State_SD,diseased,confidence is not high
+duodenal mucosa of celiac disease patient with type 1 diabetes,Host_Health_State_SD,diseased,confidence is not high
+tissue of patient with lung disease,Host_Health_State_SD,diseased,confidence is not high
+healthy human volunteer,Host_Health_State_SD,healthy/no disease reported,confidence is not high
+hiv end stage renal disease due to hiv nephropathy developed peritoneal dialysis associated peritonitis with candida parapsilosis.,Host_Health_State_SD,diseased,confidence is not high
+upper resiratory disease,Host_Health_State_SD,diseased,confidence is not high
+no known disease,Host_Health_State_SD,diseased,confidence is not high
+no known disease,Host_Health_State_SD,diseased,confidence is not high
+gastrointestinal system disease,Host_Health_State_SD,diseased,confidence is not high
+ileum of healthy chickens,Host_Health_State_SD,healthy/no disease reported,confidence is not high

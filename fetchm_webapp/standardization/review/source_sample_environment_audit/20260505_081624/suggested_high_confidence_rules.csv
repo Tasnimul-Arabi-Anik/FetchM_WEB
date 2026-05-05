@@ -1,0 +1,1001 @@
+count,source_column,raw_value,normalized_value,destination,category,confidence,note
+10216,Environment Medium,feces,feces,Sample_Type_SD,feces/stool,high,fecal material
+6586,Environment Medium,fecal material [ENVO:00002003],fecal material envo 00002003,Sample_Type_SD,feces/stool,high,fecal material
+3464,Environment Medium,stool,stool,Sample_Type_SD,feces/stool,high,fecal material
+1400,Isolation Source,Human faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+1064,Environment Medium,faeces,feces,Sample_Type_SD,feces/stool,high,fecal material
+672,Isolation Source,healthy people,healthy people,Host_Health_State_SD,healthy/no disease reported,medium,health state
+527,Isolation Source,cattle feces,cattle feces,Sample_Type_SD,feces/stool,high,fecal material
+505,Host Disease,other,other,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+402,Isolation Source,Human Stool,human stool,Sample_Type_SD,feces/stool,high,fecal material
+355,Isolation Source,human - faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+343,Isolation Source,"Human, Blood",human blood,Sample_Type_SD,blood,high,clinical material
+338,Environment Medium,Urine,urine,Sample_Type_SD,urine,high,clinical material
+321,Isolation Source,Cattle faeces,cattle faeces,Sample_Type_SD,feces/stool,high,fecal material
+309,Isolation Source,human blood,human blood,Sample_Type_SD,blood,high,clinical material
+300,Isolation Source,Chicken faeces,chicken faeces,Sample_Type_SD,feces/stool,high,fecal material
+292,Isolation Source,human feces,human feces,Sample_Type_SD,feces/stool,high,fecal material
+283,Isolation Source,human sputum,human sputum,Sample_Type_SD,sputum,high,respiratory material
+268,Isolation Source,chicken feces,chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+267,Isolation Source,Human blood sample,human blood sample,Sample_Type_SD,blood,high,clinical material
+265,Isolation Source,Human stool,human stool,Sample_Type_SD,feces/stool,high,fecal material
+260,Isolation Source,feces from patient with diarrhea,feces from patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+258,Environment Medium,Fecal microbiome of Bos indicus,fecal microbiome of bos indicus,Sample_Type_SD,feces/stool,high,fecal material
+252,Isolation Source,"Human, Stool",human stool,Sample_Type_SD,feces/stool,high,fecal material
+250,Isolation Source,cattle fecal samples,cattle fecal samples,Sample_Type_SD,feces/stool,high,fecal material
+233,Isolation Source,Human urine,human urine,Sample_Type_SD,urine,high,clinical material
+230,Host Disease,Screening culture,screening culture,Sample_Type_SD,surveillance sample,medium,screening/surveillance descriptor
+222,Environment (Local Scale),Shallow water sediment,shallow water sediment,Environment_Medium_SD,sediment,high,environmental medium
+216,Isolation Source,Hospital patients,hospital patients,Isolation_Source_SD,healthcare facility,high,healthcare-associated location
+209,Isolation Source,human stool,human stool,Sample_Type_SD,feces/stool,high,fecal material
+206,Environment (Local Scale),soil,soil,Environment_Medium_SD,soil,high,environmental medium
+193,Environment (Local Scale),seawater,seawater,Environment_Medium_SD,seawater,high,water type
+190,Isolation Source,soil adjacent to human cadaver hip,soil adjacent to human cadaver hip,Environment_Medium_SD,soil,high,environmental medium
+188,Isolation Source,fecal sample from STEC-infected patient,fecal sample from stec infected patient,Sample_Type_SD,feces/stool,high,fecal material
+187,Environment (Local Scale),Wastewater,wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+169,Environment (Local Scale),soil [ENVO:00001998],soil envo 00001998,Environment_Medium_SD,soil,high,environmental medium
+161,Isolation Source,poultry feces,poultry feces,Sample_Type_SD,feces/stool,high,fecal material
+159,Environment (Local Scale),sediment,sediment,Environment_Medium_SD,sediment,high,environmental medium
+149,Isolation Source,Cattle feces,cattle feces,Sample_Type_SD,feces/stool,high,fecal material
+146,Isolation Source,Chicken feces,chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+142,Isolation Source,pig stool,pig stool,Sample_Type_SD,feces/stool,high,fecal material
+138,Sample Type,Biofilm,biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+126,Isolation Source,Pooled sheep faecal samples collected from floor of farm,pooled sheep faecal samples collected from floor of farm,Sample_Type_SD,feces/stool,high,fecal material
+122,Environment Medium,fecal sample,fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+118,Isolation Source,"human, urine",human urine,Sample_Type_SD,urine,high,clinical material
+118,Environment Medium,stool specimen,stool specimen,Sample_Type_SD,feces/stool,high,fecal material
+117,Isolation Site,fecal,fecal,Sample_Type_SD,feces/stool,high,fecal material
+113,Isolation Source,Human feces,human feces,Sample_Type_SD,feces/stool,high,fecal material
+110,Host Disease,surveillance,surveillance,Sample_Type_SD,surveillance sample,medium,screening/surveillance descriptor
+110,Host Disease,rectal swab,rectal swab,Sample_Type_SD,rectal swab,high,swab material
+107,Isolation Source,stool (fecal) sample from asymptomatic human participant,stool sample from asymptomatic human participant,Sample_Type_SD,feces/stool,high,fecal material
+107,Environment Medium,hospital,hospital,Isolation_Source_SD,healthcare facility,high,healthcare-associated location
+103,Isolation Source,Feral swine feces,feral swine feces,Sample_Type_SD,feces/stool,high,fecal material
+96,Isolation Source,blood from patient with bacteremia,blood from patient with bacteremia,Sample_Type_SD,blood,high,clinical material
+95,Environment Medium,Swine stool,swine stool,Sample_Type_SD,feces/stool,high,fecal material
+92,Environment Medium,Feces,feces,Sample_Type_SD,feces/stool,high,fecal material
+92,Environment Medium,faecal matter,faecal matter,Sample_Type_SD,feces/stool,high,fecal material
+88,Isolation Source,Human blood,human blood,Sample_Type_SD,blood,high,clinical material
+85,Environment Medium,fecal material,fecal material,Sample_Type_SD,feces/stool,high,fecal material
+83,Environment (Local Scale),rhizosphere,rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+82,Isolation Source,Pig stool,pig stool,Sample_Type_SD,feces/stool,high,fecal material
+82,Environment Medium,nasal swab,nasal swab,Sample_Type_SD,nasal swab,high,upper respiratory swab
+81,Environment Medium,Fecal sample,fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+78,Environment Medium,blood,blood,Sample_Type_SD,blood,high,clinical material
+76,Isolation Source,human faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+73,Environment (Local Scale),Marine sediment [ENVO:03000033],marine sediment envo 03000033,Environment_Medium_SD,sediment,high,environmental medium
+72,Isolation Source,Human Feces,human feces,Sample_Type_SD,feces/stool,high,fecal material
+70,Host Disease,cold water disease,cold water disease,Host_Health_State_SD,diseased,medium,health state
+69,Isolation Source,feces of feedlot cattle,feces of feedlot cattle,Sample_Type_SD,feces/stool,high,fecal material
+69,Environment Medium,urine,urine,Sample_Type_SD,urine,high,clinical material
+68,Isolation Source,cattle stool,cattle stool,Sample_Type_SD,feces/stool,high,fecal material
+67,Isolation Source,human urine,human urine,Sample_Type_SD,urine,high,clinical material
+67,Environment (Local Scale),Sediment,sediment,Environment_Medium_SD,sediment,high,environmental medium
+67,Environment (Local Scale),saline sediment environment (ENVO:01001050),saline sediment environment,Environment_Medium_SD,sediment,high,environmental medium
+66,Isolation Source,pig feces,pig feces,Sample_Type_SD,feces/stool,high,fecal material
+66,Environment (Local Scale),sea water environment,sea water environment,Environment_Medium_SD,seawater,high,water type
+65,Isolation Source,Human sputum,human sputum,Sample_Type_SD,sputum,high,respiratory material
+65,Environment Medium,Faeces,feces,Sample_Type_SD,feces/stool,high,fecal material
+64,Isolation Source,feces cow,feces cow,Sample_Type_SD,feces/stool,high,fecal material
+64,Host Disease,disease,disease,Host_Health_State_SD,diseased,medium,health state
+63,Isolation Source,human faecal samples,human faecal samples,Sample_Type_SD,feces/stool,high,fecal material
+63,Isolation Source,Pig feces,pig feces,Sample_Type_SD,feces/stool,high,fecal material
+63,Host Disease,disease by infectious agent,disease by infectious agent,Host_Health_State_SD,diseased,medium,health state
+63,Host Disease,Legionaires' Disease,legionaires disease,Host_Health_State_SD,diseased,medium,health state
+61,Host Disease,Respiratory disease,respiratory disease,Host_Health_State_SD,diseased,medium,health state
+59,Environment Medium,blood [ENVO:02000020],blood envo 02000020,Sample_Type_SD,blood,high,clinical material
+57,Isolation Source,pig fecal swab,pig fecal swab,Sample_Type_SD,feces/stool,high,fecal material
+57,Environment (Local Scale),Soil,soil,Environment_Medium_SD,soil,high,environmental medium
+55,Environment Medium,sputum,sputum,Sample_Type_SD,sputum,high,respiratory material
+54,Isolation Source,diseased pig,diseased pig,Host_Health_State_SD,diseased,medium,health state
+53,Host Disease,Parkinson Disease,parkinson disease,Host_Health_State_SD,diseased,medium,health state
+53,Host Disease,Gastric disease,gastric disease,Host_Health_State_SD,diseased,medium,health state
+52,Isolation Source,fecal sample from patient with Hemolytic Uremic Syndrome,fecal sample from patient with hemolytic uremic syndrome,Sample_Type_SD,feces/stool,high,fecal material
+50,Environment (Local Scale),sea water,seawater,Environment_Medium_SD,seawater,high,water type
+50,Isolation Source,10 mM sulfoquinovose-amended vegetarian human fecal microcosm,10 mm sulfoquinovose amended vegetarian human fecal microcosm,Sample_Type_SD,feces/stool,high,fecal material
+50,Environment Medium,Fecal slurry in 10 mM bicarbonate buffer,fecal slurry in 10 mm bicarbonate buffer,Sample_Type_SD,feces/stool,high,fecal material
+49,Isolation Source,human fecal sample,human fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+48,Isolation Source,feedlot cattle feces,feedlot cattle feces,Sample_Type_SD,feces/stool,high,fecal material
+48,Isolation Source,Pooled sheep fecal samples collected from floor of farm,pooled sheep fecal samples collected from floor of farm,Sample_Type_SD,feces/stool,high,fecal material
+46,Isolation Source,"Human, Faeces",human faeces,Sample_Type_SD,feces/stool,high,fecal material
+46,Isolation Source,Blood sample from septic human participant,blood sample from septic human participant,Sample_Type_SD,blood,high,clinical material
+46,Environment Medium,Human faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+45,Isolation Source,mucosal tissue from Crohns disease patient,mucosal tissue from crohns disease patient,Host_Health_State_SD,diseased,medium,health state
+45,Environment Medium,Rat faeces,rat faeces,Sample_Type_SD,feces/stool,high,fecal material
+44,Isolation Source,feral swine feces,feral swine feces,Sample_Type_SD,feces/stool,high,fecal material
+44,Environment Medium,Sputum,sputum,Sample_Type_SD,sputum,high,respiratory material
+44,Environment (Local Scale),rice paddy soil,rice paddy soil,Environment_Medium_SD,soil,high,environmental medium
+42,Environment (Local Scale),Deep nasal swab,deep nasal swab,Sample_Type_SD,nasal swab,high,upper respiratory swab
+41,Isolation Source,human blood culture,human blood culture,Sample_Type_SD,blood,high,clinical material
+40,Isolation Source,"Fattening pig, feces",fattening pig feces,Sample_Type_SD,feces/stool,high,fecal material
+40,Environment (Local Scale),Soil NFGNB,soil nfgnb,Environment_Medium_SD,soil,high,environmental medium
+40,Environment (Local Scale),biofilm [ENVO_00002034],biofilm envo 00002034,Environment_Medium_SD,biofilm,high,environmental medium
+39,Isolation Source,Healthy dairy cow (Bos taurus),healthy dairy cow,Host_Health_State_SD,healthy/no disease reported,medium,health state
+39,Isolation Source,dairy cow feces,dairy cow feces,Sample_Type_SD,feces/stool,high,fecal material
+38,Isolation Source,feces (cloacal swab/caeca) from domestic chicken,feces from domestic chicken,Sample_Type_SD,feces/stool,high,fecal material
+37,Isolation Source,Animal-Swine-Feces,animal swine feces,Sample_Type_SD,feces/stool,high,fecal material
+37,Host Disease,Lung disease,lung disease,Host_Health_State_SD,diseased,medium,health state
+36,Isolation Source,sheep feces,sheep feces,Sample_Type_SD,feces/stool,high,fecal material
+36,Isolation Source,Human fecal samples,human fecal samples,Sample_Type_SD,feces/stool,high,fecal material
+36,Environment (Local Scale),intertidal sediment,intertidal sediment,Environment_Medium_SD,sediment,high,environmental medium
+35,Isolation Source,"cattle feces, cows",cattle feces cows,Sample_Type_SD,feces/stool,high,fecal material
+35,Isolation Source,Cow Feces,cow feces,Sample_Type_SD,feces/stool,high,fecal material
+35,Isolation Source,sputum of adult cystic fibrosis patient,sputum of adult cystic fibrosis patient,Sample_Type_SD,sputum,high,respiratory material
+35,Environment (Broad Scale),biofilm metagenome,biofilm metagenome,Environment_Medium_SD,biofilm,high,environmental medium
+32,Isolation Source,Poultry faeces,poultry faeces,Sample_Type_SD,feces/stool,high,fecal material
+32,Isolation Site,Fecal sample,fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+32,Environment (Local Scale),landfill soil,landfill soil,Environment_Medium_SD,soil,high,environmental medium
+32,Host Disease,invasive disease,invasive disease,Host_Health_State_SD,diseased,medium,health state
+32,Environment (Local Scale),Seawater biome,seawater biome,Environment_Medium_SD,seawater,high,water type
+31,Isolation Source,feces pig,feces pig,Sample_Type_SD,feces/stool,high,fecal material
+30,Isolation Source,chicken stool,chicken stool,Sample_Type_SD,feces/stool,high,fecal material
+30,Isolation Source,human stool samples,human stool samples,Sample_Type_SD,feces/stool,high,fecal material
+30,Isolation Source,sputum from cystic fibrosis patient,sputum from cystic fibrosis patient,Sample_Type_SD,sputum,high,respiratory material
+30,Host Disease,alcoholic liver disease,alcoholic liver disease,Host_Health_State_SD,diseased,medium,health state
+29,Isolation Source,sputum from CF patient,sputum from cf patient,Sample_Type_SD,sputum,high,respiratory material
+28,Isolation Source,Cow feces,cow feces,Sample_Type_SD,feces/stool,high,fecal material
+28,Isolation Source,human feces in bioreactor,human feces in bioreactor,Sample_Type_SD,feces/stool,high,fecal material
+27,Isolation Source,feces from asymptomatic of infected patient,feces from asymptomatic of infected patient,Sample_Type_SD,feces/stool,high,fecal material
+27,Isolation Source,Fecal samples of broiler chickens,fecal samples of broiler chickens,Sample_Type_SD,feces/stool,high,fecal material
+26,Isolation Source,Pig faeces,pig faeces,Sample_Type_SD,feces/stool,high,fecal material
+26,Isolation Source,Human Blood,human blood,Sample_Type_SD,blood,high,clinical material
+26,Environment (Local Scale),Sputum sample,sputum sample,Sample_Type_SD,sputum,high,respiratory material
+26,Isolation Source,fecal sample from patient with diarrhea,fecal sample from patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+25,Isolation Source,Human Blood culture,human blood culture,Sample_Type_SD,blood,high,clinical material
+25,Isolation Source,"human, blood",human blood,Sample_Type_SD,blood,high,clinical material
+25,Host Disease,other (flavoring or seasoning),other,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+25,Environment (Local Scale),near-shore sediment,near shore sediment,Environment_Medium_SD,sediment,high,environmental medium
+24,Isolation Source,cow feces,cow feces,Sample_Type_SD,feces/stool,high,fecal material
+24,Isolation Source,swine feces,swine feces,Sample_Type_SD,feces/stool,high,fecal material
+24,Isolation Source,clinically healthy pig,clinically healthy pig,Host_Health_State_SD,healthy/no disease reported,medium,health state
+24,Host Disease,mass screening,mass screening,Sample_Type_SD,surveillance sample,medium,screening/surveillance descriptor
+23,Isolation Source,human blood monocytes,human blood monocytes,Sample_Type_SD,blood,high,clinical material
+23,Environment Medium,Healthy skin,healthy skin,Host_Health_State_SD,healthy/no disease reported,medium,health state
+22,Isolation Source,poultry soil,poultry soil,Environment_Medium_SD,soil,high,environmental medium
+22,Isolation Source,feces market swine,feces market swine,Sample_Type_SD,feces/stool,high,fecal material
+22,Isolation Source,Pig (baby) - fecal,pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+22,Host Disease,Peptic ulcer disease (PUD),peptic ulcer disease,Host_Health_State_SD,diseased,medium,health state
+21,Isolation Source,steer feces,steer feces,Sample_Type_SD,feces/stool,high,fecal material
+21,Environment (Local Scale),forestry [ENVO:01001432]|soil [ENVO:00002003],forestry envo 01001432 soil envo 00002003,Environment_Medium_SD,soil,high,environmental medium
+21,Environment Medium,stool sample from recent mother | human gut biome,stool sample from recent mother human gut biome,Sample_Type_SD,feces/stool,high,fecal material
+21,Host Disease,dairy| other animal,dairy other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+21,Environment (Local Scale),marine hydrothermal sediment,marine hydrothermal sediment,Environment_Medium_SD,sediment,high,environmental medium
+20,Isolation Source,pig faeces,pig faeces,Sample_Type_SD,feces/stool,high,fecal material
+20,Environment (Local Scale),South China Sea sediment,south china sea sediment,Environment_Medium_SD,sediment,high,environmental medium
+20,Environment (Local Scale),sludge [ENVO:00002044],sludge envo 00002044,Environment_Medium_SD,sludge,high,environmental medium
+19,Isolation Source,chicken field feces,chicken field feces,Sample_Type_SD,feces/stool,high,fecal material
+19,Isolation Source,"Human, Feces",human feces,Sample_Type_SD,feces/stool,high,fecal material
+19,Isolation Source,"human, missing",human missing,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+19,Environment (Local Scale),blood,blood,Sample_Type_SD,blood,high,clinical material
+19,Environment Medium,Stool,stool,Sample_Type_SD,feces/stool,high,fecal material
+19,Host Disease,Celiac Disease,celiac disease,Host_Health_State_SD,diseased,medium,health state
+19,Isolation Site,Soil,soil,Environment_Medium_SD,soil,high,environmental medium
+19,Environment (Local Scale),marine water mass [ENVO:01000686],marine water mass envo 01000686,Environment_Medium_SD,seawater,high,water type
+18,Isolation Source,"Human, Blood culture",human blood culture,Sample_Type_SD,blood,high,clinical material
+18,Isolation Source,Patient Blood,patient blood,Sample_Type_SD,blood,high,clinical material
+18,Isolation Source,tonsil from Healthy pig in slaughterhouse,tonsil from healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,medium,health state
+18,Environment (Local Scale),surface sediment,surface sediment,Environment_Medium_SD,sediment,high,environmental medium
+18,Host Disease,sour skin disease,sour skin disease,Host_Health_State_SD,diseased,medium,health state
+18,Host Disease,Bovine Respiratory Disease,bovine respiratory disease,Host_Health_State_SD,diseased,medium,health state
+18,Environment (Local Scale),sandy sediment [ENVO:01000118],sandy sediment envo 01000118,Environment_Medium_SD,sediment,high,environmental medium
+17,Isolation Source,feces young chicken,feces young chicken,Sample_Type_SD,feces/stool,high,fecal material
+17,Isolation Source,Stool from hospitalized human,stool from hospitalized human,Sample_Type_SD,feces/stool,high,fecal material
+17,Environment Medium,hospital biome,hospital biome,Isolation_Source_SD,healthcare facility,high,healthcare-associated location
+17,Environment (Local Scale),waste water,wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+17,Environment Medium,center of the feces,center of the feces,Sample_Type_SD,feces/stool,high,fecal material
+17,Environment (Local Scale),Surface seawater,surface seawater,Environment_Medium_SD,seawater,high,water type
+16,Isolation Source,feces dairy cow (Bos taurus),feces dairy cow,Sample_Type_SD,feces/stool,high,fecal material
+16,Isolation Source,feces heifer,feces heifer,Sample_Type_SD,feces/stool,high,fecal material
+16,Host Disease,nontuberculous mycobacterial lung disease,nontuberculous mycobacterial lung disease,Host_Health_State_SD,diseased,medium,health state
+16,Host Disease,Alzheimer Disease,alzheimer disease,Host_Health_State_SD,diseased,medium,health state
+16,Environment (Broad Scale),Biofilm metagenome,biofilm metagenome,Environment_Medium_SD,biofilm,high,environmental medium
+16,Host Disease,Bovine Respiratory Disease Complex,bovine respiratory disease complex,Host_Health_State_SD,diseased,medium,health state
+16,Environment (Local Scale),sediment; water,sediment water,Environment_Medium_SD,sediment,high,environmental medium
+16,Environment (Local Scale),red clay soil,red clay soil,Environment_Medium_SD,soil,high,environmental medium
+15,Isolation Source,swine fecal,swine fecal,Sample_Type_SD,feces/stool,high,fecal material
+15,Isolation Source,pooled poultry feces,pooled poultry feces,Sample_Type_SD,feces/stool,high,fecal material
+15,Isolation Source,Human sputum sample,human sputum sample,Sample_Type_SD,sputum,high,respiratory material
+15,Isolation Source,Patient sputum,patient sputum,Sample_Type_SD,sputum,high,respiratory material
+15,Isolation Source,Poultry/Soil,poultry soil,Environment_Medium_SD,soil,high,environmental medium
+15,Environment (Local Scale),anthropogenic environement [ENVO:01000313]|rhizosphere environment [ENVO:01000999],anthropogenic environement envo 01000313 rhizosphere environment envo 01000999,Environment_Medium_SD,soil,high,environmental medium
+15,Environment Medium,Faecal sample,faecal sample,Sample_Type_SD,feces/stool,high,fecal material
+15,Host Disease,Cerebrovascular disease hemiplegia,cerebrovascular disease hemiplegia,Host_Health_State_SD,diseased,medium,health state
+15,Environment (Broad Scale),Disease in fish,disease in fish,Host_Health_State_SD,diseased,medium,health state
+14,Isolation Source,Infected Human Urine,infected human urine,Sample_Type_SD,urine,high,clinical material
+14,Isolation Source,"turkey, faecal samples",turkey faecal samples,Sample_Type_SD,feces/stool,high,fecal material
+14,Isolation Source,sputum of child cystic fibrosis patient,sputum of child cystic fibrosis patient,Sample_Type_SD,sputum,high,respiratory material
+14,Environment Medium,Fecal pellets,fecal pellets,Sample_Type_SD,feces/stool,high,fecal material
+14,Host Disease,Anthrax disease,anthrax disease,Host_Health_State_SD,diseased,medium,health state
+14,Isolation Site,faecal,fecal,Sample_Type_SD,feces/stool,high,fecal material
+14,Environment (Local Scale),creosote-contaminated soil,creosote contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+14,Environment (Local Scale),landscaping soil,landscaping soil,Environment_Medium_SD,soil,high,environmental medium
+13,Isolation Source,Cattle fecal sample,cattle fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+13,Isolation Source,feces young turkey,feces young turkey,Sample_Type_SD,feces/stool,high,fecal material
+13,Isolation Source,Swine feces,swine feces,Sample_Type_SD,feces/stool,high,fecal material
+13,Isolation Source,Cattle faecal sample,cattle faecal sample,Sample_Type_SD,feces/stool,high,fecal material
+13,Isolation Source,blood from critically ill patient,blood from critically ill patient,Sample_Type_SD,blood,high,clinical material
+13,Environment (Broad Scale),Metagenome assambled genome of coral reef macroalgae biofilm,metagenome assambled genome of coral reef macroalgae biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+13,Environment (Local Scale),Blood,blood,Sample_Type_SD,blood,high,clinical material
+13,Sample Type,"human, missing",human missing,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+13,Environment (Broad Scale),fecal sample,fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+13,Environment (Local Scale),healthy group,healthy group,Host_Health_State_SD,healthy/no disease reported,medium,health state
+13,Host Disease,Cold water disease,cold water disease,Host_Health_State_SD,diseased,medium,health state
+13,Environment (Local Scale),forest soil,forest soil,Environment_Medium_SD,soil,high,environmental medium
+13,Environment Medium,Diseased tissue,diseased tissue,Host_Health_State_SD,diseased,medium,health state
+13,Environment (Local Scale),Diseased tissue,diseased tissue,Host_Health_State_SD,diseased,medium,health state
+12,Isolation Source,patient fecal,patient fecal,Sample_Type_SD,feces/stool,high,fecal material
+12,Isolation Source,Isolated from feces from dairy cow,isolated from feces from dairy cow,Sample_Type_SD,feces/stool,high,fecal material
+12,Isolation Source,Homo sapiens faeces,homo sapiens faeces,Sample_Type_SD,feces/stool,high,fecal material
+12,Environment (Local Scale),Brachypodium rhizosphere enrichment,brachypodium rhizosphere enrichment,Environment_Medium_SD,soil,high,environmental medium
+12,Environment (Local Scale),Rhizosphere,rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+12,Environment (Local Scale),swine faeces,swine faeces,Sample_Type_SD,feces/stool,high,fecal material
+12,Environment Medium,fecal swabs,fecal swabs,Sample_Type_SD,feces/stool,high,fecal material
+12,Host Disease,Coronary Artery Disease,coronary artery disease,Host_Health_State_SD,diseased,medium,health state
+12,Environment (Local Scale),fecal,fecal,Sample_Type_SD,feces/stool,high,fecal material
+12,Host Disease,non-progressive alcoholic liver disease,non progressive alcoholic liver disease,Host_Health_State_SD,diseased,medium,health state
+12,Environment (Local Scale),wastewater,wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+12,Isolation Source,Human stool samples,human stool samples,Sample_Type_SD,feces/stool,high,fecal material
+12,Host Disease,brucella disease,brucella disease,Host_Health_State_SD,diseased,medium,health state
+12,Environment (Local Scale),Seawater,seawater,Environment_Medium_SD,seawater,high,water type
+12,Environment (Local Scale),hypersaline lagoon sediment,hypersaline lagoon sediment,Environment_Medium_SD,sediment,high,environmental medium
+12,Environment (Local Scale),Active sludge,active sludge,Environment_Medium_SD,sludge,high,environmental medium
+12,Host Disease,Glasser's disease,glasser s disease,Host_Health_State_SD,diseased,medium,health state
+12,Environment (Local Scale),marine sediment,marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+12,Environment (Local Scale),mooring chain links surface biofilm,mooring chain links surface biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+12,Environment (Local Scale),Sludge [ENVO: 00002044],sludge envo 00002044,Environment_Medium_SD,sludge,high,environmental medium
+11,Isolation Source,Human faecal,human faecal,Sample_Type_SD,feces/stool,high,fecal material
+11,Isolation Source,a feces sample of swine origin,a feces sample of swine origin,Sample_Type_SD,feces/stool,high,fecal material
+11,Isolation Source,patient blood culture samples,patient blood culture samples,Sample_Type_SD,blood,high,clinical material
+11,Isolation Source,Pig (sow) - fecal,pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+11,Environment Medium,human stool,human stool,Sample_Type_SD,feces/stool,high,fecal material
+11,Environment (Broad Scale),Urine,urine,Sample_Type_SD,urine,high,clinical material
+11,Host Disease,other animal,other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+11,Host Disease,MAC lung disease,mac lung disease,Host_Health_State_SD,diseased,medium,health state
+11,Host Disease,pulmonary disease,pulmonary disease,Host_Health_State_SD,diseased,medium,health state
+11,Environment (Local Scale),soil adjacent to cadaver decomposition,soil adjacent to cadaver decomposition,Environment_Medium_SD,soil,high,environmental medium
+11,Environment (Local Scale),anaerobic sediment [ENVO:00002045],anaerobic sediment envo 00002045,Environment_Medium_SD,sediment,high,environmental medium
+10,Isolation Source,Human Urine,human urine,Sample_Type_SD,urine,high,clinical material
+10,Isolation Source,patient blood,patient blood,Sample_Type_SD,blood,high,clinical material
+10,Isolation Source,Human fecal sample,human fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+10,Isolation Source,Poultry faecal material,poultry faecal material,Sample_Type_SD,feces/stool,high,fecal material
+10,Isolation Source,"pig, feces",pig feces,Sample_Type_SD,feces/stool,high,fecal material
+10,Isolation Source,"cattle feces, juveniles",cattle feces juveniles,Sample_Type_SD,feces/stool,high,fecal material
+10,Isolation Source,Patient's blood,patient s blood,Sample_Type_SD,blood,high,clinical material
+10,Isolation Source,Human healthy carriers,human healthy carriers,Host_Health_State_SD,healthy/no disease reported,medium,health state
+10,Environment Medium,fecal,fecal,Sample_Type_SD,feces/stool,high,fecal material
+10,Environment (Local Scale),soil environment [ENVO:01001044],soil environment envo 01001044,Environment_Medium_SD,soil,high,environmental medium
+10,Environment (Local Scale),saline soil,saline soil,Environment_Medium_SD,soil,high,environmental medium
+10,Host Disease,Mycobacterium avium complex disease,mycobacterium avium complex disease,Host_Health_State_SD,diseased,medium,health state
+10,Host Disease,Helicobacter pylori peptic ulcer disease,helicobacter pylori peptic ulcer disease,Host_Health_State_SD,diseased,medium,health state
+10,Environment (Local Scale),CF sputum,cf sputum,Sample_Type_SD,sputum,high,respiratory material
+10,Host Disease,hemorrhagic disease,hemorrhagic disease,Host_Health_State_SD,diseased,medium,health state
+10,Host Disease,respiratory disease,respiratory disease,Host_Health_State_SD,diseased,medium,health state
+10,Isolation Source,fecal sample from diarrhoea affected cattle B,fecal sample from diarrhoea affected cattle b,Sample_Type_SD,feces/stool,high,fecal material
+10,Environment (Local Scale),Bashi Channel sediment,bashi channel sediment,Environment_Medium_SD,sediment,high,environmental medium
+9,Isolation Source,Animal-Poultry-Feces,animal poultry feces,Sample_Type_SD,feces/stool,high,fecal material
+9,Isolation Source,fecal pasture close to dairy cow,fecal pasture close to dairy cow,Sample_Type_SD,feces/stool,high,fecal material
+9,Isolation Source,feces cattle,feces cattle,Sample_Type_SD,feces/stool,high,fecal material
+9,Isolation Source,stool specimen from a Guillain-Barre syndrome patient,stool specimen from a guillain barre syndrome patient,Sample_Type_SD,feces/stool,high,fecal material
+9,Isolation Source,pig slaughterhouse wastewater,pig slaughterhouse wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+9,Isolation Source,Cattle/Soil,cattle soil,Environment_Medium_SD,soil,high,environmental medium
+9,Environment (Local Scale),Domestic Wastewater,domestic wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+9,Host Disease,infectious disease,infectious disease,Host_Health_State_SD,diseased,medium,health state
+9,Environment (Local Scale),Soil isolate,soil isolate,Environment_Medium_SD,soil,high,environmental medium
+9,Isolation Site,Lake Washington,lake washington,Environment_Medium_SD,lake water,high,water type
+9,Environment (Local Scale),bottom seawater near Chesterfield Inlet,bottom seawater near chesterfield inlet,Environment_Medium_SD,seawater,high,water type
+9,Environment (Local Scale),sputum,sputum,Sample_Type_SD,sputum,high,respiratory material
+9,Host Disease,lung disease,lung disease,Host_Health_State_SD,diseased,medium,health state
+9,Environment Medium,Infant Stool,infant stool,Sample_Type_SD,feces/stool,high,fecal material
+9,Environment Medium,Blood,blood,Sample_Type_SD,blood,high,clinical material
+9,Host Disease,Bovine respiratory disease,bovine respiratory disease,Host_Health_State_SD,diseased,medium,health state
+9,Environment (Local Scale),Deep marine sediment (ENVO:00002113),deep marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+9,Host Disease,Coldwater disease,coldwater disease,Host_Health_State_SD,diseased,medium,health state
+9,Environment (Local Scale),marine water body,marine water body,Environment_Medium_SD,seawater,high,water type
+9,Environment (Local Scale),sediment [ENVO:00002007],sediment envo 00002007,Environment_Medium_SD,sediment,high,environmental medium
+9,Environment (Local Scale),surface seawater near Chesterfield Inlet,surface seawater near chesterfield inlet,Environment_Medium_SD,seawater,high,water type
+9,Environment (Local Scale),wastewater treatment plant,wastewater treatment plant,Environment_Medium_SD,wastewater,high,environmental medium
+8,Isolation Source,pig fecal,pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,dairy cow feces (Bos taurus),dairy cow feces,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,Dairy cow feces,dairy cow feces,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,Pooled soil sample collected from floor of sheep farm,pooled soil sample collected from floor of sheep farm,Environment_Medium_SD,soil,high,environmental medium
+8,Isolation Source,Feces of Homo sapiens (GER),feces of homo sapiens,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,Chicken Faeces,chicken faeces,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,Stool from healthy human,stool from healthy human,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,Diseased pig,diseased pig,Host_Health_State_SD,diseased,medium,health state
+8,Isolation Source,Sputum from patient,sputum from patient,Sample_Type_SD,sputum,high,respiratory material
+8,Isolation Source,fecal sample from diarrhoea affected cattle A,fecal sample from diarrhoea affected cattle a,Sample_Type_SD,feces/stool,high,fecal material
+8,Isolation Source,stool from MSM patient,stool from msm patient,Sample_Type_SD,feces/stool,high,fecal material
+8,Environment (Local Scale),rhizosphere soil,rhizosphere soil,Environment_Medium_SD,soil,high,environmental medium
+8,Environment (Local Scale),marine sediment [ENVO:03000033],marine sediment envo 03000033,Environment_Medium_SD,sediment,high,environmental medium
+8,Sample Type,wastewater,wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+8,Environment (Local Scale),Sandy desert soil,sandy desert soil,Environment_Medium_SD,soil,high,environmental medium
+8,Environment Medium,NASAL SWAB,nasal swab,Sample_Type_SD,nasal swab,high,upper respiratory swab
+8,Isolation Source,Duodenal mucosa of Celiac disease patient,duodenal mucosa of celiac disease patient,Host_Health_State_SD,diseased,medium,health state
+8,Environment (Local Scale),"arid soil, plant roots",arid soil plant roots,Environment_Medium_SD,soil,high,environmental medium
+8,Environment (Local Scale),fire blight diseased leaf,fire blight diseased leaf,Host_Health_State_SD,diseased,medium,health state
+7,Isolation Source,Chicken Feces,chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,"Human, Urine",human urine,Sample_Type_SD,urine,high,clinical material
+7,Isolation Source,Feces of Homo sapiens (DK),feces of homo sapiens,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,healthy cow feces,healthy cow feces,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,Sheep faeces,sheep faeces,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,Chicken fecal,chicken fecal,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,"human, feces",human feces,Sample_Type_SD,feces/stool,high,fecal material
+7,Isolation Source,Human-Blood,human blood,Sample_Type_SD,blood,high,clinical material
+7,Isolation Source,Sheep/Soil,sheep soil,Environment_Medium_SD,soil,high,environmental medium
+7,Host Disease,urine,urine,Sample_Type_SD,urine,high,clinical material
+7,Host Disease,Urine Colonization,urine colonization,Sample_Type_SD,urine,high,clinical material
+7,Environment (Local Scale),environment associated with a plant part or small plant [ENVO:01001057]|rhizosphere environment [ENVO:01000999]|soil environment [ENVO:01001044],environment associated with a plant part or small plant envo 01001057 rhizosphere environment envo 01000999 soil environment envo 01001044,Environment_Medium_SD,soil,high,environmental medium
+7,Host Disease,foodborne disease,foodborne disease,Host_Health_State_SD,diseased,medium,health state
+7,Isolation Source,Sputum of Homo sapiens,sputum of homo sapiens,Sample_Type_SD,sputum,high,respiratory material
+7,Environment (Broad Scale),sputum,sputum,Sample_Type_SD,sputum,high,respiratory material
+7,Host Disease,Pulmonary disease,pulmonary disease,Host_Health_State_SD,diseased,medium,health state
+7,Host Disease,NTM disease,ntm disease,Host_Health_State_SD,diseased,medium,health state
+7,Host Disease,Peptic ulcer disease,peptic ulcer disease,Host_Health_State_SD,diseased,medium,health state
+7,Environment Medium,Feces of chicken,feces of chicken,Sample_Type_SD,feces/stool,high,fecal material
+7,Environment Medium,"SWAB, NASOPHARYNGEAL",swab nasopharyngeal,Sample_Type_SD,nasopharyngeal swab,high,upper respiratory swab
+7,Environment (Local Scale),Biofilm,biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+7,Isolation Site,Marine sediment,marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+7,Host Disease,crown gall disease,crown gall disease,Host_Health_State_SD,diseased,medium,health state
+7,Environment (Local Scale),surface soil 5-20 cm,surface soil 5 20 cm,Environment_Medium_SD,soil,high,environmental medium
+7,Environment (Local Scale),biological soil crust,biological soil crust,Environment_Medium_SD,soil,high,environmental medium
+7,Environment (Local Scale),Marine sediment,marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+7,Environment (Local Scale),sub sea sediment,sub sea sediment,Environment_Medium_SD,sediment,high,environmental medium
+7,Environment (Local Scale),Paddy rhizospheric soil,paddy rhizospheric soil,Environment_Medium_SD,soil,high,environmental medium
+7,Environment (Local Scale),Wall biofilm,wall biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+7,Environment (Local Scale),contaminated air [ENVO:01000676],contaminated air envo 01000676,Environment_Medium_SD,air,high,environmental medium
+7,Environment (Local Scale),bottom seawater near Arviat,bottom seawater near arviat,Environment_Medium_SD,seawater,high,water type
+7,Environment (Local Scale),Soil [ENVO:00001998],soil envo 00001998,Environment_Medium_SD,soil,high,environmental medium
+7,Environment (Local Scale),sea water | surface water,sea water surface water,Environment_Medium_SD,seawater,high,water type
+7,Environment (Local Scale),wastewater treatment plant [ENVO:00002043],wastewater treatment plant envo 00002043,Environment_Medium_SD,wastewater,high,environmental medium
+6,Isolation Source,Feces of Homo sapiens (CIV),feces of homo sapiens,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,Feces of Homo sapiens (DRC),feces of homo sapiens,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,feces chicken house,feces chicken house,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,poultry house fecal,poultry house fecal,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,cow manure scat soil,cow manure scat soil,Environment_Medium_SD,soil,high,environmental medium
+6,Isolation Source,stool sample from patient with hemolytic uremic syndrome (HUS),stool sample from patient with hemolytic uremic syndrome,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,Poultry feces,poultry feces,Sample_Type_SD,feces/stool,high,fecal material
+6,Isolation Source,patient sputum,patient sputum,Sample_Type_SD,sputum,high,respiratory material
+6,Isolation Source,a feces sample of chicken origin,a feces sample of chicken origin,Sample_Type_SD,feces/stool,high,fecal material
+6,Host Disease,Surveillance,surveillance,Sample_Type_SD,surveillance sample,medium,screening/surveillance descriptor
+6,Isolation Site,soil,soil,Environment_Medium_SD,soil,high,environmental medium
+6,Environment (Local Scale),soil zone,soil zone,Environment_Medium_SD,soil,high,environmental medium
+6,Environment (Local Scale),garden soil [ENVO:00002263],garden soil envo 00002263,Environment_Medium_SD,soil,high,environmental medium
+6,Environment (Local Scale),leafy wood soil [ENVO:00005783],leafy wood soil envo 00005783,Environment_Medium_SD,soil,high,environmental medium
+6,Host Disease,Johne's disease,johne s disease,Host_Health_State_SD,diseased,medium,health state
+6,Host Disease,peptic ulcer disease,peptic ulcer disease,Host_Health_State_SD,diseased,medium,health state
+6,Host Disease,Enteric disease,enteric disease,Host_Health_State_SD,diseased,medium,health state
+6,Environment Medium,Stool sample,stool sample,Sample_Type_SD,feces/stool,high,fecal material
+6,Environment Medium,Treponeme-associated hoof disease lesion,treponeme associated hoof disease lesion,Host_Health_State_SD,diseased,medium,health state
+6,Environment (Local Scale),sandy loam soil,sandy loam soil,Environment_Medium_SD,soil,high,environmental medium
+6,Environment (Local Scale),Inland soil,inland soil,Environment_Medium_SD,soil,high,environmental medium
+6,Isolation Site,Sea water,seawater,Environment_Medium_SD,seawater,high,water type
+6,Environment (Local Scale),non-saline sediment environment [ENVO_01001049],non saline sediment environment envo 01001049,Environment_Medium_SD,sediment,high,environmental medium
+6,Isolation Site,seawater,seawater,Environment_Medium_SD,seawater,high,water type
+6,Environment (Local Scale),sewage [ENVO:00002000],sewage envo 00002000,Environment_Medium_SD,sewage,high,environmental medium
+6,Environment (Local Scale),deep-sea sediment,deep sea sediment,Environment_Medium_SD,sediment,high,environmental medium
+6,Host Disease,Borrelia miyamotoi disease (Hard Tick-Borne Relapsing Fever),borrelia miyamotoi disease,Host_Health_State_SD,diseased,medium,health state
+6,Isolation Source,cattle blood,cattle blood,Sample_Type_SD,blood,high,clinical material
+6,Isolation Site,Seawater,seawater,Environment_Medium_SD,seawater,high,water type
+6,Environment (Local Scale),terrestrial mud volcano sediment,terrestrial mud volcano sediment,Environment_Medium_SD,sediment,high,environmental medium
+5,Isolation Source,"Animal, pig feces",animal pig feces,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,stool (fecal) sample from septic human participant,stool sample from septic human participant,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,soil from poultry environment,soil from poultry environment,Environment_Medium_SD,soil,high,environmental medium
+5,Isolation Source,"Human, stool",human stool,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,"Turkey hen, feces",turkey hen feces,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,healthy cattle faeces,healthy cattle faeces,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,feces chicken house middle,feces chicken house middle,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,feces chicken house back,feces chicken house back,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,Patient blood,patient blood,Sample_Type_SD,blood,high,clinical material
+5,Isolation Source,stool sample from patient,stool sample from patient,Sample_Type_SD,feces/stool,high,fecal material
+5,Isolation Source,fecal sample of diarrhea patient,fecal sample of diarrhea patient,Sample_Type_SD,feces/stool,high,fecal material
+5,Environment (Local Scale),sewage influx,sewage influx,Environment_Medium_SD,sewage,high,environmental medium
+5,Environment (Local Scale),Garden soil,garden soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),deep sea sediment,deep sea sediment,Environment_Medium_SD,sediment,high,environmental medium
+5,Environment (Local Scale),field soil,field soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),Petroleum contaminated soil,petroleum contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+5,Sample Type,Wastewater,wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+5,Isolation Site,Mediterranean Grassland Soil,mediterranean grassland soil,Environment_Medium_SD,soil,high,environmental medium
+5,Host Disease,TB-like disease,tb like disease,Host_Health_State_SD,diseased,medium,health state
+5,Host Disease,Legionnaire's disease,legionnaire s disease,Host_Health_State_SD,diseased,medium,health state
+5,Isolation Source,blood sample of melioidosis patient,blood sample of melioidosis patient,Sample_Type_SD,blood,high,clinical material
+5,Host Disease,"veterinary clinical/research, other animal",veterinary clinical research other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+5,Host Disease,veterinary clinical/research| other animal,veterinary clinical research other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+5,Environment (Local Scale),Rhizosphere soil,rhizosphere soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),Sea water,seawater,Environment_Medium_SD,seawater,high,water type
+5,Environment (Local Scale),Sea Water,seawater,Environment_Medium_SD,seawater,high,water type
+5,Environment (Local Scale),Non-rhizosphere soil,non rhizosphere soil,Environment_Medium_SD,soil,high,environmental medium
+5,Isolation Site,Activated sludge,activated sludge,Environment_Medium_SD,sludge,high,environmental medium
+5,Host Disease,Gastrointestinal system disease,gastrointestinal system disease,Host_Health_State_SD,diseased,medium,health state
+5,Environment (Local Scale),top soil,top soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),diseased plant,diseased plant,Host_Health_State_SD,diseased,medium,health state
+5,Host Disease,Carrion’s disease,carrion s disease,Host_Health_State_SD,diseased,medium,health state
+5,Isolation Source,lungs of sick pig,lungs of sick pig,Host_Health_State_SD,diseased,medium,health state
+5,Environment (Local Scale),ENVO:00002045 anaerobic sediment,envo 00002045 anaerobic sediment,Environment_Medium_SD,sediment,high,environmental medium
+5,Environment (Local Scale),Selenium rich soil,selenium rich soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),desert soil,desert soil,Environment_Medium_SD,soil,high,environmental medium
+5,Environment (Local Scale),sea water fish tank,sea water fish tank,Environment_Medium_SD,seawater,high,water type
+5,Sample Type,saline lake,saline lake,Environment_Medium_SD,lake water,high,water type
+4,Isolation Source,feces inside chicken tractor,feces inside chicken tractor,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,Human Faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,patient stool,patient stool,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,wastewater cattle,wastewater cattle,Environment_Medium_SD,wastewater,high,environmental medium
+4,Isolation Source,feces chicken house front,feces chicken house front,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,Patient Urine,patient urine,Sample_Type_SD,urine,high,clinical material
+4,Isolation Source,feces turkey,feces turkey,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,human stool sample,human stool sample,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,clinically diseased pig,clinically diseased pig,Host_Health_State_SD,diseased,medium,health state
+4,Isolation Source,Sheep feces,sheep feces,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,sputum sample from patient,sputum sample from patient,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Source,blood culture from bacteremic patient,blood culture from bacteremic patient,Sample_Type_SD,blood,high,clinical material
+4,Isolation Source,Sputum from a patient,sputum from a patient,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Source,sputum from COVID-19 patient,sputum from covid 19 patient,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Source,Urine from patient,urine from patient,Sample_Type_SD,urine,high,clinical material
+4,Isolation Source,sputum of cystic fibrosis patient,sputum of cystic fibrosis patient,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Source,sputum of adult bronchiectasis patient,sputum of adult bronchiectasis patient,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Source,Pig (nursery) - fecal,pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+4,Isolation Source,Healthy human,healthy human,Host_Health_State_SD,healthy/no disease reported,medium,health state
+4,Environment (Local Scale),meadow soil [ENVO:00005761],meadow soil envo 00005761,Environment_Medium_SD,soil,high,environmental medium
+4,Host Disease,"Pulmonary Disease, Chronic Obstructive",pulmonary disease chronic obstructive,Host_Health_State_SD,diseased,medium,health state
+4,Host Disease,disease carrier,disease carrier,Host_Health_State_SD,diseased,medium,health state
+4,Environment (Local Scale),soil [ENVO_00001998],soil envo 00001998,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),Soil beneath apple trees growing in garden with animals,soil beneath apple trees growing in garden with animals,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),plant rhizosphere,plant rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),mercury contaminated soil,mercury contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+4,Host Disease,Stool colonization,stool colonization,Sample_Type_SD,feces/stool,high,fecal material
+4,Sample Type,MIGS/MIMS/MIMARKS.soil,migs mims mimarks.soil,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),Deep sediment,deep sediment,Environment_Medium_SD,sediment,high,environmental medium
+4,Environment (Local Scale),subtidal zone biofilm,subtidal zone biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+4,Environment Medium,Bronchoalveolar Lavage Fluid,bronchoalveolar lavage fluid,Sample_Type_SD,bronchoalveolar lavage fluid,high,respiratory material
+4,Isolation Source,Fecal samples from slaughtered sheep,fecal samples from slaughtered sheep,Sample_Type_SD,feces/stool,high,fecal material
+4,Sample Type,Total RNA control,total rna control,Host_Health_State_SD,healthy/no disease reported,medium,health state
+4,Host Disease,Redmouth disease,redmouth disease,Host_Health_State_SD,diseased,medium,health state
+4,Host Disease,malignant disease,malignant disease,Host_Health_State_SD,diseased,medium,health state
+4,Isolation Site,diseased cotton,diseased cotton,Host_Health_State_SD,diseased,medium,health state
+4,Host Disease,alzheimer disease,alzheimer disease,Host_Health_State_SD,diseased,medium,health state
+4,Environment Medium,human faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+4,Environment (Local Scale),Soil biome,soil biome,Environment_Medium_SD,soil,high,environmental medium
+4,Isolation Source,sputum sample from a patient with lung infection,sputum sample from a patient with lung infection,Sample_Type_SD,sputum,high,respiratory material
+4,Isolation Site,Soil of a ginseng field,soil of a ginseng field,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),sludge [ENVO:00003043],sludge envo 00003043,Environment_Medium_SD,sludge,high,environmental medium
+4,Host Disease,Moko disease,moko disease,Host_Health_State_SD,diseased,medium,health state
+4,Environment (Broad Scale),"patient,sputum",patient sputum,Sample_Type_SD,sputum,high,respiratory material
+4,Host Disease,biliary tract disease,biliary tract disease,Host_Health_State_SD,diseased,medium,health state
+4,Environment (Local Scale),surface seawater near Arviat,surface seawater near arviat,Environment_Medium_SD,seawater,high,water type
+4,Environment (Local Scale),SOIL,soil,Environment_Medium_SD,soil,high,environmental medium
+4,Host Disease,Cat Scratch Disease,cat scratch disease,Host_Health_State_SD,diseased,medium,health state
+4,Environment (Local Scale),sandy soil,sandy soil,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),Mariana Trench sediment,mariana trench sediment,Environment_Medium_SD,sediment,high,environmental medium
+4,Environment (Local Scale),Excretion of urine,excretion of urine,Sample_Type_SD,urine,high,clinical material
+4,Environment (Local Scale),Surficial sediment,surficial sediment,Environment_Medium_SD,sediment,high,environmental medium
+4,Isolation Source,"blood of patient with fever after tick-bite innoculated in SCID mouse, and isolated in MKP-F culture",blood of patient with fever after tick bite innoculated in scid mouse and isolated in mkp f culture,Sample_Type_SD,blood,high,clinical material
+4,Isolation Site,Coastal seawater,coastal seawater,Environment_Medium_SD,seawater,high,water type
+4,Environment (Local Scale),Freshwater sediment,freshwater sediment,Environment_Medium_SD,sediment,high,environmental medium
+4,Environment (Local Scale),plateau soil,plateau soil,Environment_Medium_SD,soil,high,environmental medium
+4,Environment (Local Scale),Marine sea water,marine sea water,Environment_Medium_SD,seawater,high,water type
+4,Environment (Local Scale),Waste Water [ENVO:00002001],waste water envo 00002001,Environment_Medium_SD,wastewater,high,environmental medium
+4,Sample Type,biofilm,biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+3,Isolation Source,sheep shelter feces,sheep shelter feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,cow stool,cow stool,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,Human-Stool,human stool,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,cow feces (Bos taurus),cow feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,feces swine,feces swine,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,Clinically healthy swine,clinically healthy swine,Host_Health_State_SD,healthy/no disease reported,medium,health state
+3,Isolation Source,Human urine sample,human urine sample,Sample_Type_SD,urine,high,clinical material
+3,Isolation Source,feces from diarrhea of infected patient,feces from diarrhea of infected patient,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,Faeces - Cattle - Local livestock market,faeces cattle local livestock market,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,human fecal,human fecal,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,cattle manure with soil,cattle manure with soil,Environment_Medium_SD,soil,high,environmental medium
+3,Isolation Source,Patient Sputum,patient sputum,Sample_Type_SD,sputum,high,respiratory material
+3,Isolation Source,Urine sample from patient with Septicemia,urine sample from patient with septicemia,Sample_Type_SD,urine,high,clinical material
+3,Isolation Source,feces sheep,feces sheep,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,turkey feces,turkey feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,patient blood culture,patient blood culture,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,blood sample from patient with septicemia,blood sample from patient with septicemia,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,Diarrheal patient stool,diarrheal patient stool,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,stool sample from Guillain-Barre syndrome patient,stool sample from guillain barre syndrome patient,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,chicken fecal material,chicken fecal material,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,blood from hepatitis patient,blood from hepatitis patient,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,sputum from a cystic fibrosis patient,sputum from a cystic fibrosis patient,Sample_Type_SD,sputum,high,respiratory material
+3,Isolation Source,blood from patient with pneumonia,blood from patient with pneumonia,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,Blood from patient,blood from patient,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,Blood from patient with systemic infection,blood from patient with systemic infection,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,blood sample from patient with septicaemia,blood sample from patient with septicaemia,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,"patient, stool",patient stool,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,Feces of patient with diarrhea,feces of patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,feces from hospitalized patient,feces from hospitalized patient,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment Medium,rectal swab,rectal swab,Sample_Type_SD,rectal swab,high,swab material
+3,Environment (Local Scale),Wastewater treatment plant influents,wastewater treatment plant influents,Environment_Medium_SD,wastewater,high,environmental medium
+3,Environment (Local Scale),rectal swab,rectal swab,Sample_Type_SD,rectal swab,high,swab material
+3,Host Disease,sputum,sputum,Sample_Type_SD,sputum,high,respiratory material
+3,Host Disease,No disease,no disease,Host_Health_State_SD,diseased,medium,health state
+3,Environment (Local Scale),sediment [ENVO_00002007],sediment envo 00002007,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),Heavy metal contaminated soil,heavy metal contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),garden soil,garden soil,Environment_Medium_SD,soil,high,environmental medium
+3,Host Disease,"fish, other animal",fish other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+3,Host Disease,Liver disease,liver disease,Host_Health_State_SD,diseased,medium,health state
+3,Environment (Broad Scale),Biofilm,biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+3,Environment (Local Scale),desert surface [ENVO:01001020]|subsurface soil [ENVO:00005791],desert surface envo 01001020 subsurface soil envo 00005791,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),Air,air,Environment_Medium_SD,air,high,environmental medium
+3,Isolation Source,cattle fecal sample,cattle fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+3,Host Disease,other aquatic animals,other aquatic animals,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+3,Host Disease,Meningococcal disease,meningococcal disease,Host_Health_State_SD,diseased,medium,health state
+3,Host Disease,Respiratory Tract Disease,respiratory tract disease,Host_Health_State_SD,diseased,medium,health state
+3,Isolation Source,Feces of healthy 3-month-old male infants,feces of healthy 3 month old male infants,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Site,Sewage,sewage,Environment_Medium_SD,sewage,high,environmental medium
+3,Environment Medium,feces from baby,feces from baby,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment Medium,Human feces,human feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Isolation Source,blood from Melioidosis patient,blood from melioidosis patient,Sample_Type_SD,blood,high,clinical material
+3,Host Disease,blood,blood,Sample_Type_SD,blood,high,clinical material
+3,Isolation Source,adult patient with underlying chronic lung disease,adult patient with underlying chronic lung disease,Host_Health_State_SD,diseased,medium,health state
+3,Host Disease,Screening,screening,Sample_Type_SD,surveillance sample,medium,screening/surveillance descriptor
+3,Host Disease,other (confectionery),other,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+3,Environment Medium,catheterized bladder urine,catheterized bladder urine,Sample_Type_SD,urine,high,clinical material
+3,Environment Medium,infant feces,infant feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment (Local Scale),catheterized urine,catheterized urine,Sample_Type_SD,urine,high,clinical material
+3,Environment (Local Scale),Quality control table,quality control table,Host_Health_State_SD,healthy/no disease reported,medium,health state
+3,Host Disease,Moyamoya disease,moyamoya disease,Host_Health_State_SD,diseased,medium,health state
+3,Host Disease,Hemiplegia due to cerebrovascular disease,hemiplegia due to cerebrovascular disease,Host_Health_State_SD,diseased,medium,health state
+3,Environment Medium,human feces,human feces,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment Medium,Nasal swab,nasal swab,Sample_Type_SD,nasal swab,high,upper respiratory swab
+3,Environment (Local Scale),Hydrothermal vents sediment,hydrothermal vents sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Isolation Source,sputum sample from patient with lung infection,sputum sample from patient with lung infection,Sample_Type_SD,sputum,high,respiratory material
+3,Environment (Local Scale),field [ENVO:01000352] | upland soil [ENVO:000005786],field envo 01000352 upland soil envo 000005786,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),8 km downstream of Halberstadt wastewater treatment plant,8 km downstream of halberstadt wastewater treatment plant,Environment_Medium_SD,wastewater,high,environmental medium
+3,Environment (Local Scale),Sewage treatment plant,sewage treatment plant,Environment_Medium_SD,sewage,high,environmental medium
+3,Environment (Local Scale),"permafrost, ancient, soil northeast siberian, kolyma",permafrost ancient soil northeast siberian kolyma,Environment_Medium_SD,soil,high,environmental medium
+3,Environment Medium,fecal samples of Indri,fecal samples of indri,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment (Local Scale),soil degradation [ENVO:01000705],soil degradation envo 01000705,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),soil fauna,soil fauna,Environment_Medium_SD,soil,high,environmental medium
+3,Environment Medium,Healthy phenotype,healthy phenotype,Host_Health_State_SD,healthy/no disease reported,medium,health state
+3,Environment (Local Scale),bottom soil,bottom soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),Faecal environment [ENVO:01001029],faecal environment envo 01001029,Sample_Type_SD,feces/stool,high,fecal material
+3,Environment (Local Scale),Waste contaminated soil,waste contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),Saline soil,saline soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),disturbed soil,disturbed soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),Arsenic-enriched soil,arsenic enriched soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),brackish sediment,brackish sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),surface seawater,surface seawater,Environment_Medium_SD,seawater,high,water type
+3,Environment (Local Scale),rhizosphere [ENVO:00005801],rhizosphere envo 00005801,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),creek sediment,creek sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),8 km downstream of Wernigerode-Silstedt wastewater treatment plant,8 km downstream of wernigerode silstedt wastewater treatment plant,Environment_Medium_SD,wastewater,high,environmental medium
+3,Environment (Local Scale),surface soil,surface soil,Environment_Medium_SD,soil,high,environmental medium
+3,Isolation Site,Lake Washington sediment,lake washington sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),crude oil contaminated soil,crude oil contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),sewage treatment plant,sewage treatment plant,Environment_Medium_SD,sewage,high,environmental medium
+3,Isolation Site,Sea-water sample,sea water sample,Environment_Medium_SD,seawater,high,water type
+3,Environment (Local Scale),"terraced surface, where peaty soil has formed over cliff rock",terraced surface where peaty soil has formed over cliff rock,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),Deep marine sediment ENVO:00002113,deep marine sediment envo 00002113,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),mangrove sediment,mangrove sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),area of barren land [ENVO:01000752] | bare soil [ENVO:01001616],area of barren land envo 01000752 bare soil envo 01001616,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),granitic desert soil,granitic desert soil,Environment_Medium_SD,soil,high,environmental medium
+3,Environment Medium,blood [ENVO:02000027],blood envo 02000027,Sample_Type_SD,blood,high,clinical material
+3,Environment (Local Scale),contaminated soil|contaminated water,contaminated soil contaminated water,Environment_Medium_SD,soil,high,environmental medium
+3,Isolation Site,Sakinaw Lake,sakinaw lake,Environment_Medium_SD,lake water,high,water type
+3,Environment (Local Scale),Rhizosphere of Pinus,rhizosphere of pinus,Environment_Medium_SD,soil,high,environmental medium
+3,Environment (Local Scale),marine solar saltern sediment,marine solar saltern sediment,Environment_Medium_SD,sediment,high,environmental medium
+3,Environment (Local Scale),Marine sediment [ENVO:03000033]|Bay [ENVO:00000032],marine sediment envo 03000033 bay envo 00000032,Environment_Medium_SD,sediment,high,environmental medium
+2,Isolation Source,food-brone disease patient,food brone disease patient,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,swine urine,swine urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,sick pig,sick pig,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,swine soil,swine soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Source,feces from bloody feces of infected patient,feces from bloody feces of infected patient,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Urine - Community-acquired human infection - Outpatient clinic,urine community acquired human infection outpatient clinic,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,SWINE FECES,swine feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Cattle fecal matter,cattle fecal matter,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,cow pasture fecal,cow pasture fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,sick pig lung,sick pig lung,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,Healthy human (stool),healthy human,Host_Health_State_SD,healthy/no disease reported,medium,health state
+2,Isolation Source,soil from swine farming environment,soil from swine farming environment,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Source,fecal steer,fecal steer,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,healthy human stool samples,healthy human stool samples,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,human feces of different individuals,human feces of different individuals,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Urine sample from patient with Pyelonephritis,urine sample from patient with pyelonephritis,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,cattle fecal,cattle fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,bovine cow blood,bovine cow blood,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,swine faeces,swine faeces,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Chicken blood (Gallus gallus),chicken blood,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,sick chicken lung,sick chicken lung,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,feces market swine (Sus scrofa),feces market swine,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,steer feces (Bos taurus),steer feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,fecal sample from patient,fecal sample from patient,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,human disease,human disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,lung of a diseased pig,lung of a diseased pig,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Broad Scale),Blood; Host,blood host,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,human stool swab,human stool swab,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Chicken fecal material,chicken fecal material,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,"Cow, fecal",cow fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,"Human, fecal",human fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,blood sample from patient with bacteremia,blood sample from patient with bacteremia,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,blood from patient,blood from patient,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,blood from patient with septicemia,blood from patient with septicemia,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,patient urine,patient urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,blood culture from a patient in a burn unit,blood culture from a patient in a burn unit,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,Patient urine,patient urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,Sputum from patient from coronary care unit,sputum from patient from coronary care unit,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,feces cattle (Bos taurus),feces cattle,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,blood from 86 year old patient,blood from 86 year old patient,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,human-associated habitat | urine,human associated habitat urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,"chicken blood-fed, lab-reared Aedes aegypti mosquito",chicken blood fed lab reared aedes aegypti mosquito,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,feces from mastitis cow,feces from mastitis cow,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,"patient, urine",patient urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Source,blood sample from hospitalized patient 2,blood sample from hospitalized patient 2,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,chicken fecal,chicken fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Pig (grower) - fecal,pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,feces of a diseased cow,feces of a diseased cow,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Local Scale),Wastewater sludge/ Sewer sludge,wastewater sludge sewer sludge,Environment_Medium_SD,sludge,high,environmental medium
+2,Environment (Local Scale),Wastewater treatment plant effluents,wastewater treatment plant effluents,Environment_Medium_SD,wastewater,high,environmental medium
+2,Environment (Local Scale),paddy soil,paddy soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),ENVO:Soil,envo soil,Environment_Medium_SD,soil,high,environmental medium
+2,Host Disease,pathogen fecal carriage,pathogen fecal carriage,Sample_Type_SD,feces/stool,high,fecal material
+2,Host Disease,Urogenital disease,urogenital disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,fecal sample from chicken,fecal sample from chicken,Sample_Type_SD,feces/stool,high,fecal material
+2,Sample Type,Cassava wastewater,cassava wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+2,Environment (Local Scale),soil [ENVO:00002007],soil envo 00002007,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Soil beneath apple trees growing in garden,soil beneath apple trees growing in garden,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),petroleum polluted soil,petroleum polluted soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),air sampler,air sampler,Environment_Medium_SD,air,high,environmental medium
+2,Environment (Local Scale),Pig faeces,pig faeces,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Local Scale),Tea plant soil,tea plant soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Sunflower rhizosphere soil,sunflower rhizosphere soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Desert soil,desert soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),hypersaline soil,hypersaline soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),geothermal soil,geothermal soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Wastewater treatment plants (WWTPs) in Seville,wastewater treatment plants in seville,Environment_Medium_SD,wastewater,high,environmental medium
+2,Isolation Site,marine sediment,marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),Nearshore Sediment,nearshore sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),Costal sediment,costal sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),Deep-sea water,deep sea water,Environment_Medium_SD,seawater,high,water type
+2,Environment (Local Scale),Surface soil,surface soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Source,patient 8 stool,patient 8 stool,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,patient 9 stool,patient 9 stool,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Healthy chicken intestine,healthy chicken intestine,Host_Health_State_SD,healthy/no disease reported,medium,health state
+2,Isolation Source,healthy human feces,healthy human feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,Fecal sample extract in 12.5% glycerol and 0.9 % NaCl,fecal sample extract in 12.5 glycerol and 0.9 nacl,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,sputum of a patient with pulmonary disease,sputum of a patient with pulmonary disease,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,sputum from a patient infected with tuberculosis,sputum from a patient infected with tuberculosis,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,sputum sample from patient with tuberculosis,sputum sample from patient with tuberculosis,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,sputum of patient with mycobacteriosis,sputum of patient with mycobacteriosis,Sample_Type_SD,sputum,high,respiratory material
+2,Host Disease,MAC disease,mac disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,Bacterial disease,bacterial disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),air scrubber 1,air scrubber 1,Environment_Medium_SD,air,high,environmental medium
+2,Isolation Source,Feces of healthy 12 day male infants,feces of healthy 12 day male infants,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,stool sample,stool sample,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,infant stool,infant stool,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,fecal material [ENVO:00002013],fecal material envo 00002013,Sample_Type_SD,feces/stool,high,fecal material
+2,Host Disease,seeds| other (flavoring or seasoning),seeds other,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Isolation Source,sputum sample of melioidosis patient,sputum sample of melioidosis patient,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,sputum isolated from a patient with a primary melioidosis infection,sputum isolated from a patient with a primary melioidosis infection,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,sputum from non-CF patient,sputum from non cf patient,Sample_Type_SD,sputum,high,respiratory material
+2,Isolation Source,blood from melioidosis patient,blood from melioidosis patient,Sample_Type_SD,blood,high,clinical material
+2,Environment Medium,Cystic fibrosis Sputum,cystic fibrosis sputum,Sample_Type_SD,sputum,high,respiratory material
+2,Environment (Local Scale),Water Processor Assembly,water processor assembly,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Environment (Local Scale),The rhizosphere,the rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),waste water treatment plant,waste water treatment plant,Environment_Medium_SD,wastewater,high,environmental medium
+2,Host Disease,Invasive disease,invasive disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,Chronic Suppurative Lung Disease,chronic suppurative lung disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),raw sewage,raw sewage,Environment_Medium_SD,sewage,high,environmental medium
+2,Host Disease,chronic kidney disease,chronic kidney disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,end stage liver disease,end stage liver disease,Host_Health_State_SD,diseased,medium,health state
+2,Sample Type,Diseased field leaf,diseased field leaf,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),sludge,sludge,Environment_Medium_SD,sludge,high,environmental medium
+2,Host Disease,black rot disease,black rot disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,leaf scald disease,leaf scald disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Broad Scale),human faeces,human faeces,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,urine sample,urine sample,Sample_Type_SD,urine,high,clinical material
+2,Host Health State,general department ICU,general department icu,Isolation_Source_SD,healthcare facility,high,healthcare-associated location
+2,Isolation Source,Human blood culture,human blood culture,Sample_Type_SD,blood,high,clinical material
+2,Isolation Source,blood of a patient with bacteraemia of unknown origin,blood of a patient with bacteraemia of unknown origin,Sample_Type_SD,blood,high,clinical material
+2,Isolation Site,Saline soil,saline soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Soil beneath apple trees growing in cultivated orchard,soil beneath apple trees growing in cultivated orchard,Environment_Medium_SD,soil,high,environmental medium
+2,Host Disease,Respiratory Disease,respiratory disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,multi-ingredient| other (confectionery)| seeds,multi ingredient other seeds,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Host Disease,other (sweetener),other,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Host Disease,environmental| other animal,environmental other animal,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Host Disease,Nasopharynx of a respiratory disease,nasopharynx of a respiratory disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,sputum of a patient with lung infections,sputum of a patient with lung infections,Sample_Type_SD,sputum,high,respiratory material
+2,Host Disease,Skin disease,skin disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,cystocentesis urine,cystocentesis urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Site,Farmland soil,farmland soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),urine sample,urine sample,Sample_Type_SD,urine,high,clinical material
+2,Environment (Local Scale),Loam soil,loam soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Source,Human adult fecal sample,human adult fecal sample,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,swine feces,swine feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,diseased cattle,diseased cattle,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,Lewy Body Disease,lewy body disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),fecal environment [ENVO:01001029],fecal environment envo 01001029,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Local Scale),Sandy-loam soil,sandy loam soil,Environment_Medium_SD,soil,high,environmental medium
+2,Host Disease,Corn Decline Disease,corn decline disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,Banana blood disease,banana blood disease,Sample_Type_SD,blood,high,clinical material
+2,Host Disease,Ralstonia wilt disease,ralstonia wilt disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Source,"human with endocarditis, blood",human with endocarditis blood,Sample_Type_SD,blood,high,clinical material
+2,Isolation Site,Sewage sludge compost,sewage sludge compost,Environment_Medium_SD,sludge,high,environmental medium
+2,Sample Type,wastewater treatment plants,wastewater treatment plants,Environment_Medium_SD,wastewater,high,environmental medium
+2,Environment (Local Scale),intestine environment [ENVO:2100002]|fecal environment [ENVO:01001029],intestine environment envo 2100002 fecal environment envo 01001029,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Broad Scale),"patient, blood",patient blood,Sample_Type_SD,blood,high,clinical material
+2,Environment (Local Scale),contaminated soil,contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+2,Host Disease,Glassers Disease,glassers disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment Medium,ENVO:feces,envo feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Local Scale),"forest soil, summer, South Korea",forest soil summer south korea,Environment_Medium_SD,soil,high,environmental medium
+2,Environment Medium,human blood,human blood,Sample_Type_SD,blood,high,clinical material
+2,Environment (Local Scale),Silty clay loam soil,silty clay loam soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),bulk soil,bulk soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Rhizospheric soil biome,rhizospheric soil biome,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Freshwater lake,freshwater lake,Environment_Medium_SD,lake water,high,water type
+2,Environment (Local Scale),soil with traces of petroleum hydrocarbons,soil with traces of petroleum hydrocarbons,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),PAH-contaminated soil sample from a bitumen factory,pah contaminated soil sample from a bitumen factory,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,"Sediment, freshwater (freshwater sediments, artificial channels) Minnesota",sediment freshwater minnesota,Environment_Medium_SD,sediment,high,environmental medium
+2,Isolation Source,female pig fecal storage tank,female pig fecal storage tank,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Diarrheic Human Stool,diarrheic human stool,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,Healthy Human Stool,healthy human stool,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,diseased stem of tobacco,diseased stem of tobacco,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),Rhizosphere-5ppm,rhizosphere 5ppm,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Sea water (ENVO:00002149),seawater,Environment_Medium_SD,seawater,high,water type
+2,Environment (Local Scale),air conditioner condensate pipe,air conditioner condensate pipe,Environment_Medium_SD,air,high,environmental medium
+2,Environment Medium,crow feces,crow feces,Sample_Type_SD,feces/stool,high,fecal material
+2,Isolation Source,feces from a healthy human,feces from a healthy human,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,cow faeces,cow faeces,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment Medium,feces from a healthy human,feces from a healthy human,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Broad Scale),Healthy cow,healthy cow,Host_Health_State_SD,healthy/no disease reported,medium,health state
+2,Environment (Local Scale),field vole blood,field vole blood,Sample_Type_SD,blood,high,clinical material
+2,Sample Type,lake,lake,Environment_Medium_SD,lake water,high,water type
+2,Environment (Local Scale),rhizosphere zone,rhizosphere zone,Environment_Medium_SD,soil,high,environmental medium
+2,Environment Medium,feces of Naemorhedus caudatus,feces of naemorhedus caudatus,Sample_Type_SD,feces/stool,high,fecal material
+2,Environment (Local Scale),park soil,park soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment Medium,balf,balf,Sample_Type_SD,bronchoalveolar lavage fluid,high,respiratory material
+2,Environment (Local Scale),marine sediment [ENVO:00002154],marine sediment envo 00002154,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),forestry [ENVO_01001432]|soil [ENVO:00002003],forestry envo 01001432 soil envo 00002003,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),bare soil [ENVO:01001616 ],bare soil envo 01001616,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Five humified soil samples,five humified soil samples,Environment_Medium_SD,soil,high,environmental medium
+2,Environment Medium,Human sputum,human sputum,Sample_Type_SD,sputum,high,respiratory material
+2,Environment (Broad Scale),Human sputum,human sputum,Sample_Type_SD,sputum,high,respiratory material
+2,Environment (Local Scale),Human sputum,human sputum,Sample_Type_SD,sputum,high,respiratory material
+2,Environment (Local Scale),gypsiferous soil,gypsiferous soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Air sample,air sample,Environment_Medium_SD,air,high,environmental medium
+2,Isolation Site,"Soil, sonoran desert; USA, Arizona",soil sonoran desert usa arizona,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Vineyard soil,vineyard soil,Environment_Medium_SD,soil,high,environmental medium
+2,Sample Type,control,control,Host_Health_State_SD,healthy/no disease reported,medium,health state
+2,Environment (Local Scale),soil rhizosphere,soil rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+2,Environment Medium,URINE,urine,Sample_Type_SD,urine,high,clinical material
+2,Isolation Site,"Sediment, saltwater isolation date: September 23, 2001",sediment saltwater isolation date september 23 2001,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment Medium,nasopharyngeal swab,nasopharyngeal swab,Sample_Type_SD,nasopharyngeal swab,high,upper respiratory swab
+2,Environment (Local Scale),Wastewater treatment plant,wastewater treatment plant,Environment_Medium_SD,wastewater,high,environmental medium
+2,Isolation Site,saline-alkaline soil,saline alkaline soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),Ex-landfill soil,ex landfill soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),JPL Spacecraft Assembly Facility,jpl spacecraft assembly facility,Sample_Type_SD,metadata descriptor/non-source,high,metadata/admin descriptor
+2,Host Disease,Hemorrhagic disease,hemorrhagic disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Site,Soda lake sediment,soda lake sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),freshwater sediment,freshwater sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),meadow soil,meadow soil,Environment_Medium_SD,soil,high,environmental medium
+2,Host Disease,Borrelia miyamotoi disease,borrelia miyamotoi disease,Host_Health_State_SD,diseased,medium,health state
+2,Isolation Site,Biological soil crusts,biological soil crusts,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),organohalide contaminated sediment,organohalide contaminated sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),soil[ENV0:01001044],soil env0 01001044,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,"Marine sediment beside whale carcasses isolation date: September, 2003",marine sediment beside whale carcasses isolation date september 2003,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),deep trench amphipod associated and seawater,deep trench amphipod associated and seawater,Environment_Medium_SD,seawater,high,water type
+2,Isolation Site,"Marine biofilm on stainless steel electrode from Genoa harbour, Italy",marine biofilm on stainless steel electrode from genoa harbour italy,Environment_Medium_SD,biofilm,high,environmental medium
+2,Environment (Local Scale),"microbial feature [ENVO:01000007], biofilm[ENVO:00002034], sulphate-reducing sediment [ENVO:01000153]",microbial feature envo 01000007 biofilm envo 00002034 sulphate reducing sediment envo 01000153,Environment_Medium_SD,biofilm,high,environmental medium
+2,Isolation Site,Soil from a ginseng field,soil from a ginseng field,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Forest soil,forest soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Rice-paddy soil,rice paddy soil,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),sediment enrichment,sediment enrichment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),rhizosphere of Brassica napus var. Huayouza 62 grown in a soil mix under controlled conditions,rhizosphere of brassica napus var. huayouza 62 grown in a soil mix under controlled conditions,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Sediment sample from salt lake,sediment sample from salt lake,Environment_Medium_SD,sediment,high,environmental medium
+2,Isolation Site,"water sample from a subterranean saline lake on Mallorca, Spain",water sample from a subterranean saline lake on mallorca spain,Environment_Medium_SD,lake water,high,water type
+2,Environment (Local Scale),deep marine sediment,deep marine sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Sample Type,low-mineralized lake,low mineralized lake,Environment_Medium_SD,lake water,high,water type
+2,Isolation Source,chicken yard soil,chicken yard soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Source,soil from chicken yard,soil from chicken yard,Environment_Medium_SD,soil,high,environmental medium
+2,Environment (Local Scale),flocculant sediment,flocculant sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),Plant rhizosphere soil,plant rhizosphere soil,Environment_Medium_SD,soil,high,environmental medium
+2,Isolation Site,Sediment sample,sediment sample,Environment_Medium_SD,sediment,high,environmental medium
+2,Isolation Site,Tidal flat sediment,tidal flat sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),marine water,marine water,Environment_Medium_SD,seawater,high,water type
+2,Environment (Local Scale),anaerobic sludge,anaerobic sludge,Environment_Medium_SD,sludge,high,environmental medium
+2,Isolation Site,Anaerobic activated sludge of molasses wastewater in a continuous stirred-tank reactor,anaerobic activated sludge of molasses wastewater in a continuous stirred tank reactor,Environment_Medium_SD,sludge,high,environmental medium
+2,Isolation Source,Male patient with Chronic Granulomatous Disease,male patient with chronic granulomatous disease,Host_Health_State_SD,diseased,medium,health state
+2,Host Disease,Chronic Granulomatous Disease,chronic granulomatous disease,Host_Health_State_SD,diseased,medium,health state
+2,Environment (Local Scale),tidal flat sediment,tidal flat sediment,Environment_Medium_SD,sediment,high,environmental medium
+2,Environment (Local Scale),Peaty bog soil,peaty bog soil,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,sick organs of a dead chicken,sick organs of a dead chicken,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,"Poultry, fresh feces",poultry fresh feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"Poultry, Food, Blood culture",poultry food blood culture,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Poultry Soil,poultry soil,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,HUMAN BLOOD,human blood,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Fecal samples from healthy people,fecal samples from healthy people,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,patient's blood flow,patient s blood flow,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,"Food, chicken feces",food chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"Human, feces",human feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"Animal, swine faeces",animal swine faeces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,poultry fecal,poultry fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,fecal swabs of 21-day-old healthy commercial broiler chickens,fecal swabs of 21 day old healthy commercial broiler chickens,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,chicken disease,chicken disease,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Patient stool,patient stool,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,human feces (food poisoning in man),human feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from Salmonellosis patient,stool sample from salmonellosis patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Animal - Chicken-Feces,animal chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from patient with gastroenteritis,stool sample from patient with gastroenteritis,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Diseased Chicken,diseased chicken,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,"Soil/Dust, Environment, Turkey Dust",soil dust environment turkey dust,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,"Soil/Dust, Environment, Poultry Dust",soil dust environment poultry dust,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,Stool sample from patient,stool sample from patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces from Chicken intestine,feces from chicken intestine,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,wild chicken feces,wild chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,dried poultry blood,dried poultry blood,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,"Human, faeces",human faeces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"""feces, feral swine""",feces feral swine,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Urine of the patient,urine of the patient,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,feces of a female patient,feces of a female patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,vasculated blood of an human,vasculated blood of an human,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,healthy cattle milk,healthy cattle milk,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,ehxA deletion mutant derived from parent strain EDL933 originally isolated from human feces,ehxa deletion mutant derived from parent strain edl933 originally isolated from human feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces steer,feces steer,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,chicken disposal area soil,chicken disposal area soil,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,feces from pig,feces from pig,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Feces of patient with hemolytic uremic syndrome,feces of patient with hemolytic uremic syndrome,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,poultry fecal material,poultry fecal material,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces of a male patient with diarrhea,feces of a male patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces of a female patient with diarrhea,feces of a female patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,milk from healthy cattle,milk from healthy cattle,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,stool sample from male patient with EHEC associated symptoms (bloody diarrhea),stool sample from male patient with ehec associated symptoms,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from female patient with EHEC symptoms (bloody diarrhea),stool sample from female patient with ehec symptoms,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,fecal sample of a patient suffering from bloody diarrhea and abdominal pain,fecal sample of a patient suffering from bloody diarrhea and abdominal pain,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from a 45-year old female patient suffering from diarrhea after traveling in Tunisia,stool sample from a 45 year old female patient suffering from diarrhea after traveling in tunisia,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from a female patient suffering from HUS,stool sample from a female patient suffering from hus,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces from chicken,feces from chicken,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from pediatric patient,stool sample from pediatric patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool of HUS-patient,stool of hus patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces turkey (Meleagris gallopavo),feces turkey,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Urine sample from patient with Prostitis,urine sample from patient with prostitis,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,Urine sample from patient with Pyrexia of unknown origin,urine sample from patient with pyrexia of unknown origin,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,"Feces, human",feces human,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,blood draw same patient as MB9267,blood draw same patient as mb9267,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Sick cow 3,sick cow 3,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Sick cow 1,sick cow 1,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,feces young chicken (Gallus gallus domesticus),feces young chicken,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,heifer feces (Bos taurus),heifer feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces young turkey (Meleagris gallopavo),feces young turkey,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,chicken feces houseback,chicken feces houseback,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,cow fecal manure,cow fecal manure,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,chicken house soil,chicken house soil,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,Blood from a 79-year-old female patient,blood from a 79 year old female patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,lung from Healthy pig in slaughterhouse,lung from healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,Healthy pig slaughterhouse,healthy pig slaughterhouse,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,Healthy pig in slaughterhouse,healthy pig in slaughterhouse,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,blood sample of a 1-year-old pediatric pneumonia patient,blood sample of a 1 year old pediatric pneumonia patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Saliva from clinically healthy pig,saliva from clinically healthy pig,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,Blood culture of endocarditis patient,blood culture of endocarditis patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Human blood; Patient with subacute bacterial endocarditis,human blood patient with subacute bacterial endocarditis,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,"Human sputum, pneumonia",human sputum pneumonia,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,"Human urine, cystitis",human urine cystitis,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,Blood of patient with acute articular rheumatism,blood of patient with acute articular rheumatism,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,enrichment of guinea pig fecal samples,enrichment of guinea pig fecal samples,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,blood from a patient with infective endocarditis,blood from a patient with infective endocarditis,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,blood culture of a patient with infective endocarditis,blood culture of a patient with infective endocarditis,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,sputum from a patient with pneumoniae,sputum from a patient with pneumoniae,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,blood of a 58-year-old endometrial cancer patient who had type 2 diabetes mellitus and relapsed after radiotherapy with multiple metastases to the lungs and abdominal cavity,blood of a 58 year old endometrial cancer patient who had type 2 diabetes mellitus and relapsed after radiotherapy with multiple metastases to the lungs and abdominal cavity,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Female patient blood,female patient blood,Sample_Type_SD,blood,high,clinical material
+1,Environment (Broad Scale),faecal samples,faecal samples,Sample_Type_SD,feces/stool,high,fecal material
+1,Environment (Broad Scale),Internal organ of diseased cage-cultured Atlantic salmon (salmo salar) in Chile,internal organ of diseased cage cultured atlantic salmon in chile,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Pig faecal sample,pig faecal sample,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Turkey (domestic) faeces,turkey faeces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Chicken Stool,chicken stool,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Turkey feces,turkey feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,healthy chicken,healthy chicken,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,"Wild pig, fecal",wild pig fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool specimen of one diarrheal patient,stool specimen of one diarrheal patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool from diarrheal patient,stool from diarrheal patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"blood culture from a patient in Cape Town, South Africa",blood culture from a patient in cape town south africa,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Swine stool,swine stool,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Chicken feces (Gallus gallus),chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,blood from cirrhosis patient,blood from cirrhosis patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,"blood from diabetes, hypertension patient",blood from diabetes hypertension patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,sputum from lung cancer patient,sputum from lung cancer patient,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,human feces patient 2 outbreak technical replicate 4,human feces patient 2 outbreak technical replicate 4,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,human feces patient 2 outbreak technical replicate 3,human feces patient 2 outbreak technical replicate 3,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,human feces patient 2 outbreak technical replicate 1,human feces patient 2 outbreak technical replicate 1,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,human feces patient 2 outbreak technical replicate 2,human feces patient 2 outbreak technical replicate 2,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,"Human faeces of child with acute, non-specific diarrhea",human faeces of child with acute non specific diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,sputum from patient with pneumonia,sputum from patient with pneumonia,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,blood from a patient with cardiovascular disease,blood from a patient with cardiovascular disease,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,blood from a patient with community-acquired native valve endocarditis,blood from a patient with community acquired native valve endocarditis,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,endotracheal tube biofilm of a mechanically ventilated patient,endotracheal tube biofilm of a mechanically ventilated patient,Environment_Medium_SD,biofilm,high,environmental medium
+1,Host Disease,Associated with TSST-1-mediated disease (scarlet fever),associated with tsst 1 mediated disease,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Clean urine from a patient,clean urine from a patient,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,"Chicken, feces",chicken feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Patient's urine,patient s urine,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,blood from patient with community-acquired emphysematous osteomyelitis,blood from patient with community acquired emphysematous osteomyelitis,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,cancer patient stool,cancer patient stool,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Urine from hospitalized patient,urine from hospitalized patient,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,hospital patients,hospital patients,Isolation_Source_SD,healthcare facility,high,healthcare-associated location
+1,Isolation Source,separated from patient's sputum,separated from patient s sputum,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,venous blood of patient with cerebral hemorrhage,venous blood of patient with cerebral hemorrhage,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,a blood sample of swine origin,a blood sample of swine origin,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Sputum from patient from comprehensive intensive care,sputum from patient from comprehensive intensive care,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,sputum of human,sputum of human,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,"soil, pig",soil pig,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,feces dry cow,feces dry cow,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,feces milking cow,feces milking cow,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,transfused_patient's_blood_cultures,transfused patient s blood cultures,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,soil from pre-fresh heifer pasture,soil from pre fresh heifer pasture,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,blood from human listeriosis case,blood from human listeriosis case,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,human blood sporadic,human blood sporadic,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,"human sputum, chronic bronchitis",human sputum chronic bronchitis,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,blood from deceased American male teenager patient,blood from deceased american male teenager patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Enriched cattle feces,enriched cattle feces,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,sputum cytobacteriological examinations of a same CF patient,sputum cytobacteriological examinations of a same cf patient,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,the sputum of a pneumonia patient,the sputum of a pneumonia patient,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,sputum from COPD patient,sputum from copd patient,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Early isolate from VAP patient 1,sputum early isolate from vap patient 1,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Early isolate from VAP patient 2,sputum early isolate from vap patient 2,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Late isolate from VAP patient 1,sputum late isolate from vap patient 1,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Early isolate from VAP patient 4,sputum early isolate from vap patient 4,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Late isolate from VAP patient 3,sputum late isolate from vap patient 3,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Late isolate from VAP patient 4,sputum late isolate from vap patient 4,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Early isolate from VAP patient 3,sputum early isolate from vap patient 3,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Sputum; Late isolate from VAP patient 2,sputum late isolate from vap patient 2,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,Duodenal mucosa of Celiac disease patient with Type 1 diabetes,duodenal mucosa of celiac disease patient with type 1 diabetes,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Blood culture of burn human patient,blood culture of burn human patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,tissue of patient with lung disease,tissue of patient with lung disease,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Blood from septicemic patient,blood from septicemic patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,blood from a hospitalized oncology patient,blood from a hospitalized oncology patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,sputum sample from patient with non-CF bronchiectasis,sputum sample from patient with non cf bronchiectasis,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,urine of adult cystic fibrosis patient,urine of adult cystic fibrosis patient,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,pneumonia patient sputum,pneumonia patient sputum,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,soil near cow with mastitis,soil near cow with mastitis,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,Urine sample of infected patient showing resistance to majority of antibiotics,urine sample of infected patient showing resistance to majority of antibiotics,Sample_Type_SD,urine,high,clinical material
+1,Isolation Source,blood from CAP patient,blood from cap patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Cow Faeces: Organized dairy production system,cow faeces organized dairy production system,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,blood sample from hospitalized patient 3,blood sample from hospitalized patient 3,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,blood from hospitalized patient,blood from hospitalized patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,fecal of pig,fecal of pig,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,the feces of a colorectal cancer patient,the feces of a colorectal cancer patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Human stool sample,human stool sample,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Feces of patient with dysentery,feces of patient with dysentery,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Sheep - fecal,sheep fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,healthy human volunteer,healthy human volunteer,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Isolation Source,feces of a hospitalized patient,feces of a hospitalized patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,dairy cattle fecal,dairy cattle fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,blood of a hospitalized patient,blood of a hospitalized patient,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,patient's blood,patient s blood,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,Homo sapiens: blood sample,homo sapiens blood sample,Sample_Type_SD,blood,high,clinical material
+1,Isolation Source,stool sample from patient with cholera,stool sample from patient with cholera,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from a patient with cholera,stool sample from a patient with cholera,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,cholera patient stool sample,cholera patient stool sample,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool sample from patient (carrier),stool sample from patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool of the patient,stool of the patient,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,stool of patient with cholera,stool of patient with cholera,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Stool sample from a patient with diarrhea,stool sample from a patient with diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,Stool from patient with antibiotic-associated diarrhea,stool from patient with antibiotic associated diarrhea,Sample_Type_SD,feces/stool,high,fecal material
+1,Sample Type,MIGS/MIMS/MIMARKS.air,migs mims mimarks.air,Environment_Medium_SD,air,high,environmental medium
+1,Host Disease,HIV; end-stage renal disease due to HIV nephropathy developed peritoneal-dialysis associated peritonitis with Candida parapsilosis.,hiv end stage renal disease due to hiv nephropathy developed peritoneal dialysis associated peritonitis with candida parapsilosis.,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Poultry slaughterhouse wastewater,poultry slaughterhouse wastewater,Environment_Medium_SD,wastewater,high,environmental medium
+1,Isolation Source,Cattle fecal,cattle fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Sample Type,AD_250_C Supragingival Plaque Biofilm,ad 250 c supragingival plaque biofilm,Environment_Medium_SD,biofilm,high,environmental medium
+1,Environment Medium,stool samples,stool samples,Sample_Type_SD,feces/stool,high,fecal material
+1,Environment (Local Scale),Crude Oil-Contaminated Soil,crude oil contaminated soil,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),municipal waste water inflow,municipal waste water inflow,Environment_Medium_SD,wastewater,high,environmental medium
+1,Environment (Local Scale),municipal waste water outflow,municipal waste water outflow,Environment_Medium_SD,wastewater,high,environmental medium
+1,Environment (Local Scale),Irrigation well water contaminated with sewage water,irrigation well water contaminated with sewage water,Environment_Medium_SD,sewage,high,environmental medium
+1,Host Disease,upper resiratory disease,upper resiratory disease,Host_Health_State_SD,diseased,medium,health state
+1,Host Disease,No known disease,no known disease,Host_Health_State_SD,diseased,medium,health state
+1,Host Disease,no known disease,no known disease,Host_Health_State_SD,diseased,medium,health state
+1,Host Disease,gastrointestinal system disease,gastrointestinal system disease,Host_Health_State_SD,diseased,medium,health state
+1,Isolation Source,Healthy human fecal,healthy human fecal,Sample_Type_SD,feces/stool,high,fecal material
+1,Isolation Source,sputum samples from patient with COPD,sputum samples from patient with copd,Sample_Type_SD,sputum,high,respiratory material
+1,Isolation Source,soil contaminated with killed cattle,soil contaminated with killed cattle,Environment_Medium_SD,soil,high,environmental medium
+1,Isolation Source,feces from healthy human,feces from healthy human,Sample_Type_SD,feces/stool,high,fecal material
+1,Sample Type,ileum of healthy chickens,ileum of healthy chickens,Host_Health_State_SD,healthy/no disease reported,medium,health state
+1,Environment Medium,Chicken faeces,chicken faeces,Sample_Type_SD,feces/stool,high,fecal material
+1,Environment Medium,faecal sample,faecal sample,Sample_Type_SD,feces/stool,high,fecal material
+1,Environment (Broad Scale),Blood,blood,Sample_Type_SD,blood,high,clinical material
+1,Environment (Local Scale),Indoor air,indoor air,Environment_Medium_SD,air,high,environmental medium
+1,Environment (Local Scale),Soil sample from a temperate region with moderate rainfall,soil sample from a temperate region with moderate rainfall,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),Rhizosphere soil of soybean,rhizosphere soil of soybean,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),Isolated from a patient blood,isolated from a patient blood,Sample_Type_SD,blood,high,clinical material
+1,Environment (Local Scale),Isolated from a patient bronchoalveolar lavage fluid,isolated from a patient bronchoalveolar lavage fluid,Sample_Type_SD,bronchoalveolar lavage fluid,high,respiratory material
+1,Environment (Local Scale),Plant Rhizosphere,plant rhizosphere,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),Paddy cultivating soil,paddy cultivating soil,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),Shallow soil layer,shallow soil layer,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),arid soil [ENVO:00002982],arid soil envo 00002982,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),"Rhizosphere of cacao (Theobroma cacao) in association with acai (Euterpe oleracea), Brazilian Amazon agroforestry system",rhizosphere of cacao in association with acai brazilian amazon agroforestry system,Environment_Medium_SD,soil,high,environmental medium
+1,Environment (Local Scale),Plant rhizosphere,plant rhizosphere,Environment_Medium_SD,soil,high,environmental medium

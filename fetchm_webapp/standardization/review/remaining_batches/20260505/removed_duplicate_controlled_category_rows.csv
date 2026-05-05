@@ -1,0 +1,10 @@
+line_no,source_column,normalized_value,destination,synonym,proposed_value,note
+7413,Isolation Source,stool sample from asymptomatic human participant,Sample_Type_SD,stool sample from asymptomatic human participant,feces/stool,Batch 5 applied high-confidence source/sample/environment audit suggestion: fecal material
+7414,Environment (Local Scale),saline sediment environment,Environment_Medium_SD,saline sediment environment,sediment,Batch 5 applied high-confidence source/sample/environment audit suggestion: environmental medium
+7424,Isolation Source,stool sample from patient with hemolytic uremic syndrome,Sample_Type_SD,stool sample from patient with hemolytic uremic syndrome,feces/stool,Batch 5 applied high-confidence source/sample/environment audit suggestion: fecal material
+7425,Isolation Source,stool sample from septic human participant,Sample_Type_SD,stool sample from septic human participant,feces/stool,Batch 5 applied high-confidence source/sample/environment audit suggestion: fecal material
+7439,Isolation Source,chicken blood,Sample_Type_SD,chicken blood,blood,Batch 5 applied high-confidence source/sample/environment audit suggestion: clinical material
+7445,Environment (Local Scale),wastewater treatment plants in seville,Environment_Medium_SD,wastewater treatment plants in seville,wastewater,Batch 5 applied high-confidence source/sample/environment audit suggestion: environmental medium
+7458,Isolation Site,sediment freshwater minnesota,Environment_Medium_SD,sediment freshwater minnesota,sediment,Batch 5 applied high-confidence source/sample/environment audit suggestion: environmental medium
+7487,Isolation Source,stool sample from male patient with ehec associated symptoms,Sample_Type_SD,stool sample from male patient with ehec associated symptoms,feces/stool,Batch 5 applied high-confidence source/sample/environment audit suggestion: fecal material
+7488,Isolation Source,stool sample from female patient with ehec symptoms,Sample_Type_SD,stool sample from female patient with ehec symptoms,feces/stool,Batch 5 applied high-confidence source/sample/environment audit suggestion: fecal material

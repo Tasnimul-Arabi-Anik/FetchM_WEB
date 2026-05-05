@@ -1,0 +1,15 @@
+synonym,destination,proposed_value,skipped_reason
+bacteria culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+Bacteria culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+Pure culture of bacteria,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+water for animals,Environment_Medium_SD,water,existing approved rule maps to agricultural/aquaculture water
+bacteria pure culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+bacteria cell culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+sewage plant,Environment_Medium_SD,sewage,existing approved rule maps to wastewater/sewage treatment plant
+patient environment,Isolation_Source_SD,environmental material,existing approved rule maps to healthcare facility
+Fish and aquatic environment of Lake Victoria,Isolation_Source_SD,environmental material,existing approved rule maps to seafood/aquatic food product
+Bacteria pure culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+pure culture bacteria,Sample_Type_SD,bacterial culture,existing approved rule maps to pure/single culture
+pure bacteria culture,Sample_Type_SD,bacterial culture,existing approved rule maps to pure/single culture
+Pure culture of Bacteria,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
+Bacteria Culture,Sample_Type_SD,bacterial culture,existing approved rule maps to culture
