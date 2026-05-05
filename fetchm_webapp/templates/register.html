@@ -4,24 +4,25 @@
   <section class="panel auth-panel">
     <p class="eyebrow">Create account</p>
     <h1>Register for fetchM Web</h1>
-    <p class="lede">Each account only sees its own jobs, logs, and outputs.</p>
+    <p class="lede" id="register-help">Each account only sees its own jobs, logs, and outputs.</p>
     <form action="{{ url_for('register') }}" method="post" class="job-form">
-      <label>
+      <label for="username">
         <span>Username</span>
-        <input type="text" name="username" required minlength="3" autocomplete="username">
+        <input id="username" type="text" name="username" required minlength="3" autocomplete="username" aria-describedby="register-help">
       </label>
-      <label>
+      <label for="email">
         <span>Email</span>
-        <input type="email" name="email" required autocomplete="email">
+        <input id="email" type="email" name="email" required autocomplete="email">
       </label>
-      <label>
+      <label for="password">
         <span>Password</span>
-        <input type="password" name="password" required minlength="8" autocomplete="new-password">
+        <input id="password" type="password" name="password" required minlength="10" autocomplete="new-password" aria-describedby="password-policy">
       </label>
-      <label>
+      <label for="confirm_password">
         <span>Confirm password</span>
-        <input type="password" name="confirm_password" required minlength="8" autocomplete="new-password">
+        <input id="confirm_password" type="password" name="confirm_password" required minlength="10" autocomplete="new-password" aria-describedby="password-policy">
       </label>
+      <p id="password-policy" class="form-note">Use at least 10 characters with at least one letter and one number.</p>
       <button type="submit">Create account</button>
     </form>
     <p class="auth-links">

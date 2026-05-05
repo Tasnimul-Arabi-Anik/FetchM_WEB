@@ -74,6 +74,7 @@ from lib.fetchm_runtime.metadata import (
 )
 from lib.fetchm_runtime.sequence import DEFAULT_DOWNLOAD_WORKERS, SequenceDownloadCancelled, run_sequence_downloads
 RESET_TOKEN_TTL_MINUTES = 60
+PASSWORD_MIN_LENGTH = 10
 PUBLIC_ENDPOINTS = {"login", "register", "forgot_password", "reset_password", "static"}
 
 def load_dotenv_file(path: Path) -> None:
@@ -548,6 +549,9 @@ app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FETCHM_WEBAPP_SECURE_COOKIE") == "1"
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
+    hours=max(1, int(os.environ.get("FETCHM_WEBAPP_SESSION_HOURS", "12")))
+)
 app.config["MAIL_SERVER"] = os.environ.get("FETCHM_WEBAPP_MAIL_SERVER", "")
 app.config["MAIL_PORT"] = int(os.environ.get("FETCHM_WEBAPP_MAIL_PORT", "587"))
 app.config["MAIL_USERNAME"] = os.environ.get("FETCHM_WEBAPP_MAIL_USERNAME", "")
@@ -6325,6 +6329,7 @@ def current_user() -> sqlite3.Row | None:
 
 def login_user(user: sqlite3.Row) -> None:
     session.clear()
+    session.permanent = True
     session["user_id"] = int(user["id"])
 
 
@@ -6376,11 +6381,25 @@ def mark_reset_token_used(token: str) -> None:
 
 
 def validate_passwords(password: str, confirm: str) -> str | None:
-    if len(password) < 8:
-        return "Password must be at least 8 characters."
     if password != confirm:
         return "Passwords do not match."
+    if len(password) < PASSWORD_MIN_LENGTH:
+        return f"Password must be at least {PASSWORD_MIN_LENGTH} characters."
+    if not re.search(r"[A-Za-z]", password) or not re.search(r"\d", password):
+        return "Password must include at least one letter and one number."
     return None
+
+
+def build_security_posture() -> dict[str, Any]:
+    return {
+        "password_policy": f"{PASSWORD_MIN_LENGTH}+ characters, including at least one letter and one number",
+        "session_lifetime": str(app.config["PERMANENT_SESSION_LIFETIME"]),
+        "cookie_httponly": bool(app.config["SESSION_COOKIE_HTTPONLY"]),
+        "cookie_secure": bool(app.config["SESSION_COOKIE_SECURE"]),
+        "cookie_samesite": app.config["SESSION_COOKIE_SAMESITE"],
+        "password_reset": "configured" if mail_is_configured() else "SMTP not configured",
+        "admin_model": "single admin role from FETCHM_WEBAPP_ADMIN_USERS",
+    }
 
 
 def mail_is_configured() -> bool:
@@ -14912,6 +14931,7 @@ def admin_dashboard() -> str:
         backfill=backfill,
         metadata_dashboard=build_metadata_dashboard(),
         observability=build_observability_dashboard(),
+        security_posture=build_security_posture(),
         **admin_common_context("overview"),
     )
 

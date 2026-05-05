@@ -1915,12 +1915,19 @@ pre {
 
 .auth-layout {
   min-height: 70vh;
-  place-items: center;
+  align-items: center;
+  grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 0.9fr);
 }
 
 .auth-panel {
-  max-width: 520px;
   width: 100%;
+}
+
+.auth-intro-panel {
+  min-height: 360px;
+  display: grid;
+  align-content: center;
+  gap: 14px;
 }
 
 .auth-links {
@@ -1936,8 +1943,15 @@ pre {
   font-weight: 600;
 }
 
+.form-note {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 920px) {
   .landing-hero,
+  .auth-layout,
   .grid {
     grid-template-columns: 1fr;
   }

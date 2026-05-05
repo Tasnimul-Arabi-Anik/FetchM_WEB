@@ -13,6 +13,7 @@
 
   <section class="panel">
     <h2>User Search</h2>
+    <p class="section-note">Admin user review exposes account identity and job counts only; passwords and password hashes are never displayed.</p>
     <form action="{{ url_for('admin_users') }}" method="get" class="inline-form">
       <label>
         <span>Search users</span>
@@ -30,7 +31,7 @@
           <div class="admin-card">
             <div class="job-card-head">
               <strong>{{ user["username"] }}</strong>
-              {% if user["username"] == session.get("username") %}
+              {% if g.current_user and user["id"] == g.current_user["id"] %}
                 <span class="status running">you</span>
               {% endif %}
             </div>

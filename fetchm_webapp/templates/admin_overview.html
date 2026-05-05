@@ -18,6 +18,46 @@
 
   {% include "_admin_nav.html" %}
 
+  <section class="panel">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Security</p>
+        <h2>Access Posture</h2>
+      </div>
+      <p class="section-note">Current account and session controls. Keep infrastructure TLS/HSTS configured at the reverse proxy.</p>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card metric-wide">
+        <strong>Password policy</strong>
+        <span>{{ security_posture.password_policy }}</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ security_posture.session_lifetime }}</strong>
+        <span>Session lifetime</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ "on" if security_posture.cookie_httponly else "off" }}</strong>
+        <span>HttpOnly session cookie</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ "on" if security_posture.cookie_secure else "off" }}</strong>
+        <span>Secure session cookie</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ security_posture.cookie_samesite }}</strong>
+        <span>SameSite policy</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>Password reset</strong>
+        <span>{{ security_posture.password_reset }}</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>Admin model</strong>
+        <span>{{ security_posture.admin_model }}</span>
+      </div>
+    </div>
+  </section>
+
   <section id="system" class="admin-group">
     <div class="admin-group-head">
       <div>

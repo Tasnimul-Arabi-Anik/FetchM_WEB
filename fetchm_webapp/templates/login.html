@@ -1,18 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
 <main class="layout auth-layout">
+  <section class="panel auth-panel auth-intro-panel">
+    <p class="eyebrow">FetchM Web</p>
+    <h1>Metadata, sequence, and job outputs in one workspace</h1>
+    <p class="lede">Use fetchM Web to submit analysis jobs, monitor progress, inspect logs, and download generated metadata or sequence files.</p>
+    <div class="hint-block">
+      <strong>Why sign in?</strong>
+      <p>Accounts keep job inputs, logs, and outputs separated by user. Admins can monitor queue health without exposing another user's password or private results.</p>
+    </div>
+    <p class="auth-links">
+      <a href="{{ url_for('register') }}">Create an account</a>
+      <a href="{{ url_for('forgot_password') }}">Reset password</a>
+    </p>
+  </section>
   <section class="panel auth-panel">
     <p class="eyebrow">Account sign in</p>
-    <h1>Sign in to fetchM Web</h1>
-    <p class="lede">Sign in to submit jobs, view logs, and download your outputs.</p>
+    <h2>Sign in to fetchM Web</h2>
+    <p class="lede" id="login-help">Sign in with your username to submit jobs, view logs, and download your outputs.</p>
     <form action="{{ url_for('login', next=request.args.get('next', '')) }}" method="post" class="job-form" autocomplete="off" data-lpignore="true">
-      <label>
+      <label for="login_identifier">
         <span>Username</span>
-        <input type="text" name="login_identifier" required autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
+        <input id="login_identifier" type="text" name="login_identifier" required autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="login-help" data-lpignore="true" data-1p-ignore>
       </label>
-      <label>
+      <label for="password">
         <span>Password</span>
-        <input type="password" name="password" required autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
+        <input id="password" type="password" name="password" required autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" data-lpignore="true" data-1p-ignore>
       </label>
       <button type="submit">Sign in</button>
     </form>
