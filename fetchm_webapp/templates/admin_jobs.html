@@ -11,6 +11,86 @@
 
   {% include "_admin_nav.html" %}
 
+  <section class="panel">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Job analytics</p>
+        <h2>Queue and Workload Summary</h2>
+      </div>
+      <p class="section-note">All-time job status, mode mix, recent activity, and top submitters.</p>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <strong>{{ job_analytics.total }}</strong>
+        <span>Total jobs</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.active }}</strong>
+        <span>Active jobs</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.queued }}</strong>
+        <span>Queued</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.running }}</strong>
+        <span>Running</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.completed }}</strong>
+        <span>Completed</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.failed }}</strong>
+        <span>Failed</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.recent_7d }}</strong>
+        <span>Submitted in 7 days</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.success_rate if job_analytics.success_rate is not none else "n/a" }}{% if job_analytics.success_rate is not none %}%{% endif %}</strong>
+        <span>Finished-job success rate</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ job_analytics.avg_duration_label }}</strong>
+        <span>Average finished duration</span>
+      </div>
+    </div>
+    <div class="grid top-gap">
+      <div class="hint-block">
+        <strong>Status distribution</strong>
+        {% if job_analytics.status_rows %}
+          {% for row in job_analytics.status_rows %}
+            <p>{{ row.label }}: {{ row.count }}</p>
+          {% endfor %}
+        {% else %}
+          <p>No jobs recorded.</p>
+        {% endif %}
+      </div>
+      <div class="hint-block">
+        <strong>Mode distribution</strong>
+        {% if job_analytics.mode_rows %}
+          {% for row in job_analytics.mode_rows %}
+            <p>{{ row.label }}: {{ row.count }}</p>
+          {% endfor %}
+        {% else %}
+          <p>No jobs recorded.</p>
+        {% endif %}
+      </div>
+      <div class="hint-block">
+        <strong>Top submitters</strong>
+        {% if job_analytics.user_rows %}
+          {% for row in job_analytics.user_rows %}
+            <p>{{ row.label }}: {{ row.count }}</p>
+          {% endfor %}
+        {% else %}
+          <p>No jobs recorded.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
   <div class="grid admin-group-grid">
     <section class="panel">
       <h2>Search and Filter</h2>
@@ -45,6 +125,7 @@
 
   <section class="panel">
     <h2>All Jobs</h2>
+    <p class="section-note">{{ filtered_job_analytics.total }} jobs match the current filters.</p>
     {% if jobs %}
       <div class="admin-list">
         {% for job in jobs %}

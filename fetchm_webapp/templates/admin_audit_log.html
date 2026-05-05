@@ -19,6 +19,7 @@
         <input type="number" name="limit" min="1" max="1000" value="{{ audit_limit }}">
       </label>
       <button type="submit">Apply</button>
+      <a class="button-like ghost" href="{{ url_for('admin_audit_bundle') }}">Download audit bundle</a>
     </form>
     {% if audit_events %}
       <div class="table-scroll top-gap">

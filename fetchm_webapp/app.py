@@ -7236,6 +7236,48 @@ def filter_admin_jobs(jobs: list[JobRecord], query: str, status: str) -> list[Jo
     return filtered
 
 
+def build_admin_job_analytics(jobs: list[JobRecord]) -> dict[str, Any]:
+    status_counts = Counter(job.status for job in jobs)
+    mode_counts = Counter(job.mode for job in jobs)
+    user_counts = Counter(job.owner_username or "no owner" for job in jobs)
+    now = utc_now_dt()
+    recent_jobs = []
+    durations: list[float] = []
+    for job in jobs:
+        try:
+            created_at = parse_utc(job.created_at)
+        except ValueError:
+            continue
+        if created_at >= now - timedelta(days=7):
+            recent_jobs.append(job)
+        if job.status in {"completed", "failed", "cancelled"}:
+            try:
+                updated_at = parse_utc(job.updated_at)
+            except ValueError:
+                continue
+            durations.append(max(0.0, (updated_at - created_at).total_seconds()))
+
+    avg_duration = statistics.mean(durations) if durations else None
+    success_count = status_counts.get("completed", 0)
+    finished_count = sum(status_counts.get(status, 0) for status in ["completed", "failed", "cancelled"])
+    success_rate = round((success_count / finished_count) * 100, 1) if finished_count else None
+    return {
+        "total": len(jobs),
+        "active": status_counts.get("queued", 0) + status_counts.get("running", 0),
+        "queued": status_counts.get("queued", 0),
+        "running": status_counts.get("running", 0),
+        "completed": status_counts.get("completed", 0),
+        "failed": status_counts.get("failed", 0),
+        "cancelled": status_counts.get("cancelled", 0),
+        "recent_7d": len(recent_jobs),
+        "avg_duration_label": format_elapsed_brief(int(avg_duration)) if avg_duration is not None else "n/a",
+        "success_rate": success_rate,
+        "status_rows": [{"label": key, "count": value} for key, value in status_counts.most_common()],
+        "mode_rows": [{"label": key, "count": value} for key, value in mode_counts.most_common()],
+        "user_rows": [{"label": key, "count": value} for key, value in user_counts.most_common(8)],
+    }
+
+
 def format_eta_hours(hours: float | None) -> str:
     if hours is None or hours < 0:
         return "Unknown"
@@ -15504,9 +15546,13 @@ def admin_jobs() -> str:
     require_admin()
     query = (request.args.get("q") or "").strip()
     status_filter = (request.args.get("status") or "all").strip()
+    all_jobs = list_all_jobs()
+    filtered_jobs = filter_admin_jobs(all_jobs, query, status_filter)
     return render_template(
         "admin_jobs.html",
-        jobs=filter_admin_jobs(list_all_jobs(), query, status_filter),
+        jobs=filtered_jobs,
+        job_analytics=build_admin_job_analytics(all_jobs),
+        filtered_job_analytics=build_admin_job_analytics(filtered_jobs),
         admin_query=query,
         status_filter=status_filter,
         **admin_common_context("jobs"),
@@ -15534,6 +15580,57 @@ def admin_audit_log() -> str:
         audit_events=list_audit_log(limit),
         audit_limit=max(1, min(limit, 1000)),
         **admin_common_context("audit"),
+    )
+
+
+@app.route("/admin/audit-log/bundle.zip")
+def admin_audit_bundle() -> Any:
+    require_admin()
+    bundle = BytesIO()
+    with zipfile.ZipFile(bundle, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        audit_rows = [dict(row) for row in list_audit_log(1000)]
+        audit_csv = StringIO()
+        audit_fieldnames = [
+            "id",
+            "actor_user_id",
+            "actor_username",
+            "action",
+            "target_type",
+            "target_id",
+            "request_path",
+            "request_method",
+            "ip_address",
+            "user_agent",
+            "metadata_json",
+            "created_at",
+        ]
+        writer = csv.DictWriter(audit_csv, fieldnames=audit_fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(audit_rows)
+        archive.writestr("audit_log_latest_1000.csv", audit_csv.getvalue())
+
+        jobs = list_all_jobs()
+        analytics = build_admin_job_analytics(jobs)
+        archive.writestr("job_analytics.json", json.dumps(analytics, indent=2, sort_keys=True))
+
+        summary = [
+            "# FetchM Web Admin Audit Bundle",
+            "",
+            f"Generated at: {utc_now()}",
+            f"App version: {APP_VERSION}",
+            f"Audit events included: {len(audit_rows)}",
+            f"Jobs represented: {analytics['total']}",
+            f"Active jobs: {analytics['active']}",
+            f"Completed jobs: {analytics['completed']}",
+            f"Failed jobs: {analytics['failed']}",
+        ]
+        archive.writestr("README.md", "\n".join(summary) + "\n")
+    bundle.seek(0)
+    record_audit_event("admin.audit_bundle_download")
+    return app.response_class(
+        bundle.getvalue(),
+        mimetype="application/zip",
+        headers={"Content-Disposition": "attachment; filename=fetchm_admin_audit_bundle.zip"},
     )
 
 
