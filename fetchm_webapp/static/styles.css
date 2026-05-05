@@ -1915,17 +1915,40 @@ pre {
 
 .auth-layout {
   min-height: 70vh;
+  width: 100%;
   place-items: center;
+  justify-content: center;
 }
 
 .auth-panel {
-  max-width: 620px;
+  max-width: 820px;
   width: 100%;
+  justify-self: center;
+  margin-inline: auto;
 }
 
 .auth-unified-panel {
   display: grid;
-  gap: 18px;
+  gap: 22px;
+  padding: clamp(28px, 5vw, 52px);
+}
+
+.auth-unified-panel h1 {
+  max-width: 760px;
+  font-size: clamp(2.1rem, 5vw, 3.45rem);
+  line-height: 1.03;
+  letter-spacing: -0.04em;
+}
+
+.auth-unified-panel .lede {
+  max-width: 720px;
+  font-size: clamp(1.02rem, 1.7vw, 1.2rem);
+  line-height: 1.65;
+}
+
+.auth-unified-panel .job-form {
+  max-width: 620px;
+  width: 100%;
 }
 
 .auth-links {
