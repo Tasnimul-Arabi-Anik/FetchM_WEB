@@ -3,12 +3,13 @@
 <main class="layout auth-layout">
   <section class="panel auth-panel auth-intro-panel">
     <p class="eyebrow">FetchM Web</p>
-    <h1>Metadata, sequence, and job outputs in one workspace</h1>
-    <p class="lede">Use fetchM Web to submit analysis jobs, monitor progress, inspect logs, and download generated metadata or sequence files.</p>
+    <h1>Explore, analyze, and download in one place.</h1>
+    <p class="lede">FetchM Web lets you run metadata analyses, launch sequence downloads based on your data, and keep everything organized.</p>
     <div class="hint-block">
-      <strong>Why sign in?</strong>
-      <p>Accounts keep job inputs, logs, and outputs separated by user. Admins can monitor queue health without exposing another user's password or private results.</p>
+      <strong>Why create an account?</strong>
+      <p>We use accounts to keep each user's inputs and outputs private. This also helps admins keep the queue healthy without ever seeing your password or project data.</p>
     </div>
+    <p class="lede">Create your free account or reset your password if you have forgotten it. Once signed in, you can begin submitting analyses right away.</p>
     <p class="auth-links">
       <a href="{{ url_for('register') }}">Create an account</a>
       <a href="{{ url_for('forgot_password') }}">Reset password</a>
