@@ -1,24 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <main class="layout auth-layout">
-  <section class="panel auth-panel auth-intro-panel">
+  <section class="panel auth-panel auth-unified-panel">
     <p class="eyebrow">FetchM Web</p>
-    <h1>Explore, analyze, and download in one place.</h1>
-    <p class="lede">FetchM Web lets you run metadata analyses, launch sequence downloads based on your data, and keep everything organized.</p>
+    <h1>Explore, analyze, and download in one place</h1>
+    <p class="lede" id="login-help">FetchM Web lets you run metadata analyses, launch sequence downloads based on your data, and keep everything organized. Sign in to track your analyses, see live logs, and securely access your results.</p>
     <div class="hint-block">
       <strong>Why create an account?</strong>
       <p>We use accounts to keep each user's inputs and outputs private. This also helps admins keep the queue healthy without ever seeing your password or project data.</p>
     </div>
-    <p class="lede">Create your free account or reset your password if you have forgotten it. Once signed in, you can begin submitting analyses right away.</p>
-    <p class="auth-links">
-      <a href="{{ url_for('register') }}">Create an account</a>
-      <a href="{{ url_for('forgot_password') }}">Reset password</a>
-    </p>
-  </section>
-  <section class="panel auth-panel">
-    <p class="eyebrow">Account sign in</p>
-    <h2>Sign in to fetchM Web</h2>
-    <p class="lede" id="login-help">Sign in with your username to submit jobs, view logs, and download your outputs.</p>
     <form action="{{ url_for('login', next=request.args.get('next', '')) }}" method="post" class="job-form" autocomplete="off" data-lpignore="true">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <label for="login_identifier">
@@ -31,8 +21,10 @@
       </label>
       <button type="submit">Sign in</button>
     </form>
-    <p class="auth-links">
+    <p class="auth-links auth-links-inline">
+      <span>New here?</span>
       <a href="{{ url_for('register') }}">Create an account</a>
+      <span aria-hidden="true">·</span>
       <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
     </p>
   </section>

@@ -1915,19 +1915,17 @@ pre {
 
 .auth-layout {
   min-height: 70vh;
-  align-items: center;
-  grid-template-columns: minmax(280px, 1.1fr) minmax(280px, 0.9fr);
+  place-items: center;
 }
 
 .auth-panel {
+  max-width: 620px;
   width: 100%;
 }
 
-.auth-intro-panel {
-  min-height: 360px;
+.auth-unified-panel {
   display: grid;
-  align-content: center;
-  gap: 14px;
+  gap: 18px;
 }
 
 .auth-links {
@@ -1935,6 +1933,11 @@ pre {
   flex-wrap: wrap;
   gap: 12px 18px;
   margin: 12px 0 0;
+}
+
+.auth-links-inline {
+  align-items: center;
+  gap: 6px;
 }
 
 .auth-links a {
