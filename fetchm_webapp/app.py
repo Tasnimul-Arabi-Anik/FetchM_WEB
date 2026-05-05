@@ -1011,8 +1011,12 @@ def list_audit_log(limit: int = 200) -> list[sqlite3.Row]:
     ).fetchall()
 
 
+BIOSAMPLE_DATA_FIELDS = ("Isolation Source", "Collection Date", "Geographic Location", "Host")
+
+
 def biosample_record_has_data(record: dict[str, Any]) -> bool:
-    for value in record.values():
+    for key in BIOSAMPLE_DATA_FIELDS:
+        value = record.get(key)
         if value is None or pd.isna(value):
             continue
         if str(value).strip():
