@@ -2,6 +2,30 @@
 
 This file is a running evidence log for results, methods, and interpretation points that may be useful when writing a manuscript about FetchM WEB. Add important audit results here whenever the tool, metadata model, or standardization workflow improves.
 
+## Final Metadata Standardization Summary
+
+For a concise manuscript-oriented summary of the final metadata standardization improvements, use:
+
+- `fetchm_webapp/standardization/review/metadata_standardization_publication_summary.md`
+
+Latest final audit referenced there:
+
+- `fetchm_webapp/standardization/review/final_audit/20260505_100958/final_metadata_standardization_dashboard.md`
+- `fetchm_webapp/standardization/review/final_audit/20260505_100958/production_readiness_gate.json`
+
+Final headline result:
+
+- Genus files scanned: 5,066
+- Genus rows scanned: 2,598,486
+- File errors: 0
+- Production readiness gate: passed
+- Regression tests: 8 passed, 0 failed
+- Country-continent/subcontinent mismatches: 0
+- Non-country values in standardized `Country`: 0
+- Invalid host-like `Sample_Type_SD` rows: 0
+- Noisy/non-approved broad-source rows: 0
+- Host review needed after long-tail curation: 484
+
 ## Current Analysis Scope
 
 - Main evaluation level: genus-level metadata.
