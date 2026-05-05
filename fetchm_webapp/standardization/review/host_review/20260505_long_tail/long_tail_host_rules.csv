@@ -1,0 +1,44 @@
+source_value,recommended_host_sd,taxid,confidence,action,reason
+saffron finche,Aves,8782,medium,host_synonym,Typo/common bird name; broad bird is safer than species-level guessing.
+lilac,Syringa,24208,medium,host_synonym,Plant common name; genus-level mapping.
+seabass,Actinopterygii,7898,medium,host_synonym,Ambiguous fish common name; broad ray-finned fish.
+Sugar cane,Saccharum officinarum,4547,high,host_synonym,Spacing variant of existing sugarcane crop mapping.
+horsechestnut,Viridiplantae,33090,medium,host_synonym,Plant common name without exact species context; broad plant.
+Hazel,Corylus,13450,medium,host_synonym,Hazel plant common name; genus-level mapping.
+black gobi,Actinopterygii,7898,medium,host_synonym,Fish common name/typo; broad ray-finned fish.
+Averhoa belimbi,Viridiplantae,33090,medium,host_synonym,Misspelled Averrhoa bilimbi-like plant value; broad plant.
+B. oleracea var. rubra,Brassica oleracea,3712,medium,host_synonym,Abbreviated Brassica oleracea variety; canonical species with medium confidence.
+E. vesicaria ssp. sativa,Eruca vesicaria,180536,medium,host_synonym,Abbreviated Eruca vesicaria crop value; canonical species with medium confidence.
+Suidae sp. LYD,Suidae,9821,medium,host_synonym,Swine family value with isolate suffix; family-level mapping.
+Olallieberry,Viridiplantae,33090,medium,host_synonym,Berry/crop common name; broad plant because exact hybrid context is absent.
+Sainfoin,Onobrychis,3881,medium,host_synonym,Sainfoin plant common name; genus-level mapping.
+Crabapple,Malus,3749,medium,host_synonym,Crabapple common name; genus-level mapping.
+Caraganae sp.,Caragana,20483,medium,host_synonym,Caragana-like plant value; genus-level mapping.
+grasses,Viridiplantae,33090,medium,host_synonym,Broad plant material/group.
+toucan,Aves,8782,medium,host_synonym,Common bird group; broad Aves.
+Partridge,Aves,8782,medium,host_synonym,Common bird group; broad Aves.
+eared grebe,Podiceps nigricollis,85099,high,host_synonym,Common bird name resolved by TaxonKit canonical.
+Hawk,Falconiformes,8948,medium,host_synonym,Common raptor term; order-level broad host.
+Soy,Glycine max,3847,high,host_synonym,Soybean crop common name.
+Agamid,Agamidae,81953,medium,host_synonym,Agamid lizard family term.
+opposum,Phalangeriformes,38603,medium,host_synonym,Typo/common possum-like value; broad possum group.
+albatros,Aves,8782,medium,host_synonym,Typo/common bird group; broad Aves.
+waterbird,Aves,8782,medium,host_synonym,Broad waterbird term; broad Aves.
+Buffonidae sp,Bufonidae,8382,medium,host_synonym,Typo-like Bufonidae toad family value.
+night heron,Aves,8782,medium,host_synonym,Common bird group without exact species; broad Aves.
+stork,Ciconiidae,8926,medium,host_synonym,Stork common name; family-level mapping.
+heron,Aves,8782,medium,host_synonym,Common bird group without exact species; broad Aves.
+macaw,Aves,8782,medium,host_synonym,Common parrot group without exact species; broad Aves.
+Cockatoo sp.,Cacatuidae,35549,medium,host_synonym,Cockatoo family value.
+House martin,Delichon urbicum,88116,high,host_synonym,Common bird name resolved by TaxonKit canonical.
+Dunnock,Prunella modularis,181117,high,host_synonym,Common bird name resolved by TaxonKit canonical.
+Superb Starling,Lamprotornis superbus,245042,high,host_synonym,Common bird name resolved by TaxonKit canonical.
+Garlic bolt,Allium sativum,4682,medium,host_synonym,Garlic plant material; canonical garlic with medium confidence.
+Pakchoi,Brassica rapa,3711,medium,host_synonym,Pak choi crop value; canonical Brassica rapa with medium confidence.
+snipe,Aves,8782,medium,host_synonym,Common bird group without exact species; broad Aves.
+Red tailed hawk,Buteo jamaicensis,56263,high,host_synonym,Common bird name resolved by TaxonKit canonical.
+Jiuqu,,,none,host_negative_rule,Fermentation starter/food-processing source descriptor; not Host_SD.
+Hainan,,,none,host_negative_rule,Geography/location token found in Host field.
+Sichuan,,,none,host_negative_rule,Geography/location token found in Host field.
+Shanxi,,,none,host_negative_rule,Geography/location token found in Host field.
+"Bootsock, Great Harewood",,,none,host_negative_rule,Boot sock/sample-location descriptor; not Host_SD.

@@ -7074,3 +7074,41 @@ anguine,Squamata,8509,medium,Batch 6 final host curation 2026-05-05: reviewed br
 Sow,Sus scrofa,9823,high,Batch 6 final host curation 2026-05-05: reviewed common female pig host; rank=species
 Barbera,Vitis vinifera,29760,high,Batch 6 final host curation 2026-05-05: reviewed grape cultivar host/source; rank=species
 Hazelnut,Corylus,13451,medium,Batch 6 final host curation 2026-05-05: reviewed broad hazelnut plant host; rank=genus
+saffron finche,Aves,8782,medium,Long-tail host curation 2026-05-05: typo/common bird name; keep broad because exact species spelling was not reliable.
+lilac,Syringa,24208,medium,Long-tail host curation 2026-05-05: reviewed plant common name; genus-level mapping.
+seabass,Actinopterygii,7898,medium,Long-tail host curation 2026-05-05: ambiguous common fish name; keep broad ray-finned fish.
+Sugar cane,Saccharum officinarum,4547,high,Long-tail host curation 2026-05-05: spacing variant of sugarcane crop host.
+horsechestnut,Viridiplantae,33090,medium,Long-tail host curation 2026-05-05: reviewed plant common name; broad plant because exact species context is absent.
+Hazel,Corylus,13450,medium,Long-tail host curation 2026-05-05: reviewed hazel plant common name; genus-level mapping.
+black gobi,Actinopterygii,7898,medium,Long-tail host curation 2026-05-05: fish common name/typo; keep broad ray-finned fish.
+Averhoa belimbi,Viridiplantae,33090,medium,Long-tail host curation 2026-05-05: misspelled Averrhoa bilimbi-like plant value; keep broad plant.
+B. oleracea var. rubra,Brassica oleracea,3712,medium,Long-tail host curation 2026-05-05: reviewed abbreviated Brassica oleracea variety; species-level canonical with medium confidence.
+E. vesicaria ssp. sativa,Eruca vesicaria,180536,medium,Long-tail host curation 2026-05-05: reviewed abbreviated Eruca vesicaria subspecies/crop value; species-level canonical with medium confidence.
+Suidae sp. LYD,Suidae,9821,medium,Long-tail host curation 2026-05-05: reviewed swine family value with isolate suffix; family-level mapping.
+Olallieberry,Viridiplantae,33090,medium,Long-tail host curation 2026-05-05: berry/crop common name; broad plant because exact hybrid context is absent.
+Sainfoin,Onobrychis,3881,medium,Long-tail host curation 2026-05-05: reviewed sainfoin plant common name; genus-level mapping.
+Crabapple,Malus,3749,medium,Long-tail host curation 2026-05-05: reviewed crabapple common name; genus-level mapping.
+Caraganae sp.,Caragana,20483,medium,Long-tail host curation 2026-05-05: reviewed Caragana-like plant value; genus-level mapping.
+grasses,Viridiplantae,33090,medium,Long-tail host curation 2026-05-05: broad plant material/group; keep broad.
+toucan,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group; keep broad Aves.
+Partridge,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group; keep broad Aves.
+eared grebe,Podiceps nigricollis,85099,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.
+Hawk,Falconiformes,8948,medium,Long-tail host curation 2026-05-05: common raptor term; keep order-level broad host.
+Soy,Glycine max,3847,high,Long-tail host curation 2026-05-05: reviewed soybean crop common name.
+Agamid,Agamidae,81953,medium,Long-tail host curation 2026-05-05: reviewed agamid lizard family term.
+opposum,Phalangeriformes,38603,medium,Long-tail host curation 2026-05-05: typo/common possum-like value; broad possum group because region/context is absent.
+albatros,Aves,8782,medium,Long-tail host curation 2026-05-05: typo/common bird group; keep broad Aves.
+waterbird,Aves,8782,medium,Long-tail host curation 2026-05-05: broad waterbird term; keep broad Aves.
+Buffonidae sp,Bufonidae,8382,medium,Long-tail host curation 2026-05-05: typo-like Bufonidae toad family value; family-level mapping.
+night heron,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group without exact species; keep broad Aves.
+stork,Ciconiidae,8926,medium,Long-tail host curation 2026-05-05: reviewed stork common name; family-level mapping.
+heron,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group without exact species; keep broad Aves.
+macaw,Aves,8782,medium,Long-tail host curation 2026-05-05: common parrot group without exact species; keep broad Aves.
+Cockatoo sp.,Cacatuidae,35549,medium,Long-tail host curation 2026-05-05: reviewed cockatoo family value.
+House martin,Delichon urbicum,88116,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.
+Dunnock,Prunella modularis,181117,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.
+Superb Starling,Lamprotornis superbus,245042,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.
+Garlic bolt,Allium sativum,4682,medium,Long-tail host curation 2026-05-05: garlic plant material; canonical garlic with medium confidence.
+Pakchoi,Brassica rapa,3711,medium,Long-tail host curation 2026-05-05: reviewed pak choi crop value; canonical Brassica rapa with medium confidence.
+snipe,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group without exact species; keep broad Aves.
+Red tailed hawk,Buteo jamaicensis,56263,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.

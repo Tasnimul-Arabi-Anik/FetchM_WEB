@@ -402,3 +402,8 @@ environmental sponges,non_host_source,Batch 3 2026-05-05: environment/context ph
 Plant-associated environment,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
 environment of live poultry market,non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
 animal-associated environment [ENVO:01001002],non_host_source,Batch 3 2026-05-05: environment/context phrase without explicit specimen material
+Jiuqu,non_host_source,Long-tail host curation 2026-05-05: fermentation starter/food-processing source descriptor, not Host_SD.
+Hainan,non_host_source,Long-tail host curation 2026-05-05: geography/location token found in Host field; keep out of Host_SD.
+Sichuan,non_host_source,Long-tail host curation 2026-05-05: geography/location token found in Host field; keep out of Host_SD.
+Shanxi,non_host_source,Long-tail host curation 2026-05-05: geography/location token found in Host field; keep out of Host_SD.
+"Bootsock, Great Harewood",non_host_source,Long-tail host curation 2026-05-05: boot sock/sample-location descriptor, not Host_SD.
