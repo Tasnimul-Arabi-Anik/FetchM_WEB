@@ -1,0 +1,1001 @@
+count,field,raw_value,normalized_value,status,current_standardized_value
+164396,Isolation Source,human,human,unmapped,
+140442,Isolation Source,stool,stool,standardized,feces/stool
+107393,Sample Type,metagenomic assembly,metagenomic assembly,standardized,metagenomic assembly
+103096,Isolation Source,blood,blood,standardized,blood
+72322,Isolation Source,feces,feces,standardized,feces/stool
+63099,Isolation Source,urine,urine,standardized,urine
+44039,Isolation Source,sterile site,sterile site,standardized,sterile body site
+39171,Sample Type,cell culture,cell culture,standardized,cell culture
+32709,Isolation Source,sputum,sputum,standardized,sputum
+28283,Isolation Source,raw intact chicken,raw intact chicken,standardized,poultry meat/product
+24468,Isolation Source,pathogen.cl,pathogen.cl,standardized,metadata descriptor/non-source
+21147,Isolation Source,food,food,standardized,food/food product
+18848,Isolation Source,hospital,hospital,standardized,healthcare facility
+17820,Isolation Source,soil,soil,standardized,soil
+14781,Isolation Source,clinical,clinical,standardized,clinical sample
+14617,Isolation Source,wound,wound,standardized,wound
+12751,Isolation Source,rectal swab,rectal swab,standardized,clinical/host-associated material
+12207,Isolation Source,gut,gut,standardized,clinical/host-associated material
+11564,Isolation Source,environmental,environmental,standardized,environmental sample
+10993,Isolation Source,chicken carcass,chicken carcass,standardized,poultry meat/product
+10304,Environment Medium,ENVO:01001029,envo 01001029,unmapped,
+10277,Environment (Broad Scale),ENVO:00000428,envo 00000428,standardized,host-associated gut/oral/fecal environment
+10260,Environment (Local Scale),ENVO:00002003,envo 00002003,standardized,gut/fecal local context
+10216,Environment Medium,feces,feces,unmapped,
+10006,Sample Type,whole organism,whole organism,unmapped,
+9628,Isolation Source,ground turkey,ground turkey,standardized,turkey meat/product
+9248,Isolation Source,water,water,standardized,water
+9246,Isolation Source,chicken,chicken,unmapped,
+9119,Isolation Source,nasopharynx,nasopharynx,standardized,nasopharynx/oropharynx
+9116,Isolation Source,lung,lung,standardized,clinical/host-associated material
+9023,Isolation Source,comminuted chicken,comminuted chicken,standardized,poultry meat/product
+8243,Isolation Source,whole organism,whole organism,standardized,whole organism
+8210,Isolation Source,chicken - young chicken carcass rinse (post-chill),chicken young chicken carcass rinse,standardized,poultry meat/product
+7813,Isolation Source,cell culture,cell culture,standardized,cell culture
+7637,Isolation Source,clinical sample,clinical sample,standardized,clinical sample
+7184,Isolation Source,patient,patient,unmapped,
+7103,Sample Type,pure culture,pure culture,standardized,pure culture
+7020,Isolation Source,environmental swab,environmental swab,standardized,environmental sample
+6972,Isolation Source,respiratory,respiratory,standardized,respiratory sample
+6586,Environment Medium,fecal material [ENVO:00002003],fecal material envo 00002003,unmapped,
+6245,Isolation Source,Rectal swab,rectal swab,standardized,clinical/host-associated material
+6021,Isolation Source,"""Product-Raw-Ground\, Comminuted or Otherwise Nonintact-Pork""",product raw ground comminuted or otherwise nonintact pork,standardized,pork/meat product
+5947,Isolation Source,comminuted beef,comminuted beef,standardized,beef/meat product
+5879,Environment (Local Scale),human gut,human gut,standardized,gut/fecal local context
+5875,Isolation Source,chicken breast,chicken breast,standardized,poultry meat/product
+5726,Isolation Site,Blood,blood,standardized,blood
+5332,Isolation Source,wastewater,wastewater,standardized,wastewater
+5187,Environment (Broad Scale),human,human,standardized,host-associated gut/oral/fecal environment
+5161,Isolation Source,CSF,csf,standardized,cerebrospinal fluid
+5085,Isolation Source,skin,skin,standardized,clinical/host-associated material
+5029,Sample Type,Cell culture,cell culture,standardized,cell culture
+4965,Isolation Source,environmental swab sponge,environmental swab sponge,standardized,environmental sample
+4899,Isolation Source,nasal swab,nasal swab,standardized,clinical/host-associated material
+4685,Isolation Source,throat,throat,standardized,nasopharynx/oropharynx
+4482,Environment (Broad Scale),gut metagenome,gut metagenome,standardized,host-associated gut/oral/fecal environment
+4449,Environment (Broad Scale),human gut,human gut,standardized,host-associated gut/oral/fecal environment
+4245,Sample Type,single cell,single cell,standardized,single cell
+4236,Isolation Source,Animal-Chicken-Young Chicken (cecal),animal chicken young chicken,standardized,clinical/host-associated material
+4112,Environment (Broad Scale),soil biome [ENVO:01001044],soil biome envo 01001044,standardized,terrestrial environment
+4086,Isolation Source,sediment,sediment,standardized,sediment
+4054,Isolation Source,blood culture,blood culture,standardized,blood
+4032,Isolation Source,high altitude fresh fecal sample,high altitude fresh fecal sample,standardized,feces/stool
+4014,Environment (Local Scale),Intestinal,intestinal,standardized,gut/fecal local context
+4012,Environment Medium,fecal material,fecal material,standardized,soil
+4012,Environment (Broad Scale),Digestive tract enviroment,digestive tract enviroment,standardized,host-associated gut environment
+3937,Isolation Source,animal-swine-market swine,animal swine market swine,unmapped,
+3898,Isolation Source,animal-cattle-dairy cow,animal cattle dairy cow,unmapped,
+3896,Isolation Source,milk,milk,standardized,milk
+3731,Isolation Source,urban,urban,standardized,urban
+3718,Isolation Source,nasopharyngeal,nasopharyngeal,standardized,nasopharynx/oropharynx
+3685,Isolation Source,other,other,standardized,metadata descriptor/non-source
+3568,Isolation Source,animal-cattle-steer,animal cattle steer,unmapped,
+3547,Isolation Source,animal-chicken-young chicken,animal chicken young chicken,unmapped,
+3464,Environment Medium,stool,stool,unmapped,
+3426,Isolation Source,nasopharyngeal swab,nasopharyngeal swab,standardized,nasopharynx/oropharynx
+3424,Isolation Source,culture,culture,standardized,culture
+3410,Isolation Source,swab,swab,standardized,swab
+3302,Isolation Source,Animal-Cattle-Dairy Cow (cecal),animal cattle dairy cow,standardized,clinical/host-associated material
+3258,Isolation Source,river water,river water,standardized,environmental material
+3241,Environment (Broad Scale),human gut microbiome,human gut microbiome,standardized,host-associated gut/oral/fecal environment
+3231,Isolation Source,animal,animal,unmapped,
+3217,Isolation Source,stool sample,stool sample,standardized,feces/stool
+3177,Isolation Source,Blood culture,blood culture,standardized,blood
+3173,Isolation Source,fecal sample,fecal sample,standardized,feces/stool
+3103,Isolation Source,infant feces,infant feces,standardized,feces/stool
+3095,Isolation Source,oral cavity,oral cavity,standardized,clinical/host-associated material
+3049,Environment (Broad Scale),urban,urban,standardized,built/urban environment
+2991,Isolation Source,Comminuted Turkey,comminuted turkey,standardized,turkey meat/product
+2895,Isolation Source,Animal-Swine-Market Swine (cecal),animal swine market swine,standardized,clinical/host-associated material
+2886,Sample Type,whole organism,whole organism,standardized,feces/stool
+2865,Isolation Source,chicken - young chicken carcass rinse (pre-evisceration),chicken young chicken carcass rinse,standardized,poultry meat/product
+2849,Isolation Source,NP swab,np swab,standardized,nasopharynx/oropharynx
+2839,Environment (Local Scale),excreta material [ENVO:02000022],excreta material envo 02000022,standardized,gut/fecal local context
+2830,Environment (Broad Scale),bodily fluid material biome [ENVO:02000019],bodily fluid material biome envo 02000019,standardized,clinical/host-associated material
+2753,Isolation Source,Animal-Turkey-Young Turkey (cecal),animal turkey young turkey,standardized,clinical/host-associated material
+2735,Isolation Source,Animal-Swine-Sow (cecal),animal swine sow,standardized,clinical/host-associated material
+2697,Isolation Source,Faecal,fecal,standardized,feces/stool
+2691,Sample Type,environmental,environmental,standardized,environmental sample
+2576,Isolation Source,environment,environment,standardized,environmental sample
+2569,Isolation Source,single cell,single cell,standardized,single cell
+2550,Sample Type,isolate,isolate,standardized,microbial isolate
+2515,Isolation Source,liver,liver,standardized,clinical/host-associated material
+2502,Isolation Source,human gut; stool,human gut stool,standardized,clinical/host-associated material
+2489,Environment (Local Scale),stool,stool,standardized,gut/fecal local context
+2475,Isolation Source,human listeriosis,human listeriosis,unmapped,
+2472,Isolation Source,infant stool,infant stool,standardized,feces/stool
+2401,Environment (Broad Scale),marine,marine,standardized,marine environment
+2399,Isolation Source,pig,pig,unmapped,
+2397,Isolation Source,mixed culture,mixed culture,standardized,mixed culture
+2388,Isolation Source,stools,stools,standardized,feces/stool
+2377,Isolation Source,Rectal Swab,rectal swab,standardized,clinical/host-associated material
+2364,Isolation Source,intestine,intestine,standardized,clinical/host-associated material
+2348,Isolation Source,Nose,nose,standardized,clinical/host-associated material
+2348,Environment (Broad Scale),feces,feces,standardized,host-associated gut/oral/fecal environment
+2301,Isolation Source,Poultry,poultry,unmapped,
+2287,Isolation Source,Environment,environment,standardized,environmental sample
+2270,Isolation Source,pure culture,pure culture,standardized,pure culture
+2254,Environment (Local Scale),infant gut microbiome,infant gut microbiome,standardized,gut/fecal local context
+2219,Environment (Broad Scale),oral metagenome,oral metagenome,standardized,host-associated gut/oral/fecal environment
+2219,Host Disease,land animals:meat:pork,land animals meat pork,unmapped,
+2215,Isolation Source,Perirectal Swab,perirectal swab,standardized,clinical/host-associated material
+2188,Isolation Source,normally sterile site,normally sterile site,standardized,sterile body site
+2183,Isolation Source,product-raw-intact-beef,product raw intact beef,standardized,beef/meat product
+2148,Environment Medium,sea water,seawater,standardized,seawater
+2144,Isolation Source,animal-cattle-heifer,animal cattle heifer,unmapped,
+2081,Isolation Source,ruminant gastrointestinal tract,ruminant gastrointestinal tract,standardized,clinical/host-associated material
+2078,Isolation Source,throat swab,throat swab,standardized,nasopharynx/oropharynx
+2058,Environment (Broad Scale),human-associated habitat,human associated habitat,standardized,host-associated environment
+2048,Environment (Local Scale),coastal,coastal,standardized,coastal area
+2008,Environment (Local Scale),infant,infant,standardized,gut/fecal local context
+1977,Sample Type,mixed culture,mixed culture,standardized,mixed culture
+1972,Isolation Source,clinical samples,clinical samples,standardized,clinical sample
+1968,Isolation Source,animal-swine-sow,animal swine sow,unmapped,
+1964,Environment (Broad Scale),terrestrial biome [ENVO:00000446],terrestrial biome envo 00000446,standardized,terrestrial environment
+1953,Isolation Source,lake water,lake water,standardized,lake water
+1942,Environment Medium,soil,soil,standardized,soil
+1933,Sample Type,Whole organism,whole organism,unmapped,
+1905,Isolation Source,nose,nose,standardized,clinical/host-associated material
+1884,Isolation Source,nasal,nasal,standardized,clinical/host-associated material
+1879,Environment (Broad Scale),pig gut metagenome,pig gut metagenome,standardized,host-associated gut/oral/fecal environment
+1873,Host Disease,tuberculosis,tuberculosis,standardized,tuberculosis
+1866,Isolation Source,root,root,standardized,plant-associated material
+1865,Host Disease,Clostridium difficile infection,clostridium difficile infection,standardized,Clostridioides difficile infection
+1860,Sample Type,tissue sample,tissue sample,standardized,tissue
+1857,Isolation Source,clinical material,clinical material,standardized,clinical sample
+1854,Isolation Source,Tissue,tissue,standardized,tissue
+1816,Isolation Site,blood,blood,standardized,blood
+1803,Sample Type,bacterial culture,bacterial culture,standardized,bacterial culture
+1773,Isolation Source,meat,meat,standardized,meat product
+1765,Isolation Source,cerebrospinal fluid,cerebrospinal fluid,standardized,body fluid
+1763,Sample Type,culture,culture,standardized,culture
+1750,Sample Type,food,food,standardized,food
+1750,Host Disease,diarrhea,diarrhea,standardized,diarrheal disease
+1744,Isolation Source,nares,nares,standardized,clinical/host-associated material
+1732,Isolation Source,Animal-Cattle-Steer (cecal),animal cattle steer,standardized,clinical/host-associated material
+1688,Isolation Source,Nonintact Chicken,nonintact chicken,standardized,poultry meat/product
+1688,Environment (Local Scale),human feces,human feces,standardized,gut/fecal local context
+1684,Environment Medium,rich broth,rich broth,standardized,culture medium
+1680,Isolation Source,Rectal,rectal,standardized,clinical/host-associated material
+1676,Isolation Source,Whole organism,whole organism,standardized,whole organism
+1676,Isolation Source,seawater,seawater,standardized,seawater
+1675,Isolation Source,NP,np,standardized,nasopharynx/oropharynx
+1666,Isolation Source,tracheal aspirate,tracheal aspirate,standardized,tracheal aspirate
+1647,Isolation Source,turkey,turkey,unmapped,
+1621,Sample Type,human,human,unmapped,
+1607,Isolation Source,stomach,stomach,standardized,clinical/host-associated material
+1587,Environment (Broad Scale),algae metagenome,algae metagenome,standardized,marine environment
+1574,Isolation Source,single cell amplified by WGA-X; Bigelow Laboratory Dock,single cell amplified by wga x bigelow laboratory dock,standardized,laboratory
+1572,Isolation Source,spore release from mature blade,spore release from mature blade,standardized,spore release material
+1550,Isolation Source,leaf,leaf,standardized,plant-associated material
+1544,Environment (Local Scale),stream,stream,standardized,stream
+1540,Environment (Broad Scale),Small river biome,small river biome,standardized,freshwater environment
+1528,Host Disease,Tuberculosis,tuberculosis,standardized,tuberculosis
+1526,Environment Medium,skin swab,skin swab,unmapped,
+1519,Environment (Local Scale),Agricultural Land,agricultural land,standardized,agricultural land
+1514,Environment Medium,Agricultural Land,agricultural land,standardized,soil
+1498,Isolation Source,patient clinical specimen,patient clinical specimen,standardized,clinical sample
+1485,Isolation Source,root nodule,root nodule,standardized,plant-associated material
+1479,Environment (Broad Scale),estuarine biome [ENVO:01000020],estuarine biome envo 01000020,standardized,estuarine environment
+1474,Environment Medium,water,water,standardized,water
+1473,Sample Type,animal,animal,unmapped,
+1466,Isolation Source,Homo Sapiens clinical,homo sapiens clinical,standardized,clinical sample
+1460,Isolation Source,bovine,bovine,unmapped,
+1455,Environment Medium,estuarine water [ENVO:01000301],estuarine water envo 01000301,standardized,estuarine water
+1431,Host Disease,pertussis,pertussis,standardized,pertussis
+1418,Isolation Source,clinical isolate,clinical isolate,standardized,clinical sample
+1417,Isolation Source,Pork,pork,standardized,pork/meat product
+1412,Isolation Source,Chicken meat,chicken meat,standardized,poultry meat/product
+1405,Environment (Local Scale),feces,feces,standardized,gut/fecal local context
+1402,Isolation Site,Faeces,feces,standardized,feces/stool
+1400,Isolation Source,Human faeces,human faeces,unmapped,
+1399,Isolation Source,Animal-Turkey-Young Turkey,animal turkey young turkey,unmapped,
+1392,Isolation Source,Animal-Cattle-Heifer (cecal),animal cattle heifer,standardized,clinical/host-associated material
+1386,Environment (Local Scale),Activated sludge,activated sludge,standardized,activated sludge
+1377,Isolation Source,cattle,cattle,unmapped,
+1377,Isolation Source,oyster,oyster,standardized,Oyster
+1376,Isolation Source,Cell culture,cell culture,standardized,cell culture
+1368,Environment (Broad Scale),human gut metagenome,human gut metagenome,standardized,host-associated gut/oral/fecal environment
+1366,Environment (Broad Scale),Soil,soil,standardized,terrestrial environment
+1364,Sample Type,Pure culture,pure culture,standardized,pure culture
+1360,Isolation Source,tissue,tissue,standardized,tissue
+1355,Isolation Source,urethra,urethra,standardized,clinical/host-associated material
+1349,Isolation Source,beef,beef,standardized,beef/meat product
+1328,Isolation Source,Blood Culture,blood culture,standardized,blood
+1315,Environment (Broad Scale),skin of body [UBERON:0002097],skin of body uberon 0002097,unmapped,
+1301,Isolation Source,groundwater,groundwater,standardized,groundwater
+1289,Isolation Source,Chicken Wings,chicken wings,unmapped,
+1287,Environment (Local Scale),biological sample,biological sample,standardized,gut/fecal local context
+1285,Environment Medium,ENVO:02000040,envo 02000040,unmapped,
+1284,Isolation Source,Product-Raw-Intact-Pork,product raw intact pork,standardized,pork/meat product
+1284,Environment (Broad Scale),mine drainage metagenome,mine drainage metagenome,standardized,aquatic sediment environment
+1284,Environment (Broad Scale),ENVO:01001055,envo 01001055,unmapped,
+1266,Isolation Source,cheese,cheese,standardized,dairy food
+1266,Environment Medium,sediment,sediment,standardized,sediment
+1264,Isolation Source,bacteria,bacteria,standardized,metadata descriptor/non-source
+1207,Isolation Source,Ground Beef,ground beef,standardized,beef/meat product
+1200,Isolation Source,Stool swab,stool swab,standardized,fecal/stool swab
+1197,Environment (Local Scale),fecal material [ENVO:00002003],fecal material envo 00002003,standardized,gut/fecal local context
+1196,Environment (Broad Scale),microbial community [PCO:1000004],microbial community pco 1000004,standardized,host-associated gut/oral/fecal environment
+1176,Isolation Source,bacterial sample,bacterial sample,standardized,microbial isolate
+1156,Isolation Source,surface water,surface water,standardized,surface
+1151,Isolation Source,Gastric biopsy,gastric biopsy,standardized,gastric biopsy
+1149,Isolation Source,cloacal swab,cloacal swab,standardized,cloacal swab
+1148,Environment Medium,human-gut,human gut,unmapped,
+1147,Isolation Source,Chicken Thighs,chicken thighs,unmapped,
+1131,Isolation Source,rectal,rectal,standardized,clinical/host-associated material
+1129,Isolation Source,water sediment,water sediment,standardized,sediment
+1127,Host Disease,environmental-factory/production facility,environmental factory production facility,unmapped,
+1126,Sample Type,Bacterial culture,bacterial culture,standardized,bacterial culture
+1104,Isolation Source,UTI,uti,standardized,urine
+1101,Isolation Source,River,river,standardized,environmental material
+1090,Isolation Source,anal swab,anal swab,standardized,clinical/host-associated material
+1087,Isolation Source,ear,ear,standardized,clinical/host-associated material
+1084,Isolation Source,fecal material,fecal material,standardized,feces/stool
+1082,Environment (Broad Scale),marine metagenome,marine metagenome,standardized,marine environment
+1078,Environment (Broad Scale),Africa,africa,standardized,host-associated gut/oral/fecal environment
+1074,Sample Type,Single cell,single cell,standardized,single cell
+1070,Isolation Source,stool/rectal swab,stool rectal swab,standardized,clinical/host-associated material
+1064,Isolation Source,Cheese rind,cheese rind,standardized,Cheese rind
+1064,Environment Medium,faeces,feces,unmapped,
+1063,Isolation Source,Wound/Abscess,wound abscess,standardized,abscess
+1049,Environment Medium,Tidal Flat Sediment,tidal flat sediment,standardized,tidal flat sediment
+1049,Environment (Broad Scale),Tidal Flat,tidal flat,standardized,aquatic sediment environment
+1049,Environment (Local Scale),Intertidal zone,intertidal zone,standardized,coastal area
+1042,Isolation Source,ground beef,ground beef,standardized,beef/meat product
+1035,Isolation Source,pus,pus,standardized,pus
+1027,Isolation Site,leaf,leaf,standardized,leaf tissue
+1022,Host Disease,land animals,land animals,unmapped,
+1016,Isolation Source,Hospitalized patient,hospitalized patient,unmapped,
+1008,Environment (Local Scale),Swine barn,swine barn,standardized,gut/fecal local context
+1008,Host Disease,bacterial infectious disease,bacterial infectious disease,standardized,infectious disease
+1002,Isolation Source,animal-cattle-beef cow,animal cattle beef cow,unmapped,
+1001,Isolation Source,bile,bile,standardized,bile
+996,Isolation Source,Rectum,rectum,standardized,clinical/host-associated material
+995,Environment Medium,groundwater,groundwater,standardized,groundwater
+993,Isolation Source,shrimp,shrimp,standardized,shrimp
+993,Environment (Broad Scale),terrestrial metagenome,terrestrial metagenome,standardized,terrestrial environment
+984,Isolation Source,marine metagenome,marine metagenome,standardized,metagenome
+981,Isolation Source,bovine feces,bovine feces,standardized,feces/stool
+975,Isolation Source,Animal-Cattle-Beef Cow (cecal),animal cattle beef cow,standardized,clinical/host-associated material
+974,Isolation Source,Pus,pus,standardized,pus
+973,Environment (Local Scale),shoreline [ENVO:00000486],shoreline envo 00000486,unmapped,
+972,Environment (Broad Scale),food material [FOODON:00002403],food material foodon 00002403,standardized,food-associated environment
+972,Environment (Local Scale),dairy food product [FOODON:00001256],dairy food product foodon 00001256,unmapped,
+971,Environment (Broad Scale),gut microbiome,gut microbiome,standardized,host-associated gut/oral/fecal environment
+968,Host Disease,Prostatic Neoplasms,prostatic neoplasms,standardized,prostatic neoplasm
+966,Sample Type,Isolate,isolate,standardized,microbial isolate
+961,Environment (Broad Scale),soil metagenome,soil metagenome,standardized,terrestrial environment
+960,Isolation Source,bronchoalveolar lavage,bronchoalveolar lavage,standardized,clinical fluid/material
+960,Host Disease,Land Animals:Dairy:Solid/semisolid dairy products,land animals dairy solid semisolid dairy products,unmapped,
+958,Isolation Source,marine sediment,marine sediment,standardized,marine sediment
+945,Isolation Source,fresh water stream,fresh water stream,standardized,stream
+945,Isolation Source,bronchoalveolar lavage fluid,bronchoalveolar lavage fluid,standardized,clinical fluid/material
+943,Isolation Source,fly,fly,unmapped,
+939,Isolation Source,tissue sample,tissue sample,standardized,tissue
+939,Isolation Source,Host-associated strain,host associated strain,standardized,metadata descriptor/non-source
+933,Isolation Source,recto-vaginal,recto vaginal,standardized,rectovaginal site
+932,Sample Type,animal,animal,standardized,fecal/stool swab
+931,Isolation Source,urine sample,urine sample,standardized,urine
+929,Isolation Source,Invasive,invasive,standardized,metadata descriptor/non-source
+924,Isolation Source,respiratory tract,respiratory tract,standardized,respiratory sample
+915,Sample Type,Clinical sample,clinical sample,standardized,clinical sample
+911,Isolation Source,airway culture,airway culture,standardized,culture
+901,Isolation Source,freshwater,freshwater,standardized,freshwater
+897,Isolation Source,cow,cow,unmapped,
+894,Isolation Source,Groin,groin,standardized,groin
+894,Host Disease,Cystic Fibrosis,cystic fibrosis,standardized,cystic fibrosis
+894,Host Disease,otitis media,otitis media,standardized,otitis media
+893,Isolation Source,Marmota himalayana,marmota himalayana,standardized,Marmota himalayana
+892,Host Disease,Obesity,obesity,standardized,obesity
+889,Isolation Source,pork,pork,standardized,pork/meat product
+884,Sample Type,Cell Culture,cell culture,standardized,cell culture
+882,Isolation Source,Canal,canal,standardized,canal
+881,Isolation Source,Bacterial culture,bacterial culture,standardized,bacterial culture
+879,Isolation Source,bacterial culture,bacterial culture,standardized,bacterial culture
+878,Environment (Broad Scale),ENVO:00002043,envo 00002043,standardized,wastewater/sewage
+876,Sample Type,whole organism,whole organism,standardized,soil
+875,Host Disease,Neoplasms,neoplasms,standardized,neoplasm/cancer
+874,Isolation Source,saliva,saliva,standardized,clinical/host-associated material
+873,Environment Medium,cheese_rind [FOODON:00003842],cheese rind foodon 00003842,standardized,dairy food
+869,Isolation Source,Chicken caeca,chicken caeca,unmapped,
+867,Isolation Source,citrus leaf,citrus leaf,standardized,Citrus leaf
+864,Environment Medium,stream,stream,standardized,environmental material
+861,Environment Medium,lake water,lake water,standardized,lake water
+856,Isolation Source,Urethral,urethral,standardized,clinical/host-associated material
+840,Isolation Source,blood from patients of rural regional hospital,blood from patients of rural regional hospital,standardized,blood
+835,Isolation Source,Activated sludge of municipal wastewater treatment plants,activated sludge of municipal wastewater treatment plants,standardized,sewage
+833,Environment (Local Scale),UBERON:0004983,uberon 0004983,unmapped,
+830,Isolation Source,Homo sapiens,homo sapiens,unmapped,
+830,Isolation Source,ectocervical mucosa,ectocervical mucosa,standardized,clinical/host-associated material
+823,Host Disease,Clostridim difficile infection,clostridim difficile infection,standardized,Clostridioides difficile infection
+818,Isolation Source,Chicken Breasts,chicken breasts,unmapped,
+818,Isolation Source,ICU Environment,icu environment,standardized,healthcare facility
+817,Isolation Source,maternal stool,maternal stool,standardized,feces/stool
+816,Isolation Source,Coastal bare tidal sandflat sediment,coastal bare tidal sandflat sediment,standardized,sediment
+816,Sample Type,metagenome assembly,metagenome assembly,standardized,metagenomic assembly
+813,Host Disease,C. difficle,c. difficle,standardized,Clostridioides difficile infection
+811,Isolation Source,faecal,fecal,standardized,feces/stool
+807,Isolation Source,human gut metagenome,human gut metagenome,standardized,metagenome
+806,Environment (Broad Scale),ENVO:00001998,envo 00001998,standardized,terrestrial environment
+804,Environment Medium,water [ENVO:00002006],water envo 00002006,standardized,water
+800,Isolation Source,Wound swab,wound swab,standardized,wound
+798,Isolation Source,Abscess,abscess,standardized,abscess
+795,Isolation Source,drainage,drainage,standardized,drainage
+793,Environment (Local Scale),maternal gut microbiome,maternal gut microbiome,standardized,gut/fecal local context
+792,Isolation Source,"Product-Raw-Ground, Comminuted or Otherwise Nonintact-Pork",product raw ground comminuted or otherwise nonintact pork,standardized,pork/meat product
+790,Isolation Source,Patient or hospital wastewater site,patient or hospital wastewater site,standardized,hospital wastewater
+790,Environment Medium,biological product [ENVO:02000043],biological product envo 02000043,standardized,biological product
+786,Environment (Broad Scale),freshwater lake [ENVO:00000021],freshwater lake envo 00000021,standardized,freshwater environment
+782,Environment (Local Scale),ENVO:01000687,envo 01000687,unmapped,
+782,Environment (Local Scale),pelagic epilimnion,pelagic epilimnion,standardized,lake
+780,Isolation Source,bodily fluid,bodily fluid,standardized,body fluid
+779,Isolation Source,urogenital,urogenital,standardized,clinical/host-associated material
+773,Isolation Source,dam water,dam water,standardized,environmental water
+769,Isolation Source,wound swab,wound swab,standardized,wound
+764,Isolation Source,rhizosphere soil,rhizosphere soil,standardized,plant-associated material
+764,Environment (Broad Scale),Human gut microbiome,human gut microbiome,standardized,host-associated gut/oral/fecal environment
+759,Environment (Local Scale),Lake [ENVO:00000020],lake envo 00000020,standardized,lake
+755,Environment (Broad Scale),hydrothermal vent metagenome,hydrothermal vent metagenome,standardized,geologic/extreme environment
+752,Host Disease,C. difficile infection,c. difficile infection,standardized,Clostridioides difficile infection
+751,Sample Type,whole organism,whole organism,standardized,urine
+747,Isolation Source,Pure culture,pure culture,standardized,pure culture
+745,Environment Medium,leachate [ENVO:00002141],leachate envo 00002141,standardized,leachate
+744,Isolation Source,rectum swab,rectum swab,standardized,clinical/host-associated material
+742,Isolation Source,stream sediment,stream sediment,standardized,stream
+739,Isolation Source,RECTAL SWAB,rectal swab,standardized,clinical/host-associated material
+738,Isolation Source,screening,screening,standardized,metadata descriptor/non-source
+738,Isolation Site,Root,root,standardized,root
+734,Isolation Source,hospital sewage,hospital sewage,standardized,hospital sewage
+728,Environment (Broad Scale),terrestrial biome,terrestrial biome,standardized,terrestrial environment
+727,Environment (Local Scale),landfill [ENVO:00000533],landfill envo 00000533,unmapped,
+716,Isolation Source,skin and soft tissue infection,skin and soft tissue infection,standardized,clinical/host-associated material
+715,Isolation Source,Chicken Legs,chicken legs,unmapped,
+710,Isolation Source,rectum,rectum,standardized,clinical/host-associated material
+710,Isolation Source,Pure cell culture,pure cell culture,standardized,cell culture
+708,Isolation Site,Lung,lung,standardized,lower respiratory tract/bronch/pleural cavity
+706,Isolation Source,Biopsy,biopsy,standardized,biopsy
+706,Isolation Source,Stools,stools,standardized,feces/stool
+706,Environment (Broad Scale),marine biome [ENVO:00000447],marine biome envo 00000447,standardized,marine environment
+702,Environment Medium,seawater,seawater,standardized,seawater
+701,Isolation Source,environmental: non-food-contact surface,environmental non food contact surface,standardized,environmental sample
+699,Isolation Source,Retail chicken,retail chicken,unmapped,
+697,Isolation Source,surveillance swabs,surveillance swabs,standardized,metadata descriptor/non-source
+697,Isolation Source,stool swab,stool swab,standardized,fecal/stool swab
+696,Isolation Source,Chicken Liver,chicken liver,standardized,clinical/host-associated material
+694,Host Disease,bacteremia,bacteremia,standardized,sepsis/bacteremia
+692,Isolation Source,fish,fish,unmapped,
+691,Environment (Local Scale),human-associated habitat [ENVO:00009003],human associated habitat envo 00009003,standardized,gut/fecal local context
+690,Environment (Local Scale),Chinese giant salamander gut,chinese giant salamander gut,standardized,gut/fecal local context
+689,Environment Medium,Seawater,seawater,standardized,seawater
+686,Isolation Source,food processing environment,food processing environment,standardized,food/food product
+684,Isolation Source,Skin and toft tissue infection,skin and toft tissue infection,standardized,clinical/host-associated material
+679,Isolation Source,human-associated habitat,human associated habitat,unmapped,
+677,Environment Medium,stream sediment,stream sediment,standardized,sediment
+672,Isolation Source,healthy people,healthy people,unmapped,
+670,Isolation Source,bodily fluid material biome [ENVO:02000019],bodily fluid material biome envo 02000019,standardized,body fluid
+663,Environment (Broad Scale),groundwater,groundwater,unmapped,
+662,Isolation Source,dairy calf feces,dairy calf feces,standardized,feces/stool
+662,Isolation Source,Nasophaynx,nasophaynx,standardized,nasopharynx/oropharynx
+661,Isolation Source,sewage,sewage,standardized,sewage
+658,Isolation Source,sea water,seawater,standardized,seawater
+657,Isolation Source,Food products,food products,standardized,seafood/aquatic food product
+652,Isolation Source,clinical specimen,clinical specimen,standardized,clinical sample
+646,Isolation Source,Pig farm,pig farm,standardized,farm
+639,Isolation Source,venous blood,venous blood,standardized,blood
+634,Isolation Source,caecum,caecum,standardized,clinical/host-associated material
+633,Environment Medium,ENVO:01001785,envo 01001785,standardized,soil
+630,Isolation Source,Penis/Urethra,penis urethra,standardized,clinical/host-associated material
+629,Isolation Source,aspirate,aspirate,standardized,aspirate
+628,Environment (Broad Scale),urban biome,urban biome,standardized,built/urban environment
+626,Isolation Source,farm environment,farm environment,standardized,farm
+625,Sample Type,soil,soil,standardized,soil
+624,Host Disease,Buruli ulcer,buruli ulcer,standardized,Buruli ulcer
+617,Environment (Local Scale),anaerobic bioreactor [ENVO:00002124],anaerobic bioreactor envo 00002124,unmapped,
+617,Environment (Local Scale),Forest,forest,unmapped,
+616,Isolation Source,manure,manure,standardized,manure
+616,Isolation Source,human skin,human skin,standardized,clinical/host-associated material
+616,Environment Medium,biological waste material [ENVO:01000373],biological waste material envo 01000373,standardized,biological waste material
+615,Environment (Local Scale),Wetland,wetland,standardized,wetland
+611,Isolation Source,poultry cecal sample,poultry cecal sample,standardized,clinical/host-associated material
+609,Sample Type,stool,stool,standardized,feces/stool
+607,Host Health State,healthy,healthy,standardized,healthy
+607,Environment Medium,Wetland,wetland,standardized,soil
+606,Environment (Broad Scale),landfill [ENVO:00000533],landfill envo 00000533,unmapped,
+603,Environment Medium,Forest,forest,standardized,soil
+603,Environment (Local Scale),sea ice,sea ice,unmapped,
+603,Environment (Local Scale),Alberta groundwater,alberta groundwater,standardized,groundwater
+598,Isolation Source,human gut,human gut,standardized,clinical/host-associated material
+595,Sample Type,human,human,standardized,feces/stool
+593,Isolation Source,brain,brain,standardized,clinical/host-associated material
+593,Environment Medium,ENVO:00001998,envo 00001998,standardized,soil
+593,Environment Medium,sea ice,sea ice,standardized,sea ice
+592,Isolation Source,equine,equine,unmapped,
+592,Environment (Broad Scale),large freshwater lake biome [ENVO:00000891],large freshwater lake biome envo 00000891,standardized,freshwater environment
+589,Isolation Source,Intensive Care Unit,intensive care unit,standardized,healthcare facility
+588,Isolation Site,whole blood,whole blood,standardized,blood
+586,Environment (Broad Scale),plant metagenome,plant metagenome,standardized,plant-associated environment
+585,Isolation Source,"oropharynx, sputum, or bronchoalveolar lavage",oropharynx sputum or bronchoalveolar lavage,standardized,clinical fluid/material
+583,Environment (Local Scale),ENVO:00002018,envo 00002018,unmapped,
+579,Isolation Source,marine,marine,standardized,marine
+575,Environment (Broad Scale),marine hydrothermal vent biome [ENVO:01000030],marine hydrothermal vent biome envo 01000030,standardized,marine environment
+573,Isolation Source,Blood,blood,standardized,blood
+573,Sample Type,Sputum,sputum,standardized,sputum
+571,Environment (Broad Scale),sea ice,sea ice,standardized,marine environment
+569,Isolation Source,Ice Core Section from Central Arctic Ocean,ice core section from central arctic ocean,standardized,ice core section from central arctic ocean
+568,Isolation Source,Pork Chop,pork chop,standardized,pork/meat product
+566,Isolation Source,Nursing home,nursing home,standardized,healthcare facility
+558,Isolation Source,permafrost soil,permafrost soil,standardized,soil
+556,Isolation Source,water pond,water pond,standardized,pond
+556,Isolation Source,deep-sea hydrothermal deposit,deep sea hydrothermal deposit,standardized,deep-sea hydrothermal deposit
+553,Isolation Source,hot spring,hot spring,standardized,hot spring water
+552,Isolation Source,food source,food source,standardized,food/food product
+552,Isolation Source,Bronchoalveolar lavage fluid,bronchoalveolar lavage fluid,standardized,clinical fluid/material
+549,Isolation Source,raw milk,raw milk,standardized,milk
+549,Isolation Source,Pharynx,pharynx,standardized,nasopharynx/oropharynx
+545,Environment (Local Scale),marine hydrothermal vent [ENVO:01000122],marine hydrothermal vent envo 01000122,unmapped,
+545,Environment (Broad Scale),Hydrothermal vent,hydrothermal vent,standardized,geologic/extreme environment
+542,Isolation Source,Nottingham,nottingham,standardized,Nottingham
+542,Environment (Broad Scale),bioreactor [ENVO:00002123],bioreactor envo 00002123,standardized,wastewater/sewage
+541,Isolation Source,BAL,bal,standardized,clinical fluid/material
+541,Environment (Broad Scale),marine biome,marine biome,standardized,marine environment
+540,Environment (Broad Scale),permafrost soil,permafrost soil,standardized,terrestrial environment
+539,Environment (Local Scale),methane hotspot,methane hotspot,unmapped,
+536,Isolation Source,cultured embryonic stem cells,cultured embryonic stem cells,standardized,cultured embryonic stem cells
+535,Environment (Local Scale),skin of face,skin of face,unmapped,
+534,Environment (Broad Scale),ocean_biome,ocean biome,standardized,marine environment
+532,Isolation Site,Peripheral Blood,peripheral blood,standardized,blood
+532,Environment Medium,deep-sea hydrothermal deposit,deep sea hydrothermal deposit,standardized,marine
+531,Isolation Source,feces of wild boar,feces of wild boar,standardized,feces/stool
+527,Isolation Source,cattle feces,cattle feces,unmapped,
+527,Environment Medium,NCIT:C13234,ncit c13234,unmapped,
+524,Isolation Source,Deciduous Forest,deciduous forest,standardized,deciduous forest
+524,Environment (Local Scale),hospital,hospital,standardized,healthcare facility
+523,Isolation Source,Oyster,oyster,standardized,Oyster
+523,Environment Medium,Soil,soil,standardized,soil
+523,Environment (Broad Scale),NCIT:C160991,ncit c160991,standardized,host-associated gut/oral/fecal environment
+523,Environment (Local Scale),NCIT:C34082,ncit c34082,standardized,gut/fecal local context
+522,Environment (Local Scale),Diffuse zone,diffuse zone,unmapped,
+521,Host Disease,Breast Neoplasms,breast neoplasms,standardized,breast neoplasm
+519,Isolation Source,Faecal sample,faecal sample,standardized,feces/stool
+517,Sample Type,whole organism,whole organism,standardized,environmental sample
+513,Isolation Source,Surveillance,surveillance,standardized,metadata descriptor/non-source
+513,Isolation Source,metal,metal,standardized,metal
+512,Isolation Source,Animal-Sheep-Lamb (cecal),animal sheep lamb,unmapped,
+509,Isolation Source,Screening,screening,standardized,metadata descriptor/non-source
+509,Sample Type,Culture,culture,standardized,culture
+508,Isolation Source,skin lesion,skin lesion,standardized,clinical/host-associated material
+508,Isolation Source,termite gut,termite gut,standardized,clinical/host-associated material
+508,Host Disease,Pneumonia,pneumonia,standardized,pneumonia
+506,Isolation Source,bone,bone,standardized,clinical/host-associated material
+505,Isolation Source,cecal content,cecal content,standardized,clinical/host-associated material
+505,Isolation Source,rumen,rumen,standardized,clinical/host-associated material
+505,Isolation Source,Caecal Content,caecal content,standardized,clinical/host-associated material
+505,Isolation Site,pancreas,pancreas,standardized,organ/tissue site
+505,Host Disease,other,other,unmapped,
+504,Isolation Source,antarctic soil,antarctic soil,standardized,soil
+503,Environment Medium,soil [ENVO:00001998],soil envo 00001998,standardized,soil
+502,Isolation Source,eye,eye,standardized,clinical/host-associated material
+501,Isolation Source,abscess,abscess,standardized,abscess
+500,Host Disease,Yersiniosis,yersiniosis,standardized,yersiniosis
+497,Isolation Source,chicken meat,chicken meat,standardized,poultry meat/product
+497,Isolation Source,Bacterial Isolate from bulk tank milk sample,bacterial isolate from bulk tank milk sample,standardized,milk
+497,Isolation Source,Non-hospitalized person,non hospitalized person,unmapped,
+496,Isolation Source,pulmonary sample from from cystic fibrosis patient,pulmonary sample from from cystic fibrosis patient,unmapped,
+496,Isolation Source,marine hydrothermal vent,marine hydrothermal vent,standardized,marine
+494,Isolation Site,Nasopharyngeal swab,nasopharyngeal swab,standardized,nasopharynx/oropharynx
+492,Isolation Source,water kefir,water kefir,standardized,water
+490,Environment (Local Scale),skin of forearm,skin of forearm,unmapped,
+489,Environment Medium,water kefir,water kefir,standardized,water
+489,Environment (Broad Scale),fermented beverage [FOODON_00001094],fermented beverage foodon 00001094,standardized,food-associated environment
+489,Environment (Local Scale),water kefir,water kefir,unmapped,
+488,Isolation Source,ground component turkey,ground component turkey,standardized,turkey meat/product
+488,Environment (Broad Scale),estuarine biome,estuarine biome,standardized,estuarine environment
+487,Isolation Source,Chicken Gizzard,chicken gizzard,unmapped,
+486,Isolation Source,retail meat,retail meat,standardized,meat product
+484,Host Disease,healthy,healthy,standardized,healthy/no disease reported
+483,Environment (Local Scale),woodland biome,woodland biome,standardized,gut/fecal local context
+483,Environment (Broad Scale),Freshwater,freshwater,standardized,freshwater environment
+482,Isolation Source,dairy cattle manure,dairy cattle manure,unmapped,
+481,Isolation Source,Chicken Liver (Giblets),chicken liver,standardized,clinical/host-associated material
+479,Isolation Source,river,river,standardized,environmental material
+479,Isolation Source,Whole Organism,whole organism,standardized,whole organism
+479,Isolation Source,rhizosphere,rhizosphere,standardized,plant-associated material
+477,Host Disease,carriage,carriage,unmapped,
+476,Environment (Broad Scale),Sediment,sediment,standardized,aquatic sediment environment
+474,Isolation Source,Chicken Heart,chicken heart,standardized,clinical/host-associated material
+474,Isolation Source,URINE_CLEAN CATCH/VOIDED,urine clean catch voided,standardized,urine
+474,Isolation Site,whole organism,whole organism,standardized,whole organism
+474,Environment Medium,ENVO:00002018,envo 00002018,standardized,wastewater
+473,Sample Type,Pure Culture,pure culture,standardized,pure culture
+472,Environment Medium,Water,water,standardized,water
+469,Isolation Source,Human bacterial culture,human bacterial culture,unmapped,
+469,Isolation Source,oral metagenome,oral metagenome,standardized,clinical/host-associated material
+469,Isolation Source,Assembly,assembly,standardized,metadata descriptor/non-source
+469,Environment (Broad Scale),Bos indicus,bos indicus,standardized,host-associated gut/oral/fecal environment
+468,Isolation Source,urine from catheter,urine from catheter,standardized,catheter
+468,Environment Medium,estuarine water,estuarine water,standardized,estuarine water
+467,Isolation Source,Farm,farm,standardized,farm
+465,Isolation Source,Laboratory,laboratory,standardized,laboratory
+465,Sample Type,Bacteria,bacteria,unmapped,
+464,Isolation Source,physical,physical,standardized,Physical
+464,Isolation Source,bloodstream,bloodstream,standardized,bloodstream
+464,Host Disease,Tularemia,tularemia,standardized,tularemia
+463,Isolation Source,cucumber,cucumber,standardized,plant/produce food product
+463,Isolation Source,Oropharyngeal swab,oropharyngeal swab,standardized,oropharyngeal/throat swab
+460,Isolation Source,canine,canine,unmapped,
+460,Host Disease,Presumptive of C. difficile infection,presumptive of c. difficile infection,standardized,Clostridioides difficile infection
+458,Environment Medium,tropical woodland biome,tropical woodland biome,unmapped,
+458,Environment (Local Scale),skin of antecubital fossa,skin of antecubital fossa,unmapped,
+457,Host Health State,sick,sick,standardized,diseased
+456,Isolation Source,core,core,standardized,core
+456,Environment (Broad Scale),marine pelagic biome,marine pelagic biome,standardized,marine environment
+455,Isolation Source,kidney,kidney,standardized,clinical/host-associated material
+455,Isolation Source,leaves,leaves,standardized,leaf tissue
+455,Isolation Source,"saline water (ENVO:00002010), including plankton (ENVO:xxxxxxxx)",saline water including plankton,standardized,saline/brine water
+454,Isolation Source,fish gut,fish gut,standardized,clinical/host-associated material
+454,Isolation Source,Human infection,human infection,unmapped,
+453,Environment (Broad Scale),hot spring [ENVO:00000051],hot spring envo 00000051,standardized,geologic/extreme environment
+453,Environment (Broad Scale),coral biome,coral biome,unmapped,
+452,Sample Type,Bacterial Culture,bacterial culture,standardized,bacterial culture
+451,Sample Type,whole organism,whole organism,standardized,blood
+450,Environment (Local Scale),UBERON_0004983,uberon 0004983,unmapped,
+449,Isolation Source,Agricultural,agricultural,standardized,Agricultural
+449,Isolation Source,blood cultures,blood cultures,standardized,blood
+449,Environment (Local Scale),offshore,offshore,unmapped,
+447,Isolation Source,Respiratory specimens,respiratory specimens,standardized,respiratory sample
+447,Environment (Local Scale),open ocean,open ocean,unmapped,
+445,Isolation Source,swine,swine,unmapped,
+445,Environment Medium,active layer soil,active layer soil,standardized,soil
+444,Isolation Source,irrigation canal,irrigation canal,standardized,irrigation canal
+444,Isolation Source,isolate,isolate,standardized,microbial isolate
+444,Isolation Source,single cell amplified by WGA-X; seawater,single cell amplified by wga x seawater,standardized,seawater
+443,Host Disease,Healthy,healthy,standardized,healthy/no disease reported
+442,Sample Type,DNA,dna,standardized,DNA extract
+441,Isolation Source,farm,farm,standardized,farm
+440,Isolation Source,duck,duck,unmapped,
+439,Host Disease,syphilis,syphilis,standardized,syphilis
+438,Isolation Site,Saliva,saliva,standardized,oral cavity
+433,Isolation Site,liver,liver,standardized,organ/tissue site
+432,Sample Type,pure cultures of bacteria,pure cultures of bacteria,standardized,pure/single culture
+432,Sample Type,Whole Organism,whole organism,unmapped,
+432,Environment (Broad Scale),anaerobic digester metagenome,anaerobic digester metagenome,unmapped,
+430,Isolation Source,RTE Product,rte product,standardized,food/food product
+426,Isolation Source,cecum,cecum,standardized,clinical/host-associated material
+425,Isolation Source,anthropogenic,anthropogenic,standardized,anthropogenic
+425,Isolation Source,nasal cavity,nasal cavity,standardized,clinical/host-associated material
+425,Environment Medium,saliva,saliva,unmapped,
+425,Environment (Local Scale),Human feces,human feces,standardized,gut/fecal local context
+424,Isolation Site,Skin,skin,standardized,skin/body surface
+421,Isolation Source,Nasal cavity,nasal cavity,standardized,clinical/host-associated material
+421,Environment Medium,biofilm,biofilm,standardized,biofilm
+420,Isolation Source,spleen,spleen,standardized,clinical/host-associated material
+419,Isolation Source,gill,gill,standardized,gill
+416,Isolation Source,trachea,trachea,standardized,clinical/host-associated material
+416,Isolation Source,NP Swab,np swab,standardized,nasopharynx/oropharynx
+416,Environment (Broad Scale),food,food,standardized,food-associated environment
+416,Environment (Broad Scale),Human bacterial culture,human bacterial culture,unmapped,
+415,Isolation Source,dog,dog,unmapped,
+415,Isolation Source,skin swab,skin swab,standardized,clinical/host-associated material
+413,Isolation Source,Animal-Sheep-Mature Sheep (cecal),animal sheep mature sheep,unmapped,
+411,Isolation Source,Pork (cecal content),pork,standardized,clinical/host-associated material
+411,Isolation Source,WT Mouse intestinal epithelial cells,wt mouse intestinal epithelial cells,standardized,clinical/host-associated material
+409,Isolation Source,Aquatic products,aquatic products,standardized,Aquatic products
+409,Isolation Source,bloodstream isolates,bloodstream isolates,standardized,bloodstream
+409,Sample Type,bacterial isolate,bacterial isolate,standardized,microbial isolate
+407,Isolation Source,poultry,poultry,unmapped,
+407,Isolation Source,Water from Urban Wastewater,water from urban wastewater,standardized,wastewater
+407,Isolation Source,body swab,body swab,standardized,clinical/host-associated material
+406,Isolation Source,blood/CSF,blood csf,standardized,cerebrospinal fluid
+406,Host Disease,Clostridium difficile Infections,clostridium difficile infections,standardized,Clostridioides difficile infection
+404,Environment (Local Scale),Grassland,grassland,unmapped,
+403,Isolation Source,gastrointestinal tract,gastrointestinal tract,standardized,clinical/host-associated material
+402,Isolation Source,Human Stool,human stool,unmapped,
+402,Isolation Source,freshwater biome [ENVO:00000873],freshwater biome envo 00000873,standardized,freshwater
+401,Sample Type,Metagenomic assembly,metagenomic assembly,standardized,metagenomic assembly
+400,Isolation Source,avian,avian,unmapped,
+400,Isolation Source,cattle manure,cattle manure,unmapped,
+400,Environment (Local Scale),activated sludge [ENVO:00002046],activated sludge envo 00002046,standardized,activated sludge
+399,Environment Medium,Grassland,grassland,standardized,soil
+398,Isolation Source,lungs,lungs,standardized,clinical/host-associated material
+398,Host Disease,cystic fibrosis,cystic fibrosis,standardized,cystic fibrosis
+397,Isolation Source,nodule,nodule,standardized,plant-associated material
+396,Environment (Local Scale),human oral,human oral,unmapped,
+394,Environment (Broad Scale),human oral,human oral,standardized,host-associated environment
+392,Isolation Source,Pleural fluid,pleural fluid,standardized,clinical fluid/material
+392,Sample Type,genomic DNA,genomic dna,standardized,DNA extract
+391,Isolation Source,canal water,canal water,standardized,canal
+391,Environment (Broad Scale),sludge [ENVO:00002044],sludge envo 00002044,standardized,wastewater/sewage
+388,Isolation Source,boneless beef,boneless beef,standardized,beef/meat product
+388,Isolation Source,hot spring water,hot spring water,standardized,hot spring water
+388,Environment (Broad Scale),Wine,wine,unmapped,
+387,Isolation Source,Feces swab,feces swab,standardized,feces/stool
+386,Isolation Source,Produced fluids from hydraulically fractured shales,produced fluids from hydraulically fractured shales,standardized,produced fluids from hydraulically fractured shales
+385,Isolation Source,SWAB_WOUND,swab wound,standardized,wound
+385,Environment (Broad Scale),food material (FOODON:00002403),food material,standardized,food-associated environment
+384,Environment (Broad Scale),urban biome [ENVO:01000249],urban biome envo 01000249,standardized,built/urban environment
+384,Environment (Local Scale),Gut,gut,standardized,gut/fecal local context
+383,Isolation Site,BLOOD,blood,standardized,blood
+381,Environment Medium,Microcystis colony,microcystis colony,standardized,freshwater
+380,Isolation Source,creek water,creek water,standardized,freshwater
+378,Environment Medium,Urban Wastewater,urban wastewater,standardized,wastewater
+378,Environment (Broad Scale),Water,water,standardized,wastewater/sewage
+378,Environment (Local Scale),Urban Wastewater,urban wastewater,standardized,urban area
+376,Isolation Source,water filtration membrane,water filtration membrane,standardized,water
+376,Isolation Source,pharyngeal exudate,pharyngeal exudate,standardized,nasopharynx/oropharynx
+376,Isolation Site,nasopharynx,nasopharynx,standardized,nasopharynx/oropharynx
+375,Isolation Source,RECTAL,rectal,standardized,clinical/host-associated material
+375,Isolation Source,Companion animal,companion animal,unmapped,
+374,Isolation Source,Fluid,fluid,standardized,body fluid
+374,Isolation Source,Screening swab,screening swab,standardized,metadata descriptor/non-source
+373,Isolation Source,seafood,seafood,standardized,seafood/aquatic food product
+373,Sample Type,Microbe,microbe,standardized,microbial isolate
+371,Isolation Source,dairy milk,dairy milk,standardized,dairy milk
+371,Environment (Broad Scale),soil,soil,standardized,terrestrial environment
+370,Isolation Source,ice cream,ice cream,standardized,ice cream
+369,Environment (Broad Scale),fish gut microbiome,fish gut microbiome,standardized,host-associated gut/oral/fecal environment
+369,Isolation Source,mangrove wetland sediment,mangrove wetland sediment,standardized,sediment
+368,Host Disease,Dairy Products,dairy products,unmapped,
+368,Environment (Local Scale),intestine environment [ENVO:2100002],intestine environment envo 2100002,standardized,gut/fecal local context
+368,Isolation Source,gastric biopsy,gastric biopsy,standardized,gastric biopsy
+366,Isolation Source,Gastric Biopsy,gastric biopsy,standardized,gastric biopsy
+365,Isolation Source,poultry manure,poultry manure,unmapped,
+365,Environment Medium,fecal environment [ENVO:01001029],fecal environment envo 01001029,standardized,wastewater
+365,Environment Medium,stone,stone,standardized,biofilm
+365,Environment (Broad Scale),Enrichment culture biofilms,enrichment culture biofilms,standardized,marine environment
+365,Environment (Local Scale),Enrichment culture biofilms,enrichment culture biofilms,unmapped,
+363,Isolation Source,fecal stool,fecal stool,standardized,feces/stool
+363,Environment (Broad Scale),mangrove wetland,mangrove wetland,standardized,aquatic sediment environment
+362,Isolation Source,liver abscess,liver abscess,standardized,clinical fluid/material
+362,Isolation Source,"Feces, Gull (Larus spp.)",feces gull,standardized,feces/stool
+361,Environment Medium,Cheese (FOODON:00001013),cheese,standardized,dairy food
+360,Isolation Source,WOUND/ABSCESS,wound abscess,standardized,abscess
+359,Isolation Source,Filtered Seawater,filtered seawater,standardized,seawater
+356,Isolation Source,microbial community [PCO:1000004],microbial community pco 1000004,standardized,metadata descriptor/non-source
+356,Isolation Source,Meriones unguiculatus,meriones unguiculatus,standardized,Meriones unguiculatus
+355,Isolation Source,human - faeces,human faeces,unmapped,
+355,Environment (Broad Scale),insect metagenome,insect metagenome,unmapped,
+353,Isolation Source,Sink,sink,standardized,sink
+351,Isolation Source,pond,pond,standardized,pond
+350,Host Disease,Clostridioides difficile infection,clostridioides difficile infection,standardized,Clostridioides difficile infection
+350,Host Disease,Leptospirosis,leptospirosis,standardized,leptospirosis
+349,Environment (Broad Scale),subsurface metagenome,subsurface metagenome,unmapped,
+347,Isolation Source,oral,oral,standardized,clinical/host-associated material
+347,Isolation Source,dental plaque,dental plaque,standardized,clinical/host-associated material
+346,Isolation Source,lymph node,lymph node,standardized,clinical/host-associated material
+346,Isolation Source,chicken litter,chicken litter,unmapped,
+346,Isolation Source,Římov reservoir,mov reservoir,standardized,Římov reservoir
+344,Environment Medium,fecal material [ENVO:00002003],fecal material envo 00002003,standardized,wastewater
+343,Isolation Source,"Human, Blood",human blood,unmapped,
+343,Isolation Source,Faeces,feces,standardized,feces/stool
+342,Isolation Source,Pork meat,pork meat,standardized,pork/meat product
+342,Isolation Source,Stream,stream,standardized,stream
+342,Isolation Source,urine specimen,urine specimen,standardized,urine
+342,Host Disease,type II diabetes mellitus,type ii diabetes mellitus,standardized,diabetes mellitus
+341,Environment (Local Scale),hot spring [ENVO:00000051],hot spring envo 00000051,standardized,hot spring
+340,Isolation Site,Gastric,gastric,standardized,gastrointestinal tract
+339,Isolation Source,tracheal secretion,tracheal secretion,standardized,tracheal aspirate
+339,Host Disease,NSCLC,nsclc,standardized,lung neoplasm
+339,Isolation Source,Baltic Sea water,baltic sea water,standardized,seawater
+339,Environment Medium,Bare Land,bare land,standardized,soil
+339,Environment (Local Scale),Bare Land,bare land,unmapped,
+339,Host Disease,Lyme disease,lyme disease,standardized,Lyme disease
+338,Isolation Source,Canal water,canal water,standardized,canal
+338,Environment Medium,Urine,urine,unmapped,
+336,Sample Type,Clinical isolate,clinical isolate,standardized,clinical sample
+336,Environment (Broad Scale),brackish environment,brackish environment,standardized,marine environment
+336,Environment (Local Scale),Baltic Sea,baltic sea,unmapped,
+335,Isolation Source,biofilm from sulfidic cave,biofilm from sulfidic cave,standardized,biofilm
+333,Isolation Source,Animal-Chicken-Heavy Fowl,animal chicken heavy fowl,unmapped,
+333,Isolation Source,estuary,estuary,standardized,estuary
+333,Isolation Source,cervix,cervix,standardized,clinical/host-associated material
+330,Host Disease,diphtheria,diphtheria,standardized,diphtheria
+329,Isolation Source,potato,potato,standardized,plant/produce food product
+329,Host Disease,Brucellosis,brucellosis,standardized,brucellosis
+328,Isolation Source,Soil from Natural Forests,soil from natural forests,standardized,soil
+328,Environment (Broad Scale),sulfidic caves | thermophilic | subsurface | microaerophilic,sulfidic caves thermophilic subsurface microaerophilic,unmapped,
+328,Environment (Local Scale),sulfidic cave,sulfidic cave,standardized,cave
+327,Isolation Source,Prawns,prawns,standardized,prawn product
+327,Environment (Local Scale),Bladder,bladder,unmapped,
+327,Environment (Broad Scale),activated sludge metagenome,activated sludge metagenome,standardized,wastewater/sewage
+325,Environment (Local Scale),digestive tract environment [ENVO:01001033],digestive tract environment envo 01001033,standardized,gut/fecal local context
+325,Environment Medium,Natural Forests,natural forests,standardized,soil
+325,Environment (Local Scale),Natural Forests,natural forests,unmapped,
+324,Isolation Source,Wastewater influent,wastewater influent,standardized,wastewater
+324,Environment Medium,swab,swab,unmapped,
+323,Isolation Source,Sewage,sewage,standardized,sewage
+323,Isolation Site,feces [UBERON:0001988],feces uberon 0001988,standardized,feces/stool
+323,Environment (Broad Scale),sediment metagenome,sediment metagenome,standardized,aquatic sediment environment
+322,Isolation Site,lung,lung,standardized,lower respiratory tract/bronch/pleural cavity
+322,Isolation Source,forest soil,forest soil,standardized,soil
+321,Isolation Source,secretion,secretion,standardized,secretion
+321,Isolation Source,Cattle faeces,cattle faeces,unmapped,
+321,Sample Type,whole organism,whole organism,standardized,leaves
+320,Environment (Broad Scale),freshwater,freshwater,standardized,freshwater environment
+319,Isolation Source,kratom,kratom,standardized,kratom
+319,Host Disease,Clostridium difficile Infection,clostridium difficile infection,standardized,Clostridioides difficile infection
+318,Isolation Source,fluff,fluff,standardized,fluff/lint material
+318,Isolation Source,activated sludge,activated sludge,standardized,sewage
+317,Isolation Source,plant,plant,standardized,plant-associated material
+317,Environment (Broad Scale),wastewater metagenome,wastewater metagenome,standardized,wastewater/sewage
+315,Isolation Source,vaginal swab,vaginal swab,standardized,clinical/host-associated material
+315,Isolation Source,Anal swab,anal swab,standardized,clinical/host-associated material
+315,Isolation Source,Hospital,hospital,standardized,healthcare facility
+315,Isolation Site,Blood Derived Normal,blood derived normal,standardized,blood
+315,Environment Medium,Gut microbiome,gut microbiome,unmapped,
+315,Host Disease,legionellosis,legionellosis,standardized,legionellosis
+315,Host Disease,melioidosis,melioidosis,standardized,melioidosis
+313,Sample Type,whole organism,whole organism,standardized,milk
+313,Environment (Broad Scale),marine sediment metagenome,marine sediment metagenome,standardized,aquatic sediment environment
+312,Isolation Source,Sterile Site,sterile site,standardized,sterile body site
+311,Isolation Source,ground component chicken,ground component chicken,standardized,ground chicken
+311,Isolation Source,pharynx,pharynx,standardized,nasopharynx/oropharynx
+309,Isolation Source,goat,goat,unmapped,
+309,Isolation Source,human blood,human blood,unmapped,
+309,Isolation Source,Dairy farm,dairy farm,standardized,dairy food
+309,Environment (Local Scale),Gut microbiome,gut microbiome,standardized,gut/fecal local context
+309,Isolation Site,Gastric,gastric,unmapped,
+308,Isolation Source,placenta,placenta,standardized,clinical/host-associated material
+307,Isolation Source,"human, animal or environmental",human animal or environmental,standardized,environmental sample
+307,Isolation Source,nasopharynx/oropharynx,nasopharynx oropharynx,standardized,nasopharynx/oropharynx
+306,Isolation Source,pork chop,pork chop,standardized,pork/meat product
+306,Isolation Source,tracheal aspirates from patient ventilator,tracheal aspirates from patient ventilator,unmapped,
+306,Host Disease,gastroenteritis,gastroenteritis,standardized,gastroenteritis
+306,Isolation Source,Human vagina,human vagina,standardized,clinical/host-associated material
+305,Isolation Source,carcass,carcass,standardized,poultry meat/product
+305,Isolation Source,Irrigation Canal,irrigation canal,standardized,irrigation canal
+305,Isolation Source,Pork Chops,pork chops,standardized,pork/meat product
+305,Host Disease,Health care-associated infection,health care associated infection,standardized,healthcare-associated infection
+305,Environment (Broad Scale),aquatic biome [ENVO:00002030],aquatic biome envo 00002030,standardized,wastewater/sewage
+304,Isolation Source,Production environment,production environment,standardized,environmental sample
+304,Environment Medium,Artificial Surfaces,artificial surfaces,standardized,soil
+304,Environment (Local Scale),Artificial Surfaces,artificial surfaces,unmapped,
+304,Environment Medium,Activated Sludge [ENVO:00002046],activated sludge envo 00002046,standardized,sewage
+304,Environment (Local Scale),Waste Water [ENVO:00002001],waste water envo 00002001,standardized,activated sludge
+303,Isolation Site,leaves,leaves,standardized,leaf tissue
+301,Isolation Source,Nare,nare,standardized,clinical/host-associated material
+301,Host Disease,scleroderma,scleroderma,standardized,scleroderma
+301,Host Health State,scleroderma,scleroderma,standardized,diseased
+300,Isolation Source,Chicken faeces,chicken faeces,unmapped,
+299,Isolation Source,bovine manure,bovine manure,standardized,manure
+299,Isolation Source,surface layer,surface layer,standardized,surface layer
+299,Environment (Broad Scale),water,water,standardized,geologic/extreme environment
+299,Sample Type,nasopharyngeal swab,nasopharyngeal swab,standardized,nasopharyngeal swab
+298,Isolation Source,sputum or oropharyngeal,sputum or oropharyngeal,standardized,nasopharynx/oropharynx
+298,Environment (Local Scale),rumen,rumen,unmapped,
+297,Isolation Source,Animal-Calf-Bob Veal (cecal),animal calf bob veal,standardized,clinical/host-associated material
+297,Isolation Source,nose; prosthetic joint infection,nose prosthetic joint infection,standardized,clinical/host-associated material
+296,Isolation Source,Wound Swab,wound swab,standardized,wound
+296,Host Disease,Chronic obstructive pulmonary disease,chronic obstructive pulmonary disease,standardized,respiratory disease
+296,Environment Medium,hotspring water,hotspring water,standardized,spring water
+296,Environment (Local Scale),hotspring,hotspring,standardized,hot spring
+295,Isolation Source,sludge,sludge,standardized,sludge
+295,Sample Type,FFPE,ffpe,standardized,FFPE tissue
+295,Environment Medium,surface layer,surface layer,unmapped,
+295,Isolation Source,mosquito,mosquito,unmapped,
+295,Environment (Local Scale),dairy food product (FOODON:00001256),dairy food product,standardized,cave
+294,Isolation Source,spinach,spinach,standardized,plant/produce food product
+294,Isolation Source,intensive care unit,intensive care unit,standardized,healthcare facility
+292,Isolation Source,human feces,human feces,unmapped,
+292,Isolation Source,activated sludge [ENVO:00002046],activated sludge envo 00002046,standardized,sewage
+291,Isolation Source,Pork from supermarket,pork from supermarket,standardized,pork/meat product
+291,Isolation Source,WOUND_OTHER,wound other,standardized,wound
+291,Isolation Source,tooth,tooth,standardized,clinical/host-associated material
+290,Isolation Source,ear discharge,ear discharge,standardized,clinical/host-associated material
+290,Environment (Broad Scale),ENVO:00000428,envo 00000428,unmapped,
+290,Environment (Broad Scale),Sink,sink,unmapped,
+289,Isolation Source,Human sample,human sample,unmapped,
+289,Isolation Source,intestines,intestines,standardized,clinical/host-associated material
+289,Isolation Source,urinary tract,urinary tract,standardized,urine
+289,Isolation Source,root nodules,root nodules,standardized,plant-associated material
+289,Host Disease,environmental,environmental,unmapped,
+288,Isolation Source,human - bacteraemia,human bacteraemia,unmapped,
+288,Isolation Source,sink drain,sink drain,standardized,drain
+287,Isolation Source,Uppsala Univeristy Hospital,uppsala univeristy hospital,standardized,healthcare facility
+287,Isolation Source,isolate from patient sample,isolate from patient sample,unmapped,
+286,Isolation Source,Environmental: food-contact surface,environmental food contact surface,standardized,environmental sample
+286,Isolation Source,human oral metagenome,human oral metagenome,standardized,clinical/host-associated material
+285,Isolation Source,catheter,catheter,standardized,catheter
+284,Isolation Source,feces bovine,feces bovine,standardized,feces/stool
+284,Isolation Source,body fluid,body fluid,standardized,body fluid
+284,Environment Medium,microbial mat|sediment,microbial mat sediment,standardized,sediment
+283,Isolation Source,Gut,gut,standardized,clinical/host-associated material
+283,Isolation Source,Raw Milk,raw milk,standardized,milk
+283,Isolation Source,Environmental strain,environmental strain,standardized,environmental sample
+283,Isolation Source,human sputum,human sputum,unmapped,
+282,Isolation Source,biological fluid or and tissue,biological fluid or and tissue,standardized,body fluid
+282,Isolation Source,soft tissue,soft tissue,standardized,tissue
+281,Isolation Source,Wound/skin swab,wound skin swab,standardized,wound
+281,Environment Medium,Yogurt,yogurt,standardized,dairy food
+281,Sample Type,Whole organism,whole organism,standardized,feces/stool
+280,Isolation Source,Oral,oral,standardized,clinical/host-associated material
+279,Isolation Source,Oysters,oysters,standardized,Oyster
+278,Isolation Source,Secretion,secretion,standardized,secretion
+278,Host Disease,hospital acquired infection,hospital acquired infection,standardized,healthcare-associated infection
+278,Environment (Broad Scale),environmental system [ENVO_01000254]|temperate environment [ENVO_01001705]|rhizosphere environment [ENVO_01000999],environmental system envo 01000254 temperate environment envo 01001705 rhizosphere environment envo 01000999,standardized,plant-associated environment
+278,Environment (Local Scale),root matter [ENVO_01000349],root matter envo 01000349,unmapped,
+277,Isolation Source,nasal wash,nasal wash,standardized,clinical/host-associated material
+277,Host Disease,normal,normal,standardized,healthy/no disease reported
+276,Isolation Source,metagenome,metagenome,standardized,metagenome
+276,Isolation Source,Wastewater treatment plant,wastewater treatment plant,standardized,plant-associated material
+275,Isolation Source,FLUID (BODY)_SPUTUM (COUGHED),fluid sputum,standardized,body fluid
+275,Isolation Source,tonsil swab,tonsil swab,standardized,clinical/host-associated material
+274,Isolation Source,wildlife,wildlife,standardized,wildlife
+274,Isolation Site,Fresh leaves,fresh leaves,standardized,leaf tissue
+273,Isolation Source,papaya,papaya,standardized,plant/produce food product
+273,Environment (Local Scale),estuary,estuary,standardized,estuary
+273,Environment (Broad Scale),anthropogenic terrestrial biome,anthropogenic terrestrial biome,standardized,terrestrial environment
+272,Isolation Source,vegetable,vegetable,standardized,plant/produce food product
+272,Isolation Source,"Municipal wastewater, Sand Island WWTP",municipal wastewater sand island wwtp,standardized,wastewater
+272,Isolation Source,Guyana,guyana,standardized,Guyana
+272,Sample Type,Soil,soil,standardized,soil
+272,Host Disease,M. abscessus lung disease,m. abscessus lung disease,standardized,respiratory disease
+271,Isolation Source,colon contents,colon contents,standardized,clinical/host-associated material
+271,Isolation Source,Human gut,human gut,standardized,clinical/host-associated material
+271,Isolation Source,Clinical,clinical,standardized,clinical sample
+271,Isolation Source,wood,wood,standardized,wood
+271,Isolation Source,homo,homo,unmapped,
+271,Environment Medium,surface swab,surface swab,unmapped,
+271,Isolation Source,Infants,infants,unmapped,
+271,Host Disease,acute respiratory tract infection,acute respiratory tract infection,standardized,respiratory infection
+270,Isolation Source,agricultural soil,agricultural soil,standardized,soil
+270,Isolation Source,Rectal swab/stool,rectal swab stool,standardized,clinical/host-associated material
+270,Host Disease,Gastritis,gastritis,standardized,gastritis
+269,Environment Medium,Colon contents,colon contents,unmapped,
+269,Sample Type,animal,animal,standardized,clinical sample
+268,Isolation Source,tree nut,tree nut,standardized,tree nut
+268,Isolation Source,chicken feces,chicken feces,unmapped,
+268,Environment Medium,buffered agar,buffered agar,standardized,culture medium
+268,Environment (Broad Scale),laboratory Petri dish,laboratory petri dish,standardized,laboratory environment
+267,Isolation Source,Human blood sample,human blood sample,unmapped,
+267,Isolation Source,Leafy greens,leafy greens,standardized,leafy greens
+267,Isolation Source,Vagina,vagina,standardized,clinical/host-associated material
+267,Sample Type,Stool,stool,standardized,feces/stool
+266,Host Disease,Diarrhea,diarrhea,standardized,diarrheal disease
+266,Environment (Local Scale),shoreline,shoreline,unmapped,
+266,Host Disease,pneumonia,pneumonia,standardized,pneumonia
+266,Isolation Source,Citrus leaf,citrus leaf,standardized,Citrus leaf
+265,Isolation Source,Human stool,human stool,unmapped,
+265,Environment (Broad Scale),oral_cavity,oral cavity,standardized,host-associated gut/oral/fecal environment
+265,Environment (Local Scale),supragingival_plaque,supragingival plaque,unmapped,
+264,Isolation Source,Plant,plant,standardized,plant-associated material
+264,Isolation Source,roots,roots,standardized,plant root/rhizosphere
+263,Isolation Source,Culture,culture,standardized,culture
+263,Isolation Source,Pure Culture,pure culture,standardized,pure culture
+263,Sample Type,human,human,standardized,fecal/stool swab
+263,Environment (Broad Scale),freshwater metagenome,freshwater metagenome,standardized,freshwater environment
+261,Isolation Source,fecal swab,fecal swab,standardized,fecal/stool swab
+261,Isolation Source,Fecal microbiome of Nelore,fecal microbiome of nelore,standardized,feces/stool
+261,Host Disease,Sepsis,sepsis,standardized,sepsis/bacteremia
+261,Isolation Source,meat processing facility,meat processing facility,standardized,meat product
+260,Isolation Source,feces from patient with diarrhea,feces from patient with diarrhea,unmapped,
+260,Isolation Source,peanut butter,peanut butter,standardized,peanut butter
+260,Isolation Source,"URINE, CLEAN VOID",urine clean void,standardized,urine
+260,Isolation Source,anaerobic bioreactor effluent,anaerobic bioreactor effluent,standardized,wastewater
+260,Isolation Source,Long-term care facility,long term care facility,standardized,healthcare facility
+259,Isolation Source,Blood for culture,blood for culture,standardized,blood
+258,Isolation Source,Chicken Gizzard (Giblets),chicken gizzard,unmapped,
+258,Environment Medium,Fecal microbiome of Bos indicus,fecal microbiome of bos indicus,unmapped,
+258,Environment (Local Scale),Feces of Bos indicus,feces of bos indicus,standardized,gut/fecal local context
+257,Isolation Source,endotracheal aspirate,endotracheal aspirate,standardized,aspirate
+257,Isolation Source,Sea water,seawater,standardized,seawater
+257,Environment (Local Scale),Cropland,cropland,unmapped,
+256,Isolation Source,salmon,salmon,standardized,salmon
+256,Isolation Source,hospital wastewater,hospital wastewater,standardized,hospital wastewater
+256,Environment (Local Scale),gut,gut,standardized,gut/fecal local context
+256,Sample Type,Whole organism,whole organism,standardized,gastric biopsy
+255,Isolation Source,ground chicken,ground chicken,standardized,ground chicken
+255,Isolation Source,pond water,pond water,standardized,pond
+255,Isolation Source,Perianal swab,perianal swab,standardized,clinical/host-associated material
+255,Isolation Source,paddy soil,paddy soil,standardized,soil
+255,Environment (Broad Scale),oil production facility metagenome,oil production facility metagenome,unmapped,
+255,Isolation Site,Root nodule,root nodule,standardized,plant root/rhizosphere
+253,Isolation Source,vagina,vagina,standardized,clinical/host-associated material
+253,Isolation Site,Buffy Coat,buffy coat,unmapped,
+252,Isolation Source,heart,heart,standardized,clinical/host-associated material
+252,Isolation Source,"Human, Stool",human stool,unmapped,
+252,Isolation Source,surface,surface,standardized,surface
+252,Isolation Source,Drain,drain,standardized,drain
+252,Host Disease,Yes,yes,standardized,diseased
+252,Environment (Broad Scale),tick metagenome,tick metagenome,unmapped,
+251,Isolation Source,broiler,broiler,standardized,broiler
+251,Isolation Source,ascites,ascites,standardized,ascites
+251,Isolation Source,stool; NASH/Fibrosis stage >=2; MASH1,stool nash fibrosis stage 2 mash1,standardized,feces/stool
+251,Isolation Source,rice leaves,rice leaves,standardized,leaf tissue
+250,Isolation Source,Enviromental,enviromental,standardized,environmental sample
+250,Isolation Source,cattle fecal samples,cattle fecal samples,unmapped,
+250,Sample Type,Bacterial isolate,bacterial isolate,standardized,microbial isolate
+250,Host Disease,infection,infection,standardized,infectious disease
+250,Environment (Local Scale),ENVO:00002044,envo 00002044,unmapped,
+250,Sample Type,Clinical or host-associated pathogen,clinical or host associated pathogen,standardized,clinical sample
+249,Isolation Source,endovascular,endovascular,standardized,endovascular
+249,Isolation Source,Swab rectum,swab rectum,standardized,clinical/host-associated material
+248,Isolation Source,URINARY,urinary,standardized,urine
+248,Host Disease,bacterial gastritis,bacterial gastritis,standardized,gastritis
+248,Environment Medium,Wine,wine,unmapped,
+248,Host Disease,Wine,wine,unmapped,
+247,Isolation Source,sponge,sponge,standardized,sponge
+247,Isolation Source,carcass swab,carcass swab,standardized,poultry meat/product
+247,Isolation Source,patient with urinary tract infection,patient with urinary tract infection,standardized,urine
+247,Isolation Source,Coastal bare tidal mudflat sediment,coastal bare tidal mudflat sediment,standardized,sediment
+247,Isolation Source,gastric biopsy specimen,gastric biopsy specimen,standardized,gastric biopsy
+246,Isolation Source,cantaloupe,cantaloupe,standardized,plant/produce food product
+246,Isolation Source,Caecal,caecal,standardized,clinical/host-associated material
+246,Environment Medium,ENVO:00002003,envo 00002003,unmapped,
+246,Sample Type,whole organism,whole organism,standardized,rhizosphere
+246,Environment Medium,freshwater,freshwater,standardized,freshwater
+246,Host Disease,BRD,brd,standardized,respiratory disease
+244,Isolation Source,swab (wound),swab,standardized,swab
+244,Host Disease,diseased,diseased,standardized,diseased
+244,Isolation Source,"broiler, feces",broiler feces,standardized,broiler
+244,Isolation Source,Human body sites or biosamples,human body sites or biosamples,unmapped,
+244,Environment (Local Scale),China,china,unmapped,
+243,Isolation Source,environmental sample,environmental sample,standardized,environmental sample
+243,Isolation Source,air,air,standardized,air
+243,Isolation Source,Stool,stool,standardized,feces/stool
+243,Environment (Broad Scale),ENVO_00000021,envo 00000021,standardized,freshwater environment
+242,Isolation Source,ICU,icu,standardized,healthcare facility
+242,Sample Type,sputum,sputum,standardized,sputum
+242,Isolation Source,kimchi,kimchi,standardized,plant/produce food product
+242,Isolation Site,Leaf shoot,leaf shoot,standardized,leaf tissue
+242,Isolation Source,Microcystis colony from freshwater lake,microcystis colony from freshwater lake,standardized,freshwater
+241,Isolation Source,stool samples,stool samples,standardized,feces/stool
+241,Isolation Source,mammary gland,mammary gland,standardized,clinical/host-associated material
+241,Isolation Source,feral pig,feral pig,unmapped,
+241,Host Disease,Legionnaires' disease,legionnaires disease,standardized,legionellosis
+241,Environment (Local Scale),microbial feature,microbial feature,standardized,gut/fecal local context
+240,Host Health State,diseased,diseased,standardized,diseased
+240,Isolation Source,enoki mushroom,enoki mushroom,standardized,enoki mushroom
+240,Isolation Source,Hospital_ICU,hospital icu,standardized,healthcare facility
+239,Isolation Source,ground pork,ground pork,standardized,pork/meat product
+239,Environment Medium,mucus,mucus,unmapped,
+238,Isolation Source,Animal-Turkey-Turkey Carcass Sponge,animal turkey turkey carcass sponge,standardized,poultry meat/product
+238,Isolation Source,chickens,chickens,unmapped,
+238,Isolation Source,Food processing environment,food processing environment,standardized,food/food product
+238,Sample Type,Pure culture one microbial species,pure culture one microbial species,standardized,pure/single culture
+238,Isolation Site,Whole polyp cell suspension neuron,whole polyp cell suspension neuron,unmapped,
+238,Environment (Broad Scale),water metagenome,water metagenome,unmapped,
+237,Isolation Source,abdominal fluid,abdominal fluid,standardized,body fluid
+237,Isolation Source,Marine,marine,standardized,marine
+237,Environment Medium,plant matter [ENVO:01001121],plant matter envo 01001121,standardized,wastewater
+237,Host Disease,Glaucoma,glaucoma,standardized,glaucoma
+236,Isolation Source,faeces,feces,standardized,feces/stool
+236,Sample Type,Whole organism,whole organism,standardized,soil
+236,Environment (Broad Scale),marine biome [ENVO_00000447],marine biome envo 00000447,standardized,marine environment
+236,Environment (Local Scale),[ENVO:02000049],envo 02000049,unmapped,
+235,Isolation Source,Ground beef,ground beef,standardized,beef/meat product
+235,Isolation Source,brisket swab,brisket swab,standardized,food/animal-production swab
+235,Isolation Source,raw sewage,raw sewage,standardized,sewage
+235,Isolation Source,groin,groin,standardized,groin
+235,Isolation Source,Sputum,sputum,standardized,sputum
+235,Environment Medium,leaf,leaf,standardized,plant tissue
+235,Environment Medium,[ENVO:01000301],envo 01000301,standardized,surface water
+235,Environment (Broad Scale),[ENVO:01000320],envo 01000320,standardized,marine environment
+234,Isolation Source,Broiler,broiler,standardized,broiler
+234,Isolation Source,sheep,sheep,unmapped,
+234,Isolation Source,Swab sample,swab sample,standardized,swab
+234,Isolation Source,cleanroom floor,cleanroom floor,standardized,built environment surface
+234,Environment Medium,brine [ENVO_00003044],brine envo 00003044,standardized,seawater
+234,Environment (Local Scale),coastal sea water [ENVO_00002150],coastal sea water envo 00002150,standardized,coastal area
+234,Environment (Broad Scale),ENVO:01000030 (marine hydrothermal vent biome),envo 01000030,standardized,marine environment
+234,Environment (Local Scale),ENVO:00000215 (hydrothermal vent ),envo 00000215,unmapped,
+233,Isolation Source,Poultry meat,poultry meat,standardized,poultry meat/product
+233,Isolation Source,Human urine,human urine,unmapped,
+233,Environment Medium,Gut,gut,unmapped,
+232,Isolation Source,avocado,avocado,standardized,avocado
+232,Isolation Source,metal/plastic,metal plastic,standardized,metal
+232,Environment Medium,skeleton,skeleton,unmapped,
+231,Isolation Source,Rectal screen,rectal screen,standardized,clinical/host-associated material
+231,Isolation Source,terrestrial,terrestrial,standardized,terrestrial environment
+231,Isolation Source,Lower Respiratory Tract Secrection,lower respiratory tract secrection,standardized,respiratory sample
+230,Isolation Source,dairy manure,dairy manure,standardized,manure
+230,Sample Type,bacteria,bacteria,unmapped,
+230,Host Disease,Screening culture,screening culture,unmapped,
+229,Isolation Source,Calf fecal composite,calf fecal composite,standardized,feces/stool
+229,Environment (Local Scale),greenhouse,greenhouse,unmapped,
+229,Environment Medium,Biofilm,biofilm,standardized,biofilm
+228,Environment (Local Scale),human-associated habitat,human associated habitat,standardized,gut/fecal local context
+228,Isolation Source,respiratory samples,respiratory samples,standardized,respiratory sample
+228,Isolation Source,MRSA Screen - Nose/Throat/Perineum,mrsa screen nose throat perineum,standardized,nasopharynx/oropharynx
+228,Environment (Broad Scale),Marine,marine,standardized,marine environment

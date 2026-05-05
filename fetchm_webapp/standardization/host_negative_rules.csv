@@ -332,3 +332,15 @@ uranium mine tailings,non_host_source,targeted refinement batch 9-12 2026-05-01;
 veal,non_host_source,targeted refinement batch 9-12 2026-05-01; source/lab/food artifact cleanup
 vegetables/fruits,non_host_source,targeted refinement batch 9-12 2026-05-01; source/lab/food artifact cleanup
 wall paintings,non_host_source,targeted refinement batch 9-12 2026-05-01; source/lab/food artifact cleanup
+Nostoc flagelliforme colonies,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Chelatococcus,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Cronobacter malonaticus LMG 23826,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Haemophilus ducreyi,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Bacteriophage,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Viruses; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Exiguobacterium,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Canicola,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Trichodesmium,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Acetobacteraceae,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+sea whip gorgonian,non_host_source,Batch 2 host curation 2026-05-05: reviewed source-like descriptor; keep out of Host_SD unless explicit host context is curated
+Methanosarcina mazei strain VKM B-2370,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Archaea; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.
+Streptomyces,non_host_source,Batch 2 host curation 2026-05-05: Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.

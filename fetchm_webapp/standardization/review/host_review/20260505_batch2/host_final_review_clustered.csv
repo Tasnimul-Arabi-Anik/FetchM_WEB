@@ -1,0 +1,620 @@
+count,host_original,cluster,recommended_action,recommended_host_sd,recommended_taxid,recommended_rank,recommended_destination,reason,confidence
+11,Antho dichotoma,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+6,uncultured eukaryote,common_animal_or_broad_host_name,add_host_synonym,Eukaryota,2759,superkingdom,Host_SD=Eukaryota; Host_TaxID=2759,reviewed broad eukaryote host,medium
+6,flower,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad plant host/material,medium
+6,Sprague Dawley,common_animal_or_broad_host_name,add_host_synonym,Rattus norvegicus,10116,species,Host_SD=Rattus norvegicus; Host_TaxID=10116,reviewed laboratory rat strain host,high
+6,protist,common_animal_or_broad_host_name,add_host_synonym,Eukaryota,2759,superkingdom,Host_SD=Eukaryota; Host_TaxID=2759,reviewed broad eukaryote/protist host,medium
+5,marine macroalgae,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad algal/plant host,medium
+4,macroalgae,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad algal/plant host,medium
+4,Hexactinellid,common_animal_or_broad_host_name,add_host_synonym,Hexactinellida,60882,class,Host_SD=Hexactinellida; Host_TaxID=60882,reviewed sponge class host,medium
+4,D. marginatus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+4,Possum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+4,saffron finche,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+4,clover,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad plant host/material,medium
+4,Chacoan mara,common_animal_or_broad_host_name,add_host_synonym,Dolichotis salinicola,210422,species,Host_SD=Dolichotis salinicola; Host_TaxID=210422,reviewed common animal host,high
+3,Aachener Minipig,common_animal_or_broad_host_name,add_host_synonym,Sus scrofa,9823,species,Host_SD=Sus scrofa; Host_TaxID=9823,reviewed domestic minipig host,high
+3,"Crasosstrea spp., Farfantepenaeus spp.",ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,lilac,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Discodermia calyx,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Oryctes gigas,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Carpobrotus rossii,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,dinoflagellate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Perognathus penicillatus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Otariinae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,protozoa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,Trididemnum orbiculatum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,celery,common_animal_or_broad_host_name,add_host_synonym,celery,117781,no rank,Host_SD=celery; Host_TaxID=117781,reviewed plant host/common name,medium
+3,Phalangeriformes,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+3,blackberry,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad plant host/material,medium
+2,Picochlorum sp. 122,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Haliclonissa verrucosa (sponge),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Aphidus ervi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Cryptomonas gyropyrenoidosa SAG 25.80,exact_taxonkit_scientific_name,add_host_synonym,Cryptomonas gyropyrenoidosa,233257,species,Host_SD=Cryptomonas gyropyrenoidosa; Host_TaxID=233257,Exact TaxonKit match from variant `Cryptomonas gyropyrenoidosa`; lineage superkingdom Eukaryota.,medium
+2,B. minor,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Diplonema japonicum YPF1604,exact_taxonkit_scientific_name,add_host_synonym,Diplonema japonicum,2508216,species,Host_SD=Diplonema japonicum; Host_TaxID=2508216,Exact TaxonKit match from variant `Diplonema japonicum`; lineage superkingdom Eukaryota.,medium
+2,N. makaihe,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. ponapona,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 246,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. kanawao,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 15,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 48,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 242,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 58,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 21,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 17,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 126,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 29,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 23,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. haleakala,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 281,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 302,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. ogradyi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,N. sp. 295,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Gynura pseudochina L.DC.,exact_taxonkit_scientific_name,add_host_synonym,Gynura pseudochina,2654270,species,Host_SD=Gynura pseudochina; Host_TaxID=2654270,Exact TaxonKit match from variant `Gynura pseudochina`; lineage superkingdom Eukaryota.,medium
+2,Lasioglossum apopkense,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Amphilectus digitatus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Dercitus (Stoeba) latex,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Bombax costatum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Diestrammena coreana,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Crabapple,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Sow,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Celery,common_animal_or_broad_host_name,add_host_synonym,celery,117781,no rank,Host_SD=celery; Host_TaxID=117781,reviewed plant host/common name,medium
+2,possum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Dinoflagellate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Morone chrysops X M. saxatilis,exact_taxonkit_scientific_name,add_host_synonym,Morone chrysops,46259,species,Host_SD=Morone chrysops; Host_TaxID=46259,Exact TaxonKit match from variant `Morone chrysops`; lineage superkingdom Eukaryota.,medium
+2,marine ciliate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Arvicolinae sp.,common_animal_or_broad_host_name,add_host_synonym,Arvicolinae,39087,subfamily,Host_SD=Arvicolinae; Host_TaxID=39087,reviewed broad vole/lemming/related rodent host,medium
+2,Sugar cane,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Panax ginseng Meyer,exact_taxonkit_scientific_name,add_host_synonym,Panax ginseng,4054,species,Host_SD=Panax ginseng; Host_TaxID=4054,Exact TaxonKit match from variant `Panax ginseng`; lineage superkingdom Eukaryota.,medium
+2,Suidae sp. LYD,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Stevia rebaudiana Bertoni,exact_taxonkit_scientific_name,add_host_synonym,Stevia rebaudiana,55670,species,Host_SD=Stevia rebaudiana; Host_TaxID=55670,Exact TaxonKit match from variant `Stevia rebaudiana`; lineage superkingdom Eukaryota.,medium
+2,Jiuqu,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,wangyaru,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Q. agrifolia x Q. wislizeni,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Sainfoin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Caraganae sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Allomyria dichotoma,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,grasses,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,sponges,common_animal_or_broad_host_name,add_host_synonym,Porifera,6040,phylum,Host_SD=Porifera; Host_TaxID=6040,reviewed broad sponge host,medium
+2,Ocimum lamiifolium,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,melon,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad plant host/material,medium
+2,Hyacint,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Siphamia cephalotes,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,horsechestnut,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Nasonia sp. VxG hybrid,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Barbera,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Hazelnut,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Broussonetia kazinoki Sieb. X Broussonetia papyrifa Vent.,exact_taxonkit_scientific_name,add_host_synonym,Broussonetia kazinoki,66380,species,Host_SD=Broussonetia kazinoki; Host_TaxID=66380,Exact TaxonKit match from variant `Broussonetia kazinoki`; lineage superkingdom Eukaryota.,medium
+2,Hazel,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Lissodendoryx nobilis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Anoxycalyx joubini,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Olallieberry,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Beilhmielda manni,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,anguine,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Stichoplastoris elusinus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,seabass,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Morone saxatilis x M. chrysops,exact_taxonkit_scientific_name,add_host_synonym,Morone saxatilis,34816,species,Host_SD=Morone saxatilis; Host_TaxID=34816,Exact TaxonKit match from variant `Morone saxatilis`; lineage superkingdom Eukaryota.,medium
+2,black gobi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Averhoa belimbi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,bracket mold,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Aplysina aerophoba SAPs10,exact_taxonkit_scientific_name,add_host_synonym,Aplysina aerophoba,289389,species,Host_SD=Aplysina aerophoba; Host_TaxID=289389,Exact TaxonKit match from variant `Aplysina aerophoba`; lineage superkingdom Eukaryota.,medium
+2,Aplysina aerophoba SAPs15,exact_taxonkit_scientific_name,add_host_synonym,Aplysina aerophoba,289389,species,Host_SD=Aplysina aerophoba; Host_TaxID=289389,Exact TaxonKit match from variant `Aplysina aerophoba`; lineage superkingdom Eukaryota.,medium
+2,rhodolith,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,zoanthid Palythoa caribaeorum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Menacanthus eurysternus GA72,exact_taxonkit_scientific_name,add_host_synonym,Menacanthus eurysternus,160155,species,Host_SD=Menacanthus eurysternus; Host_TaxID=160155,Exact TaxonKit match from variant `Menacanthus eurysternus`; lineage superkingdom Eukaryota.,medium
+2,Capsella sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,B. oleracea var. rubra,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,E. vesicaria ssp. sativa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+2,Neopsylla setosa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Aloe vera (L.) Brum.f.,exact_taxonkit_scientific_name,add_host_synonym,Aloe vera,34199,species,Host_SD=Aloe vera; Host_TaxID=34199,Exact TaxonKit match from variant `Aloe vera`; lineage superkingdom Eukaryota.,medium
+1,Marantha leuconeura,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,ferr living,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Phyton sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Parthenium argentatum Gray (guayule shrubs),exact_taxonkit_scientific_name,add_host_synonym,Parthenium argentatum,35935,species,Host_SD=Parthenium argentatum; Host_TaxID=35935,Exact TaxonKit match from variant `Parthenium argentatum`; lineage superkingdom Eukaryota.,medium
+1,wild orchid,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Boraras naevus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Salvelinus alpinus lepeschini,exact_taxonkit_scientific_name,add_host_synonym,Salvelinus alpinus,8036,species,Host_SD=Salvelinus alpinus; Host_TaxID=8036,Exact TaxonKit match from variant `Salvelinus alpinus`; lineage superkingdom Eukaryota.,medium
+1,Cottonwood,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Peony,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Russian Sage,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ulvan,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,tubeworm trophosome,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sevilla affinis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,NewZealand rabbits,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Craugastor taurus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Penares incrustans,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,raccoondog,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Crataerina pallida 20K,exact_taxonkit_scientific_name,add_host_synonym,Crataerina pallida,452744,species,Host_SD=Crataerina pallida; Host_TaxID=452744,Exact TaxonKit match from variant `Crataerina pallida`; lineage superkingdom Eukaryota.,medium
+1,Crataerina pallida 24K,exact_taxonkit_scientific_name,add_host_synonym,Crataerina pallida,452744,species,Host_SD=Crataerina pallida; Host_TaxID=452744,Exact TaxonKit match from variant `Crataerina pallida`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci Asia II 3,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Enveronmental,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Miscanthus sinensis cv giganteus,exact_taxonkit_scientific_name,add_host_synonym,Miscanthus sinensis,62337,species,Host_SD=Miscanthus sinensis; Host_TaxID=62337,Exact TaxonKit match from variant `Miscanthus sinensis`; lineage superkingdom Eukaryota.,medium
+1,Contoneaster amiguus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,GROUNDNUT,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Tabaco,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fritillaria taipaiensis P. Y. Li,exact_taxonkit_scientific_name,add_host_synonym,Fritillaria taipaiensis,152093,species,Host_SD=Fritillaria taipaiensis; Host_TaxID=152093,Exact TaxonKit match from variant `Fritillaria taipaiensis`; lineage superkingdom Eukaryota.,medium
+1,Honeysuckle,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Guang Chen Pi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ephistia cautella,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,budworm,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ephestia (Aphomia) qularis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,smooth vetch,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Thai silk cocoon,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Euphorbia hirta Linn.,exact_taxonkit_scientific_name,add_host_synonym,Euphorbia hirta,318062,species,Host_SD=Euphorbia hirta; Host_TaxID=318062,Exact TaxonKit match from variant `Euphorbia hirta`; lineage superkingdom Eukaryota.,medium
+1,Fragaria x ananassa Duch.,exact_taxonkit_scientific_name,add_host_synonym,Fragaria x ananassa,3747,species,Host_SD=Fragaria x ananassa; Host_TaxID=3747,Exact TaxonKit match from variant `Fragaria x ananassa`; lineage superkingdom Eukaryota.,medium
+1,Primula vulgaris seeds,exact_taxonkit_scientific_name,add_host_synonym,Primula vulgaris,175104,species,Host_SD=Primula vulgaris; Host_TaxID=175104,Exact TaxonKit match from variant `Primula vulgaris`; lineage superkingdom Eukaryota.,medium
+1,Sanqi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,ivy,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,chili,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,silk worm litter,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Paramyelois transitella,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,casava,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Aspergillus flavus sclerotia,exact_taxonkit_scientific_name,add_host_synonym,Aspergillus flavus,5059,species,Host_SD=Aspergillus flavus; Host_TaxID=5059,Exact TaxonKit match from variant `Aspergillus flavus`; lineage superkingdom Eukaryota.,medium
+1,Vectobac,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,wheatgrass,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,chinese okra,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,invertebrates,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,F21Forl,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M422A2,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Bombyx mori litter,exact_taxonkit_scientific_name,add_host_synonym,Bombyx mori,7091,species,Host_SD=Bombyx mori; Host_TaxID=7091,Exact TaxonKit match from variant `Bombyx mori`; lineage superkingdom Eukaryota.,medium
+1,peony,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M21Kner,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Tryonyx sinensis (Chinese soft-shell turtle),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Macrotermes natalensis colony Mn106,exact_taxonkit_scientific_name,add_host_synonym,Macrotermes natalensis,315803,species,Host_SD=Macrotermes natalensis; Host_TaxID=315803,Exact TaxonKit match from variant `Macrotermes natalensis`; lineage superkingdom Eukaryota.,medium
+1,Nostoc flagelliforme colonies,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Erigeron annuus L. Pers,exact_taxonkit_scientific_name,add_host_synonym,Erigeron annuus,91248,species,Host_SD=Erigeron annuus; Host_TaxID=91248,Exact TaxonKit match from variant `Erigeron annuus`; lineage superkingdom Eukaryota.,medium
+1,Angelica sinensis Dlies,exact_taxonkit_scientific_name,add_host_synonym,Angelica sinensis,165353,species,Host_SD=Angelica sinensis; Host_TaxID=165353,Exact TaxonKit match from variant `Angelica sinensis`; lineage superkingdom Eukaryota.,medium
+1,Sophora tonkinensis Radix,exact_taxonkit_scientific_name,add_host_synonym,Sophora tonkinensis,714503,species,Host_SD=Sophora tonkinensis; Host_TaxID=714503,Exact TaxonKit match from variant `Sophora tonkinensis`; lineage superkingdom Eukaryota.,medium
+1,wenyujin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,honeysuckle,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,C57BL/6J,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Guinea multimammate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M22Ewxr,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Bothriocroton undatum ex. Varanus varius,exact_taxonkit_scientific_name,add_host_synonym,Bothriocroton undatum,65642,species,Host_SD=Bothriocroton undatum; Host_TaxID=65642,Exact TaxonKit match from variant `Bothriocroton undatum`; lineage superkingdom Eukaryota.,medium
+1,USA:New York,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,I. ricinus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Leobordea pulchra,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Inga laurina (Sw.) Willd,exact_taxonkit_scientific_name,add_host_synonym,Inga laurina,487684,species,Host_SD=Inga laurina; Host_TaxID=487684,Exact TaxonKit match from variant `Inga laurina`; lineage superkingdom Eukaryota.,medium
+1,Rhynchosia totta,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Desmonium incanum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Leobordea lanceolata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,orchids,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,bromeliads,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,forage rape,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Anoecia oenotherae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Myzus persicae clone G006,exact_taxonkit_scientific_name,add_host_synonym,Myzus persicae,13164,species,Host_SD=Myzus persicae; Host_TaxID=13164,Exact TaxonKit match from variant `Myzus persicae`; lineage superkingdom Eukaryota.,medium
+1,Lagria grenieri,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Saccharum officinarum SP80-1842,exact_taxonkit_scientific_name,add_host_synonym,Saccharum officinarum,4547,species,Host_SD=Saccharum officinarum; Host_TaxID=4547,Exact TaxonKit match from variant `Saccharum officinarum`; lineage superkingdom Eukaryota.,medium
+1,boxwood,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,gingsen,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M64Tong,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,"Bootsock, Great Harewood",ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,snipe,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Red tailed hawk,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Diplonema aggregatum YPF1605,exact_taxonkit_scientific_name,add_host_synonym,Diplonema aggregatum,2605924,species,Host_SD=Diplonema aggregatum; Host_TaxID=2605924,Exact TaxonKit match from variant `Diplonema aggregatum`; lineage superkingdom Eukaryota.,medium
+1,Dasytastes sp. 02,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Dasytastes bicolor,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Dasytastes sp. 01,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,'Dasytes' lineellus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,'Dasytes' seminudus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Listrus sp. 01,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Listrus sp. 02,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Listrus sp. 06,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Listrus sp. 09,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Danacea nigritarsis ITA,exact_taxonkit_scientific_name,add_host_synonym,Danacea nigritarsis,433212,species,Host_SD=Danacea nigritarsis; Host_TaxID=433212,Exact TaxonKit match from variant `Danacea nigritarsis`; lineage superkingdom Eukaryota.,medium
+1,Danacea nigritarsis GER,exact_taxonkit_scientific_name,add_host_synonym,Danacea nigritarsis,433212,species,Host_SD=Danacea nigritarsis; Host_TaxID=433212,Exact TaxonKit match from variant `Danacea nigritarsis`; lineage superkingdom Eukaryota.,medium
+1,Viridiraptor invadens Virl02,exact_taxonkit_scientific_name,add_host_synonym,Viridiraptor invadens,1435003,species,Host_SD=Viridiraptor invadens; Host_TaxID=1435003,Exact TaxonKit match from variant `Viridiraptor invadens`; lineage superkingdom Eukaryota.,medium
+1,Adelges cooleyi on Picea engelmanii,exact_taxonkit_scientific_name,add_host_synonym,Adelges cooleyi,133065,species,Host_SD=Adelges cooleyi; Host_TaxID=133065,Exact TaxonKit match from variant `Adelges cooleyi`; lineage superkingdom Eukaryota.,medium
+1,Cicadidae sp. C,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Leptosemia sp. G,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Meenoplinae sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,N. maratima,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,N. montium,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Angomonas deanei ATCC 30255,exact_taxonkit_scientific_name,add_host_synonym,Angomonas deanei,59799,species,Host_SD=Angomonas deanei; Host_TaxID=59799,Exact TaxonKit match from variant `Angomonas deanei`; lineage superkingdom Eukaryota.,medium
+1,jujube,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Luffae sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ziziphus jujuba Mill.,exact_taxonkit_scientific_name,add_host_synonym,Ziziphus jujuba,326968,species,Host_SD=Ziziphus jujuba; Host_TaxID=326968,Exact TaxonKit match from variant `Ziziphus jujuba`; lineage superkingdom Eukaryota.,medium
+1,periwinkle,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Bemisia tabaci SSA3,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci AsiaI,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci AsiaII1,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci New World 1,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci SSA1-SG1,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci AsiaII6,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci AsiaII7,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Bemisia tabaci China 1,exact_taxonkit_scientific_name,add_host_synonym,Bemisia tabaci,7038,species,Host_SD=Bemisia tabaci; Host_TaxID=7038,Exact TaxonKit match from variant `Bemisia tabaci`; lineage superkingdom Eukaryota.,medium
+1,Aulonothroscus sp. AUS03,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Parachiridia subirrorata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Rostrolucina anterorostrata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Troendleina suluensis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ustalcina ferruginea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,"Myrtea sp. ""scaly one"" KF741663",ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Crypticerya_multicicatrices,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chelatococcus,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Adelaide Rosella,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,shorebird,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Parrotbill,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,fulmars,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sebdenia dichotoma,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Concentrated platelets mixture,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Concentrated platelets mixture -Preservative solution,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Concentrated platelets mixture-Preservative solution,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Tomate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ryegrass,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cronobacter malonaticus LMG 23826,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Haemophilus ducreyi,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Fungi2_78,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fungi2_8,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fungi2_81,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,PROTEOBACTERIA-BETA,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Alydus tomentosus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,millet,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Anaeramoeba ignava BMAN,exact_taxonkit_scientific_name,add_host_synonym,Anaeramoeba ignava,1746090,species,Host_SD=Anaeramoeba ignava; Host_TaxID=1746090,Exact TaxonKit match from variant `Anaeramoeba ignava`; lineage superkingdom Eukaryota.,medium
+1,Anaerameoba flamelloides Busselton2,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ananeramoeba flamelloides Schooner1,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,hyacinth,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,16S67,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fungi3,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Anolis marmoratus speciosus,exact_taxonkit_scientific_name,add_host_synonym,Anolis marmoratus,41898,species,Host_SD=Anolis marmoratus; Host_TaxID=41898,Exact TaxonKit match from variant `Anolis marmoratus`; lineage superkingdom Eukaryota.,medium
+1,longicorn,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,"Anopheles gambiae G3 strain, lab colony",common_animal_or_broad_host_name,add_host_synonym,Anopheles gambiae,7165,species,Host_SD=Anopheles gambiae; Host_TaxID=7165,reviewed mosquito host; lab colony is context,high
+1,Pullet carpet shell,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,BSFL,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Bacteriophage,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Viruses; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Bombyx mori larvae,exact_taxonkit_scientific_name,add_host_synonym,Bombyx mori,7091,species,Host_SD=Bombyx mori; Host_TaxID=7091,Exact TaxonKit match from variant `Bombyx mori`; lineage superkingdom Eukaryota.,medium
+1,red-billed woodhoopoe,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Bedding,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,cockatoo,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Duli,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lampine,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,albatros,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,waterbird,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Basunti mas,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Tinamu major,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lyonycteris spurrelli,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Buffonidae sp,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Eupsittula pertinax ocularis,exact_taxonkit_scientific_name,add_host_synonym,Eupsittula pertinax,492513,species,Host_SD=Eupsittula pertinax; Host_TaxID=492513,Exact TaxonKit match from variant `Eupsittula pertinax`; lineage superkingdom Eukaryota.,medium
+1,Sula nebouxi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Marmosa camescens,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,South american tapirus terrestris,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,night heron,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,capercailie grouse,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,stork,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,heron,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,macaw,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Abyssinian ground hornbill,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,soldier,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,slender-horned gazella,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cockatoo sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,House martin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Dunnock,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Superb Starling,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Garlic bolt,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pakchoi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,White-Breasted Nuthatch,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Hainan,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sichuan,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Shanxi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,wood-wren,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Exiguobacterium,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Codium minus (Schmidt) Silva,exact_taxonkit_scientific_name,add_host_synonym,Codium minus,221048,species,Host_SD=Codium minus; Host_TaxID=221048,Exact TaxonKit match from variant `Codium minus`; lineage superkingdom Eukaryota.,medium
+1,Dune Marsh Elder Iva imbricata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Porphyla,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,16S90,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Three-lined grunt (Parapristipoma trilineatum),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Malawi cichlid (Auloncara maleri),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,H. concina,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,D. daghestanicus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,D. dagistanicus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,H. Concina,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Marten,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Calytrix glaberrima,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,string beans,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,A. swainsoni,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ananas comosus (L.) Merr.,exact_taxonkit_scientific_name,add_host_synonym,Ananas comosus,4615,species,Host_SD=Ananas comosus; Host_TaxID=4615,Exact TaxonKit match from variant `Ananas comosus`; lineage superkingdom Eukaryota.,medium
+1,Amata sperbius,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,ostracean,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Nephrolepsis exaltata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lemna minor 8744,exact_taxonkit_scientific_name,add_host_synonym,Lemna minor,4472,species,Host_SD=Lemna minor; Host_TaxID=4472,Exact TaxonKit match from variant `Lemna minor`; lineage superkingdom Eukaryota.,medium
+1,fermented foods Jiaosu,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,pumpkin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,red marine alga,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Wohrlfartia sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Gynura pseudochina (L.) DC. var. hispida Thwaites,exact_taxonkit_scientific_name,add_host_synonym,Gynura pseudochina,2654270,species,Host_SD=Gynura pseudochina; Host_TaxID=2654270,Exact TaxonKit match from variant `Gynura pseudochina`; lineage superkingdom Eukaryota.,medium
+1,Desmodium pulchellum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,roe buck,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,wild chukar,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Maoctra Veneriformis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Anopheline albitarsis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,straw,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ustilago maydis YZZF202006,exact_taxonkit_scientific_name,add_host_synonym,Ustilago maydis,5270,species,Host_SD=Ustilago maydis; Host_TaxID=5270,Exact TaxonKit match from variant `Ustilago maydis`; lineage superkingdom Eukaryota.,medium
+1,Padding,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pogostemon cablin (Blanco) Benth.,exact_taxonkit_scientific_name,add_host_synonym,Pogostemon cablin,28511,species,Host_SD=Pogostemon cablin; Host_TaxID=28511,Exact TaxonKit match from variant `Pogostemon cablin`; lineage superkingdom Eukaryota.,medium
+1,Scrippsiella trochoidea CCAP 1134/1,exact_taxonkit_scientific_name,add_host_synonym,Scrippsiella trochoidea,71861,species,Host_SD=Scrippsiella trochoidea; Host_TaxID=71861,Exact TaxonKit match from variant `Scrippsiella trochoidea`; lineage superkingdom Eukaryota.,medium
+1,Callysponga elegans,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Nippon ibis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Isolated from cauliflower,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,brolier,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,pasture gramineae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M32Plmr,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,CBA,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Canicola,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Mephitiade sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Weasel,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,C. elegans,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,mustard,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Phaecochoerus aethipicus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,BREEDER,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Porqupine,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,African spoonbiil,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pomace,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lemuroidea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,sprouted soy,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,lichens,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Hedysarum zundukii Peschkova,exact_taxonkit_scientific_name,add_host_synonym,Hedysarum zundukii,2419557,species,Host_SD=Hedysarum zundukii; Host_TaxID=2419557,Exact TaxonKit match from variant `Hedysarum zundukii`; lineage superkingdom Eukaryota.,medium
+1,Planarians flatworm,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Comscasia,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Marine macroalgae,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad algal/plant host,medium
+1,Symbiochlorum hainanensis sp. X1,exact_taxonkit_scientific_name,add_host_synonym,Symbiochlorum hainanensis,2448249,species,Host_SD=Symbiochlorum hainanensis; Host_TaxID=2448249,Exact TaxonKit match from variant `Symbiochlorum hainanensis`; lineage superkingdom Eukaryota.,medium
+1,Thalassiosira rotula CCMP3264,exact_taxonkit_scientific_name,add_host_synonym,Thalassiosira rotula,49265,species,Host_SD=Thalassiosira rotula; Host_TaxID=49265,Exact TaxonKit match from variant `Thalassiosira rotula`; lineage superkingdom Eukaryota.,medium
+1,Hamacantha esperioides,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Melobium obcordatum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,white elm,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Hyaloperonospora arabidopsidis Noks1,exact_taxonkit_scientific_name,add_host_synonym,Hyaloperonospora arabidopsidis,272952,species,Host_SD=Hyaloperonospora arabidopsidis; Host_TaxID=272952,Exact TaxonKit match from variant `Hyaloperonospora arabidopsidis`; lineage superkingdom Eukaryota.,medium
+1,Danica,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Carrageenan,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chiloschista parishii Seidenf.,exact_taxonkit_scientific_name,add_host_synonym,Chiloschista parishii,339076,species,Host_SD=Chiloschista parishii; Host_TaxID=339076,Exact TaxonKit match from variant `Chiloschista parishii`; lineage superkingdom Eukaryota.,medium
+1,Azadirachta indica A. Juss. var. siamensis Valenton,exact_taxonkit_scientific_name,add_host_synonym,Azadirachta indica,124943,species,Host_SD=Azadirachta indica; Host_TaxID=124943,Exact TaxonKit match from variant `Azadirachta indica`; lineage superkingdom Eukaryota.,medium
+1,F34Tong,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Costelytra giveni,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cichlid,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,white pelican,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,P.falciparum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,gander,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Marine invertebrate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,invertebrate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,O. sativa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Mineral hydromagnesite,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Xinjiang nor,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,frass,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Acanthaphora specifera,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,fig,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fungi2_98,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,16S52,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Saffron,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pumpkin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chili,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Zophobas morio larvae,exact_taxonkit_scientific_name,add_host_synonym,Zophobas morio,2755281,species,Host_SD=Zophobas morio; Host_TaxID=2755281,Exact TaxonKit match from variant `Zophobas morio`; lineage superkingdom Eukaryota.,medium
+1,sugar cane YZ08-1095,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Melanaphis sacchari Zehntner,exact_taxonkit_scientific_name,add_host_synonym,Melanaphis sacchari,742174,species,Host_SD=Melanaphis sacchari; Host_TaxID=742174,Exact TaxonKit match from variant `Melanaphis sacchari`; lineage superkingdom Eukaryota.,medium
+1,Guar pulse,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Crategus cuneata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Psychotria schumanniana,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pigeonpea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pumkin,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Melon,common_animal_or_broad_host_name,add_host_synonym,Viridiplantae,33090,kingdom,Host_SD=Viridiplantae; Host_TaxID=33090,reviewed broad plant host/material,medium
+1,marine invertebrate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Spirastrella abata,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Haliclona perlucida,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fungi2_90,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Minipig,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pelican,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,dhalia,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Iris sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chinese silvergrass,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Mantidactylus aff. curtus 19,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Porphyrae yezoensis (red alga),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,comb pen shell,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Porities sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Polyalae radix,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,sika,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Nasonia vitripennis x Nasonia giraulti hybrid,exact_taxonkit_scientific_name,add_host_synonym,Nasonia vitripennis,7425,species,Host_SD=Nasonia vitripennis; Host_TaxID=7425,Exact TaxonKit match from variant `Nasonia vitripennis`; lineage superkingdom Eukaryota.,medium
+1,Panthera tigris Amoyensis facel,exact_taxonkit_scientific_name,add_host_synonym,Panthera tigris,9694,species,Host_SD=Panthera tigris; Host_TaxID=9694,Exact TaxonKit match from variant `Panthera tigris`; lineage superkingdom Eukaryota.,medium
+1,vine,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Amphiblestrum auritum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Periwinkle,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,red cocoyam,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sangiovese,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ortrugo,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,olive,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Geophilidae_myriapod,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,swallow,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pistacia chinensis Bunge,exact_taxonkit_scientific_name,add_host_synonym,Pistacia chinensis,289741,species,Host_SD=Pistacia chinensis; Host_TaxID=289741,Exact TaxonKit match from variant `Pistacia chinensis`; lineage superkingdom Eukaryota.,medium
+1,olive knot (Olea europaea),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Apium graveolens L. var. dulce,exact_taxonkit_scientific_name,add_host_synonym,Apium graveolens,4045,species,Host_SD=Apium graveolens; Host_TaxID=4045,Exact TaxonKit match from variant `Apium graveolens`; lineage superkingdom Eukaryota.,medium
+1,Broussonetia kazinoki X Broussonetia papyrifa,exact_taxonkit_scientific_name,add_host_synonym,Broussonetia kazinoki,66380,species,Host_SD=Broussonetia kazinoki; Host_TaxID=66380,Exact TaxonKit match from variant `Broussonetia kazinoki`; lineage superkingdom Eukaryota.,medium
+1,hime-yuzuriha,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Persicae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,ciliate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Anemarrhena asphodeloides Bunge,exact_taxonkit_scientific_name,add_host_synonym,Anemarrhena asphodeloides,59045,species,Host_SD=Anemarrhena asphodeloides; Host_TaxID=59045,Exact TaxonKit match from variant `Anemarrhena asphodeloides`; lineage superkingdom Eukaryota.,medium
+1,Mullberry,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Barberry,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chinese chive,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Rapeseed,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,reed,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Zoysia sinica Hance,exact_taxonkit_scientific_name,add_host_synonym,Zoysia sinica,1043351,species,Host_SD=Zoysia sinica; Host_TaxID=1043351,Exact TaxonKit match from variant `Zoysia sinica`; lineage superkingdom Eukaryota.,medium
+1,nature,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Terfezia claveryi Chatin,exact_taxonkit_scientific_name,add_host_synonym,Terfezia claveryi,139407,species,Host_SD=Terfezia claveryi; Host_TaxID=139407,Exact TaxonKit match from variant `Terfezia claveryi`; lineage superkingdom Eukaryota.,medium
+1,Landolita,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Winterberry holly,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,putative tunicate,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Trichodesmium,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Holothurian,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Haliclonissa verrucosa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Class Hexactinellida,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Picochloruma sp. 122,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Helconica sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Rhizoma kaempferiae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,sesame seedling,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,small cardamom,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Photos sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Allium tuberosum Rottlerex Spreng.,exact_taxonkit_scientific_name,add_host_synonym,Allium tuberosum,4683,species,Host_SD=Allium tuberosum; Host_TaxID=4683,Exact TaxonKit match from variant `Allium tuberosum`; lineage superkingdom Eukaryota.,medium
+1,Solanum melongena grafted on Solanum sisymbriifolium rootstock,exact_taxonkit_scientific_name,add_host_synonym,Solanum melongena,4111,species,Host_SD=Solanum melongena; Host_TaxID=4111,Exact TaxonKit match from variant `Solanum melongena`; lineage superkingdom Eukaryota.,medium
+1,chiehqua,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fetuca,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lolium rigidum AND Anguina funesta,exact_taxonkit_scientific_name,add_host_synonym,Lolium rigidum,89674,species,Host_SD=Lolium rigidum; Host_TaxID=89674,Exact TaxonKit match from variant `Lolium rigidum`; lineage superkingdom Eukaryota.,medium
+1,vetch,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chamaecytisus albus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Veronaeopsis simplex Y34,exact_taxonkit_scientific_name,add_host_synonym,Veronaeopsis simplex,470088,species,Host_SD=Veronaeopsis simplex; Host_TaxID=470088,Exact TaxonKit match from variant `Veronaeopsis simplex`; lineage superkingdom Eukaryota.,medium
+1,Berseem,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,CSIR-IHBT,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Curcuma wenyujin Y.H. Chen et C. Ling,exact_taxonkit_scientific_name,add_host_synonym,Curcuma wenyujin,136221,species,Host_SD=Curcuma wenyujin; Host_TaxID=136221,Exact TaxonKit match from variant `Curcuma wenyujin`; lineage superkingdom Eukaryota.,medium
+1,Birch,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lilac,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,chestnut,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Maple,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Rhodococcus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,gosling,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Acetobacteraceae,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,sea whip gorgonian,food_or_product_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,reviewed source-like descriptor; keep out of Host_SD unless explicit host context is curated,medium
+1,Fungi63,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,S.paradoxus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,OCEAN,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,toucan,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Partridge,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,eared grebe,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pelicanus rufescens,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Varanus albigularis ionidesi,exact_taxonkit_scientific_name,add_host_synonym,Varanus albigularis,8558,species,Host_SD=Varanus albigularis; Host_TaxID=8558,Exact TaxonKit match from variant `Varanus albigularis`; lineage superkingdom Eukaryota.,medium
+1,Others -Heterodon platrhinos,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,cetacean,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Otis tarde,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,anatine,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Focha andina,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,weever,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Hawk,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Soy,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Agamid,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,opposum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Thyasira tokunagai SYS5,exact_taxonkit_scientific_name,add_host_synonym,Thyasira tokunagai,3055801,species,Host_SD=Thyasira tokunagai; Host_TaxID=3055801,Exact TaxonKit match from variant `Thyasira tokunagai`; lineage superkingdom Eukaryota.,medium
+1,Thyasira tokunagai NYS5,exact_taxonkit_scientific_name,add_host_synonym,Thyasira tokunagai,3055801,species,Host_SD=Thyasira tokunagai; Host_TaxID=3055801,Exact TaxonKit match from variant `Thyasira tokunagai`; lineage superkingdom Eukaryota.,medium
+1,culturing pond,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,scrub2,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,bath1b,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,scrub1a,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,bath1a,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Borellia bruneri,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Canthopagrus schlegeli,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,tellus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Methanosarcina mazei strain VKM B-2370,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Archaea; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Kestrel,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,White radish,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Weever,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,marter,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,partridge,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cloudrat,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,GuineaPig,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sphaerophorus globosus (Huds.) Vain.,exact_taxonkit_scientific_name,add_host_synonym,Sphaerophorus globosus,40600,species,Host_SD=Sphaerophorus globosus; Host_TaxID=40600,Exact TaxonKit match from variant `Sphaerophorus globosus`; lineage superkingdom Eukaryota.,medium
+1,Decaying wood,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Serinus canaria forma domestica,exact_taxonkit_scientific_name,add_host_synonym,Serinus canaria,9135,species,Host_SD=Serinus canaria; Host_TaxID=9135,Exact TaxonKit match from variant `Serinus canaria`; lineage superkingdom Eukaryota.,medium
+1,Bluefox,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Neonates,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Epalzeothynchos frenatum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,wild rabbits,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Polygonatum cyrtonema Hua,exact_taxonkit_scientific_name,add_host_synonym,Polygonatum cyrtonema,195526,species,Host_SD=Polygonatum cyrtonema; Host_TaxID=195526,Exact TaxonKit match from variant `Polygonatum cyrtonema`; lineage superkingdom Eukaryota.,medium
+1,Chinese chives,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Amitermes hastatus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,LEPM 108,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Fritillariae Cirrhosae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Juniperus excelsa M. Bieb.,exact_taxonkit_scientific_name,add_host_synonym,Juniperus excelsa,758917,species,Host_SD=Juniperus excelsa; Host_TaxID=758917,Exact TaxonKit match from variant `Juniperus excelsa`; lineage superkingdom Eukaryota.,medium
+1,Streptomyes sp.HNM0140,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Justicia subcoriacea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Salp sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,O. stricta,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Xestosponiga sp. QYP07 (sponge),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Xestospongia sp. SYM12 (sponge),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Peperomia dindygulensis Miq.,exact_taxonkit_scientific_name,add_host_synonym,Peperomia dindygulensis,1972104,species,Host_SD=Peperomia dindygulensis; Host_TaxID=1972104,Exact TaxonKit match from variant `Peperomia dindygulensis`; lineage superkingdom Eukaryota.,medium
+1,Axinellida sp. (marine sponge),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M43Fcsw,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Adenophora trachelioides Maxim.,exact_taxonkit_scientific_name,add_host_synonym,Adenophora trachelioides,226227,species,Host_SD=Adenophora trachelioides; Host_TaxID=226227,Exact TaxonKit match from variant `Adenophora trachelioides`; lineage superkingdom Eukaryota.,medium
+1,M43Plmr,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,F34Frhd,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cyanobacterium Lyngbya cf. aestuarii,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Streptomyces,microbial_or_viral_not_host,add_host_negative_rule,,,,Host_Review_Status=non_host_source,Exact TaxonKit match is Bacteria; bacterial/archaeal/viral taxa are blocked from Host_SD in this curation policy.,high
+1,Lissodendoryx diversichela,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ipomoea batatas [L.] Lam.,exact_taxonkit_scientific_name,add_host_synonym,Ipomoea batatas,4120,species,Host_SD=Ipomoea batatas; Host_TaxID=4120,Exact TaxonKit match from variant `Ipomoea batatas`; lineage superkingdom Eukaryota.,medium
+1,Eucommia ulmoides Oliver,exact_taxonkit_scientific_name,add_host_synonym,Eucommia ulmoides,4392,species,Host_SD=Eucommia ulmoides; Host_TaxID=4392,Exact TaxonKit match from variant `Eucommia ulmoides`; lineage superkingdom Eukaryota.,medium
+1,Brasillia sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ursidae sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,M41Glns,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Orchid,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Saurania reinwardti,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,aquatic mosses,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,slime mold,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Picea mariana Britton,exact_taxonkit_scientific_name,add_host_synonym,Picea mariana,3335,species,Host_SD=Picea mariana; Host_TaxID=3335,Exact TaxonKit match from variant `Picea mariana`; lineage superkingdom Eukaryota.,medium
+1,Green spruce,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Empoasca mexicana,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Porphyra yezoensis Ueda,exact_taxonkit_scientific_name,add_host_synonym,Porphyra yezoensis,2788,species,Host_SD=Porphyra yezoensis; Host_TaxID=2788,Exact TaxonKit match from variant `Porphyra yezoensis`; lineage superkingdom Eukaryota.,medium
+1,Ridgea piscesae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Lucinoma atalantae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Sf1EP,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,P024V1,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,capricorn,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cuttloefish,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ostrea edulis larvae,exact_taxonkit_scientific_name,add_host_synonym,Ostrea edulis,37623,species,Host_SD=Ostrea edulis; Host_TaxID=37623,Exact TaxonKit match from variant `Ostrea edulis`; lineage superkingdom Eukaryota.,medium
+1,Akashiwo sangruia,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,diseased yellow croaker,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Others -Oxycirrhites typus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,cage-cultured red drum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Mya arenaria oonogai Makiyama,exact_taxonkit_scientific_name,add_host_synonym,Mya arenaria,6604,species,Host_SD=Mya arenaria; Host_TaxID=6604,Exact TaxonKit match from variant `Mya arenaria`; lineage superkingdom Eukaryota.,medium
+1,Scleritoderma cyanea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,flumen aquae,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Hipocampus ingens (seahorse),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,shirasu,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Giant seaperch,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Corbicula aurea,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,mudfish,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Vibriosis affected Asian seabass (Lates calcarifer) fingerling,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,green alga,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,weaned Rex rabbits,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Diestrammena coreana (camel cricket),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Helix aspersa Muller,exact_taxonkit_scientific_name,add_host_synonym,Helix aspersa,6535,species,Host_SD=Helix aspersa; Host_TaxID=6535,Exact TaxonKit match from variant `Helix aspersa`; lineage superkingdom Eukaryota.,medium
+1,Armadillidium vulgare lineage ZN,exact_taxonkit_scientific_name,add_host_synonym,Armadillidium vulgare,13347,species,Host_SD=Armadillidium vulgare; Host_TaxID=13347,Exact TaxonKit match from variant `Armadillidium vulgare`; lineage superkingdom Eukaryota.,medium
+1,Eurosta solidaginis MN-2018-EFC,exact_taxonkit_scientific_name,add_host_synonym,Eurosta solidaginis,178769,species,Host_SD=Eurosta solidaginis; Host_TaxID=178769,Exact TaxonKit match from variant `Eurosta solidaginis`; lineage superkingdom Eukaryota.,medium
+1,Hydrangea arborescens cv Bella Anna,exact_taxonkit_scientific_name,add_host_synonym,Hydrangea arborescens,96933,species,Host_SD=Hydrangea arborescens; Host_TaxID=96933,Exact TaxonKit match from variant `Hydrangea arborescens`; lineage superkingdom Eukaryota.,medium
+1,Vibernum davidii,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Crape Myrtle,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Strawberry cv. Aura,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Festival,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Capri,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Sweet Charlie,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Syria,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Malaga,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Strawberry cv. Roxana,exact_taxonkit_scientific_name,add_host_synonym,Strawberry,3747,species,Host_SD=Strawberry; Host_TaxID=3747,Exact TaxonKit match from variant `Strawberry`; lineage superkingdom Eukaryota.,medium
+1,Sinapsis avensis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Rhynchosiae phaseoloides,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Nightshade (Solanum nigrum),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Latuca sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Linaria sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Cucurbit,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Orizae sativa L.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,mexican lime,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Greek oregano,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,B. oleracea var. alba,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,B. oleracea var. sabauda,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ipomea obscura,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,"""Ipomoea aquatic""",ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Manihot esculenta Crantz,exact_taxonkit_scientific_name,add_host_synonym,Manihot esculenta,3983,species,Host_SD=Manihot esculenta; Host_TaxID=3983,Exact TaxonKit match from variant `Manihot esculenta`; lineage superkingdom Eukaryota.,medium
+1,Crambe sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Steirnernema unicornum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Westrigia fruticosa,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Olive,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Verdot sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pinot Noir,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Chambourcin sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Merlot sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Plantanus sp.,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,tenophyllus hirticrus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Siberian jerboa (Allactagasibirica),ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ctenophthalmus orientalis,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Citellus musticus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Pallasiomys meridianus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Haemophisalus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Coleophora tesquorum,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ctenophthalmus teres,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Paradoxopsyllus scorodumovi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Blandfordimys juldaschi carruthersi,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Citellus fulvus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Stiralius aporus rectodigitus,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Amphisylla,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,eastern boxelder,ambiguous_manual_review,leave_review_needed,,,,Host_Review_Status=review_needed,No conservative deterministic rule matched.,none
+1,Ericaria zosteroides (C.Agardh) Molinari & Guiry 2020,exact_taxonkit_scientific_name,add_host_synonym,Ericaria zosteroides,590117,species,Host_SD=Ericaria zosteroides; Host_TaxID=590117,Exact TaxonKit match from variant `Ericaria zosteroides`; lineage superkingdom Eukaryota.,medium

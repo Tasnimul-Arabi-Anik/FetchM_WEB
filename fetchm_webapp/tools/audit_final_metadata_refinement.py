@@ -207,6 +207,19 @@ def latest_child_dir(parent: Path) -> Path | None:
     return sorted(dirs)[-1] if dirs else None
 
 
+def latest_audit_dir(parent: Path, required_file: str) -> Path | None:
+    """Return the newest audit directory that contains a required output file.
+
+    Some review runs are grouped under a descriptive folder before the timestamp
+    folder. Looking only one level deep can accidentally select the grouping
+    folder and hide metrics from the final dashboard.
+    """
+    if not parent.exists():
+        return None
+    candidates = [path.parent for path in parent.rglob(required_file) if path.is_file()]
+    return sorted(set(candidates))[-1] if candidates else None
+
+
 def read_metric_csv(path: Path) -> dict[str, str]:
     if not path.exists():
         return {}
@@ -502,8 +515,14 @@ def main() -> None:
     write_csv(output_dir / "file_errors.csv", ["taxon", "path", "error"], file_errors)
 
     identity, identity_warnings = run_identity()
-    quality_dir = latest_child_dir(ROOT / "standardization" / "review" / "quality_audit")
-    source_dir = latest_child_dir(ROOT / "standardization" / "review" / "source_sample_environment_audit")
+    quality_dir = latest_audit_dir(
+        ROOT / "standardization" / "review" / "quality_audit",
+        "standardization_quality_summary.csv",
+    )
+    source_dir = latest_audit_dir(
+        ROOT / "standardization" / "review" / "source_sample_environment_audit",
+        "field_coverage_summary.csv",
+    )
     quality_metrics = read_metric_csv(quality_dir / "standardization_quality_summary.csv") if quality_dir else {}
     host_review_counts = read_count_csv(quality_dir / "host_review_status_counts.csv", "count", "host_review_status") if quality_dir else {}
     source_field_summary = read_source_field_summary(source_dir / "field_coverage_summary.csv") if source_dir else {}

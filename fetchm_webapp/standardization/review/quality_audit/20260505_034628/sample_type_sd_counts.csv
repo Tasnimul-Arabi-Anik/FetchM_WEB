@@ -1,0 +1,208 @@
+count,sample_type_sd
+231857,feces/stool
+117803,blood
+108962,metagenomic assembly
+67732,urine
+55527,cell culture
+46778,sterile body site
+44581,chicken meat
+41319,gut content
+38144,environmental sample
+35456,metadata descriptor/non-source
+34973,sputum
+32429,clinical sample
+30250,nasopharynx/oropharynx
+26248,rectal swab
+25592,chicken carcass
+24512,food
+20632,wound
+15150,beef
+14706,water
+14643,pork
+13904,turkey meat
+12566,pure culture
+11732,soil
+10810,microbial isolate
+10607,respiratory sample
+8940,single cell
+8938,bodily fluid
+8376,culture
+7844,poultry meat
+7786,milk
+6197,cerebrospinal fluid
+6194,river
+5748,nasal swab
+5580,bacterial culture
+5404,farm
+5177,swab
+4943,meat
+4767,mixed culture
+4438,perianal/anal swab
+4422,pure/single culture
+4308,sediment
+4283,bronchoalveolar lavage fluid
+3955,abscess
+3357,manure
+3343,laboratory
+3283,tissue
+3088,dairy food
+3071,sample
+2881,surface
+2741,broiler
+2563,gastric biopsy
+2552,pus
+2527,tracheal aspirate/secretion
+2501,Oyster
+2386,aspirate
+2277,fecal/stool swab
+2213,stream
+2189,seawater
+2159,sewage
+2105,catheter
+2078,canal
+1956,clinical material
+1814,pond
+1809,secretion
+1807,metagenome
+1792,shrimp
+1670,groin
+1614,rhizosphere
+1571,drainage
+1487,drain
+1478,DNA extract
+1454,cloacal swab
+1452,biopsy
+1434,food processing environment
+1402,surveillance swab
+1324,food product
+1310,sink
+1262,root
+1184,hospital wastewater
+1122,bloodstream
+1094,bile
+1069,skin/body-surface swab
+1008,pleural fluid
+954,skin swab
+947,environmental swab
+933,rectovaginal site
+895,urban
+875,dairy farm
+875,hospital sewage
+848,salmon
+843,long-term care facility
+834,irrigation canal
+793,food/animal-production swab
+793,lettuce
+751,leaves
+729,vaginal swab
+727,vegetable
+700,microbial culture
+689,nodule
+670,ground chicken
+662,whole genome sequencing sample
+661,urogenital swab
+654,oropharyngeal/throat swab
+637,spinach
+619,pet food
+605,ice cream
+604,oral/oropharyngeal swab
+599,terrestrial environment
+573,air
+569,deciduous forest
+548,potato
+546,seafood
+535,cucumber
+531,saliva
+530,cloacal sample
+521,kratom
+518,fermented food/beverage
+512,enoki mushroom
+494,ready-to-eat product
+487,cubital fossa
+486,groundwater
+450,bronchial wash/lavage
+446,dairy product
+441,tomato
+429,avocado
+418,Aquatic products
+411,intestinal epithelial cells
+403,ascites
+400,rectal/cloacal/perianal swab
+395,cantaloupe
+392,dental plaque
+385,prawn product
+384,fluff/lint material
+378,trap sample
+371,wildlife
+361,sponge
+355,sludge
+341,cilantro
+319,FFPE tissue
+315,papaya
+309,surface layer
+306,nasopharyngeal swab
+293,peanut butter
+271,endovascular
+270,leafy greens
+268,tree nut
+266,respiratory swab
+263,wound/lesion/abscess swab
+242,oral swab
+233,hot spring
+210,shrimp product
+200,catfish product
+198,Southern Sea Otter
+190,wood
+179,ready-to-eat food
+150,rectal/perianal swab
+148,fermented food
+121,cleanroom floor
+119,milk powder
+109,clinical swab
+107,kimchi
+97,estuary
+92,oyster product
+90,nodules
+86,enrichment culture
+82,fish product
+82,tracheal aspirate
+82,Raw pork
+77,internal-site swab
+77,probiotic product
+72,grain product
+66,anaerobic digester
+61,gill
+60,glacier
+57,core
+55,unicyanobacterial culture
+52,leaf tissue
+50,assembly
+49,eye swab
+36,biological product
+33,saline water
+32,teat/nipple swab
+30,root nodule
+29,cold seep
+27,plate culture
+26,cave biofilm
+25,fermented milk/dairy product
+23,deep-sea hydrothermal deposit
+19,liquid culture
+18,wound/skin/pus swab
+14,ice core section from central arctic ocean
+14,clone culture
+13,urogenital/reproductive swab
+11,produced fluids from hydraulically fractured shales
+9,Citrus leaf
+8,anaerobic bioreactor effluent
+5,colon contents
+5,wound swab
+4,transport swab
+3,feed/fodder
+2,screening culture
+2,freshwater fish product
+2,shellfish product
+1,spore release material
+1,rice leaves
+1,Meriones unguiculatus
+1,plant material
