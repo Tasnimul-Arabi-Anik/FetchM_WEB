@@ -96,6 +96,7 @@
   const feedbackToggle = document.getElementById("feedback-toggle");
   const feedbackPanel = document.getElementById("feedback-form");
   const sequenceLink = document.getElementById("sequence-link");
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
 
   const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
   const MAX_SEARCH_RESULTS = 8;
@@ -166,7 +167,7 @@
       const response = await fetch("/api/taxa/prepare-metadata-species", {
         method: "POST",
         body: formData,
-        headers: { "Accept": "application/json" },
+        headers: { "Accept": "application/json", "X-CSRF-Token": csrfToken },
       });
       const payload = await response.json();
       if (!response.ok) {

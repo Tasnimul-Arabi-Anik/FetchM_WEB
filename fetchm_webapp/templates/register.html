@@ -6,6 +6,7 @@
     <h1>Register for fetchM Web</h1>
     <p class="lede" id="register-help">Each account only sees its own jobs, logs, and outputs.</p>
     <form action="{{ url_for('register') }}" method="post" class="job-form">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <label for="username">
         <span>Username</span>
         <input id="username" type="text" name="username" required minlength="3" autocomplete="username" aria-describedby="register-help">

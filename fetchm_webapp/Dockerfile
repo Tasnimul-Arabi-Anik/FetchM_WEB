@@ -39,7 +39,13 @@ COPY fetchm_webapp /app/fetchm_webapp
 
 WORKDIR /app/fetchm_webapp
 
-RUN mkdir -p /app/fetchm_webapp/data/jobs
+RUN useradd --create-home --uid 1000 --shell /usr/sbin/nologin fetchm \
+ && mkdir -p /app/fetchm_webapp/data/jobs /home/fetchm/.taxonkit \
+ && chown -R fetchm:fetchm /app/fetchm_webapp /home/fetchm
+
+ENV HOME=/home/fetchm
+
+USER fetchm
 
 EXPOSE 8000
 

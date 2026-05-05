@@ -19,6 +19,7 @@
     <h2>Sign in to fetchM Web</h2>
     <p class="lede" id="login-help">Sign in with your username to submit jobs, view logs, and download your outputs.</p>
     <form action="{{ url_for('login', next=request.args.get('next', '')) }}" method="post" class="job-form" autocomplete="off" data-lpignore="true">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <label for="login_identifier">
         <span>Username</span>
         <input id="login_identifier" type="text" name="login_identifier" required autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="login-help" data-lpignore="true" data-1p-ignore>

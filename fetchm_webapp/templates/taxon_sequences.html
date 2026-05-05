@@ -288,6 +288,7 @@
     </div>
 
     <form class="job-form sequence-filter-form" method="get" action="{{ url_for('taxon_sequences', species_id=species.id) }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}" disabled data-csrf-for-post>
       <div class="sequence-filter-picker">
         <div class="sequence-filter-toolbar">
           {% for key in sequence_dashboard.primary_filter_keys %}
@@ -434,7 +435,7 @@
           <a class="button-like ghost" href="#sequence-preview">See Preview</a>
         </div>
         <div class="sequence-filter-actions-right">
-          <button type="submit" formaction="{{ url_for('download_taxon_sequence_metadata_subset', species_id=species.id) }}" formmethod="post" class="ghost" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Download filtered metadata CSV</button>
+          <button type="submit" formaction="{{ url_for('download_taxon_sequence_metadata_subset', species_id=species.id) }}" formmethod="post" class="ghost" onclick="this.form.querySelector('[data-csrf-for-post]').disabled = false" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Download filtered metadata CSV</button>
         </div>
       </div>
     </form>

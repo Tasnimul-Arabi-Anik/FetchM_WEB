@@ -12,7 +12,7 @@ services:
       FETCHM_WEBAPP_DEBUG: "0"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker:
@@ -29,7 +29,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-2:
@@ -46,7 +46,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-3:
@@ -63,7 +63,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-4:
@@ -80,7 +80,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-5:
@@ -97,7 +97,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-worker-6:
@@ -114,7 +114,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-assembly-backfill-worker:
@@ -129,7 +129,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: assembly-backfill
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker:
@@ -144,7 +144,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-2:
@@ -159,7 +159,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-3:
@@ -174,7 +174,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-4:
@@ -189,7 +189,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-5:
@@ -204,7 +204,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-6:
@@ -219,7 +219,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-7:
@@ -234,7 +234,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-8:
@@ -249,7 +249,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-9:
@@ -264,7 +264,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-10:
@@ -279,7 +279,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-11:
@@ -294,7 +294,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-12:
@@ -309,7 +309,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-13:
@@ -324,7 +324,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-14:
@@ -339,7 +339,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-15:
@@ -354,7 +354,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-standardization-worker-16:
@@ -369,7 +369,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: standardization
     volumes:
       - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/root/.taxonkit:ro
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
   fetchm-job-worker:

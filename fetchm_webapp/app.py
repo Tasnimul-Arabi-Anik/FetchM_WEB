@@ -42,6 +42,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 
+APP_VERSION = "2026.05-genus-v1"
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"
@@ -75,7 +76,14 @@ from lib.fetchm_runtime.metadata import (
 from lib.fetchm_runtime.sequence import DEFAULT_DOWNLOAD_WORKERS, SequenceDownloadCancelled, run_sequence_downloads
 RESET_TOKEN_TTL_MINUTES = 60
 PASSWORD_MIN_LENGTH = 10
+DEFAULT_SECRET_KEY = "fetchm-dev-secret"
+AUTH_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
+AUTH_RATE_LIMIT_MAX_ATTEMPTS = 10
+MAX_UPLOAD_BYTES = int(os.environ.get("FETCHM_WEBAPP_MAX_UPLOAD_BYTES", str(200 * 1024 * 1024)))
+ALLOWED_UPLOAD_EXTENSIONS = {".csv", ".tsv"}
 PUBLIC_ENDPOINTS = {"login", "register", "forgot_password", "reset_password", "static"}
+_auth_rate_limit_lock = threading.Lock()
+_auth_rate_limit_events: dict[tuple[str, str], list[float]] = {}
 
 def load_dotenv_file(path: Path) -> None:
     if not path.exists():
@@ -544,7 +552,12 @@ class DiscoveryScopeRecord:
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)  # type: ignore[assignment]
-app.config["SECRET_KEY"] = os.environ.get("FETCHM_WEBAPP_SECRET", "fetchm-dev-secret")
+configured_secret = os.environ.get("FETCHM_WEBAPP_SECRET", DEFAULT_SECRET_KEY)
+runtime_env = (os.environ.get("FETCHM_WEBAPP_ENV") or os.environ.get("FLASK_ENV") or "").strip().lower()
+if configured_secret == DEFAULT_SECRET_KEY and runtime_env in {"prod", "production"}:
+    raise RuntimeError("FETCHM_WEBAPP_SECRET must be set in production.")
+app.config["SECRET_KEY"] = configured_secret
+app.config["APP_VERSION"] = APP_VERSION
 app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
@@ -870,6 +883,28 @@ def init_db() -> None:
 
         CREATE INDEX IF NOT EXISTS idx_problem_reports_status_created
         ON problem_reports (status, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            actor_user_id INTEGER,
+            actor_username TEXT,
+            action TEXT NOT NULL,
+            target_type TEXT,
+            target_id TEXT,
+            request_path TEXT,
+            request_method TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            metadata_json TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (actor_user_id) REFERENCES users (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_audit_log_created
+        ON audit_log (created_at DESC);
+
+        CREATE INDEX IF NOT EXISTS idx_audit_log_actor_created
+        ON audit_log (actor_user_id, created_at DESC);
         """
     )
     db.commit()
@@ -883,6 +918,97 @@ def init_db() -> None:
     migrate_legacy_species(db)
     sync_discovery_scopes_from_env(db)
     ensure_default_settings(db)
+
+
+def get_csrf_token() -> str:
+    token = session.get("_csrf_token")
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session["_csrf_token"] = token
+    return str(token)
+
+
+def validate_csrf_token() -> None:
+    expected = session.get("_csrf_token")
+    submitted = request.form.get("_csrf_token") or request.headers.get("X-CSRF-Token")
+    if not expected or not submitted or not secrets.compare_digest(str(expected), str(submitted)):
+        abort(400, "Invalid or missing CSRF token.")
+
+
+@app.context_processor
+def inject_security_context() -> dict[str, Any]:
+    return {
+        "app_version": APP_VERSION,
+        "csrf_token": get_csrf_token,
+    }
+
+
+def client_ip_address() -> str:
+    return (request.headers.get("X-Forwarded-For") or request.remote_addr or "unknown").split(",", 1)[0].strip()
+
+
+def rate_limit_key(action: str) -> tuple[str, str]:
+    return action, client_ip_address()
+
+
+def auth_rate_limited(action: str) -> bool:
+    now = time.time()
+    cutoff = now - AUTH_RATE_LIMIT_WINDOW_SECONDS
+    key = rate_limit_key(action)
+    with _auth_rate_limit_lock:
+        events = [timestamp for timestamp in _auth_rate_limit_events.get(key, []) if timestamp >= cutoff]
+        limited = len(events) >= AUTH_RATE_LIMIT_MAX_ATTEMPTS
+        events.append(now)
+        _auth_rate_limit_events[key] = events
+        return limited
+
+
+def record_audit_event(
+    action: str,
+    *,
+    target_type: str | None = None,
+    target_id: str | None = None,
+    metadata: Mapping[str, Any] | None = None,
+) -> None:
+    try:
+        user = getattr(g, "current_user", None)
+        get_db().execute(
+            """
+            INSERT INTO audit_log (
+                actor_user_id, actor_username, action, target_type, target_id,
+                request_path, request_method, ip_address, user_agent, metadata_json, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                int(user["id"]) if user is not None else None,
+                str(user["username"]) if user is not None else None,
+                action,
+                target_type,
+                target_id,
+                request.path if request else None,
+                request.method if request else None,
+                client_ip_address() if request else None,
+                request.headers.get("User-Agent", "") if request else None,
+                json.dumps(dict(metadata or {}), sort_keys=True),
+                utc_now(),
+            ),
+        )
+        get_db().commit()
+    except Exception:
+        logging.exception("Could not write audit log event for %s", action)
+
+
+def list_audit_log(limit: int = 200) -> list[sqlite3.Row]:
+    return get_db().execute(
+        """
+        SELECT *
+        FROM audit_log
+        ORDER BY created_at DESC
+        LIMIT ?
+        """,
+        (max(1, min(limit, 1000)),),
+    ).fetchall()
 
 
 def biosample_record_has_data(record: dict[str, Any]) -> bool:
@@ -5799,7 +5925,33 @@ def parse_multi_value(raw_value: str) -> list[str]:
 
 
 def allowed_extension(filename: str, expected_extension: str) -> bool:
-    return Path(filename).suffix.lower() == expected_extension
+    suffix = Path(filename).suffix.lower()
+    return suffix == expected_extension and suffix in ALLOWED_UPLOAD_EXTENSIONS
+
+
+def safe_upload_name(filename: str, expected_extension: str) -> str:
+    if not allowed_extension(filename, expected_extension):
+        abort(400, f"Unsupported upload type. Expected {expected_extension}.")
+    safe_name = secure_filename(filename)
+    if not safe_name or Path(safe_name).name != safe_name:
+        abort(400, "Invalid upload filename.")
+    if Path(safe_name).suffix.lower() != expected_extension:
+        abort(400, f"Unsupported upload type. Expected {expected_extension}.")
+    return safe_name
+
+
+def save_validated_upload(uploaded: Any, input_path: Path) -> None:
+    uploaded.save(input_path)
+    try:
+        size = input_path.stat().st_size
+    except FileNotFoundError:
+        abort(400, "Upload could not be saved.")
+    if size <= 0:
+        input_path.unlink(missing_ok=True)
+        abort(400, "Uploaded file is empty.")
+    if size > MAX_UPLOAD_BYTES:
+        input_path.unlink(missing_ok=True)
+        abort(413, f"Uploaded file exceeds the {MAX_UPLOAD_BYTES} byte limit.")
 
 
 def normalize_username(value: str) -> str:
@@ -6392,11 +6544,15 @@ def validate_passwords(password: str, confirm: str) -> str | None:
 
 def build_security_posture() -> dict[str, Any]:
     return {
+        "app_version": APP_VERSION,
         "password_policy": f"{PASSWORD_MIN_LENGTH}+ characters, including at least one letter and one number",
         "session_lifetime": str(app.config["PERMANENT_SESSION_LIFETIME"]),
         "cookie_httponly": bool(app.config["SESSION_COOKIE_HTTPONLY"]),
         "cookie_secure": bool(app.config["SESSION_COOKIE_SECURE"]),
         "cookie_samesite": app.config["SESSION_COOKIE_SAMESITE"],
+        "csrf": "enabled for POST forms",
+        "auth_rate_limit": f"{AUTH_RATE_LIMIT_MAX_ATTEMPTS} attempts per {AUTH_RATE_LIMIT_WINDOW_SECONDS // 60} minutes per IP",
+        "secret_key": "custom" if app.config["SECRET_KEY"] != DEFAULT_SECRET_KEY else "development default",
         "password_reset": "configured" if mail_is_configured() else "SMTP not configured",
         "admin_model": "single admin role from FETCHM_WEBAPP_ADMIN_USERS",
     }
@@ -14656,8 +14812,25 @@ def load_current_user() -> None:
 
 
 @app.before_request
+def enforce_csrf() -> None:
+    if request.method == "POST":
+        validate_csrf_token()
+
+
+@app.before_request
 def enforce_auth() -> Any:
     return require_auth()
+
+
+@app.after_request
+def audit_admin_post(response: Any) -> Any:
+    endpoint = request.endpoint or ""
+    if request.method == "POST" and endpoint.startswith("admin_") and response.status_code < 400:
+        record_audit_event(
+            f"admin.{endpoint}",
+            metadata={"status_code": response.status_code},
+        )
+    return response
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -14666,14 +14839,20 @@ def login() -> Any:
         return redirect(url_for("index"))
 
     if request.method == "POST":
+        if auth_rate_limited("login"):
+            record_audit_event("auth.login_rate_limited")
+            flash("Too many sign-in attempts. Try again later.", "error")
+            return render_template("login.html"), 429
         username = normalize_username(request.form.get("login_identifier") or request.form.get("username") or "")
         password = request.form.get("password") or ""
         user = get_user_by_username(username)
         if user is not None and check_password_hash(user["password_hash"], password):
             login_user(user)
+            record_audit_event("auth.login_success", target_type="user", target_id=str(user["id"]))
             flash("Signed in.", "success")
             target = request.args.get("next") or url_for("index")
             return redirect(target)
+        record_audit_event("auth.login_failure", metadata={"username": username})
         flash("Invalid username or password.", "error")
 
     return render_template("login.html")
@@ -14714,17 +14893,24 @@ def register() -> Any:
 @app.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password() -> Any:
     if request.method == "POST":
+        if auth_rate_limited("password_reset"):
+            record_audit_event("auth.password_reset_rate_limited")
+            flash("Too many password reset attempts. Try again later.", "error")
+            return render_template("forgot_password.html", mail_configured=mail_is_configured()), 429
         identifier = (request.form.get("identifier") or "").strip()
         user = get_user_by_email(identifier) or get_user_by_username(identifier)
         if user is None:
+            record_audit_event("auth.password_reset_unknown_identifier")
             flash("No account matched that username or email.", "error")
         else:
             token = create_reset_token(int(user["id"]))
             reset_url = url_for("reset_password", token=token, _external=True)
             try:
                 send_reset_email(str(user["email"]), str(user["username"]), reset_url)
+                record_audit_event("auth.password_reset_requested", target_type="user", target_id=str(user["id"]))
                 flash("Password reset email sent.", "success")
             except Exception as exc:
+                record_audit_event("auth.password_reset_send_failed", target_type="user", target_id=str(user["id"]))
                 flash(f"Password reset email could not be sent: {exc}", "error")
     return render_template("forgot_password.html", mail_configured=mail_is_configured())
 
@@ -14753,6 +14939,8 @@ def reset_password(token: str) -> Any:
 
 @app.route("/logout", methods=["POST"])
 def logout() -> Any:
+    if g.current_user is not None:
+        record_audit_event("auth.logout", target_type="user", target_id=str(g.current_user["id"]))
     logout_user()
     flash("Logged out.", "success")
     return redirect(url_for("login"))
@@ -15337,6 +15525,18 @@ def admin_users() -> str:
     )
 
 
+@app.route("/admin/audit-log")
+def admin_audit_log() -> str:
+    require_admin()
+    limit = parse_optional_int(request.args.get("limit")) or 200
+    return render_template(
+        "admin_audit_log.html",
+        audit_events=list_audit_log(limit),
+        audit_limit=max(1, min(limit, 1000)),
+        **admin_common_context("audit"),
+    )
+
+
 @app.route("/admin/problems")
 def admin_problems() -> str:
     require_admin()
@@ -15766,9 +15966,9 @@ def create_job() -> Any:
             if not allowed_extension(uploaded.filename, expected_extension):
                 flash(f"{mode} mode requires a {expected_extension} file.", "error")
                 return redirect(url_for("index"))
-            safe_name = secure_filename(uploaded.filename)
+            safe_name = safe_upload_name(uploaded.filename, expected_extension)
             input_path = uploads_dir / safe_name
-            uploaded.save(input_path)
+            save_validated_upload(uploaded, input_path)
             filters["input_source"] = "upload"
         else:
             refresh_before_run = (request.form.get("refresh_before_run") or "") == "1"
@@ -15821,9 +16021,9 @@ def create_job() -> Any:
             flash(f"{mode} mode requires a {expected_extension} file.", "error")
             return redirect(url_for("index"))
 
-        safe_name = secure_filename(uploaded.filename)
+        safe_name = safe_upload_name(uploaded.filename, expected_extension)
         input_path = uploads_dir / safe_name
-        uploaded.save(input_path)
+        save_validated_upload(uploaded, input_path)
         filters["input_source"] = "upload"
 
     command, command_filters = build_command(mode, input_path, outputs_dir, request.form)
@@ -15844,6 +16044,12 @@ def create_job() -> Any:
         filters=filters,
     )
     save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=job_id,
+        metadata={"mode": mode, "input_source": filters.get("input_source")},
+    )
     notify_job_event(record, "submitted")
     flash(f"Job {job_id} submitted.", "success")
     return redirect(url_for("job_detail", job_id=job_id))
@@ -15935,6 +16141,7 @@ def download_taxon_metadata(species_id: int):
         flash("Metadata download is not ready for that taxon yet.", "error")
         return redirect(url_for("taxon_metadata", species_id=species_id))
     clean_path = Path(species.metadata_clean_path)
+    record_audit_event("download.metadata_csv", target_type="species", target_id=str(species_id))
     return send_from_directory(clean_path.parent, clean_path.name, as_attachment=True)
 
 
@@ -15948,6 +16155,7 @@ def download_taxon_metadata_bundle(species_id: int):
         return redirect(url_for("taxon_metadata", species_id=species_id))
     analysis = load_taxon_metadata_analysis(species)
     payload = build_analysis_bundle(species, analysis)
+    record_audit_event("download.metadata_bundle", target_type="species", target_id=str(species_id))
     return app.response_class(
         payload,
         mimetype="application/zip",
@@ -16006,6 +16214,12 @@ def download_taxon_sequence_metadata_subset(species_id: int):
         return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
     payload = filtered_frame.to_csv(index=False)
     filename = f"{species.slug}_sequence_subset.csv"
+    record_audit_event(
+        "download.sequence_metadata_subset",
+        target_type="species",
+        target_id=str(species_id),
+        metadata={"rows": int(len(filtered_frame))},
+    )
     return app.response_class(
         payload,
         mimetype="text/csv",
@@ -16091,6 +16305,16 @@ def create_taxon_sequence_job(species_id: int) -> Any:
         filters=filters,
     )
     save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=job_id,
+        metadata={
+            "mode": "seq",
+            "input_source": "taxon_sequences",
+            "matched_row_total": sequence_dashboard["matched_row_total"],
+        },
+    )
     notify_job_event(record, "submitted")
     flash(f"Sequence job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
     return redirect(url_for("job_detail", job_id=job_id))

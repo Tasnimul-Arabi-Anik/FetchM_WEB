@@ -27,6 +27,10 @@
       <p class="section-note">Current account and session controls. Keep infrastructure TLS/HSTS configured at the reverse proxy.</p>
     </div>
     <div class="metrics-grid">
+      <div class="metric-card">
+        <strong>{{ security_posture.app_version }}</strong>
+        <span>Application version</span>
+      </div>
       <div class="metric-card metric-wide">
         <strong>Password policy</strong>
         <span>{{ security_posture.password_policy }}</span>
@@ -46,6 +50,18 @@
       <div class="metric-card">
         <strong>{{ security_posture.cookie_samesite }}</strong>
         <span>SameSite policy</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ security_posture.csrf }}</strong>
+        <span>CSRF protection</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>Auth rate limit</strong>
+        <span>{{ security_posture.auth_rate_limit }}</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ security_posture.secret_key }}</strong>
+        <span>Secret key source</span>
       </div>
       <div class="metric-card metric-wide">
         <strong>Password reset</strong>

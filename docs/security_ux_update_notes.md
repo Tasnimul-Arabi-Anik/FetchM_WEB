@@ -17,9 +17,20 @@ This update is intentionally small and reversible. It addresses sign-in/register
 
 ## Configuration
 
+- `APP_VERSION` is currently `2026.05-genus-v1`.
+- `FETCHM_WEBAPP_SECRET` must be set when `FETCHM_WEBAPP_ENV=production` or `FLASK_ENV=production`.
 - `FETCHM_WEBAPP_SECURE_COOKIE=1` enables secure session cookies for HTTPS deployments.
 - `FETCHM_WEBAPP_SESSION_HOURS` controls server-side session lifetime in hours.
+- `FETCHM_WEBAPP_MAX_UPLOAD_BYTES` controls the accepted upload size ceiling.
 - Existing SMTP settings still control password reset availability.
+
+## Security Hardening Added After Initial UX Update
+
+- CSRF validation is enabled for POST requests.
+- Login and password-reset POST endpoints are rate-limited per IP.
+- Admin POST actions, sign-in events, logout events, job creation, and selected downloads are recorded in `audit_log`.
+- Upload filenames are normalized with `secure_filename`, restricted to expected `.csv`/`.tsv` extensions, and checked for empty/oversized files.
+- The Docker image now switches to a non-root `fetchm` user.
 
 ## Rollback
 

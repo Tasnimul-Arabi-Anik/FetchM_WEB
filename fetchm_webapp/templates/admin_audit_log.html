@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Audit Log</h1>
+      <p class="lede">Recent sign-in, admin, job, and download events recorded by FetchM Web.</p>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Recent Events</h2>
+    <form action="{{ url_for('admin_audit_log') }}" method="get" class="inline-form">
+      <label>
+        <span>Limit</span>
+        <input type="number" name="limit" min="1" max="1000" value="{{ audit_limit }}">
+      </label>
+      <button type="submit">Apply</button>
+    </form>
+    {% if audit_events %}
+      <div class="table-scroll top-gap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Target</th>
+              <th>Path</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for event in audit_events %}
+              <tr>
+                <td>{{ event["created_at"] }}</td>
+                <td>{{ event["actor_username"] or "anonymous" }}</td>
+                <td><code>{{ event["action"] }}</code></td>
+                <td>{{ event["target_type"] or "" }} {{ event["target_id"] or "" }}</td>
+                <td>{{ event["request_method"] }} {{ event["request_path"] }}</td>
+                <td>{{ event["ip_address"] or "" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="empty">No audit events recorded yet.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

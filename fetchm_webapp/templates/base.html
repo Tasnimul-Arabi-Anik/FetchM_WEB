@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="fetchm-version" content="{{ app_version }}">
     <title>fetchM Jobs</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v='20260501-sequence-compact-width') }}">
   </head>
@@ -20,6 +22,7 @@
             {% endif %}
             <div class="tag">{{ g.current_user["username"] }}</div>
             <form action="{{ url_for('logout') }}" method="post">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="ghost">Log out</button>
             </form>
           {% else %}
@@ -39,5 +42,22 @@
       {% endwith %}
       {% block content %}{% endblock %}
     </div>
+    <script>
+      (function () {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (!meta) return;
+        const token = meta.getAttribute("content") || "";
+        if (!token) return;
+        document.querySelectorAll("form").forEach((form) => {
+          const method = (form.getAttribute("method") || "get").toLowerCase();
+          if (method !== "post" || form.querySelector('input[name="_csrf_token"]')) return;
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "_csrf_token";
+          input.value = token;
+          form.prepend(input);
+        });
+      })();
+    </script>
   </body>
 </html>
