@@ -1929,12 +1929,13 @@ pre {
 
 .auth-unified-panel {
   display: grid;
-  gap: 22px;
+  gap: 16px;
   padding: clamp(28px, 5vw, 52px);
 }
 
 .auth-unified-panel h1 {
   max-width: 760px;
+  margin-bottom: -8px;
   font-size: clamp(2.1rem, 5vw, 3.45rem);
   line-height: 1.03;
   letter-spacing: -0.04em;
