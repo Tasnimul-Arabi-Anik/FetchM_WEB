@@ -7295,6 +7295,52 @@ def build_admin_job_analytics(jobs: list[JobRecord]) -> dict[str, Any]:
     }
 
 
+def latest_audit_subdir(parent: Path) -> Path | None:
+    if not parent.exists():
+        return None
+    dirs = [path for path in parent.iterdir() if path.is_dir()]
+    if not dirs:
+        return None
+    return max(dirs, key=lambda path: path.name)
+
+
+def iter_admin_audit_bundle_files() -> list[tuple[Path, str]]:
+    review_dir = STANDARDIZATION_DIR / "review"
+    candidates: list[tuple[Path, str]] = []
+
+    for subdir_name in ["final_audit", "quality_audit", "source_sample_environment_audit"]:
+        latest_dir = latest_audit_subdir(review_dir / subdir_name)
+        if latest_dir is None:
+            continue
+        for path in sorted(latest_dir.iterdir()):
+            if path.is_file() and path.suffix.lower() in {".csv", ".json", ".md", ".txt"}:
+                candidates.append((path, f"standardization/{subdir_name}/{latest_dir.name}/{path.name}"))
+
+    for name in [
+        "final_metadata_standardization_dashboard.md",
+        "final_release_note.md",
+        "metadata_standardization_publication_summary.md",
+    ]:
+        path = review_dir / name
+        if path.exists() and path.is_file():
+            candidates.append((path, f"standardization/{name}"))
+
+    remaining_dir = latest_audit_subdir(review_dir / "remaining_batches")
+    if remaining_dir is not None:
+        for path in sorted(remaining_dir.iterdir()):
+            if path.is_file() and path.suffix.lower() in {".csv", ".md", ".txt"}:
+                candidates.append((path, f"standardization/remaining_batches/{remaining_dir.name}/{path.name}"))
+
+    seen: set[str] = set()
+    unique: list[tuple[Path, str]] = []
+    for path, arcname in candidates:
+        if arcname in seen:
+            continue
+        seen.add(arcname)
+        unique.append((path, arcname))
+    return unique
+
+
 def format_eta_hours(hours: float | None) -> str:
     if hours is None or hours < 0:
         return "Unknown"
@@ -15629,6 +15675,10 @@ def admin_audit_bundle() -> Any:
         jobs = list_all_jobs()
         analytics = build_admin_job_analytics(jobs)
         archive.writestr("job_analytics.json", json.dumps(analytics, indent=2, sort_keys=True))
+        included_audit_files: list[str] = []
+        for path, arcname in iter_admin_audit_bundle_files():
+            archive.write(path, arcname)
+            included_audit_files.append(arcname)
 
         summary = [
             "# FetchM Web Admin Audit Bundle",
@@ -15640,7 +15690,15 @@ def admin_audit_bundle() -> Any:
             f"Active jobs: {analytics['active']}",
             f"Completed jobs: {analytics['completed']}",
             f"Failed jobs: {analytics['failed']}",
+            f"Standardization audit files included: {len(included_audit_files)}",
+            "",
+            "## Included standardization artifacts",
+            "",
         ]
+        if included_audit_files:
+            summary.extend(f"- `{arcname}`" for arcname in included_audit_files)
+        else:
+            summary.append("- No standardization audit artifacts were found.")
         archive.writestr("README.md", "\n".join(summary) + "\n")
     bundle.seek(0)
     record_audit_event("admin.audit_bundle_download")

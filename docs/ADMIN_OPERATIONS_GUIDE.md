@@ -97,6 +97,8 @@ Use `/admin/audit-log` to view recent events. Use `Download audit bundle` to exp
 
 - `audit_log_latest_1000.csv`
 - `job_analytics.json`
+- Latest final audit, quality audit, and source/sample/environment audit files.
+- Final dashboard, release note, publication summary, and remaining-batch review tables when present.
 - `README.md`
 
 ## Metadata Standardization Operations
