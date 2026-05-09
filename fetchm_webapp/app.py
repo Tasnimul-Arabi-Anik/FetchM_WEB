@@ -42,7 +42,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 
-APP_VERSION = "2026.05-genus-v1"
+APP_VERSION = "2026.05-genus-v1.1"
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"

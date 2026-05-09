@@ -1,6 +1,6 @@
 # FetchM Web Admin Operations Guide
 
-Version: 2026.05-genus-v1
+Version: 2026.05-genus-v1.1
 
 ## Purpose
 
@@ -158,7 +158,7 @@ Use SQLite-aware backup or stop writes before copying the database.
 Current formal release tag:
 
 ```bash
-git checkout 2026.05-genus-v1
+git checkout 2026.05-genus-v1.1
 ```
 
 To revert a later change:

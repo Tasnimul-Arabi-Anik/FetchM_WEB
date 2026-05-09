@@ -1,6 +1,6 @@
 # FetchM Web User Guide
 
-Version: 2026.05-genus-v1
+Version: 2026.05-genus-v1.1
 
 ## What FetchM Web Does
 

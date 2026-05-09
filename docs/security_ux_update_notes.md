@@ -17,7 +17,7 @@ This update is intentionally small and reversible. It addresses sign-in/register
 
 ## Configuration
 
-- `APP_VERSION` is currently `2026.05-genus-v1`.
+- `APP_VERSION` is currently `2026.05-genus-v1.1`.
 - `FETCHM_WEBAPP_SECRET` must be set when `FETCHM_WEBAPP_ENV=production` or `FLASK_ENV=production`.
 - `FETCHM_WEBAPP_SECURE_COOKIE=1` enables secure session cookies for HTTPS deployments.
 - `FETCHM_WEBAPP_SESSION_HOURS` controls server-side session lifetime in hours.
