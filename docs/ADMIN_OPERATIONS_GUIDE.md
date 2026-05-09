@@ -74,7 +74,7 @@ The `Jobs` admin page provides:
 - Jobs submitted in the last 7 days.
 - Finished-job success rate.
 - Average finished-job duration.
-- Status, mode, and top-submitter summaries.
+- Visual status, mode, and top-submitter distribution summaries.
 - Search by user, job ID, mode, or input name.
 - Cancel queued/running jobs.
 - Delete finished jobs.

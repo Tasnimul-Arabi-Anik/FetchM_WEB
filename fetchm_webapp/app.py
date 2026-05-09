@@ -7265,8 +7265,21 @@ def build_admin_job_analytics(jobs: list[JobRecord]) -> dict[str, Any]:
     success_count = status_counts.get("completed", 0)
     finished_count = sum(status_counts.get(status, 0) for status in ["completed", "failed", "cancelled"])
     success_rate = round((success_count / finished_count) * 100, 1) if finished_count else None
+    total_jobs = len(jobs)
+
+    def analytics_rows(counter: Counter[str], limit: int | None = None) -> list[dict[str, Any]]:
+        rows = counter.most_common(limit)
+        return [
+            {
+                "label": key,
+                "count": value,
+                "percent": round((value / total_jobs) * 100, 1) if total_jobs else 0.0,
+            }
+            for key, value in rows
+        ]
+
     return {
-        "total": len(jobs),
+        "total": total_jobs,
         "active": status_counts.get("queued", 0) + status_counts.get("running", 0),
         "queued": status_counts.get("queued", 0),
         "running": status_counts.get("running", 0),
@@ -7276,9 +7289,9 @@ def build_admin_job_analytics(jobs: list[JobRecord]) -> dict[str, Any]:
         "recent_7d": len(recent_jobs),
         "avg_duration_label": format_elapsed_brief(int(avg_duration)) if avg_duration is not None else "n/a",
         "success_rate": success_rate,
-        "status_rows": [{"label": key, "count": value} for key, value in status_counts.most_common()],
-        "mode_rows": [{"label": key, "count": value} for key, value in mode_counts.most_common()],
-        "user_rows": [{"label": key, "count": value} for key, value in user_counts.most_common(8)],
+        "status_rows": analytics_rows(status_counts),
+        "mode_rows": analytics_rows(mode_counts),
+        "user_rows": analytics_rows(user_counts, 8),
     }
 
 

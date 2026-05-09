@@ -61,9 +61,19 @@
       <div class="hint-block">
         <strong>Status distribution</strong>
         {% if job_analytics.status_rows %}
-          {% for row in job_analytics.status_rows %}
-            <p>{{ row.label }}: {{ row.count }}</p>
-          {% endfor %}
+          <div class="analytics-bars">
+            {% for row in job_analytics.status_rows %}
+              <div class="analytics-bar-row">
+                <div class="analytics-bar-head">
+                  <span>{{ row.label }}</span>
+                  <span>{{ row.count }}{% if row.percent %} · {{ row.percent }}%{% endif %}</span>
+                </div>
+                <div class="analytics-bar-track" aria-hidden="true">
+                  <div class="analytics-bar-fill status-{{ row.label|replace(' ', '-')|lower }}" style="width: {{ row.percent }}%;"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         {% else %}
           <p>No jobs recorded.</p>
         {% endif %}
@@ -71,9 +81,19 @@
       <div class="hint-block">
         <strong>Mode distribution</strong>
         {% if job_analytics.mode_rows %}
-          {% for row in job_analytics.mode_rows %}
-            <p>{{ row.label }}: {{ row.count }}</p>
-          {% endfor %}
+          <div class="analytics-bars">
+            {% for row in job_analytics.mode_rows %}
+              <div class="analytics-bar-row">
+                <div class="analytics-bar-head">
+                  <span>{{ row.label }}</span>
+                  <span>{{ row.count }}{% if row.percent %} · {{ row.percent }}%{% endif %}</span>
+                </div>
+                <div class="analytics-bar-track" aria-hidden="true">
+                  <div class="analytics-bar-fill" style="width: {{ row.percent }}%;"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         {% else %}
           <p>No jobs recorded.</p>
         {% endif %}
@@ -81,9 +101,19 @@
       <div class="hint-block">
         <strong>Top submitters</strong>
         {% if job_analytics.user_rows %}
-          {% for row in job_analytics.user_rows %}
-            <p>{{ row.label }}: {{ row.count }}</p>
-          {% endfor %}
+          <div class="analytics-bars">
+            {% for row in job_analytics.user_rows %}
+              <div class="analytics-bar-row">
+                <div class="analytics-bar-head">
+                  <span>{{ row.label }}</span>
+                  <span>{{ row.count }}{% if row.percent %} · {{ row.percent }}%{% endif %}</span>
+                </div>
+                <div class="analytics-bar-track" aria-hidden="true">
+                  <div class="analytics-bar-fill submitter-fill" style="width: {{ row.percent }}%;"></div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
         {% else %}
           <p>No jobs recorded.</p>
         {% endif %}
