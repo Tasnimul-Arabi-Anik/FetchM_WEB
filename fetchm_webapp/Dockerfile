@@ -9,16 +9,34 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    bash \
+    ca-certificates \
     chromium \
     curl \
     gcc \
     gfortran \
+    git \
     libopenblas-dev \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
+    openjdk-21-jre-headless \
     pkg-config \
+    procps \
+    unzip \
  && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL "https://github.com/nextflow-io/nextflow/releases/latest/download/nextflow" \
+    -o /usr/local/bin/nextflow \
+ && chmod +x /usr/local/bin/nextflow
+
+RUN curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" \
+    -o /tmp/miniforge.sh \
+ && bash /tmp/miniforge.sh -b -p /opt/conda \
+ && rm -f /tmp/miniforge.sh \
+ && /opt/conda/bin/conda clean -afy
+
+ENV PATH=/opt/conda/bin:$PATH
 
 RUN curl -fsSL "https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets" \
     -o /usr/local/bin/datasets \
@@ -40,10 +58,14 @@ COPY fetchm_webapp /app/fetchm_webapp
 WORKDIR /app/fetchm_webapp
 
 RUN useradd --create-home --uid 1000 --shell /usr/sbin/nologin fetchm \
- && mkdir -p /app/fetchm_webapp/data/jobs /home/fetchm/.taxonkit \
+ && mkdir -p /app/fetchm_webapp/data/jobs /app/fetchm_webapp/data/external_tools /home/fetchm/.taxonkit \
  && chown -R fetchm:fetchm /app/fetchm_webapp /home/fetchm
 
-ENV HOME=/home/fetchm
+ENV HOME=/home/fetchm \
+    NXF_HOME=/app/fetchm_webapp/data/external_tools/nextflow/home \
+    NXF_CONDA_CACHEDIR=/app/fetchm_webapp/data/external_tools/conda/envs \
+    CONDA_PKGS_DIRS=/app/fetchm_webapp/data/external_tools/conda/pkgs \
+    NXF_SYNTAX_PARSER=v1
 
 USER fetchm
 

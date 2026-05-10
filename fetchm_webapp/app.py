@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import secrets
+import shlex
 import shutil
 import signal
 import sqlite3
@@ -14393,6 +14394,36 @@ def run_sequence_quality_checks(
     review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
     fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
 
+    nextflow_return_code: int | None = None
+    nextflow_log_path = ""
+    if quality_config.get("run_mode") == "nextflow" and quality_config.get("external_modules"):
+        tool_status = handoff_manifest.get("tool_status") or {}
+        if not tool_status.get("nextflow_enabled") or not tool_status.get("tools", {}).get("nextflow"):
+            raise RuntimeError(
+                "Nextflow quality execution was requested, but Nextflow execution is not configured. "
+                "The external-tool handoff manifest was written under outputs/external_tools/quality_check."
+            )
+        handoff_dir = Path(handoff_manifest["handoff_dir"])
+        nextflow_log = handoff_dir / "nextflow_execution.log"
+        nextflow_log_path = str(nextflow_log.relative_to(output_dir))
+        nextflow_env = os.environ.copy()
+        nextflow_env.setdefault("NXF_SYNTAX_PARSER", "v1")
+        append_job_log(job, f"[{utc_now()}] Starting external Nextflow QC: {shlex.join(handoff_manifest['nextflow_command'])}\n")
+        with nextflow_log.open("w", encoding="utf-8") as nextflow_handle:
+            result = subprocess.run(
+                handoff_manifest["nextflow_command"],
+                cwd=handoff_dir,
+                env=nextflow_env,
+                stdout=nextflow_handle,
+                stderr=subprocess.STDOUT,
+                text=True,
+                check=False,
+            )
+        nextflow_return_code = int(result.returncode)
+        append_job_log(job, f"[{utc_now()}] External Nextflow QC finished with return code {nextflow_return_code}.\n")
+        if nextflow_return_code != 0:
+            raise RuntimeError(f"External Nextflow QC failed with return code {nextflow_return_code}. See {nextflow_log_path}.")
+
     summary = {
         "total": int(len(enriched_frame)),
         "pass": int(len(pass_frame)),
@@ -14405,6 +14436,8 @@ def run_sequence_quality_checks(
         "external_modules": quality_config.get("external_modules", []),
         "external_handoff": "external_tools/quality_check/quality_check_manifest.json",
         "external_execution_enabled": handoff_manifest.get("nextflow_execution_enabled", False),
+        "nextflow_return_code": nextflow_return_code,
+        "nextflow_log": nextflow_log_path,
     }
     report_lines = [
         "# FetchM Web Sequence Quality Check",
@@ -14435,6 +14468,8 @@ def run_sequence_quality_checks(
             f"- Nextflow execution enabled: {'yes' if summary['external_execution_enabled'] else 'no'}",
             "- Manifest: `external_tools/quality_check/quality_check_manifest.json`",
             "- Command script: `external_tools/quality_check/nextflow_command.sh`",
+            f"- Execution log: `{nextflow_log_path or 'not executed'}`",
+            f"- Return code: `{nextflow_return_code if nextflow_return_code is not None else 'not executed'}`",
             "",
         ]
     )
@@ -14456,18 +14491,11 @@ def run_sequence_quality_checks(
             "- `sequence_qc/qc_pass_metadata.csv`: metadata subset passing all applied quality checks.",
             "- `sequence_qc/qc_review_metadata.csv`: rows needing review because a required metric was missing.",
             "- `sequence_qc/qc_failed_metadata.csv`: rows failing at least one applied quality check.",
+            "- `external_tools/quality_check/`: Nextflow handoff and execution logs.",
         ]
     )
     (qc_dir / "quality_check_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     (qc_dir / "quality_check_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-
-    if summary["run_mode"] == "nextflow" and summary["external_modules"]:
-        tool_status = handoff_manifest.get("tool_status") or {}
-        if not tool_status.get("nextflow_enabled") or not tool_status.get("tools", {}).get("nextflow"):
-            raise RuntimeError(
-                "Nextflow quality execution was requested, but Nextflow execution is not configured. "
-                "The external-tool handoff manifest was written under outputs/external_tools/quality_check."
-            )
 
     bundle_path = output_dir / "quality_check_bundle.zip"
     with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -14802,6 +14830,7 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
     enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
     external_manifest_path = next((path for path in output_files if path == "external_tools/quality_check/quality_check_manifest.json"), None)
     nextflow_command_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_command.sh"), None)
+    nextflow_log_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_execution.log"), None)
     if not any([bundle_path, report_path, decisions_path, pass_metadata_path, enriched_metadata_path, external_manifest_path]):
         return None
     return {
@@ -14812,6 +14841,7 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "enriched_metadata_path": enriched_metadata_path,
         "external_manifest_path": external_manifest_path,
         "nextflow_command_path": nextflow_command_path,
+        "nextflow_log_path": nextflow_log_path,
     }
 
 

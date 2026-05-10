@@ -10,6 +10,14 @@ services:
     environment:
       FETCHM_WEBAPP_SECURE_COOKIE: "1"
       FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
+      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+      NXF_SYNTAX_PARSER: "v1"
     volumes:
       - ./data:/app/fetchm_webapp/data
       - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
@@ -382,6 +390,14 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
+      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+      NXF_SYNTAX_PARSER: "v1"
     volumes:
       - ./data:/app/fetchm_webapp/data
     restart: unless-stopped
@@ -396,6 +412,14 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
+      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+      NXF_SYNTAX_PARSER: "v1"
     volumes:
       - ./data:/app/fetchm_webapp/data
     restart: unless-stopped
@@ -410,6 +434,14 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
+      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+      NXF_SYNTAX_PARSER: "v1"
     volumes:
       - ./data:/app/fetchm_webapp/data
     restart: unless-stopped
@@ -424,6 +456,14 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
+      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+      NXF_SYNTAX_PARSER: "v1"
     volumes:
       - ./data:/app/fetchm_webapp/data
     restart: unless-stopped

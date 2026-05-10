@@ -191,6 +191,17 @@
                 </span>
               </div>
             {% endif %}
+            {% if quality_check_assets.nextflow_log_path %}
+              <div class="coverage-row">
+                <strong>Nextflow execution log</strong>
+                <span>External QC runtime log captured from Nextflow.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.nextflow_log_path) }}">
+                    Download log
+                  </a>
+                </span>
+              </div>
+            {% endif %}
           </div>
         </div>
       {% endif %}

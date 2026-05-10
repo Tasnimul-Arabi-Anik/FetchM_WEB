@@ -92,14 +92,26 @@ fetchm_webapp/external_tools/quality_check/
 
 Quick QC does not require extra dependencies. It computes FASTA length, contig count, N50, GC%, ambiguous-N percentage, and applies available CheckM metadata thresholds.
 
-Comprehensive QC modules such as CheckM2, QUAST, ANI/skani, Mash, and GTDB-Tk require the external Nextflow stack. Nextflow execution is disabled by default. To enable it after installing tools/databases, configure:
+Comprehensive QC modules such as CheckM2, QUAST, ANI/skani, Mash, and GTDB-Tk require the external Nextflow stack. The Docker image includes Java, Nextflow, and Miniforge/Conda; PanResistome Conda environments and databases are cached under `fetchm_webapp/data/external_tools/`.
 
 ```text
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED=1
-FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW=/path/to/PanResistome
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW=/app/fetchm_webapp/data/external_tools/workflows/PanResistome
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE=conda,lowmem
+FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR=/app/fetchm_webapp/data/external_tools/databases/checkm2
+NXF_SYNTAX_PARSER=v1
 ```
 
-If the workflow path is not set, the handoff command uses `Tasnimul-Arabi-Anik/PanResistome`. Keep heavy database paths and Conda/Mamba setup outside the Flask code and document them in deployment notes.
+Clone or update the PanResistome workflow at:
+
+```text
+fetchm_webapp/data/external_tools/workflows/PanResistome
+```
+
+GTDB-Tk is optional and heavy. Configure `FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH` only after the GTDB reference data is installed separately.
+
+Keep `NXF_SYNTAX_PARSER=v1` while PanResistome still uses legacy Nextflow syntax
+under Nextflow 26+.
 
 ## Audit Logging
 
