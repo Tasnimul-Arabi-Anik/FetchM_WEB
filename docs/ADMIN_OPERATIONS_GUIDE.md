@@ -82,6 +82,25 @@ The `Jobs` admin page provides:
 
 Destructive actions should be used conservatively. Running or queued jobs must be cancelled before deletion.
 
+## External Quality-Check Tools
+
+FetchM Web includes a built-in quick quality check and an isolated external-tool handoff layer for PanResistome-style QC. The code lives under:
+
+```text
+fetchm_webapp/external_tools/quality_check/
+```
+
+Quick QC does not require extra dependencies. It computes FASTA length, contig count, N50, GC%, ambiguous-N percentage, and applies available CheckM metadata thresholds.
+
+Comprehensive QC modules such as CheckM2, QUAST, ANI/skani, Mash, and GTDB-Tk require the external Nextflow stack. Nextflow execution is disabled by default. To enable it after installing tools/databases, configure:
+
+```text
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED=1
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW=/path/to/PanResistome
+```
+
+If the workflow path is not set, the handoff command uses `Tasnimul-Arabi-Anik/PanResistome`. Keep heavy database paths and Conda/Mamba setup outside the Flask code and document them in deployment notes.
+
 ## Audit Logging
 
 The app records an append-only `audit_log` table for:

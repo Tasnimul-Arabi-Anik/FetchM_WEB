@@ -6,7 +6,11 @@
       <p class="eyebrow">Job {{ job.id }}</p>
       <h1>{{ job.mode }} submission</h1>
       <p class="lede">{{ job.input_name }}</p>
-      {% if job.mode in ["seq", "qc"] and job.filters and job.filters.get("taxon_id") %}
+      {% if job.mode == "qc" and job.filters and job.filters.get("taxon_id") %}
+        <p class="detail-backlink">
+          <a class="ghost-link" href="{{ url_for('taxon_quality_check', species_id=job.filters.get('taxon_id')) }}">Go back to Quality Check Page</a>
+        </p>
+      {% elif job.mode == "seq" and job.filters and job.filters.get("taxon_id") %}
         <p class="detail-backlink">
           <a class="ghost-link" href="{{ url_for('taxon_sequences', species_id=job.filters.get('taxon_id')) }}">Go back to Sequence Download Page</a>
         </p>
@@ -132,6 +136,17 @@
                 </span>
               </div>
             {% endif %}
+            {% if quality_check_assets.pass_metadata_path and job.status == "completed" %}
+              <div class="coverage-row">
+                <strong>Download QC-passed sequences</strong>
+                <span>Launch a new sequence job using only genomes that passed QC.</span>
+                <span>
+                  <form action="{{ url_for('create_quality_passed_sequence_job', job_id=job.id) }}" method="post">
+                    <button type="submit">Create sequence job</button>
+                  </form>
+                </span>
+              </div>
+            {% endif %}
             {% if quality_check_assets.decisions_path %}
               <div class="coverage-row">
                 <strong>QC decisions</strong>
@@ -150,6 +165,28 @@
                 <span>
                   <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.report_path) }}">
                     Open report
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.external_manifest_path %}
+              <div class="coverage-row">
+                <strong>External-tool manifest</strong>
+                <span>Selected modules, thresholds, tool availability, and Nextflow handoff command.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.external_manifest_path) }}">
+                    Download JSON
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.nextflow_command_path %}
+              <div class="coverage-row">
+                <strong>Nextflow command</strong>
+                <span>Reproducible command file for external PanResistome-style QC execution.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.nextflow_command_path) }}">
+                    Download script
                   </a>
                 </span>
               </div>

@@ -1,0 +1,49 @@
+tool_family: quality_check
+display_name: FetchM Web quality-check adapters
+version: 2026.05
+purpose: >
+  Keep built-in sequence QC, Nextflow handoff files, and optional PanResistome-style
+  external QC execution isolated from the Flask application core.
+execution_modes:
+  quick:
+    description: Built-in FASTA statistics plus available CheckM metadata thresholds.
+    requires_nextflow: false
+  handoff:
+    description: Built-in quick QC plus Nextflow command/manifest generation for external execution.
+    requires_nextflow: false
+  nextflow:
+    description: Execute configured Nextflow QC workflow from the web worker.
+    requires_nextflow: true
+environment:
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED:
+    description: Set to 1/true to allow web workers to execute Nextflow QC workflows.
+    default: "0"
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW:
+    description: Nextflow workflow path or repository. Defaults to Tasnimul-Arabi-Anik/PanResistome.
+    default: Tasnimul-Arabi-Anik/PanResistome
+modules:
+  quick_fasta:
+    built_in: true
+    outputs:
+      - sequence_qc/assembly_stats.csv
+      - sequence_qc/qc_decisions.csv
+  checkm2:
+    built_in: false
+    external_tool: checkm2
+    note: Requires CheckM2 database and Nextflow profile.
+  quast:
+    built_in: false
+    external_tool: quast.py
+    note: Requires QUAST.
+  ani:
+    built_in: false
+    external_tool: skani
+    note: Requires FastANI/skani-compatible workflow outputs.
+  mash:
+    built_in: false
+    external_tool: mash
+    note: Optional fast distance pre-screen.
+  gtdbtk:
+    built_in: false
+    external_tool: gtdbtk
+    note: Heavy taxonomy check; requires GTDB reference data.

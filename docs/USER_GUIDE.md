@@ -66,19 +66,23 @@ After filtering:
 1. Review how many genomes match.
 2. Download filtered metadata if needed.
 3. Launch a sequence-download job.
-4. Optionally launch a quality-check job for the same filtered subset.
+4. Optionally open the `Quality Check` workspace for the same filtered subset.
 5. Track the job from `Track Jobs`.
 6. Download generated outputs from the job detail page.
 
-The sequence quality check downloads the selected FASTA files, computes assembly statistics, merges available CheckM completeness/contamination metadata, and writes pass/review/fail tables. The job detail page shows each stage as it finishes and provides:
+The quality-check workspace supports quick built-in QC and external-tool handoff for PanResistome-style checks. Quick QC downloads the selected FASTA files, computes assembly statistics, merges available CheckM completeness/contamination metadata, and writes pass/review/fail tables. External modules such as CheckM2, QUAST, ANI/skani, Mash, and GTDB-Tk are selected from the same page and recorded as a Nextflow handoff unless server-side Nextflow execution is explicitly enabled.
+
+The job detail page shows each stage as it finishes and provides:
 
 - `quality_check_report.md`
 - `qc_decisions.csv`
 - `qc_enriched_metadata.csv`
 - `qc_pass_metadata.csv`
+- `external_tools/quality_check/quality_check_manifest.json`
+- `external_tools/quality_check/nextflow_command.sh`
 - `quality_check_bundle.zip`
 
-Use `qc_pass_metadata.csv` when you want a quality-filtered subset for downstream analysis.
+Use `qc_pass_metadata.csv` when you want a quality-filtered subset for downstream analysis. From a completed quality-check job, click `Create sequence job` to download only QC-passed genomes.
 
 ## Job Tracking
 

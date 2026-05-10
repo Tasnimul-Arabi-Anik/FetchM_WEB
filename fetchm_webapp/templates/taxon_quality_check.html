@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .quality-page {
+    max-width: 1180px;
+  }
+
+  .quality-hero {
+    background:
+      radial-gradient(circle at top left, rgba(22, 92, 78, 0.16), transparent 34%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(247, 242, 232, 0.88));
+  }
+
+  .quality-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .quality-profile-grid,
+  .quality-module-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+  }
+
+  .quality-card-option {
+    display: block;
+    height: 100%;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.78);
+    cursor: pointer;
+  }
+
+  .quality-card-option input {
+    margin-right: 8px;
+  }
+
+  .quality-card-option strong {
+    display: inline-block;
+    margin-bottom: 4px;
+  }
+
+  .quality-card-option small,
+  .quality-card-option span {
+    display: block;
+  }
+
+  .quality-card-option small {
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .quality-card-option.is-external {
+    border-color: rgba(184, 132, 77, 0.42);
+  }
+
+  .quality-run-mode {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+  }
+
+  .quality-threshold-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 14px;
+  }
+
+  .quality-tool-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .quality-tool-pill {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    font-size: 0.94rem;
+  }
+
+  .quality-tool-pill .available {
+    color: #165c4e;
+    font-weight: 700;
+  }
+
+  .quality-tool-pill .missing {
+    color: #9a3d2d;
+    font-weight: 700;
+  }
+
+  .quality-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .quality-actions button {
+    font-weight: 800;
+  }
+</style>
+
+<main class="layout quality-page">
+  <section class="panel quality-hero">
+    <p class="eyebrow">Quality Check</p>
+    <div class="section-heading">
+      <div>
+        <h1>{{ species.species_name }}</h1>
+        <p class="lede">
+          Configure quality checks for the currently filtered sequence subset. Quick QC runs inside FetchM Web;
+          external modules are isolated through a Nextflow handoff so CheckM2, QUAST, ANI, Mash, and GTDB-Tk
+          can be enabled without mixing heavy tools into the core web app.
+        </p>
+      </div>
+      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="quality-summary-grid">
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.row_total }}</strong>
+        <span>genomes in taxon scope</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.matched_row_total }}</strong>
+        <span>genomes selected for QC</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.match_percent }}%</strong>
+        <span>subset of taxon scope</span>
+      </article>
+      <article class="metric-card">
+        <strong>{{ sequence_dashboard.estimated_total_bytes_label }}</strong>
+        <span>estimated FASTA size</span>
+      </article>
+    </div>
+
+    <article class="metric-card metric-card-filters top-gap">
+      <strong>Filters Applied</strong>
+      <span>
+        {% if sequence_dashboard.active_filters_summary %}
+          {{ sequence_dashboard.filter_logic_label }}: {{ sequence_dashboard.active_filters_label }}
+        {% else %}
+          No filters applied
+        {% endif %}
+      </span>
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Choose Quality Checks</h2>
+        <p class="section-note">Start with quick QC for lightweight filtering. Use handoff mode when external tools are not installed yet. Use Nextflow execution only after the server is configured.</p>
+      </div>
+    </div>
+
+    <form class="job-form" method="post" action="{{ url_for('create_taxon_sequence_quality_job', species_id=species.id) }}">
+      {% for name, value in sequence_dashboard.filter_hidden_inputs %}
+        <input type="hidden" name="{{ name }}" value="{{ value }}">
+      {% endfor %}
+
+      <h3>Profile</h3>
+      <div class="quality-profile-grid">
+        {% for key, profile in quality_profiles.items() %}
+          <label class="quality-card-option">
+            <input type="radio" name="quality_profile" value="{{ key }}" {% if key == "quick" %}checked{% endif %}>
+            <strong>{{ profile.label }}</strong>
+            <small>{{ profile.description }}</small>
+          </label>
+        {% endfor %}
+      </div>
+
+      <h3 class="top-gap">Execution Mode</h3>
+      <div class="quality-run-mode">
+        <label class="quality-card-option">
+          <input type="radio" name="quality_run_mode" value="quick" checked>
+          <strong>Run quick QC now</strong>
+          <small>Download selected FASTAs, compute built-in assembly stats, and classify pass/review/fail.</small>
+        </label>
+        <label class="quality-card-option">
+          <input type="radio" name="quality_run_mode" value="handoff">
+          <strong>Generate Nextflow handoff</strong>
+          <small>Run quick QC and write PanResistome-style Nextflow command/manifest files for external execution.</small>
+        </label>
+        <label class="quality-card-option is-external">
+          <input type="radio" name="quality_run_mode" value="nextflow">
+          <strong>Execute with Nextflow</strong>
+          <small>Requires server-side Nextflow/tool configuration. The job fails clearly if the external stack is not enabled.</small>
+        </label>
+      </div>
+
+      <h3 class="top-gap">Modules</h3>
+      <div class="quality-module-grid">
+        {% for module in quality_modules %}
+          <label class="quality-card-option {% if module.key in external_module_keys %}is-external{% endif %}">
+            <input type="checkbox" name="quality_module" value="{{ module.key }}" {% if module.default_enabled %}checked{% endif %}>
+            <strong>{{ module.label }}</strong>
+            <span>{{ module.category }}</span>
+            <small>{{ module.description }}</small>
+            {% if module.output_note %}
+              <small>{{ module.output_note }}</small>
+            {% endif %}
+          </label>
+        {% endfor %}
+      </div>
+
+      <h3 class="top-gap">Thresholds</h3>
+      <div class="quality-threshold-grid">
+        <label>
+          <span>Min CheckM completeness</span>
+          <input type="number" step="0.1" min="0" max="100" name="qc_min_completeness" value="90">
+        </label>
+        <label>
+          <span>Max CheckM contamination</span>
+          <input type="number" step="0.1" min="0" max="100" name="qc_max_contamination" value="5">
+        </label>
+        <label>
+          <span>Max ambiguous N (%)</span>
+          <input type="number" step="0.01" min="0" max="100" name="qc_max_n_percent" value="5">
+        </label>
+        <label>
+          <span>Max contigs (optional)</span>
+          <input type="number" step="1" min="0" name="qc_max_contigs" placeholder="No limit">
+        </label>
+        <label>
+          <span>Min FASTA N50 bp (optional)</span>
+          <input type="number" step="1" min="0" name="qc_min_n50" placeholder="No limit">
+        </label>
+        <label>
+          <span>Min ANI percent</span>
+          <input type="number" step="0.01" min="0" max="100" name="qc_min_ani_percent" value="95">
+        </label>
+        <label>
+          <span>Max Mash distance (optional)</span>
+          <input type="number" step="0.0001" min="0" name="qc_max_mash_distance" placeholder="No limit">
+        </label>
+        <label>
+          <span>Download retries</span>
+          <input type="number" step="1" min="0" name="retries" value="3">
+        </label>
+        <label>
+          <span>Retry delay seconds</span>
+          <input type="number" step="1" min="1" name="retry_delay" value="5">
+        </label>
+      </div>
+
+      <div class="summary-box top-gap">
+        <strong>External tool status</strong>
+        <p>
+          Nextflow execution is
+          <strong>{% if quality_tool_status.nextflow_enabled %}enabled{% else %}disabled{% endif %}</strong>.
+          Handoff files are still written even when execution is disabled.
+        </p>
+        <div class="quality-tool-status">
+          {% for tool, available in quality_tool_status.available_tools.items() %}
+            <span class="quality-tool-pill">
+              <span>{{ tool }}</span>
+              <span class="{% if available %}available{% else %}missing{% endif %}">{% if available %}available{% else %}missing{% endif %}</span>
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="quality-actions top-gap">
+        <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Start quality check</button>
+        <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Adjust filters</a>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <h2>Selected Genome Preview</h2>
+        <p class="section-note">{{ sequence_dashboard.filter_sentence }}</p>
+      </div>
+    </div>
+    <div class="sequence-table-shell top-gap">
+      <table class="sequence-table">
+        <thead>
+          <tr>
+            {% for column in preview_columns %}
+              <th>{{ column }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in preview_rows %}
+            <tr>
+              {% for column in preview_columns %}
+                <td>{{ row.get(column, "") or "—" }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

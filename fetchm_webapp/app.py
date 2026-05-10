@@ -41,6 +41,16 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
+from external_tools.quality_check import (
+    DEFAULT_QUALITY_THRESHOLDS,
+    QUALITY_PROFILES,
+    build_quality_config,
+    build_quality_display_command,
+    build_quality_handoff,
+    external_module_keys,
+    list_quality_modules,
+    quality_tool_status,
+)
 
 APP_VERSION = "2026.05-genus-v1.1"
 BASE_DIR = Path(__file__).resolve().parent
@@ -465,13 +475,7 @@ ASSEMBLY_FEATURE_COLUMNS = [
     "Assembly Stats Scaffold N50",
 ]
 
-SEQUENCE_QC_DEFAULTS = {
-    "min_completeness": 90.0,
-    "max_contamination": 5.0,
-    "max_n_percent": 5.0,
-    "max_contigs": None,
-    "min_n50": None,
-}
+SEQUENCE_QC_DEFAULTS = DEFAULT_QUALITY_THRESHOLDS
 
 
 @dataclass
@@ -14262,11 +14266,23 @@ def find_fasta_for_accession(output_dir: Path, accession: str) -> Path | None:
     return matches[0] if matches else None
 
 
-def run_sequence_quality_checks(job: JobRecord, thresholds: dict[str, Any]) -> dict[str, Any]:
+def run_sequence_quality_checks(
+    job: JobRecord,
+    thresholds: dict[str, Any],
+    quality_config: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     input_path = Path(job.input_path)
     output_dir = Path(job.output_dir)
     qc_dir = output_dir / "sequence_qc"
     qc_dir.mkdir(parents=True, exist_ok=True)
+    quality_config = quality_config or {
+        "profile": QUALITY_PROFILES["quick"],
+        "run_mode": "quick",
+        "selected_modules": ["quick_fasta"],
+        "thresholds": thresholds,
+        "external_modules": [],
+    }
+    handoff_manifest = build_quality_handoff(job.id, input_path, output_dir, quality_config)
 
     frame = pd.read_csv(input_path).fillna("")
     decision_rows: list[dict[str, Any]] = []
@@ -14383,20 +14399,51 @@ def run_sequence_quality_checks(job: JobRecord, thresholds: dict[str, Any]) -> d
         "review": int(len(review_frame)),
         "fail": int(len(fail_frame)),
         "thresholds": thresholds,
+        "quality_profile": (quality_config.get("profile") or {}).get("label", "Quick QC"),
+        "run_mode": quality_config.get("run_mode", "quick"),
+        "selected_modules": quality_config.get("selected_modules", ["quick_fasta"]),
+        "external_modules": quality_config.get("external_modules", []),
+        "external_handoff": "external_tools/quality_check/quality_check_manifest.json",
+        "external_execution_enabled": handoff_manifest.get("nextflow_execution_enabled", False),
     }
     report_lines = [
         "# FetchM Web Sequence Quality Check",
         "",
         f"Job ID: {job.id}",
         f"Input: {job.input_name}",
+        f"Quality profile: {summary['quality_profile']}",
+        f"Run mode: {summary['run_mode']}",
         f"Total genomes checked: {summary['total']}",
         f"Passed: {summary['pass']}",
         f"Review: {summary['review']}",
         f"Failed: {summary['fail']}",
         "",
-        "## Thresholds",
+        "## Selected Modules",
         "",
     ]
+    for module in handoff_manifest.get("module_manifest", []):
+        report_lines.append(
+            f"- {module['label']} (`{module['key']}`): "
+            f"{'built-in' if not module['requires_external_tool'] else 'external'}; "
+            f"tool available: {'yes' if module['tool_available'] else 'no'}"
+        )
+    report_lines.extend(
+        [
+            "",
+            "## External Tool Handoff",
+            "",
+            f"- Nextflow execution enabled: {'yes' if summary['external_execution_enabled'] else 'no'}",
+            "- Manifest: `external_tools/quality_check/quality_check_manifest.json`",
+            "- Command script: `external_tools/quality_check/nextflow_command.sh`",
+            "",
+        ]
+    )
+    report_lines.extend(
+        [
+            "## Thresholds",
+            "",
+        ]
+    )
     for key, value in thresholds.items():
         report_lines.append(f"- `{key}`: {value if value is not None else 'not applied'}")
     report_lines.extend(
@@ -14414,11 +14461,22 @@ def run_sequence_quality_checks(job: JobRecord, thresholds: dict[str, Any]) -> d
     (qc_dir / "quality_check_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     (qc_dir / "quality_check_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+    if summary["run_mode"] == "nextflow" and summary["external_modules"]:
+        tool_status = handoff_manifest.get("tool_status") or {}
+        if not tool_status.get("nextflow_enabled") or not tool_status.get("tools", {}).get("nextflow"):
+            raise RuntimeError(
+                "Nextflow quality execution was requested, but Nextflow execution is not configured. "
+                "The external-tool handoff manifest was written under outputs/external_tools/quality_check."
+            )
+
     bundle_path = output_dir / "quality_check_bundle.zip"
     with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(qc_dir.rglob("*")):
-            if path.is_file():
-                archive.write(path, arcname=str(path.relative_to(output_dir)))
+        for root_dir in [qc_dir, output_dir / "external_tools" / "quality_check"]:
+            if not root_dir.exists():
+                continue
+            for path in sorted(root_dir.rglob("*")):
+                if path.is_file():
+                    archive.write(path, arcname=str(path.relative_to(output_dir)))
 
     return summary
 
@@ -14453,7 +14511,20 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
     job.updated_at = utc_now()
     save_job(job)
 
-    thresholds = (job.filters or {}).get("quality_thresholds") or dict(SEQUENCE_QC_DEFAULTS)
+    quality_config = (job.filters or {}).get("quality_config") or {
+        "profile": QUALITY_PROFILES["quick"],
+        "run_mode": "quick",
+        "selected_modules": ["quick_fasta"],
+        "thresholds": (job.filters or {}).get("quality_thresholds") or dict(SEQUENCE_QC_DEFAULTS),
+        "external_modules": [],
+    }
+    thresholds = quality_config.get("thresholds") or (job.filters or {}).get("quality_thresholds") or dict(SEQUENCE_QC_DEFAULTS)
+    append_job_log(
+        job,
+        f"[{utc_now()}] Quality profile: {(quality_config.get('profile') or {}).get('label', 'Quick QC')}; "
+        f"run mode: {quality_config.get('run_mode', 'quick')}; "
+        f"modules: {', '.join(quality_config.get('selected_modules') or ['quick_fasta'])}.\n",
+    )
     namespace = build_integrated_sequence_namespace(job)
     namespace.check_only = False
     log_handle = open(job.log_path, "a", encoding="utf-8")
@@ -14476,7 +14547,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
             )
             append_job_log(job, f"[{utc_now()}] Quality step 2/5: Sequence download step finished.\n")
             append_job_log(job, f"[{utc_now()}] Quality step 3/5: Computing FASTA assembly statistics.\n")
-            summary = run_sequence_quality_checks(job, thresholds)
+            summary = run_sequence_quality_checks(job, thresholds, quality_config)
             append_job_log(job, f"[{utc_now()}] Quality step 4/5: QC decisions written for {summary['total']} genomes.\n")
             append_job_log(
                 job,
@@ -14729,7 +14800,9 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
     decisions_path = next((path for path in output_files if path == "sequence_qc/qc_decisions.csv"), None)
     pass_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_pass_metadata.csv"), None)
     enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
-    if not any([bundle_path, report_path, decisions_path, pass_metadata_path, enriched_metadata_path]):
+    external_manifest_path = next((path for path in output_files if path == "external_tools/quality_check/quality_check_manifest.json"), None)
+    nextflow_command_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_command.sh"), None)
+    if not any([bundle_path, report_path, decisions_path, pass_metadata_path, enriched_metadata_path, external_manifest_path]):
         return None
     return {
         "bundle_path": bundle_path,
@@ -14737,6 +14810,8 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "decisions_path": decisions_path,
         "pass_metadata_path": pass_metadata_path,
         "enriched_metadata_path": enriched_metadata_path,
+        "external_manifest_path": external_manifest_path,
+        "nextflow_command_path": nextflow_command_path,
     }
 
 
@@ -16765,6 +16840,45 @@ def taxon_sequences(species_id: int) -> str:
     )
 
 
+@app.route("/taxa/<int:species_id>/quality-check")
+def taxon_quality_check(species_id: int) -> str:
+    user = g.current_user
+    assert user is not None
+    species = load_species(species_id)
+    if species.status != "ready" or not species.tsv_path:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
+
+    metadata_ready = bool(
+        species.metadata_clean_path
+        and Path(species.metadata_clean_path).exists()
+        and species.metadata_path
+        and Path(species.metadata_path).exists()
+    )
+    if not metadata_ready:
+        if species.metadata_status != "building":
+            species = request_species_metadata_build(species)
+        return render_template(
+            "taxon_sequences_pending.html",
+            species=species,
+            pending_state_label=(species.metadata_status or "pending").capitalize(),
+        )
+
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.args)
+    return render_template(
+        "taxon_quality_check.html",
+        species=species,
+        sequence_dashboard=sequence_dashboard,
+        preview_columns=sequence_dashboard["preview_columns"],
+        preview_rows=sequence_dashboard["preview_rows"],
+        quality_modules=list_quality_modules(),
+        quality_profiles=QUALITY_PROFILES,
+        quality_tool_status=quality_tool_status(),
+        external_module_keys=external_module_keys(),
+        filter_query_string=request.query_string.decode("utf-8"),
+    )
+
+
 @app.route("/taxa/<int:species_id>/sequences/metadata.csv", methods=["POST"])
 def download_taxon_sequence_metadata_subset(species_id: int):
     user = g.current_user
@@ -16886,6 +17000,7 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     return redirect(url_for("job_detail", job_id=job_id))
 
 
+@app.route("/taxa/<int:species_id>/quality-check/jobs", methods=["POST"])
 @app.route("/taxa/<int:species_id>/sequences/quality-jobs", methods=["POST"])
 def create_taxon_sequence_quality_job(species_id: int) -> Any:
     user = g.current_user
@@ -16893,16 +17008,16 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
     species = load_species(species_id)
     if count_active_jobs_for_user(int(user["id"])) >= 1:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Combined metadata is not ready for that taxon yet.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id))
+        return redirect(url_for("taxon_quality_check", species_id=species_id))
 
     sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
     filtered_frame = sequence_dashboard["filtered_frame"]
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
 
     job_id = uuid.uuid4().hex[:12]
     root = job_dir(job_id)
@@ -16915,10 +17030,13 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
     input_path = uploads_dir / f"{species.slug}_quality_subset.csv"
     filtered_frame.to_csv(input_path, index=False)
 
-    thresholds = build_quality_thresholds(request.form)
-    command, command_filters = build_quality_command(input_path, outputs_dir, thresholds, request.form)
+    quality_config = build_quality_config(request.form)
+    thresholds = quality_config["thresholds"]
+    command = build_quality_display_command(input_path, outputs_dir, quality_config)
+    retries = (request.form.get("retries") or "3").strip()
+    retry_delay = (request.form.get("retry_delay") or "5").strip()
     filters = {
-        "input_source": "taxon_sequence_quality",
+        "input_source": "taxon_quality_check",
         "taxon_id": species.id,
         "taxon_name": species.species_name,
         "taxon_rank": species.taxon_rank,
@@ -16927,8 +17045,12 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
         "filter_logic": sequence_dashboard["filter_logic"],
         "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
         "selected_filters": sequence_dashboard["filters"],
+        "quality_config": quality_config,
+        "quality_thresholds": thresholds,
+        "retries": retries,
+        "retry_delay": retry_delay,
     }
-    filters.update(command_filters)
+    command.extend(["--retries", retries, "--retry-delay", retry_delay])
     record = JobRecord(
         id=job_id,
         mode="qc",
@@ -16951,14 +17073,103 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
         target_id=job_id,
         metadata={
             "mode": "qc",
-            "input_source": "taxon_sequence_quality",
+            "input_source": "taxon_quality_check",
             "matched_row_total": sequence_dashboard["matched_row_total"],
+            "quality_profile": quality_config.get("profile", {}).get("label"),
+            "quality_run_mode": quality_config.get("run_mode"),
+            "selected_modules": quality_config.get("selected_modules"),
             "quality_thresholds": thresholds,
         },
     )
     notify_job_event(record, "submitted")
     flash(f"Quality-check job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
     return redirect(url_for("job_detail", job_id=job_id))
+
+
+@app.route("/jobs/<job_id>/quality-passed-sequence-job", methods=["POST"])
+def create_quality_passed_sequence_job(job_id: str) -> Any:
+    user = g.current_user
+    assert user is not None
+    quality_job = require_job_owner(job_id)
+    if quality_job.mode != "qc":
+        abort(404)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    pass_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_pass_metadata.csv"
+    if not pass_metadata.exists():
+        flash("QC-passed metadata is not available yet.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    try:
+        pass_frame = pd.read_csv(pass_metadata).fillna("")
+    except Exception as exc:
+        flash(f"Could not read QC-passed metadata: {exc}", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    if pass_frame.empty:
+        flash("No genomes passed the selected quality checks.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    new_job_id = uuid.uuid4().hex[:12]
+    root = job_dir(new_job_id)
+    uploads_dir = root / UPLOADS_DIR_NAME
+    outputs_dir = root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    input_name = f"{quality_job.input_name} QC-passed metadata.csv"
+    input_path = uploads_dir / "qc_pass_metadata.csv"
+    pass_frame.to_csv(input_path, index=False)
+
+    class DefaultSequenceForm:
+        def get(self, key: str, default: Any = None) -> Any:
+            defaults = {"retries": "3", "retry_delay": "5"}
+            return defaults.get(key, default)
+
+        def getlist(self, key: str) -> list[Any]:
+            return []
+
+    command, command_filters = build_command("seq", input_path, outputs_dir, DefaultSequenceForm())
+    filters = {
+        "input_source": "quality_passed_metadata",
+        "parent_quality_job_id": quality_job.id,
+        "taxon_id": (quality_job.filters or {}).get("taxon_id"),
+        "taxon_name": (quality_job.filters or {}).get("taxon_name"),
+        "taxon_rank": (quality_job.filters or {}).get("taxon_rank"),
+        "matched_row_total": int(len(pass_frame)),
+        "sequence_filter_sentence": f"QC-passed genomes from quality job {quality_job.id}",
+    }
+    filters.update(command_filters)
+    record = JobRecord(
+        id=new_job_id,
+        mode="seq",
+        status="queued",
+        created_at=utc_now(),
+        updated_at=utc_now(),
+        input_name=input_name,
+        input_path=str(input_path),
+        output_dir=str(outputs_dir),
+        log_path=str(root / LOG_FILE_NAME),
+        command=command,
+        owner_user_id=int(user["id"]),
+        owner_username=str(user["username"]),
+        filters=filters,
+    )
+    save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=new_job_id,
+        metadata={
+            "mode": "seq",
+            "input_source": "quality_passed_metadata",
+            "parent_quality_job_id": quality_job.id,
+            "matched_row_total": int(len(pass_frame)),
+        },
+    )
+    notify_job_event(record, "submitted")
+    flash(f"Sequence job {new_job_id} submitted for {len(pass_frame):,} QC-passed genomes.", "success")
+    return redirect(url_for("job_detail", job_id=new_job_id))
 
 
 @app.route("/jobs/<job_id>/cancel", methods=["POST"])

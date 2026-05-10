@@ -574,55 +574,20 @@
             </div>
           </div>
     </form>
-    <form class="job-form sequence-quality-card" method="post" action="{{ url_for('create_taxon_sequence_quality_job', species_id=species.id) }}">
+    <form class="job-form sequence-quality-card" method="get" action="{{ url_for('taxon_quality_check', species_id=species.id) }}">
       {% for name, value in sequence_dashboard.filter_hidden_inputs %}
         <input type="hidden" name="{{ name }}" value="{{ value }}">
       {% endfor %}
       <div class="sequence-quality-head">
         <div>
           <p class="eyebrow">Quality check</p>
-          <h3>Check selected genomes before downstream analysis</h3>
-          <p class="section-note">Uses the same filtered subset, downloads FASTAs if needed, computes assembly statistics, merges available CheckM metadata, and writes pass/review/fail metadata tables.</p>
+          <h3>Open quality-check workspace</h3>
+          <p class="section-note">Use the same filtered subset for quick FASTA checks or PanResistome-style external QC handoff with CheckM2, QUAST, ANI, Mash, and taxonomy modules.</p>
         </div>
         <div class="sequence-quality-actions">
-          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Run quality check</button>
+          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Configure quality check</button>
         </div>
       </div>
-      <details class="sequence-options-box sequence-quality-grid">
-        <summary class="sequence-options-summary">Quality thresholds</summary>
-        <div class="sequence-options-body">
-          <div class="sequence-range-grid sequence-range-grid-compact">
-            <label>
-              <span>Min CheckM completeness</span>
-              <input type="number" step="0.1" min="0" max="100" name="qc_min_completeness" value="90">
-            </label>
-            <label>
-              <span>Max CheckM contamination</span>
-              <input type="number" step="0.1" min="0" max="100" name="qc_max_contamination" value="5">
-            </label>
-            <label>
-              <span>Max ambiguous N (%)</span>
-              <input type="number" step="0.01" min="0" max="100" name="qc_max_n_percent" value="5">
-            </label>
-            <label>
-              <span>Max contigs (optional)</span>
-              <input type="number" step="1" min="0" name="qc_max_contigs" placeholder="No limit">
-            </label>
-            <label>
-              <span>Min FASTA N50 bp (optional)</span>
-              <input type="number" step="1" min="0" name="qc_min_n50" placeholder="No limit">
-            </label>
-            <label>
-              <span>Download retries</span>
-              <input type="number" step="1" min="0" name="retries" value="{{ request.form.get('retries', '3') }}">
-            </label>
-            <label>
-              <span>Retry delay seconds</span>
-              <input type="number" step="1" min="1" name="retry_delay" value="{{ request.form.get('retry_delay', '5') }}">
-            </label>
-          </div>
-        </div>
-      </details>
     </form>
   </section>
 
