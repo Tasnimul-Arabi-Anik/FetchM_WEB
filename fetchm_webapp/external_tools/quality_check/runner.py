@@ -16,6 +16,26 @@ DEFAULT_NEXTFLOW_REPO = "Tasnimul-Arabi-Anik/PanResistome"
 DEFAULT_NEXTFLOW_CONFIG = EXTERNAL_TOOL_DIR / "panresistome_qc" / "fetchm_web_qc.config"
 
 
+def _path_exists(value: str) -> bool:
+    return bool(value) and Path(value).exists()
+
+
+def _dir_size_bytes(value: str) -> int | None:
+    if not value:
+        return None
+    path = Path(value)
+    if not path.exists() or not path.is_dir():
+        return None
+    total = 0
+    for item in path.rglob("*"):
+        try:
+            if item.is_file():
+                total += item.stat().st_size
+        except OSError:
+            continue
+    return total
+
+
 def quality_tool_status() -> dict[str, Any]:
     tools = {
         "nextflow": shutil.which("nextflow"),
@@ -33,21 +53,46 @@ def quality_tool_status() -> dict[str, Any]:
     checkm2_db_dir = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR", "").strip()
     gtdbtk_data_path = os.environ.get("FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH", "").strip()
     nextflow_syntax_parser = os.environ.get("NXF_SYNTAX_PARSER", "v1").strip() or "v1"
+    conda_env_cache_dir = os.environ.get("NXF_CONDA_CACHEDIR", "").strip()
+    workflow_exists = Path(workflow).exists() if workflow.startswith("/") else None
+    nextflow_config_exists = Path(nextflow_config).exists() if nextflow_config else False
+    managed_runtime_ready = bool(
+        nextflow_enabled
+        and tools["nextflow"]
+        and shutil.which("conda")
+        and (workflow_exists is not False)
+        and nextflow_config_exists
+    )
+    nextflow_managed_tools = {
+        "checkm2": bool(managed_runtime_ready and (checkm2_db or checkm2_db_dir)),
+        "quast.py": managed_runtime_ready,
+        "skani": managed_runtime_ready,
+        "mash": managed_runtime_ready,
+        "gtdbtk": bool(managed_runtime_ready and _path_exists(gtdbtk_data_path)),
+    }
     return {
         "nextflow_enabled": nextflow_enabled,
         "nextflow_available": bool(tools["nextflow"]),
         "conda_available": bool(shutil.which("conda")),
+        "managed_runtime_ready": managed_runtime_ready,
         "nextflow_workflow": workflow,
-        "nextflow_workflow_exists": Path(workflow).exists() if workflow.startswith("/") else None,
+        "nextflow_workflow_exists": workflow_exists,
         "nextflow_config": nextflow_config,
-        "nextflow_config_exists": Path(nextflow_config).exists() if nextflow_config else False,
+        "nextflow_config_exists": nextflow_config_exists,
         "nextflow_profile": nextflow_profile,
         "nextflow_syntax_parser": nextflow_syntax_parser,
         "checkm2_db": checkm2_db,
+        "checkm2_db_exists": _path_exists(checkm2_db),
         "checkm2_db_dir": checkm2_db_dir,
+        "checkm2_db_dir_exists": _path_exists(checkm2_db_dir),
+        "checkm2_db_dir_size_bytes": _dir_size_bytes(checkm2_db_dir),
         "gtdbtk_data_path": gtdbtk_data_path,
+        "gtdbtk_data_path_exists": _path_exists(gtdbtk_data_path),
+        "conda_env_cache_dir": conda_env_cache_dir,
+        "conda_env_cache_exists": _path_exists(conda_env_cache_dir),
         "tools": tools,
         "available_tools": {key: bool(value) for key, value in tools.items()},
+        "nextflow_managed_tools": nextflow_managed_tools,
         "external_tool_dir": str(EXTERNAL_TOOL_DIR),
     }
 

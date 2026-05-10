@@ -259,16 +259,30 @@
         <p>
           Nextflow execution is
           <strong>{% if quality_tool_status.nextflow_enabled %}enabled{% else %}disabled{% endif %}</strong>.
-          Handoff files are still written even when execution is disabled.
+          {% if quality_tool_status.managed_runtime_ready %}
+            Managed Conda runtime is ready; external tools run through Nextflow even when they are not on the base PATH.
+          {% else %}
+            Handoff files are still written even when execution is disabled or the managed runtime is incomplete.
+          {% endif %}
         </p>
         <div class="quality-tool-status">
           {% for tool, available in quality_tool_status.available_tools.items() %}
+            {% set managed = quality_tool_status.nextflow_managed_tools.get(tool) %}
             <span class="quality-tool-pill">
               <span>{{ tool }}</span>
-              <span class="{% if available %}available{% else %}missing{% endif %}">{% if available %}available{% else %}missing{% endif %}</span>
+              <span class="{% if available or managed %}available{% else %}missing{% endif %}">
+                {% if available %}available{% elif managed %}managed{% else %}missing{% endif %}
+              </span>
             </span>
           {% endfor %}
         </div>
+        {% if quality_tool_status.checkm2_db_dir %}
+          <p class="section-note compact-note">
+            CheckM2 database:
+            {% if quality_tool_status.checkm2_db_dir_exists %}ready{% else %}not downloaded yet{% endif %}
+            at {{ quality_tool_status.checkm2_db_dir }}.
+          </p>
+        {% endif %}
       </div>
 
       <div class="quality-actions top-gap">
