@@ -97,6 +97,7 @@ Comprehensive QC modules such as CheckM2, QUAST, ANI/skani, Mash, and GTDB-Tk re
 ```text
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED=1
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW=/app/fetchm_webapp/data/external_tools/workflows/PanResistome
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG=/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE=conda,lowmem
 FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR=/app/fetchm_webapp/data/external_tools/databases/checkm2
 NXF_SYNTAX_PARSER=v1
@@ -112,6 +113,10 @@ GTDB-Tk is optional and heavy. Configure `FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH
 
 Keep `NXF_SYNTAX_PARSER=v1` while PanResistome still uses legacy Nextflow syntax
 under Nextflow 26+.
+
+The FetchM Web adapter config keeps PanResistome in local-sample, QC-only mode.
+FetchM Web supplies filtered FASTA files and metadata, so this external pipeline
+must not refetch FetchM metadata or sequences.
 
 ## Audit Logging
 

@@ -13,6 +13,7 @@ from .schemas import QUALITY_MODULES
 
 EXTERNAL_TOOL_DIR = Path(__file__).resolve().parent
 DEFAULT_NEXTFLOW_REPO = "Tasnimul-Arabi-Anik/PanResistome"
+DEFAULT_NEXTFLOW_CONFIG = EXTERNAL_TOOL_DIR / "panresistome_qc" / "fetchm_web_qc.config"
 
 
 def quality_tool_status() -> dict[str, Any]:
@@ -26,6 +27,7 @@ def quality_tool_status() -> dict[str, Any]:
     }
     nextflow_enabled = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}
     workflow = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW", DEFAULT_NEXTFLOW_REPO).strip() or DEFAULT_NEXTFLOW_REPO
+    nextflow_config = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG", str(DEFAULT_NEXTFLOW_CONFIG)).strip()
     nextflow_profile = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE", "conda,lowmem").strip() or "conda,lowmem"
     checkm2_db = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_DB", "").strip()
     checkm2_db_dir = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR", "").strip()
@@ -37,6 +39,8 @@ def quality_tool_status() -> dict[str, Any]:
         "conda_available": bool(shutil.which("conda")),
         "nextflow_workflow": workflow,
         "nextflow_workflow_exists": Path(workflow).exists() if workflow.startswith("/") else None,
+        "nextflow_config": nextflow_config,
+        "nextflow_config_exists": Path(nextflow_config).exists() if nextflow_config else False,
         "nextflow_profile": nextflow_profile,
         "nextflow_syntax_parser": nextflow_syntax_parser,
         "checkm2_db": checkm2_db,
@@ -103,10 +107,18 @@ def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str,
         "nextflow",
         "run",
         workflow,
-        "-profile",
-        status["nextflow_profile"],
-        "-work-dir",
-        str(work_dir),
+    ]
+    if status.get("nextflow_config") and status.get("nextflow_config_exists"):
+        command.extend(["-c", str(status["nextflow_config"])])
+    command.extend(
+        [
+            "-profile",
+            status["nextflow_profile"],
+            "-work-dir",
+            str(work_dir),
+        ]
+    )
+    command.extend([
         "--input",
         str(input_path),
         "--local_samples",
@@ -123,7 +135,7 @@ def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str,
         os.environ.get("FETCHM_WEBAPP_QUALITY_THREADS", "4"),
         "--checkm2_threads",
         os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS", "1"),
-    ]
+    ])
     module_flags = {
         "checkm2": "--run_checkm2",
         "quast": "--run_quast",

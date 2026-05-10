@@ -12,6 +12,7 @@ services:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
       FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
       NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
@@ -392,6 +393,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: jobs
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
       FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
       NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
@@ -414,6 +416,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: jobs
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
       FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
       NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
@@ -436,6 +439,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: jobs
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
       FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
       NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
@@ -458,6 +462,7 @@ services:
       FETCHM_WEBAPP_WORKER_MODE: jobs
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
       FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda,lowmem"
       FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
       NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"

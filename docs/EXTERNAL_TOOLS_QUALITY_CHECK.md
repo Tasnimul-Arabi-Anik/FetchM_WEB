@@ -59,6 +59,7 @@ Environment variables:
 ```text
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED=1
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW=/app/fetchm_webapp/data/external_tools/workflows/PanResistome
+FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG=/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config
 FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE=conda,lowmem
 FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR=/app/fetchm_webapp/data/external_tools/databases/checkm2
 NXF_HOME=/app/fetchm_webapp/data/external_tools/nextflow/home
@@ -73,6 +74,11 @@ workers. The PanResistome workflow should be cloned to:
 ```text
 fetchm_webapp/data/external_tools/workflows/PanResistome
 ```
+
+`FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG` points to FetchM Web's adapter config.
+That config keeps PanResistome in local-sample, QC-only mode. FetchM Web passes
+the filtered FASTA files and metadata through `--local_samples`, so the external
+pipeline does not refetch metadata or sequences.
 
 CheckM2 can auto-download its database to the configured database directory on
 first run. GTDB-Tk is intentionally optional because its reference database is
