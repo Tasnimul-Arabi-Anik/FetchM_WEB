@@ -465,6 +465,14 @@ ASSEMBLY_FEATURE_COLUMNS = [
     "Assembly Stats Scaffold N50",
 ]
 
+SEQUENCE_QC_DEFAULTS = {
+    "min_completeness": 90.0,
+    "max_contamination": 5.0,
+    "max_n_percent": 5.0,
+    "max_contigs": None,
+    "min_n50": None,
+}
+
 
 @dataclass
 class JobRecord:
@@ -13869,6 +13877,45 @@ def build_command(mode: str, input_path: Path, output_dir: Path, form: Any) -> t
     return command, filters
 
 
+def build_quality_thresholds(source: Any) -> dict[str, Any]:
+    def float_value(key: str, default: float | None) -> float | None:
+        raw = source.get(key) if hasattr(source, "get") else None
+        parsed = parse_optional_float(raw)
+        return default if parsed is None else parsed
+
+    def int_value(key: str, default: int | None) -> int | None:
+        raw = source.get(key) if hasattr(source, "get") else None
+        parsed = parse_optional_int(raw)
+        return default if parsed is None else parsed
+
+    return {
+        "min_completeness": float_value("qc_min_completeness", SEQUENCE_QC_DEFAULTS["min_completeness"]),
+        "max_contamination": float_value("qc_max_contamination", SEQUENCE_QC_DEFAULTS["max_contamination"]),
+        "max_n_percent": float_value("qc_max_n_percent", SEQUENCE_QC_DEFAULTS["max_n_percent"]),
+        "max_contigs": int_value("qc_max_contigs", SEQUENCE_QC_DEFAULTS["max_contigs"]),
+        "min_n50": int_value("qc_min_n50", SEQUENCE_QC_DEFAULTS["min_n50"]),
+    }
+
+
+def build_quality_command(input_path: Path, output_dir: Path, thresholds: dict[str, Any], form: Any) -> tuple[list[str], dict[str, Any]]:
+    command = ["integrated-sequence-quality-check", str(input_path), str(output_dir)]
+    filters: dict[str, Any] = {}
+
+    retries = (form.get("retries") or "3").strip() if hasattr(form, "get") else "3"
+    retry_delay = (form.get("retry_delay") or "5").strip() if hasattr(form, "get") else "5"
+    command.extend(["--retries", retries, "--retry-delay", retry_delay])
+    filters["retries"] = retries
+    filters["retry_delay"] = retry_delay
+
+    for key, value in thresholds.items():
+        if value is None:
+            continue
+        option = key.replace("_", "-")
+        command.extend([f"--{option}", str(value)])
+    filters["quality_thresholds"] = thresholds
+    return command, filters
+
+
 def organize_sequence_outputs(job: JobRecord) -> None:
     filters = job.filters or {}
     if job.mode != "seq":
@@ -14013,6 +14060,9 @@ def launch_job(job: JobRecord) -> None:
     if job.mode == "seq":
         launch_integrated_sequence_job(job)
         return
+    if job.mode == "qc":
+        launch_sequence_quality_job(job)
+        return
 
     latest = load_job(job.id)
     latest.pid = None
@@ -14151,6 +14201,304 @@ def launch_integrated_sequence_job(job: JobRecord) -> None:
         log_handle.close()
 
     finalize_integrated_sequence_job(job, return_code=return_code, cancellation_honored=cancellation_honored)
+
+
+def fasta_quality_stats(path: Path) -> dict[str, Any]:
+    contig_lengths: list[int] = []
+    total_bp = 0
+    gc_count = 0
+    n_count = 0
+    current_length = 0
+    with path.open("r", encoding="utf-8", errors="ignore") as handle:
+        for raw_line in handle:
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith(">"):
+                if current_length:
+                    contig_lengths.append(current_length)
+                    current_length = 0
+                continue
+            sequence = line.upper()
+            length = len(sequence)
+            total_bp += length
+            current_length += length
+            gc_count += sequence.count("G") + sequence.count("C")
+            n_count += sequence.count("N")
+    if current_length:
+        contig_lengths.append(current_length)
+
+    sorted_lengths = sorted(contig_lengths, reverse=True)
+    half_total = total_bp / 2
+    running = 0
+    n50 = 0
+    for length in sorted_lengths:
+        running += length
+        if running >= half_total:
+            n50 = length
+            break
+
+    return {
+        "sequence_file": path.name,
+        "total_bp": total_bp,
+        "contig_count": len(contig_lengths),
+        "n50": n50,
+        "gc_percent": round((gc_count / total_bp) * 100, 3) if total_bp else "",
+        "ambiguous_n_percent": round((n_count / total_bp) * 100, 4) if total_bp else "",
+    }
+
+
+def quality_threshold_value(thresholds: dict[str, Any], key: str) -> float | int | None:
+    value = thresholds.get(key)
+    if value == "":
+        return None
+    return value
+
+
+def find_fasta_for_accession(output_dir: Path, accession: str) -> Path | None:
+    if not accession:
+        return None
+    matches = sorted(path for path in output_dir.glob(f"{accession}_*_genomic.fna") if path.is_file())
+    return matches[0] if matches else None
+
+
+def run_sequence_quality_checks(job: JobRecord, thresholds: dict[str, Any]) -> dict[str, Any]:
+    input_path = Path(job.input_path)
+    output_dir = Path(job.output_dir)
+    qc_dir = output_dir / "sequence_qc"
+    qc_dir.mkdir(parents=True, exist_ok=True)
+
+    frame = pd.read_csv(input_path).fillna("")
+    decision_rows: list[dict[str, Any]] = []
+    stat_rows: list[dict[str, Any]] = []
+    enriched_rows: list[dict[str, Any]] = []
+
+    for _, row in frame.iterrows():
+        row_dict = {str(key): value for key, value in row.to_dict().items()}
+        accession = normalize_metadata_value(row_dict.get("Assembly Accession"))
+        assembly_name = normalize_metadata_value(row_dict.get("Assembly Name"))
+        fasta_path = find_fasta_for_accession(output_dir, accession)
+        failures: list[str] = []
+        reviews: list[str] = []
+        stats: dict[str, Any] = {
+            "sequence_file": "",
+            "total_bp": "",
+            "contig_count": "",
+            "n50": "",
+            "gc_percent": "",
+            "ambiguous_n_percent": "",
+        }
+
+        if fasta_path is None:
+            failures.append("FASTA file missing")
+        else:
+            try:
+                stats = fasta_quality_stats(fasta_path)
+                if not stats["total_bp"]:
+                    failures.append("FASTA file contains no sequence bases")
+            except Exception as exc:
+                failures.append(f"FASTA parse failed: {type(exc).__name__}")
+
+        completeness = parse_optional_float(row_dict.get("CheckM completeness"))
+        min_completeness = quality_threshold_value(thresholds, "min_completeness")
+        if min_completeness is not None:
+            if completeness is None:
+                reviews.append("CheckM completeness missing")
+            elif completeness < float(min_completeness):
+                failures.append(f"CheckM completeness {completeness:g} < {float(min_completeness):g}")
+
+        contamination = parse_optional_float(row_dict.get("CheckM contamination"))
+        max_contamination = quality_threshold_value(thresholds, "max_contamination")
+        if max_contamination is not None:
+            if contamination is None:
+                reviews.append("CheckM contamination missing")
+            elif contamination > float(max_contamination):
+                failures.append(f"CheckM contamination {contamination:g} > {float(max_contamination):g}")
+
+        max_n_percent = quality_threshold_value(thresholds, "max_n_percent")
+        ambiguous_n_percent = parse_optional_float(stats.get("ambiguous_n_percent"))
+        if max_n_percent is not None and ambiguous_n_percent is not None and ambiguous_n_percent > float(max_n_percent):
+            failures.append(f"Ambiguous N percent {ambiguous_n_percent:g} > {float(max_n_percent):g}")
+
+        max_contigs = quality_threshold_value(thresholds, "max_contigs")
+        contig_count = parse_optional_int(stats.get("contig_count")) or parse_optional_int(row_dict.get("Assembly Stats Number of Contigs"))
+        if max_contigs is not None:
+            if contig_count is None:
+                reviews.append("Contig count missing")
+            elif contig_count > int(max_contigs):
+                failures.append(f"Contig count {contig_count} > {int(max_contigs)}")
+
+        min_n50 = quality_threshold_value(thresholds, "min_n50")
+        n50 = parse_optional_int(stats.get("n50"))
+        if min_n50 is not None:
+            if n50 is None:
+                reviews.append("N50 missing")
+            elif n50 < int(min_n50):
+                failures.append(f"N50 {n50} < {int(min_n50)}")
+
+        status = "fail" if failures else "review" if reviews else "pass"
+        decision = {
+            "Assembly Accession": accession,
+            "Assembly Name": assembly_name,
+            "sequence_file": stats.get("sequence_file", ""),
+            "Sequence_QC_Status": status,
+            "Sequence_QC_Pass": status == "pass",
+            "Sequence_QC_Failure_Reasons": "; ".join(failures),
+            "Sequence_QC_Review_Reasons": "; ".join(reviews),
+            "CheckM completeness": completeness if completeness is not None else "",
+            "CheckM contamination": contamination if contamination is not None else "",
+            "QC_total_bp": stats.get("total_bp", ""),
+            "QC_contig_count": stats.get("contig_count", ""),
+            "QC_n50": stats.get("n50", ""),
+            "QC_gc_percent": stats.get("gc_percent", ""),
+            "QC_ambiguous_n_percent": stats.get("ambiguous_n_percent", ""),
+        }
+        decision_rows.append(decision)
+        stat_rows.append(
+            {
+                "Assembly Accession": accession,
+                "Assembly Name": assembly_name,
+                **stats,
+            }
+        )
+        enriched_rows.append({**row_dict, **decision})
+
+    decision_frame = pd.DataFrame(decision_rows)
+    stats_frame = pd.DataFrame(stat_rows)
+    enriched_frame = pd.DataFrame(enriched_rows)
+    pass_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "pass"].copy() if not enriched_frame.empty else enriched_frame
+    review_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "review"].copy() if not enriched_frame.empty else enriched_frame
+    fail_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "fail"].copy() if not enriched_frame.empty else enriched_frame
+
+    stats_frame.to_csv(qc_dir / "assembly_stats.csv", index=False)
+    decision_frame.to_csv(qc_dir / "qc_decisions.csv", index=False)
+    enriched_frame.to_csv(qc_dir / "qc_enriched_metadata.csv", index=False)
+    pass_frame.to_csv(qc_dir / "qc_pass_metadata.csv", index=False)
+    review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
+    fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
+
+    summary = {
+        "total": int(len(enriched_frame)),
+        "pass": int(len(pass_frame)),
+        "review": int(len(review_frame)),
+        "fail": int(len(fail_frame)),
+        "thresholds": thresholds,
+    }
+    report_lines = [
+        "# FetchM Web Sequence Quality Check",
+        "",
+        f"Job ID: {job.id}",
+        f"Input: {job.input_name}",
+        f"Total genomes checked: {summary['total']}",
+        f"Passed: {summary['pass']}",
+        f"Review: {summary['review']}",
+        f"Failed: {summary['fail']}",
+        "",
+        "## Thresholds",
+        "",
+    ]
+    for key, value in thresholds.items():
+        report_lines.append(f"- `{key}`: {value if value is not None else 'not applied'}")
+    report_lines.extend(
+        [
+            "",
+            "## Outputs",
+            "",
+            "- `sequence_qc/qc_decisions.csv`: one-row-per-assembly quality decision table.",
+            "- `sequence_qc/qc_enriched_metadata.csv`: original filtered metadata with QC columns appended.",
+            "- `sequence_qc/qc_pass_metadata.csv`: metadata subset passing all applied quality checks.",
+            "- `sequence_qc/qc_review_metadata.csv`: rows needing review because a required metric was missing.",
+            "- `sequence_qc/qc_failed_metadata.csv`: rows failing at least one applied quality check.",
+        ]
+    )
+    (qc_dir / "quality_check_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
+    (qc_dir / "quality_check_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    bundle_path = output_dir / "quality_check_bundle.zip"
+    with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(qc_dir.rglob("*")):
+            if path.is_file():
+                archive.write(path, arcname=str(path.relative_to(output_dir)))
+
+    return summary
+
+
+def finalize_quality_job(job: JobRecord, *, return_code: int, cancellation_honored: bool = False) -> None:
+    latest = load_job(job.id)
+    latest.pid = None
+    latest.return_code = return_code
+    latest.updated_at = utc_now()
+    if latest.cancel_requested and cancellation_honored:
+        latest.status = "cancelled"
+    else:
+        latest.status = "completed" if return_code == 0 else "failed"
+    save_job(latest)
+    if latest.status == "completed":
+        notify_job_event(latest, "finished")
+    elif latest.status == "failed":
+        notify_job_event(latest, "failed")
+
+
+def launch_sequence_quality_job(job: JobRecord) -> None:
+    append_job_log(job, f"[{utc_now()}] Launching sequence quality check job {job.id}\n")
+    append_job_log(job, "Quality step 1/5: Input loaded and selected metadata stored.\n")
+
+    if is_cancel_requested(job.id):
+        append_job_log(job, f"[{utc_now()}] Cancellation requested before quality check started.\n")
+        finalize_quality_job(job, return_code=1, cancellation_honored=True)
+        return
+
+    job.pid = None
+    job.status = "running"
+    job.updated_at = utc_now()
+    save_job(job)
+
+    thresholds = (job.filters or {}).get("quality_thresholds") or dict(SEQUENCE_QC_DEFAULTS)
+    namespace = build_integrated_sequence_namespace(job)
+    namespace.check_only = False
+    log_handle = open(job.log_path, "a", encoding="utf-8")
+    root_logger = logging.getLogger()
+    file_handler = logging.StreamHandler(log_handle)
+    file_handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s"))
+    previous_level = root_logger.level
+    root_logger.addHandler(file_handler)
+    root_logger.setLevel(min(previous_level, logging.INFO) if previous_level else logging.INFO)
+    return_code = 0
+    cancellation_honored = False
+
+    try:
+        with contextlib.redirect_stdout(log_handle), contextlib.redirect_stderr(log_handle):
+            run_sequence_downloads(
+                namespace,
+                input_path=job.input_path,
+                output_folder=job.output_dir,
+                cancellation_requested=lambda: is_cancel_requested(job.id),
+            )
+            append_job_log(job, f"[{utc_now()}] Quality step 2/5: Sequence download step finished.\n")
+            append_job_log(job, f"[{utc_now()}] Quality step 3/5: Computing FASTA assembly statistics.\n")
+            summary = run_sequence_quality_checks(job, thresholds)
+            append_job_log(job, f"[{utc_now()}] Quality step 4/5: QC decisions written for {summary['total']} genomes.\n")
+            append_job_log(
+                job,
+                f"[{utc_now()}] Quality step 5/5: QC pass subset ready "
+                f"({summary['pass']} pass, {summary['review']} review, {summary['fail']} fail).\n",
+            )
+    except SequenceDownloadCancelled:
+        return_code = 1
+        cancellation_honored = True
+        append_job_log(job, f"[{utc_now()}] Cancellation honored during quality check.\n")
+    except Exception as exc:
+        return_code = 1
+        append_job_log(job, f"[{utc_now()}] Sequence quality check failed: {exc}\n")
+    finally:
+        root_logger.removeHandler(file_handler)
+        root_logger.setLevel(previous_level)
+        file_handler.flush()
+        file_handler.close()
+        log_handle.write(f"\n[{utc_now()}] Job finished with return code {return_code}\n")
+        log_handle.close()
+
+    finalize_quality_job(job, return_code=return_code, cancellation_honored=cancellation_honored)
 
 
 def request_job_cancellation(job: JobRecord) -> JobRecord:
@@ -14373,6 +14721,25 @@ def summarize_sequence_download_assets(job: JobRecord, output_files: list[str]) 
     }
 
 
+def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> dict[str, Any] | None:
+    if job.mode != "qc":
+        return None
+    bundle_path = next((path for path in output_files if path == "quality_check_bundle.zip"), None)
+    report_path = next((path for path in output_files if path == "sequence_qc/quality_check_report.md"), None)
+    decisions_path = next((path for path in output_files if path == "sequence_qc/qc_decisions.csv"), None)
+    pass_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_pass_metadata.csv"), None)
+    enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
+    if not any([bundle_path, report_path, decisions_path, pass_metadata_path, enriched_metadata_path]):
+        return None
+    return {
+        "bundle_path": bundle_path,
+        "report_path": report_path,
+        "decisions_path": decisions_path,
+        "pass_metadata_path": pass_metadata_path,
+        "enriched_metadata_path": enriched_metadata_path,
+    }
+
+
 def summarize_grouped_sequence_outputs(job: JobRecord, output_files: list[str]) -> dict[str, Any] | None:
     filters = job.filters or {}
     if job.mode != "seq" or normalize_metadata_value(filters.get("grouping_mode")) != "field":
@@ -14476,7 +14843,7 @@ def job_last_activity_dt(job: JobRecord, log_text: str) -> datetime:
 def job_stall_threshold_seconds(job: JobRecord) -> int:
     if job.status != "running":
         return 0
-    if job.mode == "seq":
+    if job.mode in {"seq", "qc"}:
         return 10 * 60
     return 20 * 60
 
@@ -14494,6 +14861,18 @@ def line_message(line: str) -> str:
 
 
 def step_definitions_for_mode(mode: str) -> list[dict[str, Any]]:
+    if mode == "qc":
+        return [
+            {"key": "queued", "label": "Queued", "matches": []},
+            {"key": "worker", "label": "Worker started", "matches": ["Launching sequence quality check job"]},
+            {"key": "input", "label": "Input loaded", "matches": ["Quality step 1/5"]},
+            {"key": "downloads", "label": "Sequence download", "matches": ["Quality step 2/5", "Downloaded genome FASTA", "Genome FASTA already exists"]},
+            {"key": "stats", "label": "Assembly statistics", "matches": ["Quality step 3/5"]},
+            {"key": "decisions", "label": "QC decisions", "matches": ["Quality step 4/5"]},
+            {"key": "pass_subset", "label": "Pass subset ready", "matches": ["Quality step 5/5"]},
+            {"key": "finished", "label": "Finished", "matches": ["Job finished with return code 0"]},
+        ]
+
     if mode == "seq":
         return [
             {"key": "queued", "label": "Queued", "matches": []},
@@ -14603,7 +14982,7 @@ def summarize_job_progress(job: JobRecord, log_text: str) -> dict[str, Any]:
 
     recent_errors = failure_lines[-3:]
     snapshot: dict[str, Any] = {}
-    if job.mode == "seq":
+    if job.mode in {"seq", "qc"}:
         output_dir = Path(job.output_dir)
         input_path = Path(job.input_path)
         total_targets = 0
@@ -14648,10 +15027,26 @@ def summarize_job_progress(job: JobRecord, log_text: str) -> dict[str, Any]:
     }
 
 
-def cleanup_old_jobs(*, older_than_days: int) -> int:
+def remove_job_directory(job_id: str) -> tuple[bool, str | None]:
+    job_root = job_dir(job_id)
+    if not job_root.exists():
+        return True, None
+    try:
+        shutil.rmtree(job_root)
+        return True, None
+    except FileNotFoundError:
+        return True, None
+    except OSError as exc:
+        logging.warning("Could not remove job directory %s: %s", job_root, exc)
+        return False, str(exc)
+
+
+def cleanup_old_jobs(*, older_than_days: int) -> dict[str, Any]:
     cutoff = datetime.now(timezone.utc) - timedelta(days=older_than_days)
     removable_statuses = {"completed", "failed", "cancelled"}
     removed = 0
+    skipped = 0
+    errors: list[dict[str, str]] = []
     db = get_db()
     rows = db.execute("SELECT id, status, updated_at FROM jobs").fetchall()
     for row in rows:
@@ -14664,18 +15059,15 @@ def cleanup_old_jobs(*, older_than_days: int) -> int:
             continue
         if updated_at > cutoff:
             continue
+        removed_files, error = remove_job_directory(str(row["id"]))
+        if not removed_files:
+            skipped += 1
+            errors.append({"job_id": str(row["id"]), "error": error or "unknown file-removal error"})
+            continue
         db.execute("DELETE FROM jobs WHERE id = ?", (row["id"],))
-        job_root = job_dir(str(row["id"]))
-        if job_root.exists():
-            for path in sorted(job_root.rglob("*"), reverse=True):
-                if path.is_file() or path.is_symlink():
-                    path.unlink(missing_ok=True)
-                elif path.is_dir():
-                    path.rmdir()
-            job_root.rmdir()
         removed += 1
     db.commit()
-    return removed
+    return {"removed": removed, "skipped": skipped, "errors": errors}
 
 
 def list_metadata_claims(limit: int = 12) -> list[dict[str, Any]]:
@@ -16259,6 +16651,7 @@ def job_detail(job_id: str) -> str:
     output_files = collect_output_files(Path(job.output_dir))
     grouped_output_summary = summarize_grouped_sequence_outputs(job, output_files)
     sequence_download_assets = summarize_sequence_download_assets(job, output_files)
+    quality_check_assets = summarize_quality_check_assets(job, output_files)
     progress = summarize_job_progress(job, log_text)
     return render_template(
         "job_detail.html",
@@ -16267,6 +16660,7 @@ def job_detail(job_id: str) -> str:
         output_files=output_files,
         grouped_output_summary=grouped_output_summary,
         sequence_download_assets=sequence_download_assets,
+        quality_check_assets=quality_check_assets,
         progress=progress,
     )
 
@@ -16492,6 +16886,81 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     return redirect(url_for("job_detail", job_id=job_id))
 
 
+@app.route("/taxa/<int:species_id>/sequences/quality-jobs", methods=["POST"])
+def create_taxon_sequence_quality_job(species_id: int) -> Any:
+    user = g.current_user
+    assert user is not None
+    species = load_species(species_id)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+    if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
+        flash("Combined metadata is not ready for that taxon yet.", "error")
+        return redirect(url_for("taxon_sequences", species_id=species_id))
+
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
+    filtered_frame = sequence_dashboard["filtered_frame"]
+    if filtered_frame.empty:
+        flash("The current filters do not match any genomes.", "error")
+        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+
+    job_id = uuid.uuid4().hex[:12]
+    root = job_dir(job_id)
+    uploads_dir = root / UPLOADS_DIR_NAME
+    outputs_dir = root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+
+    input_name = f"{species.species_name} quality-check metadata.csv"
+    input_path = uploads_dir / f"{species.slug}_quality_subset.csv"
+    filtered_frame.to_csv(input_path, index=False)
+
+    thresholds = build_quality_thresholds(request.form)
+    command, command_filters = build_quality_command(input_path, outputs_dir, thresholds, request.form)
+    filters = {
+        "input_source": "taxon_sequence_quality",
+        "taxon_id": species.id,
+        "taxon_name": species.species_name,
+        "taxon_rank": species.taxon_rank,
+        "matched_row_total": sequence_dashboard["matched_row_total"],
+        "match_percent": sequence_dashboard["match_percent"],
+        "filter_logic": sequence_dashboard["filter_logic"],
+        "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
+        "selected_filters": sequence_dashboard["filters"],
+    }
+    filters.update(command_filters)
+    record = JobRecord(
+        id=job_id,
+        mode="qc",
+        status="queued",
+        created_at=utc_now(),
+        updated_at=utc_now(),
+        input_name=input_name,
+        input_path=str(input_path),
+        output_dir=str(outputs_dir),
+        log_path=str(root / LOG_FILE_NAME),
+        command=command,
+        owner_user_id=int(user["id"]),
+        owner_username=str(user["username"]),
+        filters=filters,
+    )
+    save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=job_id,
+        metadata={
+            "mode": "qc",
+            "input_source": "taxon_sequence_quality",
+            "matched_row_total": sequence_dashboard["matched_row_total"],
+            "quality_thresholds": thresholds,
+        },
+    )
+    notify_job_event(record, "submitted")
+    flash(f"Quality-check job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
+    return redirect(url_for("job_detail", job_id=job_id))
+
+
 @app.route("/jobs/<job_id>/cancel", methods=["POST"])
 def cancel_job(job_id: str) -> Any:
     job = require_job_owner(job_id)
@@ -16522,16 +16991,12 @@ def admin_delete_job(job_id: str) -> Any:
     if job.status in {"queued", "running"}:
         flash("Running or queued jobs must be stopped before deletion.", "error")
         return redirect(url_for("admin_jobs"))
+    removed_files, error = remove_job_directory(job.id)
+    if not removed_files:
+        flash(f"Could not delete stored files for job {job.id}: {error}", "error")
+        return redirect(url_for("admin_jobs"))
     get_db().execute("DELETE FROM jobs WHERE id = ?", (job.id,))
     get_db().commit()
-    job_root = job_dir(job.id)
-    if job_root.exists():
-        for path in sorted(job_root.rglob("*"), reverse=True):
-            if path.is_file() or path.is_symlink():
-                path.unlink(missing_ok=True)
-            elif path.is_dir():
-                path.rmdir()
-        job_root.rmdir()
     flash(f"Deleted job {job.id} and its stored files.", "success")
     return redirect(url_for("admin_jobs"))
 
@@ -16545,8 +17010,14 @@ def admin_cleanup_jobs() -> Any:
     except ValueError:
         flash("Cleanup age must be a whole number of days.", "error")
         return redirect(url_for("admin_jobs"))
-    removed = cleanup_old_jobs(older_than_days=older_than_days)
-    flash(f"Removed {removed} old job records/directories older than {older_than_days} days.", "success")
+    result = cleanup_old_jobs(older_than_days=older_than_days)
+    flash(f"Removed {result['removed']} old job records/directories older than {older_than_days} days.", "success")
+    if result["skipped"]:
+        flash(
+            f"Skipped {result['skipped']} job directories because stored files could not be removed. "
+            "Check filesystem ownership on the mounted data directory.",
+            "error",
+        )
     return redirect(url_for("admin_jobs"))
 
 

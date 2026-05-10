@@ -6,7 +6,7 @@
       <p class="eyebrow">Job {{ job.id }}</p>
       <h1>{{ job.mode }} submission</h1>
       <p class="lede">{{ job.input_name }}</p>
-      {% if job.mode == "seq" and job.filters and job.filters.get("input_source") == "taxon_sequences" and job.filters.get("taxon_id") %}
+      {% if job.mode in ["seq", "qc"] and job.filters and job.filters.get("taxon_id") %}
         <p class="detail-backlink">
           <a class="ghost-link" href="{{ url_for('taxon_sequences', species_id=job.filters.get('taxon_id')) }}">Go back to Sequence Download Page</a>
         </p>
@@ -98,6 +98,58 @@
                 <span>
                   <a href="{{ url_for('download_output', job_id=job.id, relative_path=sequence_download_assets.combined_fasta_path) }}">
                     Download FASTA
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      {% if quality_check_assets %}
+        <div class="summary-box">
+          <strong>Sequence quality-check results</strong>
+          <p>Use the pass-only metadata table for downstream sequence downloads or PanResistome-style QC-filtered analyses.</p>
+          <div class="coverage-table">
+            {% if quality_check_assets.bundle_path %}
+              <div class="coverage-row">
+                <strong>Quality result ZIP</strong>
+                <span>QC decisions, assembly stats, report, and metadata subsets.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.bundle_path) }}">
+                    Download ZIP
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.pass_metadata_path %}
+              <div class="coverage-row">
+                <strong>QC-passed metadata</strong>
+                <span>Only genomes passing all applied quality checks.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.pass_metadata_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.decisions_path %}
+              <div class="coverage-row">
+                <strong>QC decisions</strong>
+                <span>Pass, review, fail, and reasons per assembly.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.decisions_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.report_path %}
+              <div class="coverage-row">
+                <strong>QC report</strong>
+                <span>Summary of thresholds and output files.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.report_path) }}">
+                    Open report
                   </a>
                 </span>
               </div>
