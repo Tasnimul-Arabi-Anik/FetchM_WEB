@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 from app import (
     broad_standardization_category,
+    build_quality_config,
     ensure_managed_metadata_schema,
     extract_country,
+    import_nextflow_qc_outputs,
     standardize_host_metadata,
 )
 
@@ -188,6 +192,64 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
         raw_code = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "cxwnd"})
         self.assertEqual(raw_code["Isolation_Source_SD"], "metadata descriptor / non-source")
+
+    def test_external_nextflow_qc_master_imports_as_canonical_qc_outputs(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.csv"
+            output_dir = root / "outputs"
+            qc_dir = output_dir / "sequence_qc"
+            master_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "qc"
+            qc_dir.mkdir(parents=True)
+            master_dir.mkdir(parents=True)
+
+            input_path.write_text(
+                "\n".join(
+                    [
+                        "Assembly Accession,Assembly Name,Organism Name",
+                        "GCF_000001.1,ASM1,Klebsiella pneumoniae",
+                        "GCF_000002.1,ASM2,Klebsiella pneumoniae",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (master_dir / "qc_master_report.csv").write_text(
+                "\n".join(
+                    [
+                        "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
+                        "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,PASS,,",
+                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,FAIL,CheckM2 completeness below threshold,",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            result = import_nextflow_qc_outputs(input_path, output_dir, qc_dir)
+            self.assertIsNotNone(result)
+            assert result is not None
+            self.assertEqual(result["pass"], 1)
+            self.assertEqual(result["fail"], 1)
+            self.assertTrue((qc_dir / "external_qc_master_report.csv").exists())
+            self.assertIn("GCF_000001.1", (qc_dir / "qc_pass_metadata.csv").read_text(encoding="utf-8"))
+            self.assertIn("CheckM2 completeness below threshold", (qc_dir / "qc_failed_metadata.csv").read_text(encoding="utf-8"))
+
+    def test_external_profile_without_javascript_does_not_fall_back_to_quick_mode(self) -> None:
+        class Form:
+            def get(self, key: str, default=None):
+                values = {"quality_profile": "standard", "quality_run_mode": "quick"}
+                return values.get(key, default)
+
+            def getlist(self, key: str):
+                if key == "quality_module":
+                    return ["quick_fasta"]
+                return []
+
+        config = build_quality_config(Form())
+        self.assertEqual(config["run_mode"], "handoff")
+        self.assertIn("checkm2", config["selected_modules"])
+        self.assertIn("quast", config["selected_modules"])
 
 
 if __name__ == "__main__":

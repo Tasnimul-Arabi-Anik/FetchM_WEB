@@ -211,12 +211,13 @@
 
   .sequence-quality-card {
     margin-top: 14px;
-    padding: 18px;
-    border: 1px solid rgba(22, 92, 78, 0.18);
-    border-radius: 18px;
+    padding: 20px;
+    border: 1px solid rgba(22, 92, 78, 0.2);
+    border-radius: 24px;
     background:
-      linear-gradient(135deg, rgba(22, 92, 78, 0.08), rgba(184, 132, 77, 0.08)),
-      rgba(255, 255, 255, 0.72);
+      radial-gradient(circle at 100% 0%, rgba(33, 78, 102, 0.16), transparent 30%),
+      linear-gradient(135deg, rgba(22, 92, 78, 0.1), rgba(184, 132, 77, 0.08)),
+      rgba(255, 255, 255, 0.82);
   }
 
   .sequence-quality-head {
@@ -228,6 +229,7 @@
 
   .sequence-quality-head h3 {
     margin: 0 0 4px;
+    font-size: 1.38rem;
   }
 
   .sequence-quality-actions {
@@ -240,6 +242,30 @@
   .sequence-quality-actions button {
     background: linear-gradient(135deg, #214e66, #165c4e) !important;
     color: #fff !important;
+  }
+
+  .sequence-quality-flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .sequence-quality-step {
+    padding: 12px 14px;
+    border: 1px solid rgba(22, 92, 78, 0.14);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .sequence-quality-step strong {
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .sequence-quality-step span {
+    color: var(--muted);
+    font-size: 0.96rem;
   }
 
   .sequence-quality-grid {
@@ -581,11 +607,29 @@
       <div class="sequence-quality-head">
         <div>
           <p class="eyebrow">Quality check</p>
-          <h3>Open quality-check workspace</h3>
-          <p class="section-note">Use the same filtered subset for quick FASTA checks or PanResistome-style external QC handoff with CheckM2, QUAST, ANI, Mash, and taxonomy modules.</p>
+          <h3>Check quality before the final download</h3>
+          <p class="section-note">
+            Use this same filtered subset for quick FASTA checks or managed PanResistome-style QC with CheckM2,
+            QUAST, ANI, and Mash. After QC finishes, FetchM Web creates pass/review/fail tables and lets you
+            launch a new download using only QC-passed genomes.
+          </p>
         </div>
         <div class="sequence-quality-actions">
-          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Configure quality check</button>
+          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Open quality check</button>
+        </div>
+      </div>
+      <div class="sequence-quality-flow" aria-label="Quality-check workflow">
+        <div class="sequence-quality-step">
+          <strong>1. Keep filters</strong>
+          <span>{{ sequence_dashboard.matched_row_total }} genomes selected from this page.</span>
+        </div>
+        <div class="sequence-quality-step">
+          <strong>2. Run QC</strong>
+          <span>Choose quick checks or managed external modules.</span>
+        </div>
+        <div class="sequence-quality-step">
+          <strong>3. Download passed</strong>
+          <span>Use the QC-passed subset for downstream analysis.</span>
         </div>
       </div>
     </form>

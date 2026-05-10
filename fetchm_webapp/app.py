@@ -14267,6 +14267,174 @@ def find_fasta_for_accession(output_dir: Path, accession: str) -> Path | None:
     return matches[0] if matches else None
 
 
+def first_nonempty_value(row: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = normalize_metadata_value(row.get(key))
+        if value:
+            return value
+    return ""
+
+
+def normalize_qc_decision_status(status: Any, fail_reasons: str = "", warning_reasons: str = "") -> str:
+    normalized = normalize_metadata_value(status).lower()
+    if normalized in {"pass", "passed", "ok", "success", "true"}:
+        return "pass"
+    if normalized in {"fail", "failed", "error", "false"}:
+        return "fail"
+    if normalized in {"warn", "warning", "review", "needs_review", "manual_review"}:
+        return "review"
+    if normalize_metadata_value(fail_reasons):
+        return "fail"
+    if normalize_metadata_value(warning_reasons):
+        return "review"
+    return "pass"
+
+
+def latest_nextflow_qc_master_report(output_dir: Path) -> Path | None:
+    root = output_dir / "nextflow_qc"
+    if not root.exists():
+        return None
+    candidates = [path for path in root.rglob("qc_master_report.csv") if path.is_file()]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path) -> dict[str, Any] | None:
+    master_report = latest_nextflow_qc_master_report(output_dir)
+    if master_report is None:
+        return None
+
+    source_frame = pd.read_csv(input_path, dtype=str).fillna("") if input_path.exists() else pd.DataFrame()
+    external_frame = pd.read_csv(master_report, dtype=str).fillna("")
+    if external_frame.empty:
+        return None
+
+    source_lookup: dict[str, dict[str, Any]] = {}
+    for _, row in source_frame.iterrows():
+        row_dict = {str(key): value for key, value in row.to_dict().items()}
+        accession = normalize_metadata_value(row_dict.get("Assembly Accession"))
+        sequence_file = normalize_metadata_value(row_dict.get("sequence_file"))
+        if accession:
+            source_lookup[f"accession:{accession}"] = row_dict
+        if sequence_file:
+            source_lookup[f"file:{sequence_file}"] = row_dict
+
+    decision_rows: list[dict[str, Any]] = []
+    enriched_rows: list[dict[str, Any]] = []
+    stat_rows: list[dict[str, Any]] = []
+
+    for _, row in external_frame.iterrows():
+        external_row = {str(key): value for key, value in row.to_dict().items()}
+        accession = first_nonempty_value(external_row, "Assembly Accession", "assembly_accession")
+        sequence_file = first_nonempty_value(external_row, "sequence_file", "quast_assembly", "checkm2_name")
+        source_row = source_lookup.get(f"accession:{accession}") or source_lookup.get(f"file:{sequence_file}") or {}
+        merged = {**source_row}
+
+        failure_reasons = "; ".join(
+            value
+            for value in [
+                first_nonempty_value(external_row, "qc_master_fail_reasons"),
+                first_nonempty_value(external_row, "combined_qc_fail_reasons"),
+                first_nonempty_value(external_row, "sequence_qc_fail_reasons"),
+                first_nonempty_value(external_row, "checkm2_qc_fail_reasons"),
+                first_nonempty_value(external_row, "quast_qc_fail_reasons"),
+                first_nonempty_value(external_row, "ani_qc_fail_reasons"),
+                first_nonempty_value(external_row, "mash_qc_fail_reasons"),
+            ]
+            if value
+        )
+        warning_reasons = "; ".join(
+            value
+            for value in [
+                first_nonempty_value(external_row, "qc_master_warning_reasons"),
+                first_nonempty_value(external_row, "combined_qc_warning_reasons"),
+                first_nonempty_value(external_row, "sequence_qc_warning_reasons"),
+                first_nonempty_value(external_row, "checkm2_qc_warning_reasons"),
+            ]
+            if value
+        )
+        status = normalize_qc_decision_status(
+            first_nonempty_value(external_row, "qc_master_status", "combined_qc_status", "sequence_qc_status"),
+            failure_reasons,
+            warning_reasons,
+        )
+
+        total_bp = first_nonempty_value(external_row, "sequence_total_length", "quast_total_length", "checkm2_genome_size")
+        ambiguous_bases = parse_optional_float(first_nonempty_value(external_row, "sequence_ambiguous_bases"))
+        total_bp_number = parse_optional_float(total_bp)
+        ambiguous_n_percent = ""
+        if ambiguous_bases is not None and total_bp_number:
+            ambiguous_n_percent = round((ambiguous_bases / total_bp_number) * 100, 4)
+
+        decision = {
+            "Assembly Accession": accession,
+            "Assembly Name": first_nonempty_value(external_row, "Assembly Name", "assembly_name") or normalize_metadata_value(merged.get("Assembly Name")),
+            "sequence_file": sequence_file,
+            "Sequence_QC_Status": status,
+            "Sequence_QC_Pass": status == "pass",
+            "Sequence_QC_Failure_Reasons": failure_reasons,
+            "Sequence_QC_Review_Reasons": warning_reasons,
+            "CheckM completeness": first_nonempty_value(external_row, "checkm2_completeness", "CheckM completeness"),
+            "CheckM contamination": first_nonempty_value(external_row, "checkm2_contamination", "CheckM contamination"),
+            "QC_total_bp": total_bp,
+            "QC_contig_count": first_nonempty_value(external_row, "sequence_num_contigs", "quast_num_contigs"),
+            "QC_n50": first_nonempty_value(external_row, "sequence_n50", "quast_n50"),
+            "QC_gc_percent": first_nonempty_value(external_row, "sequence_gc_percent", "quast_gc_percent"),
+            "QC_ambiguous_n_percent": ambiguous_n_percent,
+            "External_QC_Source": "nextflow",
+            "External_QC_Master_Report": str(master_report.relative_to(output_dir)),
+            "CheckM2_Model": first_nonempty_value(external_row, "checkm2_model"),
+            "CheckM2_Coding_Density": first_nonempty_value(external_row, "checkm2_coding_density"),
+            "QUAST_Largest_Contig": first_nonempty_value(external_row, "quast_largest_contig"),
+            "QUAST_Ns_Per_100kbp": first_nonempty_value(external_row, "quast_ns_per_100kbp"),
+        }
+        decision_rows.append(decision)
+        enriched_rows.append({**merged, **external_row, **decision})
+        stat_rows.append(
+            {
+                "Assembly Accession": accession,
+                "Assembly Name": decision["Assembly Name"],
+                "sequence_file": sequence_file,
+                "total_bp": decision["QC_total_bp"],
+                "contig_count": decision["QC_contig_count"],
+                "n50": decision["QC_n50"],
+                "gc_percent": decision["QC_gc_percent"],
+                "ambiguous_n_percent": decision["QC_ambiguous_n_percent"],
+            }
+        )
+
+    decision_frame = pd.DataFrame(decision_rows)
+    enriched_frame = pd.DataFrame(enriched_rows)
+    stats_frame = pd.DataFrame(stat_rows)
+    pass_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "pass"].copy()
+    review_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "review"].copy()
+    fail_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "fail"].copy()
+
+    shutil.copy2(master_report, qc_dir / "external_qc_master_report.csv")
+    decision_frame.to_csv(qc_dir / "qc_decisions.csv", index=False)
+    enriched_frame.to_csv(qc_dir / "qc_enriched_metadata.csv", index=False)
+    pass_frame.to_csv(qc_dir / "qc_pass_metadata.csv", index=False)
+    review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
+    fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
+    stats_frame.to_csv(qc_dir / "assembly_stats.csv", index=False)
+
+    return {
+        "source": "nextflow",
+        "master_report": str(master_report.relative_to(output_dir)),
+        "total": int(len(enriched_frame)),
+        "pass": int(len(pass_frame)),
+        "review": int(len(review_frame)),
+        "fail": int(len(fail_frame)),
+        "decision_frame": decision_frame,
+        "enriched_frame": enriched_frame,
+        "stats_frame": stats_frame,
+        "pass_frame": pass_frame,
+        "review_frame": review_frame,
+        "fail_frame": fail_frame,
+    }
+
+
 def run_sequence_quality_checks(
     job: JobRecord,
     thresholds: dict[str, Any],
@@ -14396,6 +14564,7 @@ def run_sequence_quality_checks(
 
     nextflow_return_code: int | None = None
     nextflow_log_path = ""
+    external_qc_import: dict[str, Any] | None = None
     if quality_config.get("run_mode") == "nextflow" and quality_config.get("external_modules"):
         tool_status = handoff_manifest.get("tool_status") or {}
         if not tool_status.get("nextflow_enabled") or not tool_status.get("tools", {}).get("nextflow"):
@@ -14423,6 +14592,22 @@ def run_sequence_quality_checks(
         append_job_log(job, f"[{utc_now()}] External Nextflow QC finished with return code {nextflow_return_code}.\n")
         if nextflow_return_code != 0:
             raise RuntimeError(f"External Nextflow QC failed with return code {nextflow_return_code}. See {nextflow_log_path}.")
+        external_qc_import = import_nextflow_qc_outputs(input_path, output_dir, qc_dir)
+        if external_qc_import:
+            decision_frame = external_qc_import["decision_frame"]
+            enriched_frame = external_qc_import["enriched_frame"]
+            stats_frame = external_qc_import["stats_frame"]
+            pass_frame = external_qc_import["pass_frame"]
+            review_frame = external_qc_import["review_frame"]
+            fail_frame = external_qc_import["fail_frame"]
+            append_job_log(
+                job,
+                f"[{utc_now()}] Imported external QC master report "
+                f"({external_qc_import['pass']} pass, {external_qc_import['review']} review, "
+                f"{external_qc_import['fail']} fail).\n",
+            )
+        else:
+            append_job_log(job, f"[{utc_now()}] External QC completed, but no qc_master_report.csv was found to import.\n")
 
     summary = {
         "total": int(len(enriched_frame)),
@@ -14438,6 +14623,9 @@ def run_sequence_quality_checks(
         "external_execution_enabled": handoff_manifest.get("nextflow_execution_enabled", False),
         "nextflow_return_code": nextflow_return_code,
         "nextflow_log": nextflow_log_path,
+        "qc_decision_source": "nextflow" if external_qc_import else "built_in",
+        "external_qc_imported": bool(external_qc_import),
+        "external_qc_master_report": external_qc_import["master_report"] if external_qc_import else "",
     }
     report_lines = [
         "# FetchM Web Sequence Quality Check",
@@ -14446,6 +14634,7 @@ def run_sequence_quality_checks(
         f"Input: {job.input_name}",
         f"Quality profile: {summary['quality_profile']}",
         f"Run mode: {summary['run_mode']}",
+        f"QC decision source: {summary['qc_decision_source']}",
         f"Total genomes checked: {summary['total']}",
         f"Passed: {summary['pass']}",
         f"Review: {summary['review']}",
@@ -14466,6 +14655,8 @@ def run_sequence_quality_checks(
             "## External Tool Handoff",
             "",
             f"- Nextflow execution enabled: {'yes' if summary['external_execution_enabled'] else 'no'}",
+            f"- External QC imported: {'yes' if summary['external_qc_imported'] else 'no'}",
+            f"- External QC master report: `{summary['external_qc_master_report'] or 'not imported'}`",
             "- Manifest: `external_tools/quality_check/quality_check_manifest.json`",
             "- Command script: `external_tools/quality_check/nextflow_command.sh`",
             f"- Execution log: `{nextflow_log_path or 'not executed'}`",
@@ -14491,6 +14682,7 @@ def run_sequence_quality_checks(
             "- `sequence_qc/qc_pass_metadata.csv`: metadata subset passing all applied quality checks.",
             "- `sequence_qc/qc_review_metadata.csv`: rows needing review because a required metric was missing.",
             "- `sequence_qc/qc_failed_metadata.csv`: rows failing at least one applied quality check.",
+            "- `sequence_qc/external_qc_master_report.csv`: imported external QC master report when Nextflow execution produced one.",
             "- `external_tools/quality_check/`: Nextflow handoff and execution logs.",
         ]
     )
@@ -14825,23 +15017,60 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         return None
     bundle_path = next((path for path in output_files if path == "quality_check_bundle.zip"), None)
     report_path = next((path for path in output_files if path == "sequence_qc/quality_check_report.md"), None)
+    summary_path = next((path for path in output_files if path == "sequence_qc/quality_check_summary.json"), None)
     decisions_path = next((path for path in output_files if path == "sequence_qc/qc_decisions.csv"), None)
     pass_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_pass_metadata.csv"), None)
+    review_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_review_metadata.csv"), None)
+    failed_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_failed_metadata.csv"), None)
     enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
+    external_master_path = next((path for path in output_files if path == "sequence_qc/external_qc_master_report.csv"), None)
     external_manifest_path = next((path for path in output_files if path == "external_tools/quality_check/quality_check_manifest.json"), None)
     nextflow_command_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_command.sh"), None)
     nextflow_log_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_execution.log"), None)
     if not any([bundle_path, report_path, decisions_path, pass_metadata_path, enriched_metadata_path, external_manifest_path]):
         return None
+    summary: dict[str, Any] = {}
+    if summary_path:
+        try:
+            summary = json.loads((Path(job.output_dir) / summary_path).read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            summary = {}
+    decision_preview: list[dict[str, Any]] = []
+    if decisions_path:
+        try:
+            decisions = pd.read_csv(Path(job.output_dir) / decisions_path, dtype=str).fillna("")
+            for _, row in decisions.head(8).iterrows():
+                row_dict = {str(key): value for key, value in row.to_dict().items()}
+                decision_preview.append(
+                    {
+                        "accession": normalize_metadata_value(row_dict.get("Assembly Accession")),
+                        "assembly_name": normalize_metadata_value(row_dict.get("Assembly Name")),
+                        "status": normalize_metadata_value(row_dict.get("Sequence_QC_Status")) or "unknown",
+                        "completeness": normalize_metadata_value(row_dict.get("CheckM completeness")),
+                        "contamination": normalize_metadata_value(row_dict.get("CheckM contamination")),
+                        "n50": normalize_metadata_value(row_dict.get("QC_n50")),
+                        "contigs": normalize_metadata_value(row_dict.get("QC_contig_count")),
+                        "reasons": normalize_metadata_value(row_dict.get("Sequence_QC_Failure_Reasons"))
+                        or normalize_metadata_value(row_dict.get("Sequence_QC_Review_Reasons")),
+                    }
+                )
+        except (OSError, pd.errors.EmptyDataError, ValueError):
+            decision_preview = []
     return {
         "bundle_path": bundle_path,
         "report_path": report_path,
+        "summary_path": summary_path,
         "decisions_path": decisions_path,
         "pass_metadata_path": pass_metadata_path,
+        "review_metadata_path": review_metadata_path,
+        "failed_metadata_path": failed_metadata_path,
         "enriched_metadata_path": enriched_metadata_path,
+        "external_master_path": external_master_path,
         "external_manifest_path": external_manifest_path,
         "nextflow_command_path": nextflow_command_path,
         "nextflow_log_path": nextflow_log_path,
+        "summary": summary,
+        "decision_preview": decision_preview,
     }
 
 
@@ -14973,6 +15202,7 @@ def step_definitions_for_mode(mode: str) -> list[dict[str, Any]]:
             {"key": "input", "label": "Input loaded", "matches": ["Quality step 1/5"]},
             {"key": "downloads", "label": "Sequence download", "matches": ["Quality step 2/5", "Downloaded genome FASTA", "Genome FASTA already exists"]},
             {"key": "stats", "label": "Assembly statistics", "matches": ["Quality step 3/5"]},
+            {"key": "external_qc", "label": "External QC", "matches": ["Starting external Nextflow QC", "External Nextflow QC finished", "Imported external QC master report"]},
             {"key": "decisions", "label": "QC decisions", "matches": ["Quality step 4/5"]},
             {"key": "pass_subset", "label": "Pass subset ready", "matches": ["Quality step 5/5"]},
             {"key": "finished", "label": "Finished", "matches": ["Job finished with return code 0"]},
@@ -17251,7 +17481,12 @@ def admin_cleanup_jobs() -> Any:
     except ValueError:
         flash("Cleanup age must be a whole number of days.", "error")
         return redirect(url_for("admin_jobs"))
-    result = cleanup_old_jobs(older_than_days=older_than_days)
+    try:
+        result = cleanup_old_jobs(older_than_days=older_than_days)
+    except Exception as exc:
+        logging.exception("Admin job cleanup failed")
+        flash(f"Job cleanup failed before completion: {exc}", "error")
+        return redirect(url_for("admin_jobs"))
     flash(f"Removed {result['removed']} old job records/directories older than {older_than_days} days.", "success")
     if result["skipped"]:
         flash(

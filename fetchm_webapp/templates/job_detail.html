@@ -1,5 +1,133 @@
 {% extends "base.html" %}
 {% block content %}
+<style>
+  .qc-result-board {
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid rgba(22, 92, 78, 0.18);
+    background:
+      radial-gradient(circle at top right, rgba(22, 92, 78, 0.12), transparent 30%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(247, 242, 232, 0.72));
+  }
+
+  .qc-result-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .qc-result-title {
+    margin: 0 0 4px;
+    font-size: 1.35rem;
+  }
+
+  .qc-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: rgba(22, 92, 78, 0.12);
+    color: #165c4e;
+  }
+
+  .qc-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .qc-metric {
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .qc-metric strong {
+    display: block;
+    font-size: 1.5rem;
+    line-height: 1.1;
+  }
+
+  .qc-metric span {
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .qc-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .qc-action-row form {
+    margin: 0;
+  }
+
+  .qc-preview-table {
+    display: grid;
+    gap: 8px;
+  }
+
+  .qc-preview-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 1.1fr) 86px repeat(4, minmax(80px, 0.6fr)) minmax(140px, 1fr);
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.66);
+    font-size: 0.92rem;
+  }
+
+  .qc-preview-row.header {
+    font-weight: 800;
+    color: var(--muted);
+    background: transparent;
+    border-color: transparent;
+  }
+
+  .qc-status {
+    display: inline-flex;
+    width: max-content;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+  }
+
+  .qc-status.pass {
+    background: rgba(27, 107, 57, 0.12);
+    color: var(--success);
+  }
+
+  .qc-status.review {
+    background: rgba(184, 132, 77, 0.16);
+    color: #8a5a16;
+  }
+
+  .qc-status.fail {
+    background: rgba(142, 47, 29, 0.12);
+    color: var(--danger);
+  }
+
+  @media (max-width: 980px) {
+    .qc-result-head,
+    .qc-preview-row {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
 <main class="layout">
   <section class="panel detail-head">
     <div>
@@ -110,9 +238,79 @@
         </div>
       {% endif %}
       {% if quality_check_assets %}
-        <div class="summary-box">
-          <strong>Sequence quality-check results</strong>
-          <p>Use the pass-only metadata table for downstream sequence downloads or PanResistome-style QC-filtered analyses.</p>
+        {% set qc_summary = quality_check_assets.summary or {} %}
+        <div class="summary-box qc-result-board">
+          <div class="qc-result-head">
+            <div>
+              <p class="eyebrow">Quality Check Results</p>
+              <h3 class="qc-result-title">QC-filtered genome set is ready</h3>
+              <p>
+                Decisions use
+                <strong>{{ qc_summary.get("qc_decision_source", "built_in") }}</strong>
+                results. Use the pass-only metadata table for downstream sequence downloads or PanResistome-style QC-filtered analyses.
+              </p>
+            </div>
+            <span class="qc-status-pill">{{ qc_summary.get("run_mode", "qc") }}</span>
+          </div>
+
+          <div class="qc-metric-grid">
+            <div class="qc-metric">
+              <strong>{{ qc_summary.get("total", "—") }}</strong>
+              <span>Total checked</span>
+            </div>
+            <div class="qc-metric">
+              <strong>{{ qc_summary.get("pass", "—") }}</strong>
+              <span>Passed</span>
+            </div>
+            <div class="qc-metric">
+              <strong>{{ qc_summary.get("review", "—") }}</strong>
+              <span>Review</span>
+            </div>
+            <div class="qc-metric">
+              <strong>{{ qc_summary.get("fail", "—") }}</strong>
+              <span>Failed</span>
+            </div>
+          </div>
+
+          <div class="qc-action-row">
+            {% if quality_check_assets.pass_metadata_path and job.status == "completed" %}
+              <form action="{{ url_for('create_quality_passed_sequence_job', job_id=job.id) }}" method="post">
+                <button type="submit">Download QC-passed sequences</button>
+              </form>
+            {% endif %}
+            {% if quality_check_assets.bundle_path %}
+              <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.bundle_path) }}">Download QC ZIP</a>
+            {% endif %}
+            {% if quality_check_assets.decisions_path %}
+              <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.decisions_path) }}">Download decisions CSV</a>
+            {% endif %}
+          </div>
+
+          {% if quality_check_assets.decision_preview %}
+            <div class="qc-preview-table">
+              <div class="qc-preview-row header">
+                <span>Assembly</span>
+                <span>Status</span>
+                <span>Completeness</span>
+                <span>Contamination</span>
+                <span>N50</span>
+                <span>Contigs</span>
+                <span>Reason</span>
+              </div>
+              {% for row in quality_check_assets.decision_preview %}
+                <div class="qc-preview-row">
+                  <span>{{ row.accession or row.assembly_name or "—" }}</span>
+                  <span><span class="qc-status {{ row.status }}">{{ row.status }}</span></span>
+                  <span>{{ row.completeness or "—" }}</span>
+                  <span>{{ row.contamination or "—" }}</span>
+                  <span>{{ row.n50 or "—" }}</span>
+                  <span>{{ row.contigs or "—" }}</span>
+                  <span>{{ row.reasons or "—" }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
           <div class="coverage-table">
             {% if quality_check_assets.bundle_path %}
               <div class="coverage-row">
@@ -144,6 +342,39 @@
                   <form action="{{ url_for('create_quality_passed_sequence_job', job_id=job.id) }}" method="post">
                     <button type="submit">Create sequence job</button>
                   </form>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.review_metadata_path %}
+              <div class="coverage-row">
+                <strong>Review metadata</strong>
+                <span>Genomes needing review because one or more required metrics were unavailable or borderline.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.review_metadata_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.failed_metadata_path %}
+              <div class="coverage-row">
+                <strong>Failed metadata</strong>
+                <span>Genomes failing at least one selected quality threshold.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.failed_metadata_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.external_master_path %}
+              <div class="coverage-row">
+                <strong>External QC master report</strong>
+                <span>Imported PanResistome/Nextflow QC master table used for final pass/review/fail decisions.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.external_master_path) }}">
+                    Download CSV
+                  </a>
                 </span>
               </div>
             {% endif %}

@@ -185,6 +185,8 @@ def build_quality_config(source: Any) -> dict[str, Any]:
     requested_run_mode = str(_source_get(source, "quality_run_mode", profile["run_mode"]) or profile["run_mode"]).strip().lower()
     if requested_run_mode not in {"quick", "handoff", "nextflow"}:
         requested_run_mode = profile["run_mode"]
+    if requested_run_mode == "quick" and profile["key"] != "quick":
+        requested_run_mode = profile["run_mode"]
 
     thresholds = {
         "min_completeness": _optional_float(source, "qc_min_completeness", DEFAULT_QUALITY_THRESHOLDS["min_completeness"]),

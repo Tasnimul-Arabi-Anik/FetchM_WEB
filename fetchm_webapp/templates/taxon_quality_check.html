@@ -34,6 +34,13 @@
     cursor: pointer;
   }
 
+  .quality-card-option:has(input:checked) {
+    border-color: rgba(22, 92, 78, 0.48);
+    background:
+      linear-gradient(135deg, rgba(22, 92, 78, 0.12), rgba(255, 255, 255, 0.86));
+    box-shadow: 0 10px 28px rgba(22, 92, 78, 0.1);
+  }
+
   .quality-card-option input {
     margin-right: 8px;
   }
@@ -106,6 +113,32 @@
   .quality-actions button {
     font-weight: 800;
   }
+
+  .quality-route-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .quality-route-step {
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(22, 92, 78, 0.14);
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .quality-route-step strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .quality-runtime-banner {
+    border-color: rgba(22, 92, 78, 0.22);
+    background:
+      radial-gradient(circle at top right, rgba(22, 92, 78, 0.1), transparent 28%),
+      rgba(255, 255, 255, 0.76);
+  }
 </style>
 
 <main class="layout quality-page">
@@ -115,10 +148,24 @@
       <div>
         <h1>{{ species.species_name }}</h1>
         <p class="lede">
-          Configure quality checks for the currently filtered sequence subset. Quick QC runs inside FetchM Web;
-          external modules are isolated through a Nextflow handoff so CheckM2, QUAST, ANI, Mash, and GTDB-Tk
-          can be enabled without mixing heavy tools into the core web app.
+          Configure quality checks for the currently filtered sequence subset. FetchM Web keeps the filter set,
+          downloads the selected FASTA files, runs selected QC modules, and writes pass/review/fail metadata
+          that can be used for a clean downstream sequence download.
         </p>
+        <div class="quality-route-grid">
+          <div class="quality-route-step">
+            <strong>1. Selected subset</strong>
+            <span>{{ sequence_dashboard.matched_row_total }} genomes from your current filters.</span>
+          </div>
+          <div class="quality-route-step">
+            <strong>2. QC modules</strong>
+            <span>Quick FASTA stats, CheckM2, QUAST, ANI, Mash, or taxonomy checks.</span>
+          </div>
+          <div class="quality-route-step">
+            <strong>3. Filter by QC</strong>
+            <span>Use passed genomes directly from the completed job page.</span>
+          </div>
+        </div>
       </div>
       <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
     </div>
@@ -160,7 +207,7 @@
     <div class="section-heading">
       <div>
         <h2>Choose Quality Checks</h2>
-        <p class="section-note">Start with quick QC for lightweight filtering. Use handoff mode when external tools are not installed yet. Use Nextflow execution only after the server is configured.</p>
+        <p class="section-note">Select a profile first. External profiles automatically select the matching modules and, when the managed runtime is ready, switch execution to Nextflow.</p>
       </div>
     </div>
 
@@ -172,7 +219,7 @@
       <h3>Profile</h3>
       <div class="quality-profile-grid">
         {% for key, profile in quality_profiles.items() %}
-          <label class="quality-card-option">
+          <label class="quality-card-option" data-quality-profile-card data-profile-modules="{{ profile.modules|join(',') }}" data-profile-run-mode="{{ profile.run_mode }}">
             <input type="radio" name="quality_profile" value="{{ key }}" {% if key == "quick" %}checked{% endif %}>
             <strong>{{ profile.label }}</strong>
             <small>{{ profile.description }}</small>
@@ -183,17 +230,17 @@
       <h3 class="top-gap">Execution Mode</h3>
       <div class="quality-run-mode">
         <label class="quality-card-option">
-          <input type="radio" name="quality_run_mode" value="quick" checked>
+          <input type="radio" name="quality_run_mode" value="quick" checked data-quality-run-mode>
           <strong>Run quick QC now</strong>
           <small>Download selected FASTAs, compute built-in assembly stats, and classify pass/review/fail.</small>
         </label>
         <label class="quality-card-option">
-          <input type="radio" name="quality_run_mode" value="handoff">
+          <input type="radio" name="quality_run_mode" value="handoff" data-quality-run-mode>
           <strong>Generate Nextflow handoff</strong>
           <small>Run quick QC and write PanResistome-style Nextflow command/manifest files for external execution.</small>
         </label>
         <label class="quality-card-option is-external">
-          <input type="radio" name="quality_run_mode" value="nextflow">
+          <input type="radio" name="quality_run_mode" value="nextflow" data-quality-run-mode>
           <strong>Execute with Nextflow</strong>
           <small>Requires server-side Nextflow/tool configuration. The job fails clearly if the external stack is not enabled.</small>
         </label>
@@ -203,7 +250,7 @@
       <div class="quality-module-grid">
         {% for module in quality_modules %}
           <label class="quality-card-option {% if module.key in external_module_keys %}is-external{% endif %}">
-            <input type="checkbox" name="quality_module" value="{{ module.key }}" {% if module.default_enabled %}checked{% endif %}>
+            <input type="checkbox" name="quality_module" value="{{ module.key }}" {% if module.default_enabled %}checked{% endif %} data-quality-module>
             <strong>{{ module.label }}</strong>
             <span>{{ module.category }}</span>
             <small>{{ module.description }}</small>
@@ -254,7 +301,7 @@
         </label>
       </div>
 
-      <div class="summary-box top-gap">
+      <div class="summary-box top-gap quality-runtime-banner">
         <strong>External tool status</strong>
         <p>
           Nextflow execution is
@@ -321,4 +368,43 @@
     </div>
   </section>
 </main>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const managedRuntimeReady = {{ "true" if quality_tool_status.managed_runtime_ready else "false" }};
+    const profileCards = Array.from(document.querySelectorAll("[data-quality-profile-card]"));
+    const moduleInputs = Array.from(document.querySelectorAll("[data-quality-module]"));
+    const runModeInputs = Array.from(document.querySelectorAll("[data-quality-run-mode]"));
+
+    const setRunMode = (mode) => {
+      runModeInputs.forEach((input) => {
+        input.checked = input.value === mode;
+      });
+    };
+
+    const applyProfile = (card) => {
+      const moduleList = (card.getAttribute("data-profile-modules") || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const profileRunMode = card.getAttribute("data-profile-run-mode") || "quick";
+      const targetRunMode = profileRunMode === "handoff" && managedRuntimeReady ? "nextflow" : profileRunMode;
+      moduleInputs.forEach((input) => {
+        input.checked = moduleList.includes(input.value);
+      });
+      setRunMode(targetRunMode);
+    };
+
+    profileCards.forEach((card) => {
+      const radio = card.querySelector("input[type='radio']");
+      if (!radio) {
+        return;
+      }
+      radio.addEventListener("change", () => {
+        if (radio.checked) {
+          applyProfile(card);
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}
