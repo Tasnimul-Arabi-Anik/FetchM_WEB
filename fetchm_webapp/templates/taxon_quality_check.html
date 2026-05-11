@@ -307,11 +307,18 @@
           Nextflow execution is
           <strong>{% if quality_tool_status.nextflow_enabled %}enabled{% else %}disabled{% endif %}</strong>.
           {% if quality_tool_status.managed_runtime_ready %}
-            Managed Conda runtime is ready; external tools run through Nextflow even when they are not on the base PATH.
+            Managed Conda runtime is ready; external tools run through persistent Nextflow/Conda caches even when they are not on the base PATH.
           {% else %}
             Handoff files are still written even when execution is disabled or the managed runtime is incomplete.
           {% endif %}
         </p>
+        {% if quality_tool_status.managed_runtime_ready %}
+          <p class="section-note compact-note">
+            Runtime defaults: {{ quality_tool_status.quality_threads }} general threads,
+            {{ quality_tool_status.checkm2_threads }} CheckM2 threads,
+            profile <code>{{ quality_tool_status.nextflow_profile }}</code>.
+          </p>
+        {% endif %}
         <div class="quality-tool-status">
           {% for tool, available in quality_tool_status.available_tools.items() %}
             {% set managed = quality_tool_status.nextflow_managed_tools.get(tool) %}
@@ -326,8 +333,18 @@
         {% if quality_tool_status.checkm2_db_dir %}
           <p class="section-note compact-note">
             CheckM2 database:
-            {% if quality_tool_status.checkm2_db_dir_exists %}ready{% else %}not downloaded yet{% endif %}
-            at {{ quality_tool_status.checkm2_db_dir }}.
+            {% if quality_tool_status.checkm2_db_exists %}
+              prefetched file ready at {{ quality_tool_status.checkm2_db }}.
+            {% elif quality_tool_status.checkm2_db_dir_exists %}
+              cache directory ready at {{ quality_tool_status.checkm2_db_dir }}.
+            {% else %}
+              not downloaded yet.
+            {% endif %}
+          </p>
+        {% endif %}
+        {% if quality_tool_status.conda_env_cache_dir %}
+          <p class="section-note compact-note">
+            Conda environments are reused from {{ quality_tool_status.conda_env_cache_dir }}.
           </p>
         {% endif %}
       </div>

@@ -14,6 +14,8 @@ from .schemas import QUALITY_MODULES
 EXTERNAL_TOOL_DIR = Path(__file__).resolve().parent
 DEFAULT_NEXTFLOW_REPO = "Tasnimul-Arabi-Anik/PanResistome"
 DEFAULT_NEXTFLOW_CONFIG = EXTERNAL_TOOL_DIR / "panresistome_qc" / "fetchm_web_qc.config"
+DEFAULT_QUALITY_THREADS = "32"
+DEFAULT_CHECKM2_THREADS = "16"
 
 
 def _path_exists(value: str) -> bool:
@@ -48,10 +50,12 @@ def quality_tool_status() -> dict[str, Any]:
     nextflow_enabled = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED", "").strip().lower() in {"1", "true", "yes", "on"}
     workflow = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW", DEFAULT_NEXTFLOW_REPO).strip() or DEFAULT_NEXTFLOW_REPO
     nextflow_config = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG", str(DEFAULT_NEXTFLOW_CONFIG)).strip()
-    nextflow_profile = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE", "conda,lowmem").strip() or "conda,lowmem"
+    nextflow_profile = os.environ.get("FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE", "conda").strip() or "conda"
     checkm2_db = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_DB", "").strip()
     checkm2_db_dir = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR", "").strip()
     gtdbtk_data_path = os.environ.get("FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH", "").strip()
+    quality_threads = os.environ.get("FETCHM_WEBAPP_QUALITY_THREADS", DEFAULT_QUALITY_THREADS).strip() or DEFAULT_QUALITY_THREADS
+    checkm2_threads = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS", DEFAULT_CHECKM2_THREADS).strip() or DEFAULT_CHECKM2_THREADS
     nextflow_syntax_parser = os.environ.get("NXF_SYNTAX_PARSER", "v1").strip() or "v1"
     conda_env_cache_dir = os.environ.get("NXF_CONDA_CACHEDIR", "").strip()
     workflow_exists = Path(workflow).exists() if workflow.startswith("/") else None
@@ -81,6 +85,8 @@ def quality_tool_status() -> dict[str, Any]:
         "nextflow_config_exists": nextflow_config_exists,
         "nextflow_profile": nextflow_profile,
         "nextflow_syntax_parser": nextflow_syntax_parser,
+        "quality_threads": quality_threads,
+        "checkm2_threads": checkm2_threads,
         "checkm2_db": checkm2_db,
         "checkm2_db_exists": _path_exists(checkm2_db),
         "checkm2_db_dir": checkm2_db_dir,
@@ -177,9 +183,9 @@ def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str,
         "--sequence_qc_engine",
         "python",
         "--threads",
-        os.environ.get("FETCHM_WEBAPP_QUALITY_THREADS", "4"),
+        os.environ.get("FETCHM_WEBAPP_QUALITY_THREADS", DEFAULT_QUALITY_THREADS),
         "--checkm2_threads",
-        os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS", "1"),
+        os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS", DEFAULT_CHECKM2_THREADS),
     ])
     module_flags = {
         "checkm2": "--run_checkm2",
@@ -194,6 +200,7 @@ def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str,
         command.extend(["--ani_tool", os.environ.get("FETCHM_WEBAPP_QUALITY_ANI_TOOL", "skani")])
     if status.get("checkm2_db"):
         command.extend(["--checkm2_db", str(status["checkm2_db"])])
+        command.extend(["--checkm2_auto_download_db", "false"])
     elif status.get("checkm2_db_dir"):
         command.extend(["--checkm2_db_dir", str(status["checkm2_db_dir"])])
         command.extend(["--checkm2_auto_download_db", "true"])
