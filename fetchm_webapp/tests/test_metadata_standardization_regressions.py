@@ -201,8 +201,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             output_dir = root / "outputs"
             qc_dir = output_dir / "sequence_qc"
             master_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "qc"
+            ani_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "ani" / "analysis"
+            mash_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "mash" / "analysis"
             qc_dir.mkdir(parents=True)
             master_dir.mkdir(parents=True)
+            ani_dir.mkdir(parents=True)
+            mash_dir.mkdir(parents=True)
 
             input_path.write_text(
                 "\n".join(
@@ -218,9 +222,44 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             (master_dir / "qc_master_report.csv").write_text(
                 "\n".join(
                     [
-                        "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
-                        "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,PASS,,",
-                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,FAIL,CheckM2 completeness below threshold,",
+                        "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,ani_closest_ani,ani_species_consistency_status,ani_cluster,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
+                        "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,99.98,PASS,ANI_CLUSTER_0001,PASS,,",
+                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,94.1,WARN,ANI_CLUSTER_0002,FAIL,CheckM2 completeness below threshold,",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (ani_dir / "panr2_ani_summary.csv").write_text(
+                "\n".join(
+                    [
+                        "sample_id,assembly_accession,database,feature_id,feature_category,presence,tool",
+                        "GCF_000001.1_ASM1,GCF_000001.1_ASM1,ani,ANI_CLUSTER_0001,ani_cluster,1,skani",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (ani_dir / "ani_run_status.tsv").write_text(
+                "tool\tgenome_count\testimated_comparisons\tstrategy\tstatus\tmessage\n"
+                "skani\t2\t4\tauto\tPASS\tRunning all-vs-all ANI.\n",
+                encoding="utf-8",
+            )
+            (mash_dir / "closest_mash_neighbor.csv").write_text(
+                "\n".join(
+                    [
+                        "query,reference,mash_distance,p_value,matching_hashes",
+                        "GCF_000001.1_ASM1_genomic,GCF_000002.1_ASM2_genomic,0.001,0,950/1000",
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            (mash_dir / "mash_distance_long.csv").write_text(
+                "\n".join(
+                    [
+                        "query,reference,mash_distance,p_value,matching_hashes",
+                        "GCF_000001.1_ASM1_genomic,GCF_000001.1_ASM1_genomic,0,0,1000/1000",
                     ]
                 )
                 + "\n",
@@ -233,6 +272,14 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(result["pass"], 1)
             self.assertEqual(result["fail"], 1)
             self.assertTrue((qc_dir / "external_qc_master_report.csv").exists())
+            self.assertTrue((qc_dir / "external_ani_summary.csv").exists())
+            self.assertTrue((qc_dir / "external_ani_run_status.tsv").exists())
+            self.assertTrue((qc_dir / "external_mash_closest_neighbors.csv").exists())
+            self.assertTrue((qc_dir / "external_mash_distance_long.csv").exists())
+            decisions = (qc_dir / "qc_decisions.csv").read_text(encoding="utf-8")
+            self.assertIn("ANI_Closest_ANI", decisions)
+            self.assertIn("Mash_Distance", decisions)
+            self.assertIn("0.001", decisions)
             self.assertIn("GCF_000001.1", (qc_dir / "qc_pass_metadata.csv").read_text(encoding="utf-8"))
             self.assertIn("CheckM2 completeness below threshold", (qc_dir / "qc_failed_metadata.csv").read_text(encoding="utf-8"))
 

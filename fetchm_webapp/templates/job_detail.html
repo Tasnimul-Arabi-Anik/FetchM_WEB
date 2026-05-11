@@ -79,7 +79,7 @@
 
   .qc-preview-row {
     display: grid;
-    grid-template-columns: minmax(160px, 1.1fr) 86px repeat(4, minmax(80px, 0.6fr)) minmax(140px, 1fr);
+    grid-template-columns: minmax(150px, 1.1fr) 82px repeat(4, minmax(72px, 0.55fr)) repeat(2, minmax(70px, 0.55fr)) minmax(130px, 1fr);
     gap: 10px;
     align-items: center;
     padding: 10px 12px;
@@ -295,6 +295,8 @@
                 <span>Contamination</span>
                 <span>N50</span>
                 <span>Contigs</span>
+                <span>ANI</span>
+                <span>Mash</span>
                 <span>Reason</span>
               </div>
               {% for row in quality_check_assets.decision_preview %}
@@ -305,6 +307,8 @@
                   <span>{{ row.contamination or "—" }}</span>
                   <span>{{ row.n50 or "—" }}</span>
                   <span>{{ row.contigs or "—" }}</span>
+                  <span>{{ row.ani or "—" }}</span>
+                  <span>{{ row.mash or "—" }}</span>
                   <span>{{ row.reasons or "—" }}</span>
                 </div>
               {% endfor %}
@@ -373,6 +377,50 @@
                 <span>Imported PanResistome/Nextflow QC master table used for final pass/review/fail decisions.</span>
                 <span>
                   <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.external_master_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.ani_summary_path %}
+              <div class="coverage-row">
+                <strong>ANI cluster summary</strong>
+                <span>PanResistome/skani or FastANI cluster handoff table for species-consistency and duplicate review.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.ani_summary_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.ani_run_status_path %}
+              <div class="coverage-row">
+                <strong>ANI run status</strong>
+                <span>Records whether all-vs-all ANI ran, skipped, or used large-dataset safeguards.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.ani_run_status_path) }}">
+                    Download TSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.mash_closest_path %}
+              <div class="coverage-row">
+                <strong>Mash nearest-neighbor summary</strong>
+                <span>Fast sketch-distance screen for outlier and duplicate triage before downstream analysis.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.mash_closest_path) }}">
+                    Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.mash_distance_path %}
+              <div class="coverage-row">
+                <strong>Mash distance matrix</strong>
+                <span>Long-format pairwise Mash distances for the selected QC genome set.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.mash_distance_path) }}">
                     Download CSV
                   </a>
                 </span>

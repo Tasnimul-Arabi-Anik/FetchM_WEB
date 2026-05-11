@@ -1,3 +1,13 @@
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["fetchm_webapp/tests"]
+pythonpath = ["fetchm_webapp"]
+norecursedirs = [
+    ".git",
+    ".pytest_cache",
+    "__pycache__",
+    "fetchm_webapp/data",
+]

@@ -14315,6 +14315,36 @@ def latest_nextflow_qc_master_report(output_dir: Path) -> Path | None:
     return max(candidates, key=lambda path: path.stat().st_mtime)
 
 
+def latest_nextflow_qc_report(output_dir: Path, *relative_parts: str) -> Path | None:
+    root = output_dir / "nextflow_qc"
+    if not root.exists() or not relative_parts:
+        return None
+    suffix = tuple(relative_parts)
+    candidates = [path for path in root.rglob(relative_parts[-1]) if path.is_file() and path.parts[-len(suffix) :] == suffix]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda path: path.stat().st_mtime)
+
+
+def qc_sequence_lookup_keys(*values: Any) -> set[str]:
+    keys: set[str] = set()
+    for value in values:
+        text = normalize_metadata_value(value)
+        if not text:
+            continue
+        name = Path(text).name
+        variants = {text, name}
+        lowered = name.lower()
+        for suffix in [".fna.gz", ".fa.gz", ".fasta.gz", ".fna", ".fa", ".fasta"]:
+            if lowered.endswith(suffix):
+                variants.add(name[: -len(suffix)])
+                break
+        for variant in variants:
+            if variant:
+                keys.add(variant)
+    return keys
+
+
 def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path) -> dict[str, Any] | None:
     master_report = latest_nextflow_qc_master_report(output_dir)
     if master_report is None:
@@ -14324,6 +14354,40 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
     external_frame = pd.read_csv(master_report, dtype=str).fillna("")
     if external_frame.empty:
         return None
+
+    optional_report_sources = {
+        "ani_summary": latest_nextflow_qc_report(output_dir, "ani", "analysis", "panr2_ani_summary.csv"),
+        "ani_run_status": latest_nextflow_qc_report(output_dir, "ani", "analysis", "ani_run_status.tsv"),
+        "ani_closest_genome": latest_nextflow_qc_report(output_dir, "ani", "analysis", "closest_genome.csv"),
+        "mash_closest_neighbors": latest_nextflow_qc_report(output_dir, "mash", "analysis", "closest_mash_neighbor.csv"),
+        "mash_distance_long": latest_nextflow_qc_report(output_dir, "mash", "analysis", "mash_distance_long.csv"),
+    }
+    optional_report_targets = {
+        "ani_summary": "external_ani_summary.csv",
+        "ani_run_status": "external_ani_run_status.tsv",
+        "ani_closest_genome": "external_ani_closest_genome.csv",
+        "mash_closest_neighbors": "external_mash_closest_neighbors.csv",
+        "mash_distance_long": "external_mash_distance_long.csv",
+    }
+    copied_optional_reports: dict[str, str] = {}
+    for key, source_path in optional_report_sources.items():
+        if source_path is None:
+            continue
+        target_path = qc_dir / optional_report_targets[key]
+        shutil.copy2(source_path, target_path)
+        copied_optional_reports[key] = str(target_path.relative_to(output_dir))
+
+    mash_lookup: dict[str, dict[str, Any]] = {}
+    mash_report = optional_report_sources.get("mash_closest_neighbors")
+    if mash_report is not None:
+        try:
+            mash_frame = pd.read_csv(mash_report, dtype=str).fillna("")
+            for _, mash_row in mash_frame.iterrows():
+                row_dict = {str(key): value for key, value in mash_row.to_dict().items()}
+                for lookup_key in qc_sequence_lookup_keys(row_dict.get("query")):
+                    mash_lookup[lookup_key] = row_dict
+        except (OSError, pd.errors.EmptyDataError, ValueError):
+            mash_lookup = {}
 
     source_lookup: dict[str, dict[str, Any]] = {}
     for _, row in source_frame.iterrows():
@@ -14366,6 +14430,8 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
                 first_nonempty_value(external_row, "combined_qc_warning_reasons"),
                 first_nonempty_value(external_row, "sequence_qc_warning_reasons"),
                 first_nonempty_value(external_row, "checkm2_qc_warning_reasons"),
+                first_nonempty_value(external_row, "ani_qc_warning_reasons"),
+                first_nonempty_value(external_row, "mash_qc_warning_reasons"),
             ]
             if value
         )
@@ -14381,6 +14447,12 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
         ambiguous_n_percent = ""
         if ambiguous_bases is not None and total_bp_number:
             ambiguous_n_percent = round((ambiguous_bases / total_bp_number) * 100, 4)
+
+        mash_row: dict[str, Any] = {}
+        for lookup_key in qc_sequence_lookup_keys(accession, sequence_file, external_row.get("sequence_accession")):
+            if lookup_key in mash_lookup:
+                mash_row = mash_lookup[lookup_key]
+                break
 
         decision = {
             "Assembly Accession": accession,
@@ -14403,6 +14475,16 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             "CheckM2_Coding_Density": first_nonempty_value(external_row, "checkm2_coding_density"),
             "QUAST_Largest_Contig": first_nonempty_value(external_row, "quast_largest_contig"),
             "QUAST_Ns_Per_100kbp": first_nonempty_value(external_row, "quast_ns_per_100kbp"),
+            "ANI_Closest_Genome": first_nonempty_value(external_row, "ani_closest_genome"),
+            "ANI_Closest_ANI": first_nonempty_value(external_row, "ani_closest_ani"),
+            "ANI_Species_Consistency_Status": first_nonempty_value(external_row, "ani_species_consistency_status"),
+            "ANI_Cluster": first_nonempty_value(external_row, "ani_cluster"),
+            "ANI_Cluster_Representative": first_nonempty_value(external_row, "ani_cluster_representative"),
+            "ANI_Cluster_Size": first_nonempty_value(external_row, "ani_cluster_size"),
+            "Mash_Closest_Genome": first_nonempty_value(mash_row, "reference"),
+            "Mash_Distance": first_nonempty_value(mash_row, "mash_distance"),
+            "Mash_P_Value": first_nonempty_value(mash_row, "p_value"),
+            "Mash_Matching_Hashes": first_nonempty_value(mash_row, "matching_hashes"),
         }
         decision_rows.append(decision)
         enriched_rows.append({**merged, **external_row, **decision})
@@ -14447,6 +14529,7 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
         "pass_frame": pass_frame,
         "review_frame": review_frame,
         "fail_frame": fail_frame,
+        "optional_reports": copied_optional_reports,
     }
 
 
@@ -14643,6 +14726,7 @@ def run_sequence_quality_checks(
         "qc_decision_source": "nextflow" if external_qc_import else "built_in",
         "external_qc_imported": bool(external_qc_import),
         "external_qc_master_report": external_qc_import["master_report"] if external_qc_import else "",
+        "external_optional_reports": external_qc_import.get("optional_reports", {}) if external_qc_import else {},
     }
     report_lines = [
         "# FetchM Web Sequence Quality Check",
@@ -14681,6 +14765,12 @@ def run_sequence_quality_checks(
             "",
         ]
     )
+    optional_reports = summary.get("external_optional_reports") or {}
+    if optional_reports:
+        report_lines.extend(["## External Comparative QC Reports", ""])
+        for key, relative_path in optional_reports.items():
+            report_lines.append(f"- `{key}`: `{relative_path}`")
+        report_lines.append("")
     report_lines.extend(
         [
             "## Thresholds",
@@ -15047,6 +15137,10 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
     failed_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_failed_metadata.csv"), None)
     enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
     external_master_path = next((path for path in output_files if path == "sequence_qc/external_qc_master_report.csv"), None)
+    ani_summary_path = next((path for path in output_files if path == "sequence_qc/external_ani_summary.csv"), None)
+    ani_run_status_path = next((path for path in output_files if path == "sequence_qc/external_ani_run_status.tsv"), None)
+    mash_closest_path = next((path for path in output_files if path == "sequence_qc/external_mash_closest_neighbors.csv"), None)
+    mash_distance_path = next((path for path in output_files if path == "sequence_qc/external_mash_distance_long.csv"), None)
     external_manifest_path = next((path for path in output_files if path == "external_tools/quality_check/quality_check_manifest.json"), None)
     nextflow_command_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_command.sh"), None)
     nextflow_log_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_execution.log"), None)
@@ -15073,6 +15167,9 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
                         "contamination": normalize_metadata_value(row_dict.get("CheckM contamination")),
                         "n50": normalize_metadata_value(row_dict.get("QC_n50")),
                         "contigs": normalize_metadata_value(row_dict.get("QC_contig_count")),
+                        "ani": normalize_metadata_value(row_dict.get("ANI_Closest_ANI"))
+                        or normalize_metadata_value(row_dict.get("ANI_Species_Consistency_Status")),
+                        "mash": normalize_metadata_value(row_dict.get("Mash_Distance")),
                         "reasons": normalize_metadata_value(row_dict.get("Sequence_QC_Failure_Reasons"))
                         or normalize_metadata_value(row_dict.get("Sequence_QC_Review_Reasons")),
                     }
@@ -15089,6 +15186,10 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "failed_metadata_path": failed_metadata_path,
         "enriched_metadata_path": enriched_metadata_path,
         "external_master_path": external_master_path,
+        "ani_summary_path": ani_summary_path,
+        "ani_run_status_path": ani_run_status_path,
+        "mash_closest_path": mash_closest_path,
+        "mash_distance_path": mash_distance_path,
         "external_manifest_path": external_manifest_path,
         "nextflow_command_path": nextflow_command_path,
         "nextflow_log_path": nextflow_log_path,
