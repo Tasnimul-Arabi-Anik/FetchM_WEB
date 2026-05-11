@@ -79,14 +79,35 @@
 
   .qc-preview-row {
     display: grid;
-    grid-template-columns: minmax(150px, 1.1fr) 82px repeat(4, minmax(72px, 0.55fr)) repeat(2, minmax(70px, 0.55fr)) minmax(130px, 1fr);
-    gap: 10px;
+    grid-template-columns: minmax(140px, 1fr) 82px minmax(150px, 0.9fr) minmax(130px, 0.8fr) minmax(160px, 1.2fr);
+    gap: 12px;
     align-items: center;
     padding: 10px 12px;
     border-radius: 14px;
     border: 1px solid var(--line);
     background: rgba(255, 255, 255, 0.66);
     font-size: 0.92rem;
+  }
+
+  .qc-preview-cell {
+    min-width: 0;
+  }
+
+  .qc-preview-cell strong,
+  .qc-preview-cell span {
+    display: block;
+  }
+
+  .qc-preview-cell small {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+  }
+
+  .qc-reason-cell {
+    overflow-wrap: anywhere;
   }
 
   .qc-preview-row.header {
@@ -121,6 +142,39 @@
     color: var(--danger);
   }
 
+  .job-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .job-collapsible {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.62);
+    overflow: hidden;
+  }
+
+  .job-collapsible + .job-collapsible {
+    margin-top: 12px;
+  }
+
+  .job-collapsible summary {
+    cursor: pointer;
+    padding: 14px 16px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .job-collapsible-body {
+    padding: 0 16px 16px;
+  }
+
+  .job-collapsible pre {
+    max-height: 320px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
   @media (max-width: 980px) {
     .qc-result-head,
     .qc-preview-row {
@@ -132,8 +186,19 @@
   <section class="panel detail-head">
     <div>
       <p class="eyebrow">Job {{ job.id }}</p>
-      <h1>{{ job.mode }} submission</h1>
-      <p class="lede">{{ job.input_name }}</p>
+      <h1>{% if job.mode == "qc" %}QC submission{% else %}{{ job.mode }} submission{% endif %}</h1>
+      {% if job.mode == "qc" and job.filters and job.filters.get("taxon_name") %}
+        <p class="lede">
+          {{ job.filters.get("taxon_name") }}
+          {% if job.filters.get("taxon_rank") %}<span class="job-meta">({{ job.filters.get("taxon_rank") }})</span>{% endif %}
+          {% if job.filters.get("matched_row_total") is not none %}<span class="job-meta"> · {{ "{:,}".format(job.filters.get("matched_row_total")) }} selected genomes</span>{% endif %}
+        </p>
+        {% if job.filters.get("sequence_filter_sentence") %}
+          <p class="job-meta">{{ job.filters.get("sequence_filter_sentence") }}</p>
+        {% endif %}
+      {% else %}
+        <p class="lede">{{ job.input_name }}</p>
+      {% endif %}
       {% if job.mode == "qc" and job.filters and job.filters.get("taxon_id") %}
         <p class="detail-backlink">
           <a class="ghost-link" href="{{ url_for('taxon_quality_check', species_id=job.filters.get('taxon_id')) }}">Go back to Quality Check Page</a>
@@ -190,13 +255,21 @@
     </div>
   </section>
 
-  <section class="grid">
+  <section class="grid job-detail-grid">
     <section class="panel">
-      <h2>Command</h2>
-      <pre>{{ " ".join(job.command) }}</pre>
+      <details class="job-collapsible">
+        <summary>Command</summary>
+        <div class="job-collapsible-body">
+          <pre>{{ " ".join(job.command) }}</pre>
+        </div>
+      </details>
       {% if job.filters %}
-        <h2>Filters</h2>
-        <pre>{{ job.filters | tojson(indent=2) }}</pre>
+        <details class="job-collapsible">
+          <summary>Filters</summary>
+          <div class="job-collapsible-body">
+            <pre>{{ job.filters | tojson(indent=2) }}</pre>
+          </div>
+        </details>
       {% endif %}
       {% if job.status == "running" %}
         <form action="{{ url_for('cancel_job', job_id=job.id) }}" method="post">
@@ -291,31 +364,38 @@
               <div class="qc-preview-row header">
                 <span>Assembly</span>
                 <span>Status</span>
-                <span>Completeness</span>
-                <span>Contamination</span>
-                <span>N50</span>
-                <span>Contigs</span>
-                <span>ANI</span>
-                <span>Mash</span>
+                <span>CheckM2</span>
+                <span>Assembly</span>
+                <span>ANI / Mash</span>
                 <span>Reason</span>
               </div>
               {% for row in quality_check_assets.decision_preview %}
                 <div class="qc-preview-row">
-                  <span>{{ row.accession or row.assembly_name or "—" }}</span>
+                  <span class="qc-preview-cell">{{ row.accession or row.assembly_name or "—" }}</span>
                   <span><span class="qc-status {{ row.status }}">{{ row.status }}</span></span>
-                  <span>{{ row.completeness or "—" }}</span>
-                  <span>{{ row.contamination or "—" }}</span>
-                  <span>{{ row.n50 or "—" }}</span>
-                  <span>{{ row.contigs or "—" }}</span>
-                  <span>{{ row.ani or "—" }}</span>
-                  <span>{{ row.mash or "—" }}</span>
-                  <span>{{ row.reasons or "—" }}</span>
+                  <span class="qc-preview-cell">
+                    <strong>{{ row.completeness or "—" }}% complete</strong>
+                    <small>{{ row.contamination or "—" }}% contamination</small>
+                  </span>
+                  <span class="qc-preview-cell">
+                    <strong>N50 {{ row.n50 or "—" }}</strong>
+                    <small>{{ row.contigs or "—" }} contigs</small>
+                  </span>
+                  <span class="qc-preview-cell">
+                    <strong>ANI: {{ row.ani or "not reported" }}</strong>
+                    {% if row.ani_note %}<small>{{ row.ani_note }}</small>{% endif %}
+                    <strong>Mash: {{ row.mash or "not reported" }}</strong>
+                    {% if row.mash_note %}<small>{{ row.mash_note }}</small>{% endif %}
+                  </span>
+                  <span class="qc-preview-cell qc-reason-cell">{{ row.reasons or "—" }}</span>
                 </div>
               {% endfor %}
             </div>
           {% endif %}
 
-          <div class="coverage-table">
+          <details class="job-collapsible">
+            <summary>Output files</summary>
+            <div class="job-collapsible-body coverage-table">
             {% if quality_check_assets.bundle_path %}
               <div class="coverage-row">
                 <strong>Quality result ZIP</strong>
@@ -481,7 +561,8 @@
                 </span>
               </div>
             {% endif %}
-          </div>
+            </div>
+          </details>
         </div>
       {% endif %}
       {% if grouped_output_summary %}

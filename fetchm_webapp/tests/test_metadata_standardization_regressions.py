@@ -11,12 +11,22 @@ from app import (
     ensure_managed_metadata_schema,
     extract_country,
     import_nextflow_qc_outputs,
+    dedupe_reason_text,
     should_expose_output_file,
     standardize_host_metadata,
 )
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_qc_reason_text_is_deduplicated(self) -> None:
+        self.assertEqual(
+            dedupe_reason_text(
+                "min_completeness:87.48<90;min_completeness:87.48<90",
+                " min_completeness:87.48<90 ",
+            ),
+            "min_completeness:87.48<90",
+        )
+
     def test_cancelled_running_job_reconciles_when_worker_claim_is_gone(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

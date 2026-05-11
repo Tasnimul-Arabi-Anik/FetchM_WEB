@@ -14387,6 +14387,25 @@ def normalize_qc_decision_status(status: Any, fail_reasons: str = "", warning_re
     return "pass"
 
 
+def dedupe_reason_text(*values: Any) -> str:
+    reasons: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = normalize_metadata_value(value)
+        if not text:
+            continue
+        for part in text.split(";"):
+            reason = part.strip()
+            if not reason:
+                continue
+            key = re.sub(r"\s+", " ", reason).lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            reasons.append(reason)
+    return "; ".join(reasons)
+
+
 def latest_nextflow_qc_master_report(output_dir: Path) -> Path | None:
     root = output_dir / "nextflow_qc"
     if not root.exists():
@@ -14492,30 +14511,22 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
         source_row = source_lookup.get(f"accession:{accession}") or source_lookup.get(f"file:{sequence_file}") or {}
         merged = {**source_row}
 
-        failure_reasons = "; ".join(
-            value
-            for value in [
-                first_nonempty_value(external_row, "qc_master_fail_reasons"),
-                first_nonempty_value(external_row, "combined_qc_fail_reasons"),
-                first_nonempty_value(external_row, "sequence_qc_fail_reasons"),
-                first_nonempty_value(external_row, "checkm2_qc_fail_reasons"),
-                first_nonempty_value(external_row, "quast_qc_fail_reasons"),
-                first_nonempty_value(external_row, "ani_qc_fail_reasons"),
-                first_nonempty_value(external_row, "mash_qc_fail_reasons"),
-            ]
-            if value
+        failure_reasons = dedupe_reason_text(
+            first_nonempty_value(external_row, "qc_master_fail_reasons"),
+            first_nonempty_value(external_row, "combined_qc_fail_reasons"),
+            first_nonempty_value(external_row, "sequence_qc_fail_reasons"),
+            first_nonempty_value(external_row, "checkm2_qc_fail_reasons"),
+            first_nonempty_value(external_row, "quast_qc_fail_reasons"),
+            first_nonempty_value(external_row, "ani_qc_fail_reasons"),
+            first_nonempty_value(external_row, "mash_qc_fail_reasons"),
         )
-        warning_reasons = "; ".join(
-            value
-            for value in [
-                first_nonempty_value(external_row, "qc_master_warning_reasons"),
-                first_nonempty_value(external_row, "combined_qc_warning_reasons"),
-                first_nonempty_value(external_row, "sequence_qc_warning_reasons"),
-                first_nonempty_value(external_row, "checkm2_qc_warning_reasons"),
-                first_nonempty_value(external_row, "ani_qc_warning_reasons"),
-                first_nonempty_value(external_row, "mash_qc_warning_reasons"),
-            ]
-            if value
+        warning_reasons = dedupe_reason_text(
+            first_nonempty_value(external_row, "qc_master_warning_reasons"),
+            first_nonempty_value(external_row, "combined_qc_warning_reasons"),
+            first_nonempty_value(external_row, "sequence_qc_warning_reasons"),
+            first_nonempty_value(external_row, "checkm2_qc_warning_reasons"),
+            first_nonempty_value(external_row, "ani_qc_warning_reasons"),
+            first_nonempty_value(external_row, "mash_qc_warning_reasons"),
         )
         status = normalize_qc_decision_status(
             first_nonempty_value(external_row, "qc_master_status", "combined_qc_status", "sequence_qc_status"),
@@ -15273,12 +15284,37 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
             summary = json.loads((Path(job.output_dir) / summary_path).read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             summary = {}
+    ani_note = ""
+    if ani_run_status_path:
+        try:
+            ani_status = pd.read_csv(Path(job.output_dir) / ani_run_status_path, sep="\t", dtype=str).fillna("")
+            if not ani_status.empty:
+                status_row = {str(key): value for key, value in ani_status.iloc[0].to_dict().items()}
+                status_value = normalize_metadata_value(status_row.get("status"))
+                message_value = normalize_metadata_value(status_row.get("message"))
+                if status_value.upper() == "SKIPPED":
+                    ani_note = message_value or "ANI skipped"
+        except (OSError, pd.errors.EmptyDataError, ValueError):
+            ani_note = ""
+    mash_note = ""
+    if mash_closest_path:
+        try:
+            mash_frame = pd.read_csv(Path(job.output_dir) / mash_closest_path, dtype=str).fillna("")
+            if mash_frame.empty:
+                mash_note = "No pairwise Mash hits"
+        except (OSError, pd.errors.EmptyDataError, ValueError):
+            mash_note = ""
     decision_preview: list[dict[str, Any]] = []
     if decisions_path:
         try:
             decisions = pd.read_csv(Path(job.output_dir) / decisions_path, dtype=str).fillna("")
             for _, row in decisions.head(8).iterrows():
                 row_dict = {str(key): value for key, value in row.to_dict().items()}
+                ani_value = (
+                    normalize_metadata_value(row_dict.get("ANI_Closest_ANI"))
+                    or normalize_metadata_value(row_dict.get("ANI_Species_Consistency_Status"))
+                )
+                mash_value = normalize_metadata_value(row_dict.get("Mash_Distance"))
                 decision_preview.append(
                     {
                         "accession": normalize_metadata_value(row_dict.get("Assembly Accession")),
@@ -15288,11 +15324,14 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
                         "contamination": normalize_metadata_value(row_dict.get("CheckM contamination")),
                         "n50": normalize_metadata_value(row_dict.get("QC_n50")),
                         "contigs": normalize_metadata_value(row_dict.get("QC_contig_count")),
-                        "ani": normalize_metadata_value(row_dict.get("ANI_Closest_ANI"))
-                        or normalize_metadata_value(row_dict.get("ANI_Species_Consistency_Status")),
-                        "mash": normalize_metadata_value(row_dict.get("Mash_Distance")),
-                        "reasons": normalize_metadata_value(row_dict.get("Sequence_QC_Failure_Reasons"))
-                        or normalize_metadata_value(row_dict.get("Sequence_QC_Review_Reasons")),
+                        "ani": ani_value or ("skipped" if ani_note else ""),
+                        "ani_note": ani_note,
+                        "mash": mash_value or ("no pairs" if mash_note else ""),
+                        "mash_note": mash_note,
+                        "reasons": dedupe_reason_text(
+                            row_dict.get("Sequence_QC_Failure_Reasons"),
+                            row_dict.get("Sequence_QC_Review_Reasons"),
+                        ),
                     }
                 )
         except (OSError, pd.errors.EmptyDataError, ValueError):
