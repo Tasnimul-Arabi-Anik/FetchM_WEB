@@ -498,6 +498,8 @@ class JobRecord:
     error: str | None = None
     filters: dict[str, Any] | None = None
     cancel_requested: bool = False
+    claimed_by: str | None = None
+    claimed_at: str | None = None
 
 
 @dataclass
@@ -6679,6 +6681,8 @@ def row_to_job(row: sqlite3.Row) -> JobRecord:
         error=row["error"],
         filters=json.loads(row["filters_json"]) if row["filters_json"] else None,
         cancel_requested=bool(row["cancel_requested"]),
+        claimed_by=str(row["claimed_by"]) if row["claimed_by"] else None,
+        claimed_at=str(row["claimed_at"]) if row["claimed_at"] else None,
     )
 
 
@@ -7001,8 +7005,8 @@ def save_job(job: JobRecord, db: sqlite3.Connection | None = None) -> None:
         INSERT INTO jobs (
             id, mode, status, created_at, updated_at, input_name, input_path, output_dir, log_path,
             command_json, owner_user_id, owner_username, pid, return_code, error, filters_json,
-            cancel_requested
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            cancel_requested, claimed_by, claimed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             mode = excluded.mode,
             status = excluded.status,
@@ -7019,7 +7023,9 @@ def save_job(job: JobRecord, db: sqlite3.Connection | None = None) -> None:
             return_code = excluded.return_code,
             error = excluded.error,
             filters_json = excluded.filters_json,
-            cancel_requested = excluded.cancel_requested
+            cancel_requested = excluded.cancel_requested,
+            claimed_by = excluded.claimed_by,
+            claimed_at = excluded.claimed_at
         """,
         (
             job.id,
@@ -7039,12 +7045,15 @@ def save_job(job: JobRecord, db: sqlite3.Connection | None = None) -> None:
             job.error,
             json.dumps(job.filters) if job.filters is not None else None,
             int(job.cancel_requested),
+            job.claimed_by,
+            job.claimed_at,
         ),
     )
     connection.commit()
 
 
 def list_jobs_for_user(user_id: int) -> list[JobRecord]:
+    reconcile_cancelled_running_jobs()
     rows = get_db().execute(
         "SELECT * FROM jobs WHERE owner_user_id = ? ORDER BY created_at DESC",
         (user_id,),
@@ -7195,6 +7204,7 @@ def update_problem_report_status(report_id: int, status: str, admin_note: str | 
 
 
 def count_active_jobs_for_user(user_id: int) -> int:
+    reconcile_cancelled_running_jobs()
     row = get_db().execute(
         """
         SELECT COUNT(*)
@@ -7208,6 +7218,7 @@ def count_active_jobs_for_user(user_id: int) -> int:
 
 
 def list_all_jobs() -> list[JobRecord]:
+    reconcile_cancelled_running_jobs()
     rows = get_db().execute("SELECT * FROM jobs ORDER BY created_at DESC").fetchall()
     return [row_to_job(row) for row in rows]
 
@@ -13855,6 +13866,75 @@ def refresh_job(job: JobRecord) -> JobRecord:
     return load_job(job.id)
 
 
+def job_claim_is_live(job: JobRecord) -> bool:
+    if not job.claimed_by:
+        return False
+    return worker_heartbeat_is_live(job.claimed_by)
+
+
+def mark_job_cancelled_after_stale_stop(
+    job: JobRecord,
+    *,
+    reason: str = "Cancelled by user/admin; no active worker claim remains.",
+    db: sqlite3.Connection | None = None,
+) -> bool:
+    now = utc_now()
+    connection = db or get_db()
+    cursor = connection.execute(
+        """
+        UPDATE jobs
+        SET status = 'cancelled',
+            pid = NULL,
+            return_code = 1,
+            error = ?,
+            updated_at = ?,
+            claimed_by = NULL,
+            claimed_at = NULL
+        WHERE id = ?
+          AND status = 'running'
+          AND cancel_requested = 1
+        """,
+        (reason, now, job.id),
+    )
+    if not cursor.rowcount:
+        return False
+    append_job_log(job, f"[{now}] {reason}\n")
+    return True
+
+
+def reconcile_cancelled_running_jobs(worker_name: str | None = None, db: sqlite3.Connection | None = None) -> int:
+    """Mark cancelled running jobs as stopped when no live worker can still be executing them."""
+    connection = db or get_db()
+    rows = connection.execute(
+        """
+        SELECT *
+        FROM jobs
+        WHERE status = 'running'
+          AND cancel_requested = 1
+        """
+    ).fetchall()
+    reconciled = 0
+    for row in rows:
+        job = row_to_job(row)
+        claimed_by = normalize_metadata_value(job.claimed_by)
+        own_returned_claim = bool(worker_name and claimed_by == worker_name)
+        dead_or_missing_claim = not claimed_by or not worker_heartbeat_is_live(claimed_by)
+        if not own_returned_claim and not dead_or_missing_claim:
+            continue
+        if own_returned_claim:
+            reason = (
+                "Cancelled by user/admin; the claiming worker returned to the queue without "
+                "finalizing the job, so the stale running state was reconciled."
+            )
+        else:
+            reason = "Cancelled by user/admin; no live worker claim remains during reconciliation."
+        if mark_job_cancelled_after_stale_stop(job, reason=reason, db=connection):
+            reconciled += 1
+    if reconciled:
+        connection.commit()
+    return reconciled
+
+
 def build_command(mode: str, input_path: Path, output_dir: Path, form: Any) -> tuple[list[str], dict[str, Any]]:
     if mode != "seq":
         raise ValueError(f"Legacy CLI job mode '{mode}' is no longer supported.")
@@ -14131,6 +14211,8 @@ def finalize_integrated_sequence_job(
 ) -> None:
     latest = load_job(job.id)
     latest.pid = None
+    latest.claimed_by = None
+    latest.claimed_at = None
     latest.return_code = return_code
     latest.updated_at = utc_now()
     if latest.cancel_requested and cancellation_honored:
@@ -14815,6 +14897,8 @@ def run_sequence_quality_checks(
 def finalize_quality_job(job: JobRecord, *, return_code: int, cancellation_honored: bool = False) -> None:
     latest = load_job(job.id)
     latest.pid = None
+    latest.claimed_by = None
+    latest.claimed_at = None
     latest.return_code = return_code
     latest.updated_at = utc_now()
     if latest.cancel_requested and cancellation_honored:
@@ -14910,7 +14994,18 @@ def request_job_cancellation(job: JobRecord) -> JobRecord:
     if latest.status == "queued":
         latest.status = "cancelled"
         latest.pid = None
+        latest.claimed_by = None
+        latest.claimed_at = None
     save_job(latest)
+    if latest.status == "running" and not job_claim_is_live(latest):
+        with get_sqlite_connection() as db:
+            mark_job_cancelled_after_stale_stop(
+                latest,
+                reason="Cancelled by user/admin; no live worker claim was found at cancellation time.",
+                db=db,
+            )
+            db.commit()
+        return load_job(job.id)
     return latest
 
 
@@ -14969,6 +15064,8 @@ def run_worker_loop() -> None:
             if now - last_heartbeat >= WORKER_HEARTBEAT_SECONDS:
                 touch_worker_heartbeat(worker_name)
                 last_heartbeat = now
+            with get_sqlite_connection() as db:
+                reconcile_cancelled_running_jobs(worker_name, db)
             if WORKER_MODE in {"all", "sync"}:
                 with get_sqlite_connection() as db:
                     catalog_build_schedule_hours = catalog_build_hours(db)

@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import app as fetchm_app
 from app import (
     broad_standardization_category,
     build_quality_config,
@@ -16,6 +17,88 @@ from app import (
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_cancelled_running_job_reconciles_when_worker_claim_is_gone(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    job = fetchm_app.JobRecord(
+                        id="stale-cancel",
+                        mode="qc",
+                        status="running",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="input.csv",
+                        input_path=str(root / "input.csv"),
+                        output_dir=str(root / "outputs"),
+                        log_path=str(root / "data" / "jobs" / "stale-cancel" / "job.log"),
+                        command=[],
+                        return_code=None,
+                        cancel_requested=True,
+                        claimed_by="dead-worker:123",
+                        claimed_at=fetchm_app.utc_now(),
+                    )
+                    fetchm_app.save_job(job)
+
+                    self.assertEqual(fetchm_app.reconcile_cancelled_running_jobs(), 1)
+                    updated = fetchm_app.load_job("stale-cancel")
+
+                    self.assertEqual(updated.status, "cancelled")
+                    self.assertEqual(updated.return_code, 1)
+                    self.assertIsNone(updated.claimed_by)
+                    self.assertIn("no live worker claim", updated.error or "")
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_worker_reconciles_own_cancelled_job_after_returning_to_queue(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    worker_name = "live-worker:456"
+                    fetchm_app.touch_worker_heartbeat(worker_name)
+                    job = fetchm_app.JobRecord(
+                        id="own-stale-cancel",
+                        mode="qc",
+                        status="running",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="input.csv",
+                        input_path=str(root / "input.csv"),
+                        output_dir=str(root / "outputs"),
+                        log_path=str(root / "data" / "jobs" / "own-stale-cancel" / "job.log"),
+                        command=[],
+                        return_code=None,
+                        cancel_requested=True,
+                        claimed_by=worker_name,
+                        claimed_at=fetchm_app.utc_now(),
+                    )
+                    fetchm_app.save_job(job)
+
+                    self.assertEqual(fetchm_app.reconcile_cancelled_running_jobs(), 0)
+                    self.assertEqual(fetchm_app.reconcile_cancelled_running_jobs(worker_name), 1)
+                    updated = fetchm_app.load_job("own-stale-cancel")
+
+                    self.assertEqual(updated.status, "cancelled")
+                    self.assertIsNone(updated.claimed_by)
+                    self.assertIn("claiming worker returned", updated.error or "")
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_geography_false_positive_guards(self) -> None:
         self.assertIsNone(extract_country("Hospital"))
         self.assertIsNone(extract_country("St Margaret's Hospital"))
