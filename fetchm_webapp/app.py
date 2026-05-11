@@ -14267,6 +14267,21 @@ def find_fasta_for_accession(output_dir: Path, accession: str) -> Path | None:
     return matches[0] if matches else None
 
 
+def should_expose_output_file(relative_path: Path) -> bool:
+    parts = relative_path.parts
+    if any(part.startswith(".") for part in parts):
+        return False
+    hidden_prefixes = {
+        ("external_tools", "quality_check", "nextflow_work"),
+        ("external_tools", "quality_check", "local_samples"),
+        ("external_tools", "quality_check", "pipeline_dag.dot"),
+    }
+    for prefix in hidden_prefixes:
+        if parts[: len(prefix)] == prefix:
+            return False
+    return True
+
+
 def first_nonempty_value(row: dict[str, Any], *keys: str) -> str:
     for key in keys:
         value = normalize_metadata_value(row.get(key))
@@ -14577,11 +14592,13 @@ def run_sequence_quality_checks(
         nextflow_log_path = str(nextflow_log.relative_to(output_dir))
         nextflow_env = os.environ.copy()
         nextflow_env.setdefault("NXF_SYNTAX_PARSER", "v1")
+        workflow_path = normalize_metadata_value(tool_status.get("nextflow_workflow"))
+        nextflow_cwd = Path(workflow_path) if workflow_path.startswith("/") and Path(workflow_path).exists() else handoff_dir
         append_job_log(job, f"[{utc_now()}] Starting external Nextflow QC: {shlex.join(handoff_manifest['nextflow_command'])}\n")
         with nextflow_log.open("w", encoding="utf-8") as nextflow_handle:
             result = subprocess.run(
                 handoff_manifest["nextflow_command"],
-                cwd=handoff_dir,
+                cwd=nextflow_cwd,
                 env=nextflow_env,
                 stdout=nextflow_handle,
                 stderr=subprocess.STDOUT,
@@ -14695,8 +14712,12 @@ def run_sequence_quality_checks(
             if not root_dir.exists():
                 continue
             for path in sorted(root_dir.rglob("*")):
-                if path.is_file():
-                    archive.write(path, arcname=str(path.relative_to(output_dir)))
+                if not path.is_file():
+                    continue
+                relative_path = path.relative_to(output_dir)
+                if not should_expose_output_file(relative_path):
+                    continue
+                archive.write(path, arcname=str(relative_path))
 
     return summary
 
@@ -14941,7 +14962,9 @@ def collect_output_files(root: Path) -> list[str]:
     files = []
     for path in sorted(root.rglob("*")):
         if path.is_file():
-            files.append(str(path.relative_to(root)))
+            relative_path = path.relative_to(root)
+            if should_expose_output_file(relative_path):
+                files.append(str(relative_path))
     return files
 
 

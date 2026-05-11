@@ -263,6 +263,11 @@ def build_quality_handoff(job_id: str, input_path: Path, output_dir: Path, confi
     )
     (handoff_dir / "nextflow_command.sh").write_text(
         "#!/usr/bin/env bash\nset -euo pipefail\nexport NXF_SYNTAX_PARSER=\"${NXF_SYNTAX_PARSER:-v1}\"\n"
+        + (
+            f"cd {shlex.quote(str(status['nextflow_workflow']))}\n"
+            if status.get("nextflow_workflow_exists") is True
+            else ""
+        )
         + shlex.join(nextflow_command)
         + "\n",
         encoding="utf-8",

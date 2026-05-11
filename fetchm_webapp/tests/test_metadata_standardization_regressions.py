@@ -10,6 +10,7 @@ from app import (
     ensure_managed_metadata_schema,
     extract_country,
     import_nextflow_qc_outputs,
+    should_expose_output_file,
     standardize_host_metadata,
 )
 
@@ -250,6 +251,13 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(config["run_mode"], "handoff")
         self.assertIn("checkm2", config["selected_modules"])
         self.assertIn("quast", config["selected_modules"])
+
+    def test_internal_nextflow_work_files_are_hidden_from_user_outputs(self) -> None:
+        self.assertFalse(should_expose_output_file(Path("external_tools/quality_check/nextflow_work/aa/bb/.command.sh")))
+        self.assertFalse(should_expose_output_file(Path("external_tools/quality_check/local_samples/fetchm_web_qc/sequence/example.fna")))
+        self.assertFalse(should_expose_output_file(Path("external_tools/quality_check/.nextflow.log")))
+        self.assertTrue(should_expose_output_file(Path("external_tools/quality_check/nextflow_execution.log")))
+        self.assertTrue(should_expose_output_file(Path("sequence_qc/qc_decisions.csv")))
 
 
 if __name__ == "__main__":
