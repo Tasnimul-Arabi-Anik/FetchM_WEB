@@ -14773,6 +14773,20 @@ def run_sequence_quality_checks(
         nextflow_return_code = int(result.returncode)
         append_job_log(job, f"[{utc_now()}] External Nextflow QC finished with return code {nextflow_return_code}.\n")
         if nextflow_return_code != 0:
+            diagnostic = ""
+            try:
+                nextflow_tail = nextflow_log.read_text(encoding="utf-8", errors="ignore").splitlines()[-80:]
+            except OSError:
+                nextflow_tail = []
+            for line in reversed(nextflow_tail):
+                if "Process requirement exceeds available memory" in line:
+                    diagnostic = line.strip()
+                    break
+            if diagnostic:
+                raise RuntimeError(
+                    f"External Nextflow QC failed with return code {nextflow_return_code}: {diagnostic}. "
+                    f"See {nextflow_log_path}."
+                )
             raise RuntimeError(f"External Nextflow QC failed with return code {nextflow_return_code}. See {nextflow_log_path}.")
         external_qc_import = import_nextflow_qc_outputs(input_path, output_dir, qc_dir)
         if external_qc_import:
@@ -14894,13 +14908,21 @@ def run_sequence_quality_checks(
     return summary
 
 
-def finalize_quality_job(job: JobRecord, *, return_code: int, cancellation_honored: bool = False) -> None:
+def finalize_quality_job(
+    job: JobRecord,
+    *,
+    return_code: int,
+    cancellation_honored: bool = False,
+    error_message: str | None = None,
+) -> None:
     latest = load_job(job.id)
     latest.pid = None
     latest.claimed_by = None
     latest.claimed_at = None
     latest.return_code = return_code
     latest.updated_at = utc_now()
+    if error_message:
+        latest.error = error_message
     if latest.cancel_requested and cancellation_honored:
         latest.status = "cancelled"
     else:
@@ -14951,6 +14973,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
     root_logger.setLevel(min(previous_level, logging.INFO) if previous_level else logging.INFO)
     return_code = 0
     cancellation_honored = False
+    error_message: str | None = None
 
     try:
         with contextlib.redirect_stdout(log_handle), contextlib.redirect_stderr(log_handle):
@@ -14975,6 +14998,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
         append_job_log(job, f"[{utc_now()}] Cancellation honored during quality check.\n")
     except Exception as exc:
         return_code = 1
+        error_message = str(exc)
         append_job_log(job, f"[{utc_now()}] Sequence quality check failed: {exc}\n")
     finally:
         root_logger.removeHandler(file_handler)
@@ -14984,7 +15008,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
         log_handle.write(f"\n[{utc_now()}] Job finished with return code {return_code}\n")
         log_handle.close()
 
-    finalize_quality_job(job, return_code=return_code, cancellation_honored=cancellation_honored)
+    finalize_quality_job(job, return_code=return_code, cancellation_honored=cancellation_honored, error_message=error_message)
 
 
 def request_job_cancellation(job: JobRecord) -> JobRecord:
