@@ -406,6 +406,15 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
     def test_public_auth_pages_use_refreshed_fetchm_web_copy(self) -> None:
         client = fetchm_app.app.test_client()
+        home = client.get("/")
+        self.assertEqual(home.status_code, 200)
+        home_html = home.data.decode("utf-8")
+        self.assertIn("Select your target species or genus", home_html)
+        self.assertIn("FetchM automatically standardizes genome metadata", home_html)
+        self.assertIn("10.1093/bioadv/vbag124", home_html)
+        self.assertNotIn("Start with the managed catalog", home_html)
+        self.assertNotIn("Standardized metadata</strong>", home_html)
+
         login = client.get("/login")
         self.assertEqual(login.status_code, 200)
         login_html = login.data.decode("utf-8")
@@ -430,12 +439,19 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         css = Path(fetchm_app.app.root_path, "static", "styles.css").read_text(encoding="utf-8")
         self.assertIn("--accent-bright", css)
         self.assertIn("--radius-xl", css)
-        self.assertIn(".fetchm-capability-grid", css)
         self.assertIn(".auth-unified-panel::after", css)
+        self.assertIn("Aptos Display", css)
 
         base = Path(fetchm_app.app.root_path, "templates", "base.html").read_text(encoding="utf-8")
         self.assertIn("20260512-saas-theme", base)
         self.assertIn(">FetchM Web<", base)
+
+    def test_sequence_pages_require_login_but_metadata_routes_are_public(self) -> None:
+        client = fetchm_app.app.test_client()
+        self.assertEqual(client.get("/api/taxa/search?q=Klebsiella").status_code, 200)
+        sequence = client.get("/taxa/1/sequences", follow_redirects=False)
+        self.assertEqual(sequence.status_code, 302)
+        self.assertIn("/login", sequence.headers.get("Location", ""))
 
     def test_external_profile_without_javascript_does_not_fall_back_to_quick_mode(self) -> None:
         class Form:

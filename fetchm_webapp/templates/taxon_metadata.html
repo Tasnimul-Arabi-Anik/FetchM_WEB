@@ -11,7 +11,9 @@
       <span class="status running">{{ species.taxon_rank }}</span>
       <div class="job-meta">{{ analysis.row_total }} genomes · {{ analysis.column_total }} metadata columns</div>
       <div class="job-meta">Last built: {{ (species.metadata_last_built_at or "unknown")[:10] if species.metadata_last_built_at else "unknown" }}</div>
-      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}">Go to Sequence Download Page</a>
+      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}">
+        {% if g.current_user %}Go to Sequence Download Page{% else %}Sign in for Sequence Download{% endif %}
+      </a>
     </div>
   </section>
 

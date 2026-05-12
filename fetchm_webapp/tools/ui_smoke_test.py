@@ -74,7 +74,7 @@ def main() -> int:
         browser = p.chromium.launch(**launch_options)
         page = browser.new_page(viewport={"width": 1440, "height": 960})
 
-        public_pages = ["/login", "/register", "/forgot-password"]
+        public_pages = ["/", "/login", "/register", "/forgot-password"]
         for path in public_pages:
             page.goto(f"{config.base_url}{path}", wait_until="networkidle")
             _assert_visible(page, "body", path)

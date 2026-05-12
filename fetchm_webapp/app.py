@@ -93,7 +93,19 @@ AUTH_RATE_LIMIT_WINDOW_SECONDS = 15 * 60
 AUTH_RATE_LIMIT_MAX_ATTEMPTS = 10
 MAX_UPLOAD_BYTES = int(os.environ.get("FETCHM_WEBAPP_MAX_UPLOAD_BYTES", str(200 * 1024 * 1024)))
 ALLOWED_UPLOAD_EXTENSIONS = {".csv", ".tsv"}
-PUBLIC_ENDPOINTS = {"login", "register", "forgot_password", "reset_password", "static"}
+PUBLIC_ENDPOINTS = {
+    "login",
+    "register",
+    "forgot_password",
+    "reset_password",
+    "static",
+    "index",
+    "api_taxa_search",
+    "taxon_metadata",
+    "taxon_metadata_section",
+    "download_taxon_metadata",
+    "download_taxon_metadata_bundle",
+}
 _auth_rate_limit_lock = threading.Lock()
 _auth_rate_limit_events: dict[tuple[str, str], list[float]] = {}
 
@@ -16094,8 +16106,7 @@ def logout() -> Any:
 @app.route("/")
 def index() -> str:
     user = g.current_user
-    assert user is not None
-    jobs = list_jobs_for_user(int(user["id"]))
+    jobs = list_jobs_for_user(int(user["id"])) if user is not None else []
     return render_template(
         "index_dashboard.html",
         jobs=jobs,
@@ -16108,8 +16119,6 @@ def index() -> str:
 
 @app.route("/api/taxa/search")
 def api_taxa_search() -> Any:
-    user = g.current_user
-    assert user is not None
     query = normalize_species_name(request.args.get("q") or "")
     if len(query) < 2:
         return app.response_class(json.dumps({"results": []}), mimetype="application/json")
@@ -16145,40 +16154,41 @@ def api_taxa_search() -> Any:
     ]
     seen_names = {species_search_name(item["species_name"]) for item in results}
 
-    metadata_rows = get_db().execute(
-        """
-        SELECT source_taxon_id, source_taxon_name, species_name, genome_count
-        FROM metadata_species_search
-        WHERE search_name LIKE ?
-        ORDER BY
-            CASE WHEN search_name LIKE ? THEN 0 ELSE 1 END,
-            genome_count DESC,
-            species_name COLLATE NOCASE ASC
-        LIMIT 8
-        """,
-        (like_value, starts_value),
-    ).fetchall()
-    for row in metadata_rows:
-        name = str(row["species_name"])
-        key = species_search_name(name)
-        if key in seen_names:
-            continue
-        results.append(
-            {
-                "id": None,
-                "species_name": name,
-                "taxon_rank": "species",
-                "genome_count": int(row["genome_count"] or 0),
-                "assembly_source": "all",
-                "source": "genus_metadata",
-                "source_taxon_id": int(row["source_taxon_id"]),
-                "source_taxon_name": str(row["source_taxon_name"]),
-                "requires_prepare": True,
-            }
-        )
-        seen_names.add(key)
-        if len(results) >= 8:
-            break
+    if g.current_user is not None:
+        metadata_rows = get_db().execute(
+            """
+            SELECT source_taxon_id, source_taxon_name, species_name, genome_count
+            FROM metadata_species_search
+            WHERE search_name LIKE ?
+            ORDER BY
+                CASE WHEN search_name LIKE ? THEN 0 ELSE 1 END,
+                genome_count DESC,
+                species_name COLLATE NOCASE ASC
+            LIMIT 8
+            """,
+            (like_value, starts_value),
+        ).fetchall()
+        for row in metadata_rows:
+            name = str(row["species_name"])
+            key = species_search_name(name)
+            if key in seen_names:
+                continue
+            results.append(
+                {
+                    "id": None,
+                    "species_name": name,
+                    "taxon_rank": "species",
+                    "genome_count": int(row["genome_count"] or 0),
+                    "assembly_source": "all",
+                    "source": "genus_metadata",
+                    "source_taxon_id": int(row["source_taxon_id"]),
+                    "source_taxon_name": str(row["source_taxon_name"]),
+                    "requires_prepare": True,
+                }
+            )
+            seen_names.add(key)
+            if len(results) >= 8:
+                break
 
     return app.response_class(json.dumps({"results": results}), mimetype="application/json")
 
@@ -17314,8 +17324,6 @@ def job_detail(job_id: str) -> str:
 
 
 def render_taxon_metadata_section(species_id: int, section: str) -> str:
-    user = g.current_user
-    assert user is not None
     species = load_species(species_id)
     if species.status != "ready" or not species.tsv_path:
         flash("That taxon is not ready in the managed catalog yet.", "error")
@@ -17327,6 +17335,17 @@ def render_taxon_metadata_section(species_id: int, section: str) -> str:
     if section not in metadata_sections:
         abort(404)
     analysis = load_taxon_metadata_analysis(species)
+    record_audit_event(
+        "metadata.view",
+        target_type="species",
+        target_id=str(species_id),
+        metadata={
+            "section": section,
+            "taxon_name": species.species_name,
+            "taxon_rank": species.taxon_rank,
+            "authenticated": bool(g.current_user),
+        },
+    )
     return render_template(
         "taxon_metadata.html",
         species=species,
@@ -17348,8 +17367,6 @@ def taxon_metadata_section(species_id: int, section: str) -> str:
 
 @app.route("/taxa/<int:species_id>/metadata/download")
 def download_taxon_metadata(species_id: int):
-    user = g.current_user
-    assert user is not None
     species = load_species(species_id)
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Metadata download is not ready for that taxon yet.", "error")
@@ -17361,8 +17378,6 @@ def download_taxon_metadata(species_id: int):
 
 @app.route("/taxa/<int:species_id>/metadata/download-bundle")
 def download_taxon_metadata_bundle(species_id: int):
-    user = g.current_user
-    assert user is not None
     species = load_species(species_id)
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Metadata bundle is not ready for that taxon yet.", "error")

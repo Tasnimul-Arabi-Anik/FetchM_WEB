@@ -34,7 +34,7 @@
 
 body {
   margin: 0;
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-family: "Aptos", "IBM Plex Sans", "Segoe UI Variable", "Segoe UI", sans-serif;
   color: var(--ink);
   background:
     radial-gradient(circle at 8% 8%, rgba(39, 181, 166, 0.22), transparent 26%),
@@ -92,7 +92,7 @@ pre {
   align-items: center;
   gap: 10px;
   font-size: 1.22rem;
-  font-weight: 800;
+  font-weight: 850;
   text-decoration: none;
   letter-spacing: -0.02em;
 }
@@ -222,6 +222,9 @@ pre {
 h1,
 h2 {
   margin-top: 0;
+  font-family: "Aptos Display", "IBM Plex Sans", "Segoe UI Variable", "Segoe UI", sans-serif;
+  font-weight: 850;
+  letter-spacing: -0.045em;
 }
 
 .lede,
@@ -2759,6 +2762,7 @@ a.button-like.ghost {
 .fetchm-intro-lead {
   max-width: 920px;
   line-height: 1.36;
+  font-weight: 700;
 }
 
 .fetchm-inline-stat,
@@ -2773,6 +2777,10 @@ a.button-like.ghost {
 .fetchm-intro-card-stats {
   border-color: rgba(215, 224, 221, 0.94);
   background: rgba(255, 255, 251, 0.9);
+}
+
+.fetchm-workflow-card {
+  gap: 18px;
 }
 
 .fetchm-selection-head {
