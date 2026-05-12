@@ -248,7 +248,7 @@
 
       <h3 class="top-gap">Modules</h3>
       <div class="quality-module-grid">
-        {% set gtdbtk_ready = quality_tool_status.nextflow_managed_tools.get("gtdbtk") or (quality_tool_status.available_tools.get("gtdbtk") and quality_tool_status.gtdbtk_data_path_exists) %}
+        {% set gtdbtk_ready = quality_tool_status.nextflow_managed_tools.get("gtdbtk") or (quality_tool_status.available_tools.get("gtdbtk") and quality_tool_status.gtdbtk_data_ready) %}
         {% for module in quality_modules %}
           <label class="quality-card-option {% if module.key in external_module_keys %}is-external{% endif %}">
             <input
@@ -359,8 +359,10 @@
         {% endif %}
         <p class="section-note compact-note">
           GTDB-Tk database:
-          {% if quality_tool_status.gtdbtk_data_path_exists %}
+          {% if quality_tool_status.gtdbtk_data_ready %}
             ready at {{ quality_tool_status.gtdbtk_data_path }}.
+          {% elif quality_tool_status.gtdbtk_data_path_exists %}
+            path exists but the reference data is incomplete at {{ quality_tool_status.gtdbtk_data_path }}.
           {% else %}
             not configured. Install GTDB-Tk reference data once and set <code>FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH</code> before enabling the module.
           {% endif %}

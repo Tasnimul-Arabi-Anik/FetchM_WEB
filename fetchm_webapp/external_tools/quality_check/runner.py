@@ -38,6 +38,16 @@ def _dir_size_bytes(value: str) -> int | None:
     return total
 
 
+def _gtdbtk_data_ready(value: str) -> bool:
+    if not value:
+        return False
+    path = Path(value)
+    if not path.exists() or not path.is_dir():
+        return False
+    required_entries = ["markers", "masks", "metadata", "mrca_red", "msa", "pplacer", "radii", "taxonomy"]
+    return all((path / entry).exists() for entry in required_entries)
+
+
 def quality_tool_status() -> dict[str, Any]:
     tools = {
         "nextflow": shutil.which("nextflow"),
@@ -58,6 +68,7 @@ def quality_tool_status() -> dict[str, Any]:
     checkm2_threads = os.environ.get("FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS", DEFAULT_CHECKM2_THREADS).strip() or DEFAULT_CHECKM2_THREADS
     nextflow_syntax_parser = os.environ.get("NXF_SYNTAX_PARSER", "v1").strip() or "v1"
     conda_env_cache_dir = os.environ.get("NXF_CONDA_CACHEDIR", "").strip()
+    gtdbtk_data_ready = _gtdbtk_data_ready(gtdbtk_data_path)
     workflow_exists = Path(workflow).exists() if workflow.startswith("/") else None
     nextflow_config_exists = Path(nextflow_config).exists() if nextflow_config else False
     managed_runtime_ready = bool(
@@ -72,7 +83,7 @@ def quality_tool_status() -> dict[str, Any]:
         "quast.py": managed_runtime_ready,
         "skani": managed_runtime_ready,
         "mash": managed_runtime_ready,
-        "gtdbtk": bool(managed_runtime_ready and _path_exists(gtdbtk_data_path)),
+        "gtdbtk": bool(managed_runtime_ready and gtdbtk_data_ready),
     }
     return {
         "nextflow_enabled": nextflow_enabled,
@@ -94,6 +105,7 @@ def quality_tool_status() -> dict[str, Any]:
         "checkm2_db_dir_size_bytes": _dir_size_bytes(checkm2_db_dir),
         "gtdbtk_data_path": gtdbtk_data_path,
         "gtdbtk_data_path_exists": _path_exists(gtdbtk_data_path),
+        "gtdbtk_data_ready": gtdbtk_data_ready,
         "conda_env_cache_dir": conda_env_cache_dir,
         "conda_env_cache_exists": _path_exists(conda_env_cache_dir),
         "tools": tools,
@@ -109,7 +121,7 @@ def gtdbtk_runtime_ready(status: dict[str, Any] | None = None) -> bool:
     return bool(
         (
             status.get("available_tools", {}).get("gtdbtk")
-            and status.get("gtdbtk_data_path_exists")
+            and status.get("gtdbtk_data_ready")
         )
         or status.get("nextflow_managed_tools", {}).get("gtdbtk")
     )
@@ -136,8 +148,8 @@ def validate_quality_runtime(config: dict[str, Any], status: dict[str, Any] | No
 
     if "gtdbtk" in selected_modules and not gtdbtk_runtime_ready(status):
         errors.append(
-            "GTDB-Tk taxonomy check requires a configured GTDB reference directory. "
-            "Set FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH to an existing GTDB-Tk data path."
+            "GTDB-Tk taxonomy check requires a complete configured GTDB reference directory. "
+            "Set FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH to an extracted GTDB-Tk data path."
         )
 
     return errors
