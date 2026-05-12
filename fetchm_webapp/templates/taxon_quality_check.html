@@ -267,7 +267,7 @@
             {% endif %}
             {% if module.key == "gtdbtk" %}
               {% if gtdbtk_ready %}
-                <small>GTDB reference data is configured; this is a heavy taxonomy check.</small>
+                <small>GTDB reference data is configured; this is a heavy taxonomy check. GTDB genus/species labels may differ from NCBI names, so review-first filtering is recommended.</small>
               {% else %}
                 <small>GTDB-Tk is disabled until FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH points to an installed GTDB database.</small>
               {% endif %}
@@ -313,6 +313,20 @@
         <label>
           <span>Retry delay seconds</span>
           <input type="number" step="1" min="1" name="retry_delay" value="5">
+        </label>
+      </div>
+
+      <h3 class="top-gap">QC Filtering Policy</h3>
+      <div class="quality-run-mode">
+        <label class="quality-card-option">
+          <input type="radio" name="qc_filter_mode" value="review_all" checked>
+          <strong>Review all QC results first</strong>
+          <small>Recommended. The job completes even if GTDB-Tk, ANI, Mash, or CheckM2 flags genomes. You can inspect pass/review/fail rows and download clean subsets from the result page.</small>
+        </label>
+        <label class="quality-card-option is-external">
+          <input type="radio" name="qc_filter_mode" value="strict_pass">
+          <strong>Strict pass-only filtering</strong>
+          <small>Use only when you want the external pipeline to remove failing genomes during the run. Very strict taxonomy checks can leave zero genomes if GTDB and NCBI names differ.</small>
         </label>
       </div>
 

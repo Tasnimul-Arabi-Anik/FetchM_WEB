@@ -14,6 +14,8 @@ DEFAULT_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
     "max_mash_distance": None,
 }
 
+DEFAULT_QC_FILTER_MODE = "review_all"
+
 
 @dataclass(frozen=True)
 class QualityModule:
@@ -188,6 +190,10 @@ def build_quality_config(source: Any) -> dict[str, Any]:
     if requested_run_mode == "quick" and profile["key"] != "quick":
         requested_run_mode = profile["run_mode"]
 
+    qc_filter_mode = str(_source_get(source, "qc_filter_mode", DEFAULT_QC_FILTER_MODE) or DEFAULT_QC_FILTER_MODE).strip().lower()
+    if qc_filter_mode not in {"review_all", "strict_pass"}:
+        qc_filter_mode = DEFAULT_QC_FILTER_MODE
+
     thresholds = {
         "min_completeness": _optional_float(source, "qc_min_completeness", DEFAULT_QUALITY_THRESHOLDS["min_completeness"]),
         "max_contamination": _optional_float(source, "qc_max_contamination", DEFAULT_QUALITY_THRESHOLDS["max_contamination"]),
@@ -202,6 +208,8 @@ def build_quality_config(source: Any) -> dict[str, Any]:
         "profile": profile,
         "run_mode": requested_run_mode,
         "selected_modules": selected_modules,
+        "qc_filter_mode": qc_filter_mode,
+        "qc_filter_enabled": qc_filter_mode == "strict_pass",
         "thresholds": thresholds,
         "external_modules": [key for key in selected_modules if key in external_module_keys()],
     }

@@ -14870,6 +14870,7 @@ def run_sequence_quality_checks(
         f"Input: {job.input_name}",
         f"Quality profile: {summary['quality_profile']}",
         f"Run mode: {summary['run_mode']}",
+        f"QC filtering policy: {quality_config.get('qc_filter_mode', 'review_all')}",
         f"QC decision source: {summary['qc_decision_source']}",
         f"Total genomes checked: {summary['total']}",
         f"Passed: {summary['pass']}",
@@ -14999,6 +15000,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
         job,
         f"[{utc_now()}] Quality profile: {(quality_config.get('profile') or {}).get('label', 'Quick QC')}; "
         f"run mode: {quality_config.get('run_mode', 'quick')}; "
+        f"filtering: {quality_config.get('qc_filter_mode', 'review_all')}; "
         f"modules: {', '.join(quality_config.get('selected_modules') or ['quick_fasta'])}.\n",
     )
     namespace = build_integrated_sequence_namespace(job)
@@ -17671,6 +17673,7 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
             "matched_row_total": sequence_dashboard["matched_row_total"],
             "quality_profile": quality_config.get("profile", {}).get("label"),
             "quality_run_mode": quality_config.get("run_mode"),
+            "qc_filter_mode": quality_config.get("qc_filter_mode"),
             "selected_modules": quality_config.get("selected_modules"),
             "quality_thresholds": thresholds,
         },
