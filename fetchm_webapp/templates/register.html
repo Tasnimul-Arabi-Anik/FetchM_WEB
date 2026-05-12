@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <main class="layout auth-layout">
-  <section class="panel auth-panel">
+  <section class="panel auth-panel auth-unified-panel">
     <p class="eyebrow">Create account</p>
-    <h1>Register for fetchM Web</h1>
-    <p class="lede" id="register-help">Each account only sees its own jobs, logs, and outputs.</p>
+    <h1>Register for FetchM Web</h1>
+    <p class="lede" id="register-help">Create a private workspace for metadata analysis, sequence downloads, logs, and results.</p>
     <form action="{{ url_for('register') }}" method="post" class="job-form">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <label for="username">

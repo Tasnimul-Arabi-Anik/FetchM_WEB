@@ -398,10 +398,44 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                 "nextflow_workflow_exists": True,
                 "available_tools": {"gtdbtk": False},
                 "gtdbtk_data_path_exists": False,
+                "gtdbtk_data_ready": False,
                 "nextflow_managed_tools": {"gtdbtk": False},
             },
         )
         self.assertTrue(any("GTDB-Tk" in error for error in errors))
+
+    def test_public_auth_pages_use_refreshed_fetchm_web_copy(self) -> None:
+        client = fetchm_app.app.test_client()
+        login = client.get("/login")
+        self.assertEqual(login.status_code, 200)
+        login_html = login.data.decode("utf-8")
+        self.assertIn("FetchM Web", login_html)
+        self.assertIn("Run metadata analyses, launch sequence downloads", login_html)
+        self.assertNotIn("FetckM", login_html)
+        self.assertNotIn("FetchM WEB", login_html)
+        self.assertIn("Create an account", login_html)
+        self.assertIn("Forgot password?", login_html)
+
+        register = client.get("/register")
+        self.assertEqual(register.status_code, 200)
+        register_html = register.data.decode("utf-8")
+        self.assertIn("Register for FetchM Web", register_html)
+        self.assertIn("private workspace", register_html)
+
+        forgot = client.get("/forgot-password")
+        self.assertEqual(forgot.status_code, 200)
+        self.assertIn("Forgot your password?", forgot.data.decode("utf-8"))
+
+    def test_theme_assets_include_design_tokens_and_cache_bust(self) -> None:
+        css = Path(fetchm_app.app.root_path, "static", "styles.css").read_text(encoding="utf-8")
+        self.assertIn("--accent-bright", css)
+        self.assertIn("--radius-xl", css)
+        self.assertIn(".fetchm-capability-grid", css)
+        self.assertIn(".auth-unified-panel::after", css)
+
+        base = Path(fetchm_app.app.root_path, "templates", "base.html").read_text(encoding="utf-8")
+        self.assertIn("20260512-saas-theme", base)
+        self.assertIn(">FetchM Web<", base)
 
     def test_external_profile_without_javascript_does_not_fall_back_to_quick_mode(self) -> None:
         class Form:

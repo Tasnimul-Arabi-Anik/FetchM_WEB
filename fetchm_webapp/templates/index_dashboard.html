@@ -5,14 +5,14 @@
     <header class="fetchm-redesign-brand">
       <div class="fetchm-mark" aria-hidden="true">FM</div>
       <div class="fetchm-brand-copy">
-        <h1>FetchM</h1>
-        <p>Bacterial sequence-based metadata exploration platform</p>
+        <h1>FetchM Web</h1>
+        <p>Metadata intelligence and sequence retrieval for bacterial genomics</p>
       </div>
     </header>
 
     <section class="fetchm-hero-grid fetchm-hero-grid-compact">
       <div class="fetchm-intro-card fetchm-intro-card-primary fetchm-intro-card-inline">
-        <p class="fetchm-intro-lead">FetchM retrieves bacterial metadata from NCBI, standardizes key fields, supports live metadata analysis, and enables metadata-driven sequence download.</p>
+        <p class="fetchm-intro-lead">Select a species or genus, review standardized metadata, filter assemblies, and launch sequence downloads or quality checks from one research workspace.</p>
       </div>
       <div class="fetchm-hero-inline-stats" aria-label="Catalog summary">
         <span class="fetchm-inline-stat"><strong>{{ home_metrics.species_total }}</strong> Species</span>
@@ -23,7 +23,8 @@
 
     <section class="fetchm-workflow-card">
       <div class="selection-copy fetchm-selection-head">
-        <strong>Species or genus</strong>
+        <strong>Choose a species or genus</strong>
+        <span>Start with the managed catalog. FetchM keeps metadata, sequences, quality checks, and outputs connected to the selected taxon.</span>
       </div>
 
       <label class="taxon-search selection-search fetchm-search-field">
@@ -40,12 +41,27 @@
       <div class="fetchm-action-row">
         <a class="fetchm-action-card fetchm-action-primary is-disabled" id="metadata-page-link" href="#" aria-disabled="true">
           <span class="fetchm-action-icon" aria-hidden="true">A</span>
-          <strong>Run metadata analysis</strong>
+          <strong>Metadata analysis</strong>
         </a>
         <a class="fetchm-action-card fetchm-action-secondary is-disabled" id="sequence-link" href="#" aria-disabled="true">
           <span class="fetchm-action-icon" aria-hidden="true">S</span>
-          <strong>Sequence Download Options</strong>
+          <strong>Sequence download</strong>
         </a>
+      </div>
+
+      <div class="fetchm-capability-grid" aria-label="FetchM workflow capabilities">
+        <article>
+          <strong>Standardized metadata</strong>
+          <span>Country, year, host, source, sample, environment, disease, and quality-ready fields.</span>
+        </article>
+        <article>
+          <strong>Filter before download</strong>
+          <span>Refine by geography, host, isolation source, sample type, environment, and year.</span>
+        </article>
+        <article>
+          <strong>QC-aware outputs</strong>
+          <span>Run sequence quality checks and keep clean subsets for downstream analysis.</span>
+        </article>
       </div>
 
       <div class="dashboard-links fetchm-secondary-actions">
