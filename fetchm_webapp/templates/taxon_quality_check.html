@@ -248,14 +248,29 @@
 
       <h3 class="top-gap">Modules</h3>
       <div class="quality-module-grid">
+        {% set gtdbtk_ready = quality_tool_status.nextflow_managed_tools.get("gtdbtk") or (quality_tool_status.available_tools.get("gtdbtk") and quality_tool_status.gtdbtk_data_path_exists) %}
         {% for module in quality_modules %}
           <label class="quality-card-option {% if module.key in external_module_keys %}is-external{% endif %}">
-            <input type="checkbox" name="quality_module" value="{{ module.key }}" {% if module.default_enabled %}checked{% endif %} data-quality-module>
+            <input
+              type="checkbox"
+              name="quality_module"
+              value="{{ module.key }}"
+              {% if module.default_enabled %}checked{% endif %}
+              {% if module.key == "gtdbtk" and not gtdbtk_ready %}disabled{% endif %}
+              data-quality-module
+            >
             <strong>{{ module.label }}</strong>
             <span>{{ module.category }}</span>
             <small>{{ module.description }}</small>
             {% if module.output_note %}
               <small>{{ module.output_note }}</small>
+            {% endif %}
+            {% if module.key == "gtdbtk" %}
+              {% if gtdbtk_ready %}
+                <small>GTDB reference data is configured; this is a heavy taxonomy check.</small>
+              {% else %}
+                <small>GTDB-Tk is disabled until FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH points to an installed GTDB database.</small>
+              {% endif %}
             {% endif %}
           </label>
         {% endfor %}
@@ -342,6 +357,14 @@
             {% endif %}
           </p>
         {% endif %}
+        <p class="section-note compact-note">
+          GTDB-Tk database:
+          {% if quality_tool_status.gtdbtk_data_path_exists %}
+            ready at {{ quality_tool_status.gtdbtk_data_path }}.
+          {% else %}
+            not configured. Install GTDB-Tk reference data once and set <code>FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH</code> before enabling the module.
+          {% endif %}
+        </p>
         {% if quality_tool_status.conda_env_cache_dir %}
           <p class="section-note compact-note">
             Conda environments are reused from {{ quality_tool_status.conda_env_cache_dir }}.

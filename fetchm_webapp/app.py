@@ -51,6 +51,7 @@ from external_tools.quality_check import (
     external_module_keys,
     list_quality_modules,
     quality_tool_status,
+    validate_quality_runtime,
 )
 
 APP_VERSION = "2026.05-genus-v1.1"
@@ -14462,6 +14463,9 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
         "ani_closest_genome": latest_nextflow_qc_report(output_dir, "ani", "analysis", "closest_genome.csv"),
         "mash_closest_neighbors": latest_nextflow_qc_report(output_dir, "mash", "analysis", "closest_mash_neighbor.csv"),
         "mash_distance_long": latest_nextflow_qc_report(output_dir, "mash", "analysis", "mash_distance_long.csv"),
+        "gtdbtk_bac120_summary": latest_nextflow_qc_report(output_dir, "gtdbtk", "gtdbtk.bac120.summary.tsv"),
+        "gtdbtk_ar53_summary": latest_nextflow_qc_report(output_dir, "gtdbtk", "gtdbtk.ar53.summary.tsv"),
+        "gtdbtk_empty_summary": latest_nextflow_qc_report(output_dir, "gtdbtk", "gtdbtk.empty.summary.tsv"),
     }
     optional_report_targets = {
         "ani_summary": "external_ani_summary.csv",
@@ -14469,6 +14473,9 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
         "ani_closest_genome": "external_ani_closest_genome.csv",
         "mash_closest_neighbors": "external_mash_closest_neighbors.csv",
         "mash_distance_long": "external_mash_distance_long.csv",
+        "gtdbtk_bac120_summary": "external_gtdbtk_bac120_summary.tsv",
+        "gtdbtk_ar53_summary": "external_gtdbtk_ar53_summary.tsv",
+        "gtdbtk_empty_summary": "external_gtdbtk_empty_summary.tsv",
     }
     copied_optional_reports: dict[str, str] = {}
     for key, source_path in optional_report_sources.items():
@@ -14519,6 +14526,7 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             first_nonempty_value(external_row, "quast_qc_fail_reasons"),
             first_nonempty_value(external_row, "ani_qc_fail_reasons"),
             first_nonempty_value(external_row, "mash_qc_fail_reasons"),
+            first_nonempty_value(external_row, "gtdbtk_qc_fail_reasons"),
         )
         warning_reasons = dedupe_reason_text(
             first_nonempty_value(external_row, "qc_master_warning_reasons"),
@@ -14527,6 +14535,7 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             first_nonempty_value(external_row, "checkm2_qc_warning_reasons"),
             first_nonempty_value(external_row, "ani_qc_warning_reasons"),
             first_nonempty_value(external_row, "mash_qc_warning_reasons"),
+            first_nonempty_value(external_row, "gtdbtk_warnings"),
         )
         status = normalize_qc_decision_status(
             first_nonempty_value(external_row, "qc_master_status", "combined_qc_status", "sequence_qc_status"),
@@ -14578,6 +14587,13 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             "Mash_Distance": first_nonempty_value(mash_row, "mash_distance"),
             "Mash_P_Value": first_nonempty_value(mash_row, "p_value"),
             "Mash_Matching_Hashes": first_nonempty_value(mash_row, "matching_hashes"),
+            "GTDBTK_QC_Status": first_nonempty_value(external_row, "gtdbtk_qc_status"),
+            "GTDBTK_QC_Fail_Reasons": first_nonempty_value(external_row, "gtdbtk_qc_fail_reasons"),
+            "GTDBTK_Match_Rank": first_nonempty_value(external_row, "gtdbtk_match_rank"),
+            "GTDBTK_Classification": first_nonempty_value(external_row, "gtdbtk_classification"),
+            "GTDBTK_Genus": first_nonempty_value(external_row, "gtdbtk_genus"),
+            "GTDBTK_Species": first_nonempty_value(external_row, "gtdbtk_species"),
+            "GTDBTK_FastANI": first_nonempty_value(external_row, "gtdbtk_fastani_ani"),
         }
         decision_rows.append(decision)
         enriched_rows.append({**merged, **external_row, **decision})
@@ -15273,6 +15289,9 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
     ani_run_status_path = next((path for path in output_files if path == "sequence_qc/external_ani_run_status.tsv"), None)
     mash_closest_path = next((path for path in output_files if path == "sequence_qc/external_mash_closest_neighbors.csv"), None)
     mash_distance_path = next((path for path in output_files if path == "sequence_qc/external_mash_distance_long.csv"), None)
+    gtdbtk_bac120_path = next((path for path in output_files if path == "sequence_qc/external_gtdbtk_bac120_summary.tsv"), None)
+    gtdbtk_ar53_path = next((path for path in output_files if path == "sequence_qc/external_gtdbtk_ar53_summary.tsv"), None)
+    gtdbtk_empty_path = next((path for path in output_files if path == "sequence_qc/external_gtdbtk_empty_summary.tsv"), None)
     external_manifest_path = next((path for path in output_files if path == "external_tools/quality_check/quality_check_manifest.json"), None)
     nextflow_command_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_command.sh"), None)
     nextflow_log_path = next((path for path in output_files if path == "external_tools/quality_check/nextflow_execution.log"), None)
@@ -15315,6 +15334,10 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
                     or normalize_metadata_value(row_dict.get("ANI_Species_Consistency_Status"))
                 )
                 mash_value = normalize_metadata_value(row_dict.get("Mash_Distance"))
+                gtdbtk_value = (
+                    normalize_metadata_value(row_dict.get("GTDBTK_QC_Status"))
+                    or normalize_metadata_value(row_dict.get("gtdbtk_qc_status"))
+                )
                 decision_preview.append(
                     {
                         "accession": normalize_metadata_value(row_dict.get("Assembly Accession")),
@@ -15328,6 +15351,9 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
                         "ani_note": ani_note,
                         "mash": mash_value or ("no pairs" if mash_note else ""),
                         "mash_note": mash_note,
+                        "gtdbtk": gtdbtk_value,
+                        "gtdbtk_genus": normalize_metadata_value(row_dict.get("GTDBTK_Genus") or row_dict.get("gtdbtk_genus")),
+                        "gtdbtk_species": normalize_metadata_value(row_dict.get("GTDBTK_Species") or row_dict.get("gtdbtk_species")),
                         "reasons": dedupe_reason_text(
                             row_dict.get("Sequence_QC_Failure_Reasons"),
                             row_dict.get("Sequence_QC_Review_Reasons"),
@@ -15350,6 +15376,9 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "ani_run_status_path": ani_run_status_path,
         "mash_closest_path": mash_closest_path,
         "mash_distance_path": mash_distance_path,
+        "gtdbtk_bac120_path": gtdbtk_bac120_path,
+        "gtdbtk_ar53_path": gtdbtk_ar53_path,
+        "gtdbtk_empty_path": gtdbtk_empty_path,
         "external_manifest_path": external_manifest_path,
         "nextflow_command_path": nextflow_command_path,
         "nextflow_log_path": nextflow_log_path,
@@ -17575,6 +17604,12 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
     filtered_frame.to_csv(input_path, index=False)
 
     quality_config = build_quality_config(request.form)
+    tool_status = quality_tool_status()
+    runtime_errors = validate_quality_runtime(quality_config, tool_status)
+    if runtime_errors:
+        for error in runtime_errors:
+            flash(error, "error")
+        return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
     thresholds = quality_config["thresholds"]
     command = build_quality_display_command(input_path, outputs_dir, quality_config)
     retries = (request.form.get("retries") or "3").strip()

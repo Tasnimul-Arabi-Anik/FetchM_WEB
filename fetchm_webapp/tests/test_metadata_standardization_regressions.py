@@ -15,6 +15,7 @@ from app import (
     should_expose_output_file,
     standardize_host_metadata,
 )
+from external_tools.quality_check.runner import validate_quality_runtime
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -296,10 +297,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             master_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "qc"
             ani_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "ani" / "analysis"
             mash_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "mash" / "analysis"
+            gtdbtk_dir = output_dir / "nextflow_qc" / "fetchm_web_qc" / "gtdbtk"
             qc_dir.mkdir(parents=True)
             master_dir.mkdir(parents=True)
             ani_dir.mkdir(parents=True)
             mash_dir.mkdir(parents=True)
+            gtdbtk_dir.mkdir(parents=True)
 
             input_path.write_text(
                 "\n".join(
@@ -315,9 +318,9 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             (master_dir / "qc_master_report.csv").write_text(
                 "\n".join(
                     [
-                        "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,ani_closest_ani,ani_species_consistency_status,ani_cluster,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
-                        "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,99.98,PASS,ANI_CLUSTER_0001,PASS,,",
-                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,94.1,WARN,ANI_CLUSTER_0002,FAIL,CheckM2 completeness below threshold,",
+                        "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,ani_closest_ani,ani_species_consistency_status,ani_cluster,gtdbtk_qc_status,gtdbtk_genus,gtdbtk_species,gtdbtk_qc_fail_reasons,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
+                        "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,99.98,PASS,ANI_CLUSTER_0001,PASS,Klebsiella,Klebsiella pneumoniae,,PASS,,",
+                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,94.1,WARN,ANI_CLUSTER_0002,FAIL,Enterobacter,Enterobacter cloacae,GENUS_MISMATCH,FAIL,CheckM2 completeness below threshold,",
                     ]
                 )
                 + "\n",
@@ -358,6 +361,11 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                 + "\n",
                 encoding="utf-8",
             )
+            (gtdbtk_dir / "gtdbtk.bac120.summary.tsv").write_text(
+                "user_genome\tclassification\n"
+                "GCF_000001.1_ASM1_genomic\td__Bacteria;p__Pseudomonadota;c__Gammaproteobacteria;o__Enterobacterales;f__Enterobacteriaceae;g__Klebsiella;s__Klebsiella pneumoniae\n",
+                encoding="utf-8",
+            )
 
             result = import_nextflow_qc_outputs(input_path, output_dir, qc_dir)
             self.assertIsNotNone(result)
@@ -369,12 +377,31 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertTrue((qc_dir / "external_ani_run_status.tsv").exists())
             self.assertTrue((qc_dir / "external_mash_closest_neighbors.csv").exists())
             self.assertTrue((qc_dir / "external_mash_distance_long.csv").exists())
+            self.assertTrue((qc_dir / "external_gtdbtk_bac120_summary.tsv").exists())
             decisions = (qc_dir / "qc_decisions.csv").read_text(encoding="utf-8")
             self.assertIn("ANI_Closest_ANI", decisions)
             self.assertIn("Mash_Distance", decisions)
+            self.assertIn("GTDBTK_QC_Status", decisions)
+            self.assertIn("Klebsiella pneumoniae", decisions)
             self.assertIn("0.001", decisions)
             self.assertIn("GCF_000001.1", (qc_dir / "qc_pass_metadata.csv").read_text(encoding="utf-8"))
             self.assertIn("CheckM2 completeness below threshold", (qc_dir / "qc_failed_metadata.csv").read_text(encoding="utf-8"))
+
+    def test_gtdbtk_selection_requires_reference_data(self) -> None:
+        errors = validate_quality_runtime(
+            {"run_mode": "nextflow", "selected_modules": ["quick_fasta", "gtdbtk"]},
+            {
+                "nextflow_enabled": True,
+                "nextflow_available": True,
+                "conda_available": True,
+                "nextflow_config_exists": True,
+                "nextflow_workflow_exists": True,
+                "available_tools": {"gtdbtk": False},
+                "gtdbtk_data_path_exists": False,
+                "nextflow_managed_tools": {"gtdbtk": False},
+            },
+        )
+        self.assertTrue(any("GTDB-Tk" in error for error in errors))
 
     def test_external_profile_without_javascript_does_not_fall_back_to_quick_mode(self) -> None:
         class Form:

@@ -386,6 +386,10 @@
                     {% if row.ani_note %}<small>{{ row.ani_note }}</small>{% endif %}
                     <strong>Mash: {{ row.mash or "not reported" }}</strong>
                     {% if row.mash_note %}<small>{{ row.mash_note }}</small>{% endif %}
+                    {% if row.gtdbtk %}
+                      <strong>GTDB-Tk: {{ row.gtdbtk }}</strong>
+                      <small>{{ row.gtdbtk_species or row.gtdbtk_genus or "taxonomy check reported" }}</small>
+                    {% endif %}
                   </span>
                   <span class="qc-preview-cell qc-reason-cell">{{ row.reasons or "—" }}</span>
                 </div>
@@ -502,6 +506,28 @@
                 <span>
                   <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.mash_distance_path) }}">
                     Download CSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.gtdbtk_bac120_path %}
+              <div class="coverage-row">
+                <strong>GTDB-Tk bacterial taxonomy summary</strong>
+                <span>GTDB-Tk bac120 classification table used for taxonomy consistency checks.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.gtdbtk_bac120_path) }}">
+                    Download TSV
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.gtdbtk_ar53_path %}
+              <div class="coverage-row">
+                <strong>GTDB-Tk archaeal taxonomy summary</strong>
+                <span>GTDB-Tk ar53 classification table used for taxonomy consistency checks.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.gtdbtk_ar53_path) }}">
+                    Download TSV
                   </a>
                 </span>
               </div>

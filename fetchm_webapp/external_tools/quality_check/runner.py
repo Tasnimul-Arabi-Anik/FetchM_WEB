@@ -103,6 +103,46 @@ def quality_tool_status() -> dict[str, Any]:
     }
 
 
+def gtdbtk_runtime_ready(status: dict[str, Any] | None = None) -> bool:
+    """Return true only when GTDB-Tk can run with reference data."""
+    status = status or quality_tool_status()
+    return bool(
+        (
+            status.get("available_tools", {}).get("gtdbtk")
+            and status.get("gtdbtk_data_path_exists")
+        )
+        or status.get("nextflow_managed_tools", {}).get("gtdbtk")
+    )
+
+
+def validate_quality_runtime(config: dict[str, Any], status: dict[str, Any] | None = None) -> list[str]:
+    """Return blocking runtime problems for the selected QC configuration."""
+    status = status or quality_tool_status()
+    selected_modules = set(str(module) for module in (config.get("selected_modules") or []))
+    run_mode = str(config.get("run_mode") or "quick")
+    errors: list[str] = []
+
+    if run_mode == "nextflow":
+        if not status.get("nextflow_enabled"):
+            errors.append("Nextflow execution is disabled on this server.")
+        if not status.get("nextflow_available"):
+            errors.append("Nextflow is not available in the application runtime.")
+        if not status.get("conda_available"):
+            errors.append("Conda is not available for the managed Nextflow profile.")
+        if not status.get("nextflow_config_exists"):
+            errors.append("The FetchM Web QC Nextflow config file is missing.")
+        if status.get("nextflow_workflow_exists") is False:
+            errors.append("The configured Nextflow workflow path does not exist.")
+
+    if "gtdbtk" in selected_modules and not gtdbtk_runtime_ready(status):
+        errors.append(
+            "GTDB-Tk taxonomy check requires a configured GTDB reference directory. "
+            "Set FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH to an existing GTDB-Tk data path."
+        )
+
+    return errors
+
+
 def build_quality_display_command(input_path: Path, output_dir: Path, config: dict[str, Any]) -> list[str]:
     thresholds = config.get("thresholds") or {}
     command = [
@@ -149,6 +189,9 @@ def prepare_panresistome_local_samples(input_path: Path, output_dir: Path) -> Pa
 
 def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str, Any]) -> list[str]:
     status = quality_tool_status()
+    runtime_errors = validate_quality_runtime(config, status)
+    if runtime_errors:
+        raise RuntimeError(" ".join(runtime_errors))
     workflow = status["nextflow_workflow"]
     thresholds = config.get("thresholds") or {}
     selected_modules = set(str(module) for module in (config.get("selected_modules") or []))
@@ -231,9 +274,12 @@ def module_manifest(config: dict[str, Any]) -> list[dict[str, Any]]:
             continue
         tool_available = True
         if module.requires_external_tool:
-            tool_available = bool(status["available_tools"].get(module.tool_name)) or bool(
-                status["nextflow_available"] and status["conda_available"]
-            )
+            if module.key == "gtdbtk":
+                tool_available = gtdbtk_runtime_ready(status)
+            else:
+                tool_available = bool(status["available_tools"].get(module.tool_name)) or bool(
+                    status["managed_runtime_ready"]
+                )
         items.append(
             {
                 **module.to_dict(),
