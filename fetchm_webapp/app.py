@@ -14871,6 +14871,7 @@ def run_sequence_quality_checks(
         f"Quality profile: {summary['quality_profile']}",
         f"Run mode: {summary['run_mode']}",
         f"QC filtering policy: {quality_config.get('qc_filter_mode', 'review_all')}",
+        f"GTDB-Tk taxonomy match rank: {quality_config.get('taxonomy_match_rank', 'genus')}",
         f"QC decision source: {summary['qc_decision_source']}",
         f"Total genomes checked: {summary['total']}",
         f"Passed: {summary['pass']}",
@@ -15001,6 +15002,7 @@ def launch_sequence_quality_job(job: JobRecord) -> None:
         f"[{utc_now()}] Quality profile: {(quality_config.get('profile') or {}).get('label', 'Quick QC')}; "
         f"run mode: {quality_config.get('run_mode', 'quick')}; "
         f"filtering: {quality_config.get('qc_filter_mode', 'review_all')}; "
+        f"taxonomy match: {quality_config.get('taxonomy_match_rank', 'genus')}; "
         f"modules: {', '.join(quality_config.get('selected_modules') or ['quick_fasta'])}.\n",
     )
     namespace = build_integrated_sequence_namespace(job)
@@ -17674,6 +17676,7 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
             "quality_profile": quality_config.get("profile", {}).get("label"),
             "quality_run_mode": quality_config.get("run_mode"),
             "qc_filter_mode": quality_config.get("qc_filter_mode"),
+            "taxonomy_match_rank": quality_config.get("taxonomy_match_rank"),
             "selected_modules": quality_config.get("selected_modules"),
             "quality_thresholds": thresholds,
         },

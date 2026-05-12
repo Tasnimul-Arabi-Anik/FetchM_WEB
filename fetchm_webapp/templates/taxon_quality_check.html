@@ -330,6 +330,20 @@
         </label>
       </div>
 
+      <h3 class="top-gap">GTDB-Tk Taxonomy Match</h3>
+      <div class="quality-run-mode">
+        <label class="quality-card-option">
+          <input type="radio" name="taxonomy_match_rank" value="genus" checked>
+          <strong>Compare at genus level</strong>
+          <small>Recommended default. Flags major taxonomic disagreement while avoiding stricter species-level exclusions.</small>
+        </label>
+        <label class="quality-card-option">
+          <input type="radio" name="taxonomy_match_rank" value="species">
+          <strong>Compare at species level</strong>
+          <small>Use for stricter species-consistency review. Keep review-first filtering on unless you intentionally want strict removal.</small>
+        </label>
+      </div>
+
       <div class="summary-box top-gap quality-runtime-banner">
         <strong>External tool status</strong>
         <p>

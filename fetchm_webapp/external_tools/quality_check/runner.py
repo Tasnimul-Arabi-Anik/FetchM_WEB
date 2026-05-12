@@ -261,6 +261,11 @@ def build_nextflow_command(input_path: Path, output_dir: Path, config: dict[str,
         command.extend(["--checkm2_auto_download_db", "true"])
     if status.get("gtdbtk_data_path"):
         command.extend(["--gtdbtk_data_path", str(status["gtdbtk_data_path"])])
+    if "gtdbtk" in selected_modules:
+        taxonomy_match_rank = str(config.get("taxonomy_match_rank") or "genus").strip().lower()
+        if taxonomy_match_rank not in {"genus", "species"}:
+            taxonomy_match_rank = "genus"
+        command.extend(["--taxonomy_match_rank", taxonomy_match_rank])
     threshold_flags = {
         "min_completeness": "--min_completeness",
         "max_contamination": "--max_contamination",

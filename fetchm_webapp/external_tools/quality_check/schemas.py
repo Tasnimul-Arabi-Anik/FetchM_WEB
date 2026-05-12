@@ -193,6 +193,9 @@ def build_quality_config(source: Any) -> dict[str, Any]:
     qc_filter_mode = str(_source_get(source, "qc_filter_mode", DEFAULT_QC_FILTER_MODE) or DEFAULT_QC_FILTER_MODE).strip().lower()
     if qc_filter_mode not in {"review_all", "strict_pass"}:
         qc_filter_mode = DEFAULT_QC_FILTER_MODE
+    taxonomy_match_rank = str(_source_get(source, "taxonomy_match_rank", "genus") or "genus").strip().lower()
+    if taxonomy_match_rank not in {"genus", "species"}:
+        taxonomy_match_rank = "genus"
 
     thresholds = {
         "min_completeness": _optional_float(source, "qc_min_completeness", DEFAULT_QUALITY_THRESHOLDS["min_completeness"]),
@@ -210,6 +213,7 @@ def build_quality_config(source: Any) -> dict[str, Any]:
         "selected_modules": selected_modules,
         "qc_filter_mode": qc_filter_mode,
         "qc_filter_enabled": qc_filter_mode == "strict_pass",
+        "taxonomy_match_rank": taxonomy_match_rank,
         "thresholds": thresholds,
         "external_modules": [key for key in selected_modules if key in external_module_keys()],
     }
