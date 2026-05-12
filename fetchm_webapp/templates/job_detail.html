@@ -73,48 +73,115 @@
   }
 
   .qc-preview-table {
-    display: grid;
-    gap: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.78);
   }
 
-  .qc-preview-row {
-    display: grid;
-    grid-template-columns: minmax(140px, 1fr) 82px minmax(150px, 0.9fr) minmax(130px, 0.8fr) minmax(160px, 1.2fr);
-    gap: 12px;
-    align-items: center;
-    padding: 10px 12px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.66);
+  .qc-wide-table {
+    width: 100%;
+    min-width: 1420px;
+    border-collapse: collapse;
     font-size: 0.92rem;
   }
 
-  .qc-preview-cell {
-    min-width: 0;
+  .qc-wide-table th,
+  .qc-wide-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    vertical-align: top;
   }
 
-  .qc-preview-cell strong,
-  .qc-preview-cell span {
-    display: block;
+  .qc-wide-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #fff8ea;
+    color: var(--accent);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
-  .qc-preview-cell small {
-    display: block;
-    margin-top: 2px;
-    color: var(--muted);
-    font-size: 0.78rem;
-    overflow-wrap: anywhere;
+  .qc-wide-table td {
+    background: rgba(255, 255, 255, 0.58);
   }
 
+  .qc-table-note,
   .qc-reason-cell {
     overflow-wrap: anywhere;
   }
 
-  .qc-preview-row.header {
-    font-weight: 800;
+  .qc-filter-panel {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid rgba(22, 92, 78, 0.14);
+    background: rgba(255, 255, 255, 0.66);
+  }
+
+  .qc-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .qc-filter-grid label,
+  .qc-check-row label {
+    display: grid;
+    gap: 4px;
+    font-size: 0.84rem;
     color: var(--muted);
-    background: transparent;
-    border-color: transparent;
+    font-weight: 700;
+  }
+
+  .qc-check-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  .qc-check-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .qc-step-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+  }
+
+  .qc-compact-step {
+    padding: 13px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .qc-compact-step strong,
+  .qc-compact-step span {
+    display: block;
+  }
+
+  .qc-compact-step .duration {
+    margin-top: 6px;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .detail-head-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .raw-file-summary {
+    margin-top: 14px;
   }
 
   .qc-status {
@@ -176,8 +243,7 @@
   }
 
   @media (max-width: 980px) {
-    .qc-result-head,
-    .qc-preview-row {
+    .qc-result-head {
       grid-template-columns: 1fr;
     }
   }
@@ -199,22 +265,23 @@
       {% else %}
         <p class="lede">{{ job.input_name }}</p>
       {% endif %}
-      {% if job.mode == "qc" and job.filters and job.filters.get("taxon_id") %}
-        <p class="detail-backlink">
-          <a class="ghost-link" href="{{ url_for('taxon_quality_check', species_id=job.filters.get('taxon_id')) }}">Go back to Quality Check Page</a>
-        </p>
-      {% elif job.mode == "seq" and job.filters and job.filters.get("taxon_id") %}
-        <p class="detail-backlink">
-          <a class="ghost-link" href="{{ url_for('taxon_sequences', species_id=job.filters.get('taxon_id')) }}">Go back to Sequence Download Page</a>
-        </p>
-      {% endif %}
     </div>
     <div class="status-box">
       <span class="status {{ job.status }}">{{ job.status }}</span>
-      <div class="job-meta">Created: {{ job.created_at }}</div>
-      <div class="job-meta">Updated: {{ job.updated_at }}</div>
-      {% if job.return_code is not none %}
+      <div class="job-meta">Date: {{ runtime_summary.date_label }}</div>
+      <div class="job-meta">Runtime: {{ runtime_summary.duration_label }}</div>
+      <div class="job-meta">Finished: {{ runtime_summary.updated_label }}</div>
+      {% if job.return_code is not none and job.return_code != 0 %}
         <div class="job-meta">Return code: {{ job.return_code }}</div>
+      {% endif %}
+      {% if job.mode == "qc" and job.filters and job.filters.get("taxon_id") %}
+        <div class="detail-head-actions">
+          <a class="button-like ghost" href="{{ url_for('taxon_quality_check', species_id=job.filters.get('taxon_id')) }}">Quality Check Page</a>
+        </div>
+      {% elif job.mode == "seq" and job.filters and job.filters.get("taxon_id") %}
+        <div class="detail-head-actions">
+          <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=job.filters.get('taxon_id')) }}">Sequence Download Page</a>
+        </div>
       {% endif %}
     </div>
   </section>
@@ -237,22 +304,34 @@
         {% endif %}
       </div>
     {% endif %}
-    <div class="step-list">
-      {% for step in progress.steps %}
-        <div class="step-card {{ step.state }}">
-          <div class="step-title-row">
+    {% if job.mode == "qc" and compact_qc_steps %}
+      <div class="qc-step-grid">
+        {% for step in compact_qc_steps %}
+          <div class="qc-compact-step {{ step.state }}">
             <strong>{{ step.label }}</strong>
-            <span class="step-state">{{ step.state }}</span>
+            {% if step.detail %}<span class="job-meta">{{ step.detail }}</span>{% endif %}
+            {% if step.duration %}<span class="duration">{{ step.duration }}</span>{% endif %}
           </div>
-          {% if step.timestamp %}
-            <div class="job-meta">{{ step.timestamp }}</div>
-          {% endif %}
-          {% if step.detail %}
-            <div class="job-meta">{{ step.detail }}</div>
-          {% endif %}
-        </div>
-      {% endfor %}
-    </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="step-list">
+        {% for step in progress.steps %}
+          <div class="step-card {{ step.state }}">
+            <div class="step-title-row">
+              <strong>{{ step.label }}</strong>
+              <span class="step-state">{{ step.state }}</span>
+            </div>
+            {% if step.timestamp %}
+              <div class="job-meta">{{ step.timestamp }}</div>
+            {% endif %}
+            {% if step.detail %}
+              <div class="job-meta">{{ step.detail }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
   </section>
 
   <section class="grid job-detail-grid">
@@ -351,6 +430,9 @@
                 <button type="submit">Download QC-passed sequences</button>
               </form>
             {% endif %}
+            {% if quality_check_assets.html_summary_path %}
+              <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.html_summary_path) }}">Open QC HTML summary</a>
+            {% endif %}
             {% if quality_check_assets.bundle_path %}
               <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.bundle_path) }}">Download QC ZIP</a>
             {% endif %}
@@ -359,42 +441,74 @@
             {% endif %}
           </div>
 
+          {% if job.status == "completed" and quality_check_assets.enriched_metadata_path %}
+            <form class="qc-filter-panel" action="{{ url_for('create_quality_filtered_sequence_job', job_id=job.id) }}" method="post">
+              <strong>Filter after QC and launch a sequence job</strong>
+              <div class="qc-check-row">
+                <label><input type="checkbox" name="qc_status" value="pass" checked> Pass</label>
+                <label><input type="checkbox" name="qc_status" value="review"> Review</label>
+                <label><input type="checkbox" name="qc_status" value="fail"> Fail</label>
+                <label><input type="checkbox" name="gtdbtk_status" value="PASS"> GTDB-Tk pass</label>
+                <label><input type="checkbox" name="gtdbtk_status" value="WARN"> GTDB-Tk warn</label>
+              </div>
+              <div class="qc-filter-grid">
+                <label>Min completeness <input type="number" step="0.1" name="min_completeness" value="{{ qc_summary.get('thresholds', {}).get('min_completeness') or 90 }}"></label>
+                <label>Max contamination <input type="number" step="0.1" name="max_contamination" value="{{ qc_summary.get('thresholds', {}).get('max_contamination') or 5 }}"></label>
+                <label>Min N50 <input type="number" step="1" name="min_n50" placeholder="optional"></label>
+                <label>Max contigs <input type="number" step="1" name="max_contigs" placeholder="optional"></label>
+                <label>Min genome size <input type="number" step="1" name="min_genome_size" placeholder="optional"></label>
+                <label>Max N % <input type="number" step="0.01" name="max_n_percent" value="{{ qc_summary.get('thresholds', {}).get('max_n_percent') or 5 }}"></label>
+              </div>
+              <button type="submit">Create filtered sequence job</button>
+            </form>
+          {% endif %}
+
           {% if quality_check_assets.decision_preview %}
             <div class="qc-preview-table">
-              <div class="qc-preview-row header">
-                <span>Assembly</span>
-                <span>Status</span>
-                <span>CheckM2</span>
-                <span>Assembly</span>
-                <span>ANI / Mash</span>
-                <span>Reason</span>
-              </div>
-              {% for row in quality_check_assets.decision_preview %}
-                <div class="qc-preview-row">
-                  <span class="qc-preview-cell">{{ row.accession or row.assembly_name or "—" }}</span>
-                  <span><span class="qc-status {{ row.status }}">{{ row.status }}</span></span>
-                  <span class="qc-preview-cell">
-                    <strong>{{ row.completeness or "—" }}% complete</strong>
-                    <small>{{ row.contamination or "—" }}% contamination</small>
-                  </span>
-                  <span class="qc-preview-cell">
-                    <strong>N50 {{ row.n50 or "—" }}</strong>
-                    <small>{{ row.contigs or "—" }} contigs</small>
-                  </span>
-                  <span class="qc-preview-cell">
-                    <strong>ANI: {{ row.ani or "not reported" }}</strong>
-                    {% if row.ani_note %}<small>{{ row.ani_note }}</small>{% endif %}
-                    <strong>Mash: {{ row.mash or "not reported" }}</strong>
-                    {% if row.mash_note %}<small>{{ row.mash_note }}</small>{% endif %}
-                    {% if row.gtdbtk %}
-                      <strong>GTDB-Tk: {{ row.gtdbtk }}</strong>
-                      <small>{{ row.gtdbtk_species or row.gtdbtk_genus or "taxonomy check reported" }}</small>
-                    {% endif %}
-                  </span>
-                  <span class="qc-preview-cell qc-reason-cell">{{ row.reasons or "—" }}</span>
-                </div>
-              {% endfor %}
+              <table class="qc-wide-table">
+                <thead>
+                  <tr>
+                    <th>Assembly</th>
+                    <th>Status</th>
+                    <th>Completeness</th>
+                    <th>Contamination</th>
+                    <th>Genome size</th>
+                    <th>Contigs</th>
+                    <th>N50</th>
+                    <th>GC</th>
+                    <th>N %</th>
+                    <th>ANI</th>
+                    <th>Mash</th>
+                    <th>GTDB-Tk</th>
+                    <th>GTDB species/genus</th>
+                    <th>GTDB FastANI</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in quality_check_assets.decision_preview %}
+                    <tr>
+                      <td class="qc-table-note"><strong>{{ row.accession or row.assembly_name or "—" }}</strong><br><small>{{ row.assembly_name or row.sequence_file or "" }}</small></td>
+                      <td><span class="qc-status {{ row.status }}">{{ row.status }}</span></td>
+                      <td>{{ row.completeness or "—" }}</td>
+                      <td>{{ row.contamination or "—" }}</td>
+                      <td>{{ row.genome_size or "—" }}</td>
+                      <td>{{ row.contigs or "—" }}</td>
+                      <td>{{ row.n50 or "—" }}</td>
+                      <td>{{ row.gc or "—" }}</td>
+                      <td>{{ row.n_percent or "—" }}</td>
+                      <td class="qc-table-note">{{ row.ani or row.ani_status or "—" }}{% if row.ani_closest %}<br><small>{{ row.ani_closest }}</small>{% endif %}</td>
+                      <td class="qc-table-note">{{ row.mash or "—" }}{% if row.mash_closest %}<br><small>{{ row.mash_closest }}</small>{% endif %}</td>
+                      <td><strong>{{ row.gtdbtk or "—" }}</strong>{% if row.gtdbtk_rank %}<br><small>{{ row.gtdbtk_rank }}</small>{% endif %}</td>
+                      <td class="qc-table-note">{{ row.gtdbtk_species or row.gtdbtk_genus or "—" }}</td>
+                      <td>{{ row.gtdbtk_fastani or "—" }}</td>
+                      <td class="qc-reason-cell">{{ row.reasons or "—" }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
+            <p class="job-meta">Showing the first {{ quality_check_assets.decision_preview|length }} rows. Download the decisions CSV or open the QC HTML summary for the full report context.</p>
           {% endif %}
 
           <details class="job-collapsible">
@@ -407,6 +521,17 @@
                 <span>
                   <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.bundle_path) }}">
                     Download ZIP
+                  </a>
+                </span>
+              </div>
+            {% endif %}
+            {% if quality_check_assets.html_summary_path %}
+              <div class="coverage-row">
+                <strong>QC HTML summary</strong>
+                <span>Readable summary page with status distribution, reasons, and a comprehensive table preview.</span>
+                <span>
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.html_summary_path) }}">
+                    Open HTML
                   </a>
                 </span>
               </div>
@@ -642,11 +767,25 @@
         {% if grouped_output_summary %}
           <h3>All output files</h3>
         {% endif %}
-        <div class="file-list">
-          {% for file in output_files %}
-            <a href="{{ url_for('download_output', job_id=job.id, relative_path=file) }}">{{ file }}</a>
-          {% endfor %}
-        </div>
+        {% if job.mode == "qc" %}
+          <details class="job-collapsible raw-file-summary">
+            <summary>Raw/internal files ({{ output_files|length }})</summary>
+            <div class="job-collapsible-body">
+              <p class="job-meta">These are kept for reproducibility and debugging. Most users should use the curated QC outputs, QC ZIP, or QC HTML summary above.</p>
+              <div class="file-list">
+                {% for file in output_files %}
+                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=file) }}">{{ file }}</a>
+                {% endfor %}
+              </div>
+            </div>
+          </details>
+        {% else %}
+          <div class="file-list">
+            {% for file in output_files %}
+              <a href="{{ url_for('download_output', job_id=job.id, relative_path=file) }}">{{ file }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
       {% else %}
         <p class="empty">No output files yet.</p>
       {% endif %}
@@ -654,8 +793,17 @@
   </section>
 
   <section class="panel">
-    <h2>Log</h2>
-    <pre class="log">{{ log_text }}</pre>
+    {% if job.mode == "qc" %}
+      <details class="job-collapsible">
+        <summary>Execution log</summary>
+        <div class="job-collapsible-body">
+          <pre class="log">{{ log_text }}</pre>
+        </div>
+      </details>
+    {% else %}
+      <h2>Log</h2>
+      <pre class="log">{{ log_text }}</pre>
+    {% endif %}
   </section>
 </main>
 {% endblock %}

@@ -5,6 +5,7 @@ import contextlib
 import csv
 import difflib
 import fcntl
+import html
 import json
 import logging
 import os
@@ -14932,6 +14933,7 @@ def run_sequence_quality_checks(
     )
     (qc_dir / "quality_check_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     (qc_dir / "quality_check_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_quality_check_html_summary(qc_dir, job=job, summary=summary, decisions=decision_frame.fillna(""))
 
     bundle_path = output_dir / "quality_check_bundle.zip"
     with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -15294,6 +15296,7 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         return None
     bundle_path = next((path for path in output_files if path == "quality_check_bundle.zip"), None)
     report_path = next((path for path in output_files if path == "sequence_qc/quality_check_report.md"), None)
+    html_summary_path = next((path for path in output_files if path == "sequence_qc/quality_check_summary.html"), None)
     summary_path = next((path for path in output_files if path == "sequence_qc/quality_check_summary.json"), None)
     decisions_path = next((path for path in output_files if path == "sequence_qc/qc_decisions.csv"), None)
     pass_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_pass_metadata.csv"), None)
@@ -15340,47 +15343,25 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         except (OSError, pd.errors.EmptyDataError, ValueError):
             mash_note = ""
     decision_preview: list[dict[str, Any]] = []
+    reason_counts: list[dict[str, Any]] = []
     if decisions_path:
         try:
             decisions = pd.read_csv(Path(job.output_dir) / decisions_path, dtype=str).fillna("")
-            for _, row in decisions.head(8).iterrows():
-                row_dict = {str(key): value for key, value in row.to_dict().items()}
-                ani_value = (
-                    normalize_metadata_value(row_dict.get("ANI_Closest_ANI"))
-                    or normalize_metadata_value(row_dict.get("ANI_Species_Consistency_Status"))
-                )
-                mash_value = normalize_metadata_value(row_dict.get("Mash_Distance"))
-                gtdbtk_value = (
-                    normalize_metadata_value(row_dict.get("GTDBTK_QC_Status"))
-                    or normalize_metadata_value(row_dict.get("gtdbtk_qc_status"))
-                )
-                decision_preview.append(
-                    {
-                        "accession": normalize_metadata_value(row_dict.get("Assembly Accession")),
-                        "assembly_name": normalize_metadata_value(row_dict.get("Assembly Name")),
-                        "status": normalize_metadata_value(row_dict.get("Sequence_QC_Status")) or "unknown",
-                        "completeness": normalize_metadata_value(row_dict.get("CheckM completeness")),
-                        "contamination": normalize_metadata_value(row_dict.get("CheckM contamination")),
-                        "n50": normalize_metadata_value(row_dict.get("QC_n50")),
-                        "contigs": normalize_metadata_value(row_dict.get("QC_contig_count")),
-                        "ani": ani_value or ("skipped" if ani_note else ""),
-                        "ani_note": ani_note,
-                        "mash": mash_value or ("no pairs" if mash_note else ""),
-                        "mash_note": mash_note,
-                        "gtdbtk": gtdbtk_value,
-                        "gtdbtk_genus": normalize_metadata_value(row_dict.get("GTDBTK_Genus") or row_dict.get("gtdbtk_genus")),
-                        "gtdbtk_species": normalize_metadata_value(row_dict.get("GTDBTK_Species") or row_dict.get("gtdbtk_species")),
-                        "reasons": dedupe_reason_text(
-                            row_dict.get("Sequence_QC_Failure_Reasons"),
-                            row_dict.get("Sequence_QC_Review_Reasons"),
-                        ),
-                    }
-                )
+            decision_preview = build_qc_decision_preview(decisions, limit=25)
+            reason_counts = qc_reason_counts(decisions)
+            if not html_summary_path and summary:
+                try:
+                    write_quality_check_html_summary(Path(job.output_dir) / "sequence_qc", job=job, summary=summary, decisions=decisions)
+                    html_summary_path = "sequence_qc/quality_check_summary.html"
+                except OSError:
+                    html_summary_path = None
         except (OSError, pd.errors.EmptyDataError, ValueError):
             decision_preview = []
+            reason_counts = []
     return {
         "bundle_path": bundle_path,
         "report_path": report_path,
+        "html_summary_path": html_summary_path,
         "summary_path": summary_path,
         "decisions_path": decisions_path,
         "pass_metadata_path": pass_metadata_path,
@@ -15400,6 +15381,7 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "nextflow_log_path": nextflow_log_path,
         "summary": summary,
         "decision_preview": decision_preview,
+        "reason_counts": reason_counts,
     }
 
 
@@ -15481,6 +15463,368 @@ def format_elapsed_brief(seconds: float | int | None) -> str:
     if minutes:
         return f"{minutes}m {secs}s"
     return f"{secs}s"
+
+
+def parse_optional_utc(value: Any) -> datetime | None:
+    text = normalize_metadata_value(value)
+    if not text:
+        return None
+    try:
+        return parse_utc(text)
+    except ValueError:
+        return None
+
+
+def compact_datetime_label(value: Any) -> str:
+    parsed = parse_optional_utc(value)
+    if parsed is None:
+        return normalize_metadata_value(value) or "unknown"
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    parsed = parsed.astimezone(timezone.utc)
+    return parsed.strftime("%Y-%m-%d %H:%M UTC")
+
+
+def job_runtime_summary(job: JobRecord) -> dict[str, Any]:
+    created = parse_optional_utc(job.created_at)
+    updated = parse_optional_utc(job.updated_at)
+    elapsed = None
+    if created is not None and updated is not None:
+        elapsed = max(0, int((updated - created).total_seconds()))
+    return {
+        "created_label": compact_datetime_label(job.created_at),
+        "updated_label": compact_datetime_label(job.updated_at),
+        "date_label": compact_datetime_label(job.created_at).split(" ", 1)[0],
+        "duration_seconds": elapsed,
+        "duration_label": format_elapsed_brief(elapsed),
+    }
+
+
+def row_first(row: Mapping[str, Any], *keys: str) -> str:
+    for key in keys:
+        value = normalize_metadata_value(row.get(key))
+        if value:
+            return value
+    return ""
+
+
+def clean_number_label(value: Any, suffix: str = "", decimals: int | None = None) -> str:
+    text = normalize_metadata_value(value)
+    if not text:
+        return ""
+    try:
+        number = float(text)
+    except ValueError:
+        return text
+    if decimals is None:
+        if number.is_integer():
+            label = f"{int(number):,}"
+        else:
+            label = f"{number:g}"
+    else:
+        label = f"{number:,.{decimals}f}".rstrip("0").rstrip(".")
+    return f"{label}{suffix}"
+
+
+def build_qc_decision_preview(decisions: pd.DataFrame, limit: int = 25) -> list[dict[str, Any]]:
+    preview: list[dict[str, Any]] = []
+    for _, row in decisions.head(limit).iterrows():
+        row_dict = {str(key): value for key, value in row.to_dict().items()}
+        status = row_first(row_dict, "Sequence_QC_Status", "qc_status") or "unknown"
+        gtdbtk_status = row_first(row_dict, "GTDBTK_QC_Status", "gtdbtk_qc_status")
+        preview.append(
+            {
+                "accession": row_first(row_dict, "Assembly Accession", "assembly_accession"),
+                "assembly_name": row_first(row_dict, "Assembly Name", "assembly_name"),
+                "status": status.lower(),
+                "sequence_file": row_first(row_dict, "sequence_file", "Sequence_File"),
+                "genome_size": clean_number_label(row_first(row_dict, "QC_total_bp", "total_bp")),
+                "contigs": clean_number_label(row_first(row_dict, "QC_contig_count", "contig_count")),
+                "n50": clean_number_label(row_first(row_dict, "QC_n50", "n50")),
+                "gc": clean_number_label(row_first(row_dict, "QC_gc_percent", "gc_percent"), "%", 2),
+                "n_percent": clean_number_label(row_first(row_dict, "QC_ambiguous_n_percent", "ambiguous_n_percent"), "%", 4),
+                "completeness": clean_number_label(row_first(row_dict, "CheckM completeness", "Completeness"), "%", 2),
+                "contamination": clean_number_label(row_first(row_dict, "CheckM contamination", "Contamination"), "%", 2),
+                "checkm2_model": row_first(row_dict, "CheckM2_Model"),
+                "coding_density": clean_number_label(row_first(row_dict, "CheckM2_Coding_Density"), "", 3),
+                "quast_largest_contig": clean_number_label(row_first(row_dict, "QUAST_Largest_Contig")),
+                "quast_ns": clean_number_label(row_first(row_dict, "QUAST_Ns_Per_100kbp"), "", 3),
+                "ani_closest": row_first(row_dict, "ANI_Closest_Genome"),
+                "ani": clean_number_label(row_first(row_dict, "ANI_Closest_ANI"), "", 2),
+                "ani_status": row_first(row_dict, "ANI_Species_Consistency_Status"),
+                "ani_cluster": row_first(row_dict, "ANI_Cluster"),
+                "mash_closest": row_first(row_dict, "Mash_Closest_Genome"),
+                "mash": clean_number_label(row_first(row_dict, "Mash_Distance"), "", 6),
+                "mash_p": clean_number_label(row_first(row_dict, "Mash_P_Value"), "", 3),
+                "mash_hashes": row_first(row_dict, "Mash_Matching_Hashes"),
+                "gtdbtk": gtdbtk_status,
+                "gtdbtk_rank": row_first(row_dict, "GTDBTK_Match_Rank"),
+                "gtdbtk_classification": row_first(row_dict, "GTDBTK_Classification"),
+                "gtdbtk_genus": row_first(row_dict, "GTDBTK_Genus", "gtdbtk_genus"),
+                "gtdbtk_species": row_first(row_dict, "GTDBTK_Species", "gtdbtk_species"),
+                "gtdbtk_fastani": clean_number_label(row_first(row_dict, "GTDBTK_FastANI"), "", 2),
+                "gtdbtk_reasons": dedupe_reason_text(row_dict.get("GTDBTK_QC_Fail_Reasons")),
+                "reasons": dedupe_reason_text(
+                    row_dict.get("Sequence_QC_Failure_Reasons"),
+                    row_dict.get("Sequence_QC_Review_Reasons"),
+                    row_dict.get("GTDBTK_QC_Fail_Reasons"),
+                ),
+            }
+        )
+    return preview
+
+
+def qc_reason_counts(decisions: pd.DataFrame, limit: int = 8) -> list[dict[str, Any]]:
+    counter: Counter[str] = Counter()
+    for _, row in decisions.iterrows():
+        text = dedupe_reason_text(
+            row.get("Sequence_QC_Failure_Reasons"),
+            row.get("Sequence_QC_Review_Reasons"),
+            row.get("GTDBTK_QC_Fail_Reasons"),
+        )
+        for reason in [part.strip() for part in text.split(";") if part.strip()]:
+            counter[reason] += 1
+    return [{"reason": reason, "count": count} for reason, count in counter.most_common(limit)]
+
+
+def load_qc_runtime_tasks(output_dir: Path) -> dict[str, dict[str, Any]]:
+    runtime_path = output_dir / "nextflow_qc" / "pipeline_runtime_tasks.tsv"
+    if not runtime_path.exists():
+        return {}
+    try:
+        runtime = pd.read_csv(runtime_path, sep="\t", dtype=str).fillna("")
+    except (OSError, pd.errors.EmptyDataError, ValueError):
+        return {}
+    tasks: dict[str, dict[str, Any]] = {}
+    for _, row in runtime.iterrows():
+        process = normalize_metadata_value(row.get("process")).upper()
+        if not process:
+            continue
+        seconds = None
+        try:
+            seconds = float(normalize_metadata_value(row.get("realtime_seconds")) or "0")
+        except ValueError:
+            seconds = None
+        tasks[process] = {
+            "status": normalize_metadata_value(row.get("status")),
+            "duration_seconds": seconds,
+            "duration_label": format_elapsed_brief(seconds),
+            "memory_label": clean_number_label(row.get("peak_rss_gib"), " GiB", 1),
+            "cpu_label": clean_number_label(row.get("cpu_percent"), "%", 1),
+        }
+    return tasks
+
+
+def extract_log_event_times(log_text: str) -> dict[str, datetime]:
+    events: dict[str, datetime] = {}
+    patterns = [
+        ("worker", "Launching sequence quality check job"),
+        ("sequence_done", "Quality step 2/5"),
+        ("stats_started", "Quality step 3/5"),
+        ("external_started", "Starting external Nextflow QC"),
+        ("external_done", "External Nextflow QC finished"),
+        ("decisions", "Quality step 4/5"),
+        ("pass_subset", "Quality step 5/5"),
+        ("finished", "Job finished with return code"),
+    ]
+    for line in [line for line in log_text.splitlines() if line.strip()]:
+        timestamp = parse_log_timestamp(line)
+        if not timestamp:
+            continue
+        try:
+            parsed = parse_utc(timestamp)
+        except ValueError:
+            continue
+        for key, pattern in patterns:
+            if key not in events and pattern in line:
+                events[key] = parsed
+    return events
+
+
+def compact_qc_progress(job: JobRecord, log_text: str, quality_check_assets: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    if job.mode != "qc":
+        return []
+    output_dir = Path(job.output_dir)
+    tasks = load_qc_runtime_tasks(output_dir)
+    events = extract_log_event_times(log_text)
+    created = parse_optional_utc(job.created_at)
+    updated = parse_optional_utc(job.updated_at)
+
+    def elapsed_between(start: datetime | None, end: datetime | None) -> str:
+        if start is None or end is None:
+            return ""
+        return format_elapsed_brief((end - start).total_seconds())
+
+    selected_modules = set((quality_check_assets or {}).get("summary", {}).get("selected_modules") or [])
+    module_rows = [
+        ("checkm2", "Comprehensive QC 1", "CheckM2 completeness/contamination", "CHECKM2_QC"),
+        ("quast", "Comprehensive QC 2", "QUAST assembly metrics", "QUAST_QC"),
+        ("ani", "Comprehensive QC 3", "ANI species consistency", "ANI_ANALYSIS"),
+        ("mash", "Comprehensive QC 4", "Mash nearest-neighbor screen", "MASH_PRESCREEN"),
+        ("gtdbtk", "Comprehensive QC 5", "GTDB-Tk taxonomy check", "GTDBTK_QC"),
+        ("combined", "Comprehensive QC 6", "Combined pass/review/fail decision", "COMBINED_QC"),
+    ]
+
+    rows = [
+        {
+            "label": "Queued",
+            "state": "done" if created else "pending",
+            "detail": f"Started {compact_datetime_label(job.created_at)}",
+            "duration": "",
+        },
+        {
+            "label": "Sequence Collected",
+            "state": "done" if events.get("sequence_done") or job.status == "completed" else "pending",
+            "detail": f"{(quality_check_assets or {}).get('summary', {}).get('total', 'Selected')} genome FASTA files prepared",
+            "duration": elapsed_between(created, events.get("sequence_done")),
+        },
+        {
+            "label": "Assembly Statistics",
+            "state": "done" if events.get("stats_started") or job.status == "completed" else "pending",
+            "detail": "Genome size, contigs, N50, GC%, and ambiguous bases calculated",
+            "duration": elapsed_between(events.get("sequence_done"), events.get("external_started")),
+        },
+    ]
+    for module_key, stage, label, process in module_rows:
+        if module_key != "combined" and selected_modules and module_key not in selected_modules:
+            continue
+        task = tasks.get(process, {})
+        state = "done" if task or job.status == "completed" else "pending"
+        detail = label
+        if task.get("memory_label"):
+            detail = f"{detail}; peak memory {task['memory_label']}"
+        rows.append(
+            {
+                "label": stage,
+                "state": state,
+                "detail": detail,
+                "duration": task.get("duration_label") or "",
+            }
+        )
+    rows.append(
+        {
+            "label": "Finished",
+            "state": "done" if job.status == "completed" else ("current" if job.status == "running" else job.status),
+            "detail": f"{(quality_check_assets or {}).get('summary', {}).get('pass', '—')} pass, {(quality_check_assets or {}).get('summary', {}).get('review', '—')} review, {(quality_check_assets or {}).get('summary', {}).get('fail', '—')} fail",
+            "duration": elapsed_between(created, updated),
+        }
+    )
+    return rows
+
+
+def write_quality_check_html_summary(
+    qc_dir: Path,
+    *,
+    job: JobRecord,
+    summary: dict[str, Any],
+    decisions: pd.DataFrame,
+) -> None:
+    status_counts = {
+        "pass": int(summary.get("pass") or 0),
+        "review": int(summary.get("review") or 0),
+        "fail": int(summary.get("fail") or 0),
+    }
+    total = max(int(summary.get("total") or 0), 1)
+    reason_rows = qc_reason_counts(decisions, limit=12)
+    preview_rows = build_qc_decision_preview(decisions, limit=50)
+
+    def esc(value: Any) -> str:
+        return html.escape(normalize_metadata_value(value) or "—")
+
+    def status_bar() -> str:
+        colors = {"pass": "#1b6b39", "review": "#b8844d", "fail": "#8e2f1d"}
+        segments = []
+        for status, count in status_counts.items():
+            width = (count / total) * 100
+            segments.append(
+                f'<span style="width:{width:.2f}%;background:{colors[status]}" title="{status}: {count}"></span>'
+            )
+        return "".join(segments)
+
+    table_rows = []
+    for row in preview_rows:
+        table_rows.append(
+            "<tr>"
+            f"<td>{esc(row.get('accession'))}</td>"
+            f"<td><strong>{esc(row.get('status'))}</strong></td>"
+            f"<td>{esc(row.get('completeness'))}</td>"
+            f"<td>{esc(row.get('contamination'))}</td>"
+            f"<td>{esc(row.get('genome_size'))}</td>"
+            f"<td>{esc(row.get('contigs'))}</td>"
+            f"<td>{esc(row.get('n50'))}</td>"
+            f"<td>{esc(row.get('gc'))}</td>"
+            f"<td>{esc(row.get('ani'))}</td>"
+            f"<td>{esc(row.get('mash'))}</td>"
+            f"<td>{esc(row.get('gtdbtk'))}</td>"
+            f"<td>{esc(row.get('gtdbtk_species') or row.get('gtdbtk_genus'))}</td>"
+            f"<td>{esc(row.get('reasons'))}</td>"
+            "</tr>"
+        )
+
+    reason_html = "".join(
+        f"<li><strong>{count}</strong> {esc(reason)}</li>"
+        for reason, count in [(item["reason"], item["count"]) for item in reason_rows]
+    ) or "<li>No failure or review reasons reported.</li>"
+
+    html_text = f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>FetchM Web QC Summary - {esc(job.id)}</title>
+  <style>
+    body {{ margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17332e; background: #f7f2e8; }}
+    main {{ max-width: 1180px; margin: 0 auto; padding: 32px 22px; }}
+    .hero, .card {{ border: 1px solid rgba(22, 92, 78, 0.16); border-radius: 24px; background: rgba(255,255,255,0.82); box-shadow: 0 18px 50px rgba(28, 45, 40, 0.08); }}
+    .hero {{ padding: 28px; background: radial-gradient(circle at top right, rgba(22,92,78,.14), transparent 35%), rgba(255,255,255,.86); }}
+    .eyebrow {{ margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; color: #165c4e; font-size: 12px; }}
+    h1 {{ margin: 0 0 8px; font-size: clamp(30px, 5vw, 54px); line-height: .95; }}
+    .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }}
+    .metric {{ padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(22,92,78,.12); }}
+    .metric strong {{ display: block; font-size: 30px; }}
+    .bar {{ display: flex; height: 16px; overflow: hidden; border-radius: 999px; background: #eadfca; }}
+    .bar span {{ display: block; }}
+    .card {{ padding: 22px; margin-top: 18px; }}
+    table {{ width: 100%; border-collapse: collapse; min-width: 1180px; }}
+    .table-wrap {{ overflow-x: auto; border: 1px solid rgba(22,92,78,.12); border-radius: 18px; background: #fff; }}
+    th, td {{ padding: 10px 12px; border-bottom: 1px solid #eee4d2; text-align: left; font-size: 13px; vertical-align: top; }}
+    th {{ position: sticky; top: 0; background: #fff8ea; color: #165c4e; }}
+    li {{ margin: 8px 0; }}
+    a {{ color: #165c4e; font-weight: 800; }}
+  </style>
+</head>
+<body>
+<main>
+  <section class="hero">
+    <p class="eyebrow">FetchM Web Quality Summary</p>
+    <h1>QC results for job {esc(job.id)}</h1>
+    <p>{esc(summary.get('quality_profile', 'Quality check'))} using {esc(summary.get('qc_decision_source', 'built_in'))} decisions.</p>
+    <div class="grid">
+      <div class="metric"><strong>{status_counts['pass']}</strong><span>Pass</span></div>
+      <div class="metric"><strong>{status_counts['review']}</strong><span>Review</span></div>
+      <div class="metric"><strong>{status_counts['fail']}</strong><span>Fail</span></div>
+      <div class="metric"><strong>{esc(summary.get('total'))}</strong><span>Total checked</span></div>
+    </div>
+    <div class="bar">{status_bar()}</div>
+  </section>
+  <section class="card">
+    <h2>Top Review/Failure Reasons</h2>
+    <ul>{reason_html}</ul>
+  </section>
+  <section class="card">
+    <h2>Comprehensive QC Table Preview</h2>
+    <p>The full table is available in <code>qc_decisions.csv</code>. This preview includes the first 50 assemblies.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Assembly</th><th>Status</th><th>Completeness</th><th>Contamination</th><th>Genome size</th><th>Contigs</th><th>N50</th><th>GC</th><th>ANI</th><th>Mash</th><th>GTDB-Tk</th><th>GTDB species/genus</th><th>Reason</th></tr></thead>
+        <tbody>{''.join(table_rows)}</tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>
+"""
+    (qc_dir / "quality_check_summary.html").write_text(html_text, encoding="utf-8")
 
 
 def job_last_activity_dt(job: JobRecord, log_text: str) -> datetime:
@@ -17315,6 +17659,8 @@ def job_detail(job_id: str) -> str:
     sequence_download_assets = summarize_sequence_download_assets(job, output_files)
     quality_check_assets = summarize_quality_check_assets(job, output_files)
     progress = summarize_job_progress(job, log_text)
+    runtime_summary = job_runtime_summary(job)
+    compact_qc_steps = compact_qc_progress(job, log_text, quality_check_assets)
     return render_template(
         "job_detail.html",
         job=job,
@@ -17324,6 +17670,8 @@ def job_detail(job_id: str) -> str:
         sequence_download_assets=sequence_download_assets,
         quality_check_assets=quality_check_assets,
         progress=progress,
+        runtime_summary=runtime_summary,
+        compact_qc_steps=compact_qc_steps,
     )
 
 
@@ -17769,6 +18117,135 @@ def create_quality_passed_sequence_job(job_id: str) -> Any:
     )
     notify_job_event(record, "submitted")
     flash(f"Sequence job {new_job_id} submitted for {len(pass_frame):,} QC-passed genomes.", "success")
+    return redirect(url_for("job_detail", job_id=new_job_id))
+
+
+@app.route("/jobs/<job_id>/quality-filtered-sequence-job", methods=["POST"])
+def create_quality_filtered_sequence_job(job_id: str) -> Any:
+    user = g.current_user
+    assert user is not None
+    quality_job = require_job_owner(job_id)
+    if quality_job.mode != "qc":
+        abort(404)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_enriched_metadata.csv"
+    if not enriched_metadata.exists():
+        enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_decisions.csv"
+    if not enriched_metadata.exists():
+        flash("QC metadata is not available yet.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    try:
+        frame = pd.read_csv(enriched_metadata, dtype=str).fillna("")
+    except Exception as exc:
+        flash(f"Could not read QC metadata: {exc}", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    if frame.empty:
+        flash("QC metadata is empty.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    statuses = [normalize_metadata_value(value).lower() for value in request.form.getlist("qc_status")]
+    statuses = [value for value in statuses if value in {"pass", "review", "fail"}]
+    if not statuses:
+        statuses = ["pass"]
+
+    filtered = frame.copy()
+    if "Sequence_QC_Status" in filtered.columns:
+        filtered = filtered[filtered["Sequence_QC_Status"].astype(str).str.lower().isin(statuses)].copy()
+
+    numeric_filters = [
+        ("min_completeness", "CheckM completeness", ">="),
+        ("max_contamination", "CheckM contamination", "<="),
+        ("min_n50", "QC_n50", ">="),
+        ("max_contigs", "QC_contig_count", "<="),
+        ("min_genome_size", "QC_total_bp", ">="),
+        ("max_n_percent", "QC_ambiguous_n_percent", "<="),
+    ]
+    applied_filters: dict[str, Any] = {"qc_status": statuses}
+    for form_key, column, operator in numeric_filters:
+        threshold = parse_optional_float(request.form.get(form_key))
+        if threshold is None or column not in filtered.columns:
+            continue
+        values = pd.to_numeric(filtered[column], errors="coerce")
+        if operator == ">=":
+            filtered = filtered[values >= threshold].copy()
+        else:
+            filtered = filtered[values <= threshold].copy()
+        applied_filters[form_key] = threshold
+
+    gtdbtk_statuses = [normalize_metadata_value(value).upper() for value in request.form.getlist("gtdbtk_status")]
+    gtdbtk_statuses = [value for value in gtdbtk_statuses if value in {"PASS", "WARN", "FAIL"}]
+    if gtdbtk_statuses and "GTDBTK_QC_Status" in filtered.columns:
+        filtered = filtered[filtered["GTDBTK_QC_Status"].astype(str).str.upper().isin(gtdbtk_statuses)].copy()
+        applied_filters["gtdbtk_status"] = gtdbtk_statuses
+
+    if filtered.empty:
+        flash("No genomes match the selected post-QC filters.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    new_job_id = uuid.uuid4().hex[:12]
+    root = job_dir(new_job_id)
+    uploads_dir = root / UPLOADS_DIR_NAME
+    outputs_dir = root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    input_name = f"{quality_job.input_name} QC-filtered metadata.csv"
+    input_path = uploads_dir / "qc_filtered_metadata.csv"
+    filtered.to_csv(input_path, index=False)
+
+    class DefaultSequenceForm:
+        def get(self, key: str, default: Any = None) -> Any:
+            defaults = {"retries": "3", "retry_delay": "5"}
+            return defaults.get(key, default)
+
+        def getlist(self, key: str) -> list[Any]:
+            return []
+
+    command, command_filters = build_command("seq", input_path, outputs_dir, DefaultSequenceForm())
+    filters = {
+        "input_source": "quality_filtered_metadata",
+        "parent_quality_job_id": quality_job.id,
+        "taxon_id": (quality_job.filters or {}).get("taxon_id"),
+        "taxon_name": (quality_job.filters or {}).get("taxon_name"),
+        "taxon_rank": (quality_job.filters or {}).get("taxon_rank"),
+        "matched_row_total": int(len(filtered)),
+        "sequence_filter_sentence": f"Post-QC filtered genomes from quality job {quality_job.id}",
+        "post_qc_filters": applied_filters,
+    }
+    filters.update(command_filters)
+    record = JobRecord(
+        id=new_job_id,
+        mode="seq",
+        status="queued",
+        created_at=utc_now(),
+        updated_at=utc_now(),
+        input_name=input_name,
+        input_path=str(input_path),
+        output_dir=str(outputs_dir),
+        log_path=str(root / LOG_FILE_NAME),
+        command=command,
+        owner_user_id=int(user["id"]),
+        owner_username=str(user["username"]),
+        filters=filters,
+    )
+    save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=new_job_id,
+        metadata={
+            "mode": "seq",
+            "input_source": "quality_filtered_metadata",
+            "parent_quality_job_id": quality_job.id,
+            "matched_row_total": int(len(filtered)),
+            "post_qc_filters": applied_filters,
+        },
+    )
+    notify_job_event(record, "submitted")
+    flash(f"Sequence job {new_job_id} submitted for {len(filtered):,} post-QC filtered genomes.", "success")
     return redirect(url_for("job_detail", job_id=new_job_id))
 
 
