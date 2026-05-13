@@ -123,6 +123,19 @@
     background: rgba(255, 255, 255, 0.66);
   }
 
+  .qc-filter-result {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(22, 92, 78, 0.18);
+    background: rgba(22, 92, 78, 0.08);
+  }
+
+  .qc-filter-result strong {
+    font-size: 1.25rem;
+  }
+
   .qc-filter-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -431,7 +444,7 @@
               </form>
             {% endif %}
             {% if quality_check_assets.html_summary_path %}
-              <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.html_summary_path) }}">Open QC HTML summary</a>
+              <a class="button-like ghost" target="_blank" href="{{ url_for('open_quality_summary', job_id=job.id) }}">Open QC HTML summary</a>
             {% endif %}
             {% if quality_check_assets.bundle_path %}
               <a class="button-like ghost" href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.bundle_path) }}">Download QC ZIP</a>
@@ -442,25 +455,91 @@
           </div>
 
           {% if job.status == "completed" and quality_check_assets.enriched_metadata_path %}
-            <form class="qc-filter-panel" action="{{ url_for('create_quality_filtered_sequence_job', job_id=job.id) }}" method="post">
-              <strong>Filter after QC and launch a sequence job</strong>
+            {% set preview = post_qc_filter_preview or {} %}
+            {% set selected_statuses = preview.get("selected_statuses", ["pass"]) %}
+            {% set selected_gtdbtk = preview.get("selected_gtdbtk_statuses", []) %}
+            <form class="qc-filter-panel" action="{{ url_for('job_detail', job_id=job.id) }}" method="get">
+              <input type="hidden" name="qc_filter_preview" value="1">
+              <strong>Filter after QC</strong>
               <div class="qc-check-row">
-                <label><input type="checkbox" name="qc_status" value="pass" checked> Pass</label>
-                <label><input type="checkbox" name="qc_status" value="review"> Review</label>
-                <label><input type="checkbox" name="qc_status" value="fail"> Fail</label>
-                <label><input type="checkbox" name="gtdbtk_status" value="PASS"> GTDB-Tk pass</label>
-                <label><input type="checkbox" name="gtdbtk_status" value="WARN"> GTDB-Tk warn</label>
+                <label><input type="checkbox" name="qc_status" value="pass" {% if "pass" in selected_statuses %}checked{% endif %}> Pass</label>
+                <label><input type="checkbox" name="qc_status" value="review" {% if "review" in selected_statuses %}checked{% endif %}> Review</label>
+                <label><input type="checkbox" name="qc_status" value="fail" {% if "fail" in selected_statuses %}checked{% endif %}> Fail</label>
+                <label><input type="checkbox" name="gtdbtk_status" value="PASS" {% if "PASS" in selected_gtdbtk %}checked{% endif %}> GTDB-Tk pass</label>
+                <label><input type="checkbox" name="gtdbtk_status" value="WARN" {% if "WARN" in selected_gtdbtk %}checked{% endif %}> GTDB-Tk warn</label>
               </div>
               <div class="qc-filter-grid">
-                <label>Min completeness <input type="number" step="0.1" name="min_completeness" value="{{ qc_summary.get('thresholds', {}).get('min_completeness') or 90 }}"></label>
-                <label>Max contamination <input type="number" step="0.1" name="max_contamination" value="{{ qc_summary.get('thresholds', {}).get('max_contamination') or 5 }}"></label>
-                <label>Min N50 <input type="number" step="1" name="min_n50" placeholder="optional"></label>
-                <label>Max contigs <input type="number" step="1" name="max_contigs" placeholder="optional"></label>
-                <label>Min genome size <input type="number" step="1" name="min_genome_size" placeholder="optional"></label>
-                <label>Max N % <input type="number" step="0.01" name="max_n_percent" value="{{ qc_summary.get('thresholds', {}).get('max_n_percent') or 5 }}"></label>
+                <label>Min completeness <input type="number" step="0.1" name="min_completeness" value="{{ request.args.get('min_completeness', qc_summary.get('thresholds', {}).get('min_completeness') or 90) }}"></label>
+                <label>Max contamination <input type="number" step="0.1" name="max_contamination" value="{{ request.args.get('max_contamination', qc_summary.get('thresholds', {}).get('max_contamination') or 5) }}"></label>
+                <label>Min N50 <input type="number" step="1" name="min_n50" value="{{ request.args.get('min_n50', '') }}" placeholder="optional"></label>
+                <label>Max contigs <input type="number" step="1" name="max_contigs" value="{{ request.args.get('max_contigs', '') }}" placeholder="optional"></label>
+                <label>Min genome size <input type="number" step="1" name="min_genome_size" value="{{ request.args.get('min_genome_size', '') }}" placeholder="optional"></label>
+                <label>Max N % <input type="number" step="0.01" name="max_n_percent" value="{{ request.args.get('max_n_percent', qc_summary.get('thresholds', {}).get('max_n_percent') or 5) }}"></label>
               </div>
-              <button type="submit">Create filtered sequence job</button>
+              <div class="qc-action-row">
+                <button type="submit">Apply filters</button>
+                {% if post_qc_filter_preview and post_qc_filter_preview.available and post_qc_filter_preview.matched %}
+                  <a class="button-like ghost" href="{{ url_for('download_quality_filtered_metadata', job_id=job.id) }}{% if post_qc_filter_query %}?{{ post_qc_filter_query }}{% endif %}">Download filtered metadata</a>
+                {% endif %}
+              </div>
             </form>
+            {% if post_qc_filter_preview and post_qc_filter_preview.available and post_qc_filter_preview.matched %}
+              <form class="qc-action-row" action="{{ url_for('create_quality_filtered_sequence_job', job_id=job.id) }}" method="post">
+                {% for key, value in post_qc_filter_preview.query_args %}
+                  {% if key not in ["_csrf_token"] %}
+                    <input type="hidden" name="{{ key }}" value="{{ value }}">
+                  {% endif %}
+                {% endfor %}
+                <button type="submit">Launch sequence download</button>
+              </form>
+            {% endif %}
+            {% if post_qc_filter_preview %}
+              <div class="qc-filter-result">
+                {% if post_qc_filter_preview.available %}
+                  <strong>{{ post_qc_filter_preview.matched }} of {{ post_qc_filter_preview.total }} genomes match the post-QC filters.</strong>
+                  <span class="job-meta">Review this count before launching a new sequence download job.</span>
+                  {% if post_qc_filter_preview.preview %}
+                    <div class="qc-preview-table">
+                      <table class="qc-wide-table">
+                        <thead>
+                          <tr>
+                            <th>Assembly</th>
+                            <th>Status</th>
+                            <th>Completeness</th>
+                            <th>Contamination</th>
+                            <th>Genome size</th>
+                            <th>Contigs</th>
+                            <th>N50</th>
+                            <th>GTDB-Tk</th>
+                            <th>GTDB species/genus</th>
+                            <th>Reason</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for row in post_qc_filter_preview.preview %}
+                            <tr>
+                              <td><strong>{{ row.accession or row.assembly_name or "—" }}</strong></td>
+                              <td><span class="qc-status {{ row.status }}">{{ row.status }}</span></td>
+                              <td>{{ row.completeness or "—" }}</td>
+                              <td>{{ row.contamination or "—" }}</td>
+                              <td>{{ row.genome_size or "—" }}</td>
+                              <td>{{ row.contigs or "—" }}</td>
+                              <td>{{ row.n50 or "—" }}</td>
+                              <td>{{ row.gtdbtk or "—" }}</td>
+                              <td>{{ row.gtdbtk_species or row.gtdbtk_genus or "—" }}</td>
+                              <td class="qc-reason-cell">{{ row.reasons or "—" }}</td>
+                            </tr>
+                          {% endfor %}
+                        </tbody>
+                      </table>
+                    </div>
+                  {% endif %}
+                {% else %}
+                  <strong>Post-QC filtering is not available.</strong>
+                  <span class="job-meta">{{ post_qc_filter_preview.error }}</span>
+                {% endif %}
+              </div>
+            {% endif %}
           {% endif %}
 
           {% if quality_check_assets.decision_preview %}
@@ -530,7 +609,7 @@
                 <strong>QC HTML summary</strong>
                 <span>Readable summary page with status distribution, reasons, and a comprehensive table preview.</span>
                 <span>
-                  <a href="{{ url_for('download_output', job_id=job.id, relative_path=quality_check_assets.html_summary_path) }}">
+                  <a target="_blank" href="{{ url_for('open_quality_summary', job_id=job.id) }}">
                     Open HTML
                   </a>
                 </span>

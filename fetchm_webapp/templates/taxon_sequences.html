@@ -609,27 +609,11 @@
           <p class="eyebrow">Quality check</p>
           <h3>Check quality before the final download</h3>
           <p class="section-note">
-            Use this same filtered subset for quick FASTA checks or managed PanResistome-style QC with CheckM2,
-            QUAST, ANI, and Mash. After QC finishes, FetchM Web creates pass/review/fail tables and lets you
-            launch a new download using only QC-passed genomes.
+            Use this same filtered subset for quick quality check of your genomes.
           </p>
         </div>
         <div class="sequence-quality-actions">
-          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Open quality check</button>
-        </div>
-      </div>
-      <div class="sequence-quality-flow" aria-label="Quality-check workflow">
-        <div class="sequence-quality-step">
-          <strong>1. Keep filters</strong>
-          <span>{{ sequence_dashboard.matched_row_total }} genomes selected from this page.</span>
-        </div>
-        <div class="sequence-quality-step">
-          <strong>2. Run QC</strong>
-          <span>Choose quick checks or managed external modules.</span>
-        </div>
-        <div class="sequence-quality-step">
-          <strong>3. Download passed</strong>
-          <span>Use the QC-passed subset for downstream analysis.</span>
+          <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Go to Quality Check</button>
         </div>
       </div>
     </form>

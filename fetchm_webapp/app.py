@@ -15587,6 +15587,113 @@ def qc_reason_counts(decisions: pd.DataFrame, limit: int = 8) -> list[dict[str, 
     return [{"reason": reason, "count": count} for reason, count in counter.most_common(limit)]
 
 
+def qc_value_list(source: Any, key: str) -> list[str]:
+    if hasattr(source, "getlist"):
+        return [normalize_metadata_value(value) for value in source.getlist(key)]
+    value = source.get(key) if hasattr(source, "get") else None
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple, set)):
+        return [normalize_metadata_value(item) for item in value]
+    return [normalize_metadata_value(value)]
+
+
+def load_quality_filter_frame(quality_job: JobRecord) -> pd.DataFrame:
+    enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_enriched_metadata.csv"
+    if not enriched_metadata.exists():
+        enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_decisions.csv"
+    if not enriched_metadata.exists():
+        raise FileNotFoundError("QC metadata is not available yet.")
+    return pd.read_csv(enriched_metadata, dtype=str).fillna("")
+
+
+def apply_quality_post_filters(frame: pd.DataFrame, source: Any) -> tuple[pd.DataFrame, dict[str, Any]]:
+    statuses = [value.lower() for value in qc_value_list(source, "qc_status")]
+    statuses = [value for value in statuses if value in {"pass", "review", "fail"}]
+    if not statuses:
+        statuses = ["pass"]
+
+    filtered = frame.copy()
+    if "Sequence_QC_Status" in filtered.columns:
+        filtered = filtered[filtered["Sequence_QC_Status"].astype(str).str.lower().isin(statuses)].copy()
+
+    applied_filters: dict[str, Any] = {"qc_status": statuses}
+    numeric_filters = [
+        ("min_completeness", "CheckM completeness", ">="),
+        ("max_contamination", "CheckM contamination", "<="),
+        ("min_n50", "QC_n50", ">="),
+        ("max_contigs", "QC_contig_count", "<="),
+        ("min_genome_size", "QC_total_bp", ">="),
+        ("max_n_percent", "QC_ambiguous_n_percent", "<="),
+    ]
+    for form_key, column, operator in numeric_filters:
+        threshold = parse_optional_float(source.get(form_key) if hasattr(source, "get") else None)
+        if threshold is None or column not in filtered.columns:
+            continue
+        values = pd.to_numeric(filtered[column], errors="coerce")
+        if operator == ">=":
+            filtered = filtered[values >= threshold].copy()
+        else:
+            filtered = filtered[values <= threshold].copy()
+        applied_filters[form_key] = threshold
+
+    gtdbtk_statuses = [value.upper() for value in qc_value_list(source, "gtdbtk_status")]
+    gtdbtk_statuses = [value for value in gtdbtk_statuses if value in {"PASS", "WARN", "FAIL"}]
+    if gtdbtk_statuses and "GTDBTK_QC_Status" in filtered.columns:
+        filtered = filtered[filtered["GTDBTK_QC_Status"].astype(str).str.upper().isin(gtdbtk_statuses)].copy()
+        applied_filters["gtdbtk_status"] = gtdbtk_statuses
+
+    return filtered, applied_filters
+
+
+def summarize_post_qc_filter_preview(quality_job: JobRecord, source: Any) -> dict[str, Any] | None:
+    if quality_job.mode != "qc" or not source.get("qc_filter_preview"):
+        return None
+    try:
+        frame = load_quality_filter_frame(quality_job)
+    except (OSError, pd.errors.EmptyDataError, ValueError):
+        return {
+            "available": False,
+            "error": "QC metadata is not available yet.",
+            "matched": 0,
+            "total": 0,
+            "applied_filters": {},
+            "preview": [],
+        }
+    filtered, applied_filters = apply_quality_post_filters(frame, source)
+    return {
+        "available": True,
+        "error": "",
+        "matched": int(len(filtered)),
+        "total": int(len(frame)),
+        "applied_filters": applied_filters,
+        "preview": build_qc_decision_preview(filtered.fillna(""), limit=12),
+        "selected_statuses": applied_filters.get("qc_status", ["pass"]),
+        "selected_gtdbtk_statuses": applied_filters.get("gtdbtk_status", []),
+        "query_args": [(key, value) for key in source.keys() for value in qc_value_list(source, key)],
+    }
+
+
+def numeric_histogram(values: pd.Series, bins: int = 8) -> list[dict[str, Any]]:
+    numbers = pd.to_numeric(values, errors="coerce").dropna()
+    if numbers.empty:
+        return []
+    counts, edges = np.histogram(numbers, bins=min(bins, max(1, int(numbers.nunique()))))
+    max_count = max(int(count) for count in counts) if len(counts) else 1
+    rows = []
+    for index, count in enumerate(counts):
+        start = edges[index]
+        end = edges[index + 1]
+        rows.append(
+            {
+                "label": f"{start:g}-{end:g}",
+                "count": int(count),
+                "width": round((int(count) / max_count) * 100, 2) if max_count else 0,
+            }
+        )
+    return rows
+
+
 def load_qc_runtime_tasks(output_dir: Path) -> dict[str, dict[str, Any]]:
     runtime_path = output_dir / "nextflow_qc" / "pipeline_runtime_tasks.tsv"
     if not runtime_path.exists():
@@ -15727,6 +15834,20 @@ def write_quality_check_html_summary(
     total = max(int(summary.get("total") or 0), 1)
     reason_rows = qc_reason_counts(decisions, limit=12)
     preview_rows = build_qc_decision_preview(decisions, limit=50)
+    gtdbtk_counts = Counter(
+        normalize_metadata_value(value).upper() or "NOT REPORTED"
+        for value in decisions.get("GTDBTK_QC_Status", pd.Series(dtype=str)).fillna("")
+    )
+    gtdbtk_species_counts = Counter(
+        normalize_metadata_value(value) or "Not reported"
+        for value in decisions.get("GTDBTK_Species", pd.Series(dtype=str)).fillna("")
+    )
+    histograms = {
+        "Completeness": numeric_histogram(decisions.get("CheckM completeness", pd.Series(dtype=str))),
+        "Contamination": numeric_histogram(decisions.get("CheckM contamination", pd.Series(dtype=str))),
+        "Genome size": numeric_histogram(decisions.get("QC_total_bp", pd.Series(dtype=str))),
+        "N50": numeric_histogram(decisions.get("QC_n50", pd.Series(dtype=str))),
+    }
 
     def esc(value: Any) -> str:
         return html.escape(normalize_metadata_value(value) or "—")
@@ -15766,6 +15887,30 @@ def write_quality_check_html_summary(
         for reason, count in [(item["reason"], item["count"]) for item in reason_rows]
     ) or "<li>No failure or review reasons reported.</li>"
 
+    def count_bars(counter: Counter[str], limit: int = 8) -> str:
+        if not counter:
+            return "<p>No values reported.</p>"
+        max_count = max(counter.values()) or 1
+        rows = []
+        for label, count in counter.most_common(limit):
+            width = (count / max_count) * 100
+            rows.append(
+                f'<div class="bar-row"><span>{esc(label)}</span><strong>{count}</strong>'
+                f'<i style="width:{width:.2f}%"></i></div>'
+            )
+        return "".join(rows)
+
+    def histogram_html(title: str, rows: list[dict[str, Any]]) -> str:
+        if not rows:
+            return f'<div class="mini-chart"><h3>{esc(title)}</h3><p>No numeric values reported.</p></div>'
+        bars = "".join(
+            f'<div class="hist-row"><span>{esc(row["label"])}</span><i style="width:{row["width"]}%"></i><strong>{row["count"]}</strong></div>'
+            for row in rows
+        )
+        return f'<div class="mini-chart"><h3>{esc(title)}</h3>{bars}</div>'
+
+    histogram_section = "".join(histogram_html(title, rows) for title, rows in histograms.items())
+
     html_text = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -15784,6 +15929,12 @@ def write_quality_check_html_summary(
     .bar {{ display: flex; height: 16px; overflow: hidden; border-radius: 999px; background: #eadfca; }}
     .bar span {{ display: block; }}
     .card {{ padding: 22px; margin-top: 18px; }}
+    .chart-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }}
+    .mini-chart {{ padding: 16px; border: 1px solid rgba(22,92,78,.12); border-radius: 18px; background: #fff; }}
+    .mini-chart h3 {{ margin: 0 0 12px; }}
+    .hist-row, .bar-row {{ display: grid; grid-template-columns: 96px minmax(20px, 1fr) 42px; gap: 8px; align-items: center; margin: 8px 0; font-size: 12px; }}
+    .hist-row i, .bar-row i {{ display: block; height: 10px; min-width: 3px; border-radius: 999px; background: #165c4e; }}
+    .bar-row {{ grid-template-columns: minmax(90px, 1fr) 42px minmax(20px, 1.2fr); }}
     table {{ width: 100%; border-collapse: collapse; min-width: 1180px; }}
     .table-wrap {{ overflow-x: auto; border: 1px solid rgba(22,92,78,.12); border-radius: 18px; background: #fff; }}
     th, td {{ padding: 10px 12px; border-bottom: 1px solid #eee4d2; text-align: left; font-size: 13px; vertical-align: top; }}
@@ -15809,6 +15960,17 @@ def write_quality_check_html_summary(
   <section class="card">
     <h2>Top Review/Failure Reasons</h2>
     <ul>{reason_html}</ul>
+  </section>
+  <section class="card">
+    <h2>QC Figures</h2>
+    <div class="chart-grid">{histogram_section}</div>
+  </section>
+  <section class="card">
+    <h2>GTDB-Tk Taxonomy Summary</h2>
+    <div class="chart-grid">
+      <div class="mini-chart"><h3>GTDB-Tk status</h3>{count_bars(gtdbtk_counts)}</div>
+      <div class="mini-chart"><h3>Top GTDB species</h3>{count_bars(gtdbtk_species_counts)}</div>
+    </div>
   </section>
   <section class="card">
     <h2>Comprehensive QC Table Preview</h2>
@@ -17661,6 +17823,7 @@ def job_detail(job_id: str) -> str:
     progress = summarize_job_progress(job, log_text)
     runtime_summary = job_runtime_summary(job)
     compact_qc_steps = compact_qc_progress(job, log_text, quality_check_assets)
+    post_qc_filter_preview = summarize_post_qc_filter_preview(job, request.args)
     return render_template(
         "job_detail.html",
         job=job,
@@ -17672,6 +17835,8 @@ def job_detail(job_id: str) -> str:
         progress=progress,
         runtime_summary=runtime_summary,
         compact_qc_steps=compact_qc_steps,
+        post_qc_filter_preview=post_qc_filter_preview,
+        post_qc_filter_query=request.query_string.decode("utf-8"),
     )
 
 
@@ -18131,56 +18296,18 @@ def create_quality_filtered_sequence_job(job_id: str) -> Any:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
         return redirect(url_for("job_detail", job_id=job_id))
 
-    enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_enriched_metadata.csv"
-    if not enriched_metadata.exists():
-        enriched_metadata = Path(quality_job.output_dir) / "sequence_qc" / "qc_decisions.csv"
-    if not enriched_metadata.exists():
+    try:
+        frame = load_quality_filter_frame(quality_job)
+    except FileNotFoundError:
         flash("QC metadata is not available yet.", "error")
         return redirect(url_for("job_detail", job_id=job_id))
-
-    try:
-        frame = pd.read_csv(enriched_metadata, dtype=str).fillna("")
     except Exception as exc:
         flash(f"Could not read QC metadata: {exc}", "error")
         return redirect(url_for("job_detail", job_id=job_id))
     if frame.empty:
         flash("QC metadata is empty.", "error")
         return redirect(url_for("job_detail", job_id=job_id))
-
-    statuses = [normalize_metadata_value(value).lower() for value in request.form.getlist("qc_status")]
-    statuses = [value for value in statuses if value in {"pass", "review", "fail"}]
-    if not statuses:
-        statuses = ["pass"]
-
-    filtered = frame.copy()
-    if "Sequence_QC_Status" in filtered.columns:
-        filtered = filtered[filtered["Sequence_QC_Status"].astype(str).str.lower().isin(statuses)].copy()
-
-    numeric_filters = [
-        ("min_completeness", "CheckM completeness", ">="),
-        ("max_contamination", "CheckM contamination", "<="),
-        ("min_n50", "QC_n50", ">="),
-        ("max_contigs", "QC_contig_count", "<="),
-        ("min_genome_size", "QC_total_bp", ">="),
-        ("max_n_percent", "QC_ambiguous_n_percent", "<="),
-    ]
-    applied_filters: dict[str, Any] = {"qc_status": statuses}
-    for form_key, column, operator in numeric_filters:
-        threshold = parse_optional_float(request.form.get(form_key))
-        if threshold is None or column not in filtered.columns:
-            continue
-        values = pd.to_numeric(filtered[column], errors="coerce")
-        if operator == ">=":
-            filtered = filtered[values >= threshold].copy()
-        else:
-            filtered = filtered[values <= threshold].copy()
-        applied_filters[form_key] = threshold
-
-    gtdbtk_statuses = [normalize_metadata_value(value).upper() for value in request.form.getlist("gtdbtk_status")]
-    gtdbtk_statuses = [value for value in gtdbtk_statuses if value in {"PASS", "WARN", "FAIL"}]
-    if gtdbtk_statuses and "GTDBTK_QC_Status" in filtered.columns:
-        filtered = filtered[filtered["GTDBTK_QC_Status"].astype(str).str.upper().isin(gtdbtk_statuses)].copy()
-        applied_filters["gtdbtk_status"] = gtdbtk_statuses
+    filtered, applied_filters = apply_quality_post_filters(frame, request.form)
 
     if filtered.empty:
         flash("No genomes match the selected post-QC filters.", "error")
@@ -18247,6 +18374,37 @@ def create_quality_filtered_sequence_job(job_id: str) -> Any:
     notify_job_event(record, "submitted")
     flash(f"Sequence job {new_job_id} submitted for {len(filtered):,} post-QC filtered genomes.", "success")
     return redirect(url_for("job_detail", job_id=new_job_id))
+
+
+@app.route("/jobs/<job_id>/quality-filtered-metadata.csv")
+def download_quality_filtered_metadata(job_id: str) -> Any:
+    quality_job = require_job_owner(job_id)
+    if quality_job.mode != "qc":
+        abort(404)
+    try:
+        frame = load_quality_filter_frame(quality_job)
+    except FileNotFoundError:
+        flash("QC metadata is not available yet.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    except Exception as exc:
+        flash(f"Could not read QC metadata: {exc}", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    filtered, applied_filters = apply_quality_post_filters(frame, request.args)
+    if filtered.empty:
+        flash("No genomes match the selected post-QC filters.", "error")
+        return redirect(url_for("job_detail", job_id=job_id, **request.args))
+    record_audit_event(
+        "download.quality_filtered_metadata",
+        target_type="job",
+        target_id=job_id,
+        metadata={"rows": int(len(filtered)), "post_qc_filters": applied_filters},
+    )
+    payload = filtered.to_csv(index=False)
+    return app.response_class(
+        payload,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={job_id}_post_qc_filtered_metadata.csv"},
+    )
 
 
 @app.route("/jobs/<job_id>/cancel", methods=["POST"])
@@ -18322,6 +18480,30 @@ def download_output(job_id: str, relative_path: str) -> Any:
     if output_root not in target.parents and target != output_root:
         abort(404)
     return send_from_directory(output_root, relative_path, as_attachment=True)
+
+
+@app.route("/jobs/<job_id>/quality-summary")
+def open_quality_summary(job_id: str) -> Any:
+    job = require_job_owner(job_id)
+    if job.mode != "qc":
+        abort(404)
+    output_root = Path(job.output_dir).resolve()
+    relative_path = "sequence_qc/quality_check_summary.html"
+    qc_dir = output_root / "sequence_qc"
+    summary_path = qc_dir / "quality_check_summary.json"
+    decisions_path = qc_dir / "qc_decisions.csv"
+    if summary_path.exists() and decisions_path.exists():
+        try:
+            summary = json.loads(summary_path.read_text(encoding="utf-8"))
+            decisions = pd.read_csv(decisions_path, dtype=str).fillna("")
+            write_quality_check_html_summary(qc_dir, job=job, summary=summary, decisions=decisions)
+        except (OSError, json.JSONDecodeError, pd.errors.EmptyDataError, ValueError):
+            pass
+    target = (output_root / relative_path).resolve()
+    if not target.exists() or (output_root not in target.parents and target != output_root):
+        flash("QC HTML summary is not available yet.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    return send_from_directory(output_root, relative_path, as_attachment=False)
 
 
 @app.route("/jobs/<job_id>/grouped-output.zip")
