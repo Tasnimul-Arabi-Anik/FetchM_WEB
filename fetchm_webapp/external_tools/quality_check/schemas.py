@@ -10,6 +10,10 @@ DEFAULT_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
     "max_n_percent": 5.0,
     "max_contigs": None,
     "min_n50": None,
+    "min_total_bp": None,
+    "max_total_bp": None,
+    "min_gc_percent": None,
+    "max_gc_percent": None,
     "min_ani_percent": 95.0,
     "max_mash_distance": None,
 }
@@ -110,8 +114,8 @@ QUALITY_PROFILES: dict[str, dict[str, Any]] = {
     },
     "comprehensive": {
         "label": "Comprehensive QC",
-        "description": "PanResistome-style QC selection including CheckM2, QUAST, ANI, Mash, and optional taxonomy checks.",
-        "modules": ["quick_fasta", "checkm2", "quast", "ani", "mash"],
+        "description": "Comprehensive QC with CheckM2, QUAST, ANI, Mash, and GTDB-Tk taxonomy checks.",
+        "modules": ["quick_fasta", "checkm2", "quast", "ani", "mash", "gtdbtk"],
         "run_mode": "handoff",
     },
 }
@@ -203,6 +207,10 @@ def build_quality_config(source: Any) -> dict[str, Any]:
         "max_n_percent": _optional_float(source, "qc_max_n_percent", DEFAULT_QUALITY_THRESHOLDS["max_n_percent"]),
         "max_contigs": _optional_int(source, "qc_max_contigs", DEFAULT_QUALITY_THRESHOLDS["max_contigs"]),
         "min_n50": _optional_int(source, "qc_min_n50", DEFAULT_QUALITY_THRESHOLDS["min_n50"]),
+        "min_total_bp": _optional_int(source, "qc_min_total_bp", DEFAULT_QUALITY_THRESHOLDS["min_total_bp"]),
+        "max_total_bp": _optional_int(source, "qc_max_total_bp", DEFAULT_QUALITY_THRESHOLDS["max_total_bp"]),
+        "min_gc_percent": _optional_float(source, "qc_min_gc_percent", DEFAULT_QUALITY_THRESHOLDS["min_gc_percent"]),
+        "max_gc_percent": _optional_float(source, "qc_max_gc_percent", DEFAULT_QUALITY_THRESHOLDS["max_gc_percent"]),
         "min_ani_percent": _optional_float(source, "qc_min_ani_percent", DEFAULT_QUALITY_THRESHOLDS["min_ani_percent"]),
         "max_mash_distance": _optional_float(source, "qc_max_mash_distance", DEFAULT_QUALITY_THRESHOLDS["max_mash_distance"]),
     }

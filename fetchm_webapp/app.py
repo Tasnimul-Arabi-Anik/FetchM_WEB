@@ -13993,6 +13993,10 @@ def build_quality_thresholds(source: Any) -> dict[str, Any]:
         "max_n_percent": float_value("qc_max_n_percent", SEQUENCE_QC_DEFAULTS["max_n_percent"]),
         "max_contigs": int_value("qc_max_contigs", SEQUENCE_QC_DEFAULTS["max_contigs"]),
         "min_n50": int_value("qc_min_n50", SEQUENCE_QC_DEFAULTS["min_n50"]),
+        "min_total_bp": int_value("qc_min_total_bp", SEQUENCE_QC_DEFAULTS["min_total_bp"]),
+        "max_total_bp": int_value("qc_max_total_bp", SEQUENCE_QC_DEFAULTS["max_total_bp"]),
+        "min_gc_percent": float_value("qc_min_gc_percent", SEQUENCE_QC_DEFAULTS["min_gc_percent"]),
+        "max_gc_percent": float_value("qc_max_gc_percent", SEQUENCE_QC_DEFAULTS["max_gc_percent"]),
     }
 
 
@@ -14724,6 +14728,36 @@ def run_sequence_quality_checks(
         ambiguous_n_percent = parse_optional_float(stats.get("ambiguous_n_percent"))
         if max_n_percent is not None and ambiguous_n_percent is not None and ambiguous_n_percent > float(max_n_percent):
             failures.append(f"Ambiguous N percent {ambiguous_n_percent:g} > {float(max_n_percent):g}")
+
+        total_bp = parse_optional_int(stats.get("total_bp"))
+        min_total_bp = quality_threshold_value(thresholds, "min_total_bp")
+        if min_total_bp is not None:
+            if total_bp is None:
+                reviews.append("Genome size missing")
+            elif total_bp < int(min_total_bp):
+                failures.append(f"Genome size {total_bp} < {int(min_total_bp)}")
+
+        max_total_bp = quality_threshold_value(thresholds, "max_total_bp")
+        if max_total_bp is not None:
+            if total_bp is None:
+                reviews.append("Genome size missing")
+            elif total_bp > int(max_total_bp):
+                failures.append(f"Genome size {total_bp} > {int(max_total_bp)}")
+
+        gc_percent = parse_optional_float(stats.get("gc_percent"))
+        min_gc_percent = quality_threshold_value(thresholds, "min_gc_percent")
+        if min_gc_percent is not None:
+            if gc_percent is None:
+                reviews.append("GC percent missing")
+            elif gc_percent < float(min_gc_percent):
+                failures.append(f"GC percent {gc_percent:g} < {float(min_gc_percent):g}")
+
+        max_gc_percent = quality_threshold_value(thresholds, "max_gc_percent")
+        if max_gc_percent is not None:
+            if gc_percent is None:
+                reviews.append("GC percent missing")
+            elif gc_percent > float(max_gc_percent):
+                failures.append(f"GC percent {gc_percent:g} > {float(max_gc_percent):g}")
 
         max_contigs = quality_threshold_value(thresholds, "max_contigs")
         contig_count = parse_optional_int(stats.get("contig_count")) or parse_optional_int(row_dict.get("Assembly Stats Number of Contigs"))
