@@ -50,6 +50,11 @@
     margin-bottom: 4px;
   }
 
+  .quality-profile-grid .quality-card-option strong {
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
   .quality-card-option small,
   .quality-card-option span {
     display: block;
@@ -114,25 +119,6 @@
     font-weight: 800;
   }
 
-  .quality-route-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 12px;
-    margin-top: 14px;
-  }
-
-  .quality-route-step {
-    padding: 14px;
-    border-radius: 18px;
-    border: 1px solid rgba(22, 92, 78, 0.14);
-    background: rgba(255, 255, 255, 0.72);
-  }
-
-  .quality-route-step strong {
-    display: block;
-    margin-bottom: 4px;
-  }
-
   .quality-runtime-banner {
     border-color: rgba(22, 92, 78, 0.22);
     background:
@@ -151,25 +137,6 @@
     <div class="section-heading">
       <div>
         <h1>{{ species.species_name }}</h1>
-        <p class="lede">
-          Configure quality checks for the currently filtered sequence subset. FetchM Web keeps the filter set,
-          downloads the selected FASTA files, runs selected QC modules, and writes pass/review/fail metadata
-          that can be used for a clean downstream sequence download.
-        </p>
-        <div class="quality-route-grid">
-          <div class="quality-route-step">
-            <strong>1. Selected subset</strong>
-            <span>{{ sequence_dashboard.matched_row_total }} genomes from your current filters.</span>
-          </div>
-          <div class="quality-route-step">
-            <strong>2. QC modules</strong>
-            <span>Quick FASTA stats, CheckM2, QUAST, ANI, Mash, or taxonomy checks.</span>
-          </div>
-          <div class="quality-route-step">
-            <strong>3. Filter by QC</strong>
-            <span>Use passed genomes directly from the completed job page.</span>
-          </div>
-        </div>
       </div>
       <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
     </div>
