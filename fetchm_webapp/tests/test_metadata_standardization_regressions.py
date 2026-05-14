@@ -1,17 +1,23 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import app as fetchm_app
 from app import (
+    apply_pass_fail_decision_mode,
+    apply_quality_post_filters,
+    apply_sequence_filters,
     broad_standardization_category,
+    build_qc_decision_preview,
     build_quality_config,
     ensure_managed_metadata_schema,
     extract_country,
     import_nextflow_qc_outputs,
     dedupe_reason_text,
+    run_sequence_quality_checks,
     should_expose_output_file,
     standardize_host_metadata,
 )
@@ -19,6 +25,154 @@ from external_tools.quality_check.runner import validate_quality_runtime
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_advanced_quality_job_detail_loads_parent_owner_field(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    parent = fetchm_app.JobRecord(
+                        id="parent-standard",
+                        mode="qc",
+                        status="completed",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="parent.csv",
+                        input_path=str(root / "parent.csv"),
+                        output_dir=str(root / "parent_outputs"),
+                        log_path=str(root / "parent.log"),
+                        command=[],
+                        owner_user_id=42,
+                        filters={},
+                    )
+                    advanced = fetchm_app.JobRecord(
+                        id="advanced-child",
+                        mode="qc",
+                        status="completed",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="advanced.csv",
+                        input_path=str(root / "advanced.csv"),
+                        output_dir=str(root / "advanced_outputs"),
+                        log_path=str(root / "advanced.log"),
+                        command=[],
+                        owner_user_id=42,
+                        filters={"advanced_qc": True, "parent_quality_job_id": parent.id},
+                    )
+                    fetchm_app.save_job(parent)
+                    fetchm_app.save_job(advanced)
+
+                    with fetchm_app.app.test_request_context("/jobs/advanced-child"):
+                        loaded = fetchm_app.load_job("advanced-child")
+                        parent_quality_job = None
+                        parent_quality_job_id = str(loaded.filters.get("parent_quality_job_id") or "").strip()
+                        if parent_quality_job_id:
+                            candidate_parent = fetchm_app.load_job(parent_quality_job_id)
+                            if candidate_parent.owner_user_id == loaded.owner_user_id:
+                                parent_quality_job = candidate_parent
+
+                    self.assertIsNotNone(parent_quality_job)
+                    self.assertEqual(parent_quality_job.id, "parent-standard")
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_qc_preview_does_not_display_numeric_ani_closest_as_genome(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {
+                    "Assembly Accession": "GCA_000001.1",
+                    "Sequence_QC_Status": "review",
+                    "ANI_Closest_ANI": "87.79",
+                    "ANI_Closest_Genome": "97.69",
+                }
+            ]
+        )
+
+        preview = build_qc_decision_preview(frame)
+
+        self.assertEqual(preview[0]["ani"], "87.79")
+        self.assertEqual(preview[0]["ani_closest"], "")
+
+    def test_qc_preview_treats_zero_ani_as_unresolved(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {
+                    "Assembly Accession": "GCA_000001.1",
+                    "Sequence_QC_Status": "review",
+                    "Sequence_QC_Review_Reasons": "ani_species_warning:0<95",
+                    "ANI_Closest_ANI": "0.0",
+                    "ANI_Closest_Genome": "0.00",
+                    "ANI_Species_Consistency_Status": "WARN",
+                }
+            ]
+        )
+
+        preview = build_qc_decision_preview(frame)
+
+        self.assertEqual(preview[0]["ani"], "")
+        self.assertEqual(preview[0]["ani_closest"], "")
+        self.assertEqual(preview[0]["ani_status"], "WARN")
+        self.assertEqual(preview[0]["reasons"], "NO_VALID_ANI_RESULT")
+
+    def test_quality_submission_blockers_guard_low_memory_and_active_qc(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            old_reader = fetchm_app.read_memory_usage
+            old_min_memory = fetchm_app.MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES
+            old_max_active = fetchm_app.MAX_ACTIVE_QUALITY_JOBS
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES = 12 * 1024**3
+            fetchm_app.MAX_ACTIVE_QUALITY_JOBS = 1
+            fetchm_app.read_memory_usage = lambda: {
+                "total_bytes": 128 * 1024**3,
+                "used_bytes": 124 * 1024**3,
+                "available_bytes": 4 * 1024**3,
+                "used_percent": 96.9,
+                "total_label": "128 GiB",
+                "used_label": "124 GiB",
+                "available_label": "4 GiB",
+            }
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    fetchm_app.save_job(
+                        fetchm_app.JobRecord(
+                            id="active-qc",
+                            mode="qc",
+                            status="running",
+                            created_at=fetchm_app.utc_now(),
+                            updated_at=fetchm_app.utc_now(),
+                            input_name="input.csv",
+                            input_path=str(root / "input.csv"),
+                            output_dir=str(root / "outputs"),
+                            log_path=str(root / "job.log"),
+                            command=[],
+                            owner_user_id=1,
+                        )
+                    )
+
+                    blockers = fetchm_app.quality_submission_blockers()
+
+                    self.assertTrue(any("low on available memory" in item for item in blockers))
+                    self.assertTrue(any("memory load is too high" in item for item in blockers))
+                    self.assertTrue(any("quality job(s) are already queued or running" in item for item in blockers))
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+                fetchm_app.read_memory_usage = old_reader
+                fetchm_app.MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES = old_min_memory
+                fetchm_app.MAX_ACTIVE_QUALITY_JOBS = old_max_active
+
     def test_qc_reason_text_is_deduplicated(self) -> None:
         self.assertEqual(
             dedupe_reason_text(
@@ -320,7 +474,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     [
                         "Assembly Accession,Assembly Name,sequence_file,sequence_total_length,sequence_num_contigs,sequence_n50,sequence_gc_percent,sequence_ambiguous_bases,checkm2_completeness,checkm2_contamination,ani_closest_ani,ani_species_consistency_status,ani_cluster,gtdbtk_qc_status,gtdbtk_genus,gtdbtk_species,gtdbtk_qc_fail_reasons,qc_master_status,qc_master_fail_reasons,qc_master_warning_reasons",
                         "GCF_000001.1,ASM1,GCF_000001.1_ASM1_genomic.fna,5200000,81,120000,57.3,0,98.4,0.8,99.98,PASS,ANI_CLUSTER_0001,PASS,Klebsiella,Klebsiella pneumoniae,,PASS,,",
-                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,94.1,WARN,ANI_CLUSTER_0002,FAIL,Enterobacter,Enterobacter cloacae,GENUS_MISMATCH,FAIL,CheckM2 completeness below threshold,",
+                        "GCF_000002.1,ASM2,GCF_000002.1_ASM2_genomic.fna,4100000,300,5000,56.9,10,72.0,8.5,0.0,WARN,ANI_CLUSTER_0002,FAIL,Enterobacter,Enterobacter cloacae,GENUS_MISMATCH,FAIL,CheckM2 completeness below threshold,ani_species_warning:0<95",
                     ]
                 )
                 + "\n",
@@ -373,6 +527,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(result["pass"], 1)
             self.assertEqual(result["fail"], 1)
             self.assertTrue((qc_dir / "external_qc_master_report.csv").exists())
+            self.assertTrue((qc_dir / "qc_all_metadata.csv").exists())
             self.assertTrue((qc_dir / "external_ani_summary.csv").exists())
             self.assertTrue((qc_dir / "external_ani_run_status.tsv").exists())
             self.assertTrue((qc_dir / "external_mash_closest_neighbors.csv").exists())
@@ -384,6 +539,8 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("GTDBTK_QC_Status", decisions)
             self.assertIn("Klebsiella pneumoniae", decisions)
             self.assertIn("0.001", decisions)
+            self.assertIn("NO_VALID_ANI_RESULT", decisions)
+            self.assertNotIn("ani_species_warning:0<95", decisions)
             self.assertIn("GCF_000001.1", (qc_dir / "qc_pass_metadata.csv").read_text(encoding="utf-8"))
             self.assertIn("CheckM2 completeness below threshold", (qc_dir / "qc_failed_metadata.csv").read_text(encoding="utf-8"))
 
@@ -406,6 +563,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
     def test_public_auth_pages_use_refreshed_fetchm_web_copy(self) -> None:
         client = fetchm_app.app.test_client()
+        health = client.get("/healthz")
+        self.assertEqual(health.status_code, 200)
+        self.assertEqual(health.get_json()["status"], "ok")
+
         home = client.get("/")
         self.assertEqual(home.status_code, 200)
         home_html = home.data.decode("utf-8")
@@ -468,6 +629,455 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(config["run_mode"], "handoff")
         self.assertIn("checkm2", config["selected_modules"])
         self.assertIn("quast", config["selected_modules"])
+
+    def test_quality_profiles_use_profile_specific_threshold_defaults(self) -> None:
+        class Form:
+            def __init__(self, values: dict[str, str]):
+                self.values = values
+
+            def get(self, key: str, default=None):
+                return self.values.get(key, default)
+
+            def getlist(self, key: str):
+                return []
+
+        quick = build_quality_config(Form({"quality_profile": "quick"}))
+        self.assertEqual(quick["run_mode"], "quick")
+        self.assertEqual(quick["selected_modules"], ["quick_fasta"])
+        self.assertIsNone(quick["thresholds"]["min_completeness"])
+        self.assertIsNone(quick["thresholds"]["max_contamination"])
+        self.assertIsNone(quick["thresholds"]["min_ani_percent"])
+        self.assertEqual(quick["thresholds"]["max_n_percent"], 5.0)
+
+        quick_with_checkm = build_quality_config(
+            Form(
+                {
+                    "quality_profile": "quick",
+                    "qc_use_existing_checkm": "1",
+                    "qc_min_completeness": "85",
+                    "qc_max_contamination": "10",
+                }
+            )
+        )
+        self.assertTrue(quick_with_checkm["use_existing_checkm"])
+        self.assertEqual(quick_with_checkm["thresholds"]["min_completeness"], 85.0)
+        self.assertEqual(quick_with_checkm["thresholds"]["max_contamination"], 10.0)
+
+        standard = build_quality_config(Form({"quality_profile": "standard"}))
+        self.assertEqual(standard["run_mode"], "handoff")
+        self.assertEqual(standard["thresholds"]["min_completeness"], 90.0)
+        self.assertEqual(standard["thresholds"]["max_contamination"], 5.0)
+        self.assertIsNone(standard["thresholds"]["min_ani_percent"])
+        self.assertIn("checkm2", standard["selected_modules"])
+        self.assertIn("quast", standard["selected_modules"])
+
+        advanced = build_quality_config(Form({"quality_profile": "advanced"}))
+        self.assertEqual(advanced["thresholds"]["min_ani_percent"], 95.0)
+        self.assertIn("ani", advanced["selected_modules"])
+        self.assertNotIn("checkm2", advanced["selected_modules"])
+        self.assertNotIn("quast", advanced["selected_modules"])
+        self.assertNotIn("mash", advanced["selected_modules"])
+        self.assertNotIn("gtdbtk", advanced["selected_modules"])
+
+    def test_quick_qc_missing_checkm_only_matters_when_thresholds_enabled(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            input_path = root / "input.csv"
+            output_dir = root / "outputs"
+            output_dir.mkdir()
+            input_path.write_text(
+                "Assembly Accession,Assembly Name,CheckM completeness,CheckM contamination\n"
+                "GCA_000001.1,ASM1,,\n",
+                encoding="utf-8",
+            )
+            (output_dir / "GCA_000001.1_ASM1_genomic.fna").write_text(">contig1\nACGTACGTACGT\n", encoding="utf-8")
+            job = fetchm_app.JobRecord(
+                id="quick-checkm",
+                mode="qc",
+                status="running",
+                created_at=fetchm_app.utc_now(),
+                updated_at=fetchm_app.utc_now(),
+                input_name="input.csv",
+                input_path=str(input_path),
+                output_dir=str(output_dir),
+                log_path=str(root / "job.log"),
+                command=[],
+                owner_user_id=1,
+            )
+
+            quick = build_quality_config(type("Form", (), {"get": lambda self, key, default=None: {"quality_profile": "quick"}.get(key, default), "getlist": lambda self, key: []})())
+            run_sequence_quality_checks(job, quick["thresholds"], quick)
+            decisions = fetchm_app.pd.read_csv(output_dir / "sequence_qc" / "qc_decisions.csv", dtype=str).fillna("")
+            self.assertEqual(decisions.loc[0, "Sequence_QC_Status"], "pass")
+            self.assertEqual(decisions.loc[0, "Sequence_QC_Review_Reasons"], "")
+
+            strict = build_quality_config(
+                type(
+                    "Form",
+                    (),
+                    {
+                        "get": lambda self, key, default=None: {
+                            "quality_profile": "quick",
+                            "qc_use_existing_checkm": "1",
+                            "qc_min_completeness": "90",
+                            "qc_max_contamination": "5",
+                        }.get(key, default),
+                        "getlist": lambda self, key: [],
+                    },
+                )()
+            )
+            run_sequence_quality_checks(job, strict["thresholds"], strict)
+            decisions = fetchm_app.pd.read_csv(output_dir / "sequence_qc" / "qc_decisions.csv", dtype=str).fillna("")
+            self.assertEqual(decisions.loc[0, "Sequence_QC_Status"], "fail")
+            self.assertIn("CheckM completeness missing", decisions.loc[0, "Sequence_QC_Failure_Reasons"])
+            self.assertIn("CheckM contamination missing", decisions.loc[0, "Sequence_QC_Failure_Reasons"])
+
+    def test_sequence_filter_and_or_logic(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {"Assembly Accession": "GCA_1", "Country": "India", "Host_SD": "Homo sapiens"},
+                {"Assembly Accession": "GCA_2", "Country": "India", "Host_SD": "Sus scrofa"},
+                {"Assembly Accession": "GCA_3", "Country": "Italy", "Host_SD": "Homo sapiens"},
+            ]
+        )
+        filters = {"country": ["India"], "host_sd": ["Homo sapiens"], "filter_logic": "and"}
+        self.assertEqual(apply_sequence_filters(frame, filters)["Assembly Accession"].tolist(), ["GCA_1"])
+        filters["filter_logic"] = "or"
+        self.assertEqual(
+            apply_sequence_filters(frame, filters)["Assembly Accession"].tolist(),
+            ["GCA_1", "GCA_2", "GCA_3"],
+        )
+
+    def test_pass_fail_decision_mode_collapses_review_into_fail(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {
+                    "Assembly Accession": "GCA_1",
+                    "Sequence_QC_Status": "review",
+                    "Sequence_QC_Pass": False,
+                    "Sequence_QC_Failure_Reasons": "",
+                    "Sequence_QC_Review_Reasons": "CheckM completeness missing",
+                },
+                {
+                    "Assembly Accession": "GCA_2",
+                    "Sequence_QC_Status": "pass",
+                    "Sequence_QC_Pass": True,
+                    "Sequence_QC_Failure_Reasons": "",
+                    "Sequence_QC_Review_Reasons": "",
+                },
+            ]
+        )
+        collapsed = apply_pass_fail_decision_mode(frame)
+        self.assertEqual(collapsed["Sequence_QC_Status"].tolist(), ["fail", "pass"])
+        self.assertEqual(collapsed.loc[0, "Sequence_QC_Failure_Reasons"], "CheckM completeness missing")
+        self.assertEqual(collapsed.loc[0, "Sequence_QC_Review_Reasons"], "")
+
+    def test_post_qc_filters_support_comprehensive_metrics(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {
+                    "Assembly Accession": "GCA_1",
+                    "Sequence_QC_Status": "pass",
+                    "CheckM completeness": "96",
+                    "CheckM contamination": "1",
+                    "QC_total_bp": "3000000",
+                    "QC_gc_percent": "50",
+                    "QC_ambiguous_n_percent": "0.1",
+                    "ANI_Closest_ANI": "96.2",
+                    "ANI_Species_Consistency_Status": "PASS",
+                    "Mash_Distance": "0.01",
+                    "GTDBTK_QC_Status": "PASS",
+                    "GTDBTK_Match_Rank": "species",
+                },
+                {
+                    "Assembly Accession": "GCA_2",
+                    "Sequence_QC_Status": "review",
+                    "CheckM completeness": "91",
+                    "CheckM contamination": "2",
+                    "QC_total_bp": "4500000",
+                    "QC_gc_percent": "63",
+                    "QC_ambiguous_n_percent": "0.2",
+                    "ANI_Closest_ANI": "89",
+                    "ANI_Species_Consistency_Status": "WARN",
+                    "Mash_Distance": "0.08",
+                    "GTDBTK_QC_Status": "WARN",
+                    "GTDBTK_Match_Rank": "genus",
+                },
+            ]
+        )
+
+        class Query:
+            values = {
+                "qc_status": ["pass", "review"],
+                "min_ani_percent": "95",
+                "max_mash_distance": "0.02",
+                "gtdbtk_rank": ["species"],
+            }
+
+            def get(self, key: str, default=None):
+                value = self.values.get(key, default)
+                if isinstance(value, list):
+                    return value[0] if value else default
+                return value
+
+            def getlist(self, key: str):
+                value = self.values.get(key, [])
+                return value if isinstance(value, list) else [value]
+
+            def keys(self):
+                return self.values.keys()
+
+        filtered, applied = apply_quality_post_filters(frame, Query())
+        self.assertEqual(filtered["Assembly Accession"].tolist(), ["GCA_1"])
+        self.assertEqual(applied["min_ani_percent"], 95.0)
+        self.assertEqual(applied["max_mash_distance"], 0.02)
+        self.assertEqual(applied["gtdbtk_rank"], ["species"])
+
+    def test_post_qc_filtered_download_sequence_job_and_owner_protection(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    owner = fetchm_app.create_user("owner", "owner@example.com", "long-password-1")
+                    other = fetchm_app.create_user("other", "other@example.com", "long-password-2")
+                    output_dir = fetchm_app.JOBS_DIR / "qc-owner" / "outputs"
+                    qc_dir = output_dir / "sequence_qc"
+                    qc_dir.mkdir(parents=True)
+                    qc_dir.joinpath("qc_enriched_metadata.csv").write_text(
+                        "Assembly Accession,Sequence_QC_Status,CheckM completeness,CheckM contamination\n"
+                        "GCA_1,pass,99,0.1\n"
+                        "GCA_2,fail,80,6\n",
+                        encoding="utf-8",
+                    )
+                    qc_dir.joinpath("qc_decisions.csv").write_text(
+                        "Assembly Accession,Sequence_QC_Status\nGCA_1,pass\nGCA_2,fail\n",
+                        encoding="utf-8",
+                    )
+                    job = fetchm_app.JobRecord(
+                        id="qc-owner",
+                        mode="qc",
+                        status="completed",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="qc.csv",
+                        input_path=str(root / "qc.csv"),
+                        output_dir=str(output_dir),
+                        log_path=str(root / "qc.log"),
+                        command=[],
+                        owner_user_id=int(owner["id"]),
+                        filters={"taxon_id": 1, "taxon_name": "Klebsiella", "taxon_rank": "genus"},
+                    )
+                    fetchm_app.save_job(job)
+
+                    client = fetchm_app.app.test_client()
+                    with client.session_transaction() as session:
+                        session["user_id"] = int(owner["id"])
+                        session["_csrf_token"] = "token"
+
+                    response = client.get("/jobs/qc-owner/quality-filtered-metadata.csv?qc_status=pass")
+                    self.assertEqual(response.status_code, 200)
+                    body = response.data.decode("utf-8")
+                    self.assertIn("GCA_1", body)
+                    self.assertNotIn("GCA_2", body)
+
+                    response = client.post(
+                        "/jobs/qc-owner/quality-filtered-sequence-job",
+                        data={"_csrf_token": "token", "qc_status": "pass"},
+                        follow_redirects=False,
+                    )
+                    self.assertEqual(response.status_code, 302)
+                    created = fetchm_app.get_db().execute(
+                        "SELECT * FROM jobs WHERE mode='seq' AND json_extract(filters_json, '$.parent_quality_job_id') = ?",
+                        ("qc-owner",),
+                    ).fetchone()
+                    self.assertIsNotNone(created)
+                    self.assertEqual(fetchm_app.load_job(str(created["id"])).filters["matched_row_total"], 1)
+
+                    with client.session_transaction() as session:
+                        session["user_id"] = int(other["id"])
+                    denied = client.get("/jobs/qc-owner/files/sequence_qc/qc_all_metadata.csv")
+                    self.assertEqual(denied.status_code, 404)
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_quality_summary_route_generates_report_with_figures_and_links(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    owner = fetchm_app.create_user("summary-owner", "summary-owner@example.com", "long-password-1")
+                    other = fetchm_app.create_user("summary-other", "summary-other@example.com", "long-password-2")
+                    output_dir = fetchm_app.JOBS_DIR / "qc-summary" / "outputs"
+                    qc_dir = output_dir / "sequence_qc"
+                    qc_dir.mkdir(parents=True)
+                    (output_dir / "quality_check_bundle.zip").write_bytes(b"zip")
+                    qc_dir.joinpath("qc_decisions.csv").write_text(
+                        "Assembly Accession,Sequence_QC_Status,CheckM completeness,CheckM contamination,"
+                        "QC_total_bp,QC_contig_count,QC_n50,QC_gc_percent,QC_ambiguous_n_percent,"
+                        "ANI_Closest_ANI,ANI_Species_Consistency_Status,Mash_Distance,Mash_Closest_Genome,"
+                        "GTDBTK_QC_Status,GTDBTK_Match_Rank,GTDBTK_Species,GTDBTK_FastANI,"
+                        "Sequence_QC_Failure_Reasons,Sequence_QC_Review_Reasons\n"
+                        "GCA_1,pass,99.1,0.1,3200000,120,51000,45.2,0.0,97.4,PASS,0.01,GCA_2,PASS,species,Prevotella copri,98.8,,\n"
+                        "GCA_2,fail,82.0,6.2,2500000,450,9000,43.1,0.2,88.1,WARN,0.08,GCA_1,FAIL,genus,Prevotella sp,,min_completeness:82<90,ani_species_warning:88.1<95\n",
+                        encoding="utf-8",
+                    )
+                    for name in [
+                        "qc_all_metadata.csv",
+                        "qc_pass_metadata.csv",
+                        "qc_review_metadata.csv",
+                        "qc_failed_metadata.csv",
+                        "external_qc_master_report.csv",
+                    ]:
+                        qc_dir.joinpath(name).write_text("Assembly Accession\nGCA_1\n", encoding="utf-8")
+                    qc_dir.joinpath("quality_check_report.md").write_text("# report\n", encoding="utf-8")
+                    qc_dir.joinpath("quality_check_summary.json").write_text(
+                        json.dumps(
+                            {
+                                "total": 2,
+                                "pass": 1,
+                                "review": 0,
+                                "fail": 1,
+                                "quality_profile": "Standard QC",
+                                "decision_mode": "pass_fail",
+                                "run_mode": "nextflow",
+                                "qc_decision_source": "nextflow",
+                                "selected_modules": ["quick_fasta", "checkm2", "quast", "ani", "mash", "gtdbtk"],
+                                "thresholds": {
+                                    "min_completeness": 90.0,
+                                    "max_contamination": 5.0,
+                                    "min_ani_percent": 95.0,
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                    job = fetchm_app.JobRecord(
+                        id="qc-summary",
+                        mode="qc",
+                        status="completed",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="qc.csv",
+                        input_path=str(root / "qc.csv"),
+                        output_dir=str(output_dir),
+                        log_path=str(root / "qc.log"),
+                        command=[],
+                        owner_user_id=int(owner["id"]),
+                        filters={"sequence_filter_sentence": "Matching genomes where Country is India."},
+                    )
+                    fetchm_app.save_job(job)
+
+                    client = fetchm_app.app.test_client()
+                    with client.session_transaction() as session:
+                        session["user_id"] = int(owner["id"])
+                    response = client.get("/jobs/qc-summary/quality-summary")
+                    self.assertEqual(response.status_code, 200)
+                    html = response.data.decode("utf-8")
+                    response.close()
+                    self.assertIn("QC Figures", html)
+                    self.assertIn("Important Files", html)
+                    self.assertIn("ANI, Mash, and GTDB-Tk Summary", html)
+                    self.assertIn("Download QC ZIP", html)
+                    self.assertIn("Passed metadata", html)
+                    self.assertIn("GTDB reference ANI", html)
+                    self.assertIn("GCA_1", html)
+                    self.assertTrue(qc_dir.joinpath("quality_check_summary.html").exists())
+
+                    with client.session_transaction() as session:
+                        session["user_id"] = int(other["id"])
+                    denied = client.get("/jobs/qc-summary/quality-summary")
+                    self.assertEqual(denied.status_code, 404)
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_advanced_qc_job_uses_current_post_qc_filtered_subset(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            old_blockers = fetchm_app.quality_submission_blockers
+            old_validator = fetchm_app.validate_quality_runtime
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.quality_submission_blockers = lambda: []
+            fetchm_app.validate_quality_runtime = lambda quality_config, tool_status: []
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    owner = fetchm_app.create_user("owner", "owner@example.com", "long-password-1")
+                    output_dir = fetchm_app.JOBS_DIR / "standard-parent" / "outputs"
+                    qc_dir = output_dir / "sequence_qc"
+                    qc_dir.mkdir(parents=True)
+                    qc_dir.joinpath("qc_enriched_metadata.csv").write_text(
+                        "Assembly Accession,Sequence_QC_Status,CheckM completeness,CheckM contamination\n"
+                        "GCA_1,pass,99,0.1\n"
+                        "GCA_2,fail,80,6\n",
+                        encoding="utf-8",
+                    )
+                    parent = fetchm_app.JobRecord(
+                        id="standard-parent",
+                        mode="qc",
+                        status="completed",
+                        created_at=fetchm_app.utc_now(),
+                        updated_at=fetchm_app.utc_now(),
+                        input_name="standard.csv",
+                        input_path=str(root / "standard.csv"),
+                        output_dir=str(output_dir),
+                        log_path=str(root / "standard.log"),
+                        command=[],
+                        owner_user_id=int(owner["id"]),
+                        filters={"quality_config": {"profile": {"key": "standard"}}},
+                    )
+                    fetchm_app.save_job(parent)
+                    client = fetchm_app.app.test_client()
+                    with client.session_transaction() as session:
+                        session["user_id"] = int(owner["id"])
+                        session["_csrf_token"] = "token"
+
+                    response = client.post(
+                        "/jobs/standard-parent/advanced-quality-job",
+                        data={
+                            "_csrf_token": "token",
+                            "qc_status": "pass",
+                            "advanced_module_mash": "1",
+                            "advanced_min_ani_percent": "96",
+                        },
+                        follow_redirects=False,
+                    )
+                    self.assertEqual(response.status_code, 302)
+                    child = fetchm_app.get_db().execute(
+                        "SELECT * FROM jobs WHERE mode='qc' AND id != ? ORDER BY created_at DESC LIMIT 1",
+                        ("standard-parent",),
+                    ).fetchone()
+                    self.assertIsNotNone(child)
+                    child_job = fetchm_app.load_job(str(child["id"]))
+                    self.assertEqual(child_job.filters["parent_quality_job_id"], "standard-parent")
+                    self.assertTrue(child_job.filters["advanced_qc"])
+                    self.assertEqual(child_job.filters["matched_row_total"], 1)
+                    self.assertEqual(child_job.filters["post_qc_filters"]["qc_status"], ["pass"])
+                    self.assertIn("ani", child_job.filters["quality_config"]["selected_modules"])
+                    self.assertIn("mash", child_job.filters["quality_config"]["selected_modules"])
+                    self.assertNotIn("checkm2", child_job.filters["quality_config"]["selected_modules"])
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+                fetchm_app.quality_submission_blockers = old_blockers
+                fetchm_app.validate_quality_runtime = old_validator
 
     def test_internal_nextflow_work_files_are_hidden_from_user_outputs(self) -> None:
         self.assertFalse(should_expose_output_file(Path("external_tools/quality_check/nextflow_work/aa/bb/.command.sh")))

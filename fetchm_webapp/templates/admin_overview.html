@@ -203,6 +203,14 @@
               </div>
               <span>{{ backfill.system_monitor.memory.available_label }} available</span>
             </div>
+            <div class="metric-card metric-wide">
+              <strong>{{ "Accepting" if backfill.system_monitor.quality_gate.accepting_quality_jobs else "Paused" }}</strong>
+              <span>Quality job gate</span>
+              <span>
+                {{ backfill.system_monitor.quality_gate.active_quality_jobs }} / {{ backfill.system_monitor.quality_gate.max_active_quality_jobs }} QC jobs active;
+                needs {{ backfill.system_monitor.quality_gate.min_available_memory_label }} free and memory below {{ backfill.system_monitor.quality_gate.max_memory_percent }}%.
+              </span>
+            </div>
           </div>
         </div>
 

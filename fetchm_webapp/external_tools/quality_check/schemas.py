@@ -5,8 +5,8 @@ from typing import Any
 
 
 DEFAULT_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
-    "min_completeness": 90.0,
-    "max_contamination": 5.0,
+    "min_completeness": None,
+    "max_contamination": None,
     "max_n_percent": 5.0,
     "max_contigs": None,
     "min_n50": None,
@@ -14,8 +14,20 @@ DEFAULT_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
     "max_total_bp": None,
     "min_gc_percent": None,
     "max_gc_percent": None,
-    "min_ani_percent": 95.0,
+    "min_ani_percent": None,
     "max_mash_distance": None,
+}
+
+STANDARD_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
+    **DEFAULT_QUALITY_THRESHOLDS,
+    "min_completeness": 90.0,
+    "max_contamination": 5.0,
+    "min_ani_percent": None,
+}
+
+COMPREHENSIVE_QUALITY_THRESHOLDS: dict[str, float | int | None] = {
+    **STANDARD_QUALITY_THRESHOLDS,
+    "min_ani_percent": 95.0,
 }
 
 DEFAULT_QC_FILTER_MODE = "review_all"
@@ -96,27 +108,40 @@ QUALITY_MODULES: tuple[QualityModule, ...] = (
 QUALITY_PROFILES: dict[str, dict[str, Any]] = {
     "quick": {
         "label": "Quick QC",
-        "description": "Built-in FASTA and available CheckM metadata checks. Best for fast filtering.",
+        "description": "Fast built-in FASTA statistics. Existing completeness/contamination metadata can be enabled when needed.",
         "modules": ["quick_fasta"],
         "run_mode": "quick",
+        "thresholds": DEFAULT_QUALITY_THRESHOLDS,
     },
     "standard": {
-        "label": "Standard external QC",
-        "description": "Quick QC plus CheckM2 and QUAST handoff/execution when external tools are configured.",
+        "label": "Standard QC",
+        "description": "Recommended genome-quality QC with CheckM2 completeness/contamination and QUAST assembly metrics.",
         "modules": ["quick_fasta", "checkm2", "quast"],
         "run_mode": "handoff",
+        "thresholds": STANDARD_QUALITY_THRESHOLDS,
+    },
+    "advanced": {
+        "label": "Advanced QC",
+        "description": "Second-stage ANI consistency with optional Mash and GTDB-Tk checks on a filtered QC subset.",
+        "modules": ["quick_fasta", "ani"],
+        "optional_modules": ["mash", "gtdbtk"],
+        "run_mode": "handoff",
+        "thresholds": COMPREHENSIVE_QUALITY_THRESHOLDS,
     },
     "species_screen": {
-        "label": "Species consistency QC",
-        "description": "Adds ANI/species-consistency checks for downstream comparative genomics.",
-        "modules": ["quick_fasta", "checkm2", "quast", "ani"],
+        "label": "Advanced QC",
+        "description": "Legacy alias for second-stage ANI consistency checks.",
+        "modules": ["quick_fasta", "ani"],
         "run_mode": "handoff",
+        "thresholds": COMPREHENSIVE_QUALITY_THRESHOLDS,
     },
     "comprehensive": {
-        "label": "Comprehensive QC",
-        "description": "Comprehensive QC with CheckM2, QUAST, ANI, Mash, and GTDB-Tk taxonomy checks.",
-        "modules": ["quick_fasta", "checkm2", "quast", "ani", "mash", "gtdbtk"],
+        "label": "Advanced QC",
+        "description": "Legacy alias for second-stage ANI/Mash/GTDB-Tk checks.",
+        "modules": ["quick_fasta", "ani"],
+        "optional_modules": ["mash", "gtdbtk"],
         "run_mode": "handoff",
+        "thresholds": COMPREHENSIVE_QUALITY_THRESHOLDS,
     },
 }
 
@@ -137,6 +162,11 @@ def quality_profile(profile_key: str | None) -> dict[str, Any]:
     key = (profile_key or "quick").strip().lower()
     profile = QUALITY_PROFILES.get(key) or QUALITY_PROFILES["quick"]
     return {"key": key if key in QUALITY_PROFILES else "quick", **profile}
+
+
+def quality_profile_thresholds(profile: dict[str, Any]) -> dict[str, float | int | None]:
+    thresholds = profile.get("thresholds") or DEFAULT_QUALITY_THRESHOLDS
+    return dict(thresholds)
 
 
 def _source_get(source: Any, key: str, default: Any = None) -> Any:
@@ -178,6 +208,7 @@ def _optional_int(source: Any, key: str, default: int | None) -> int | None:
 
 def build_quality_config(source: Any) -> dict[str, Any]:
     profile = quality_profile(_source_get(source, "quality_profile"))
+    default_thresholds = quality_profile_thresholds(profile)
     selected_modules = [str(value).strip() for value in _source_getlist(source, "quality_module") if str(value).strip()]
     valid_keys = module_keys()
     if not selected_modules:
@@ -201,27 +232,34 @@ def build_quality_config(source: Any) -> dict[str, Any]:
     if taxonomy_match_rank not in {"genus", "species"}:
         taxonomy_match_rank = "genus"
 
+    use_existing_checkm = _source_get(source, "qc_use_existing_checkm")
+    if profile["key"] == "quick" and not use_existing_checkm:
+        default_thresholds["min_completeness"] = None
+        default_thresholds["max_contamination"] = None
+
     thresholds = {
-        "min_completeness": _optional_float(source, "qc_min_completeness", DEFAULT_QUALITY_THRESHOLDS["min_completeness"]),
-        "max_contamination": _optional_float(source, "qc_max_contamination", DEFAULT_QUALITY_THRESHOLDS["max_contamination"]),
-        "max_n_percent": _optional_float(source, "qc_max_n_percent", DEFAULT_QUALITY_THRESHOLDS["max_n_percent"]),
-        "max_contigs": _optional_int(source, "qc_max_contigs", DEFAULT_QUALITY_THRESHOLDS["max_contigs"]),
-        "min_n50": _optional_int(source, "qc_min_n50", DEFAULT_QUALITY_THRESHOLDS["min_n50"]),
-        "min_total_bp": _optional_int(source, "qc_min_total_bp", DEFAULT_QUALITY_THRESHOLDS["min_total_bp"]),
-        "max_total_bp": _optional_int(source, "qc_max_total_bp", DEFAULT_QUALITY_THRESHOLDS["max_total_bp"]),
-        "min_gc_percent": _optional_float(source, "qc_min_gc_percent", DEFAULT_QUALITY_THRESHOLDS["min_gc_percent"]),
-        "max_gc_percent": _optional_float(source, "qc_max_gc_percent", DEFAULT_QUALITY_THRESHOLDS["max_gc_percent"]),
-        "min_ani_percent": _optional_float(source, "qc_min_ani_percent", DEFAULT_QUALITY_THRESHOLDS["min_ani_percent"]),
-        "max_mash_distance": _optional_float(source, "qc_max_mash_distance", DEFAULT_QUALITY_THRESHOLDS["max_mash_distance"]),
+        "min_completeness": _optional_float(source, "qc_min_completeness", default_thresholds["min_completeness"]),
+        "max_contamination": _optional_float(source, "qc_max_contamination", default_thresholds["max_contamination"]),
+        "max_n_percent": _optional_float(source, "qc_max_n_percent", default_thresholds["max_n_percent"]),
+        "max_contigs": _optional_int(source, "qc_max_contigs", default_thresholds["max_contigs"]),
+        "min_n50": _optional_int(source, "qc_min_n50", default_thresholds["min_n50"]),
+        "min_total_bp": _optional_int(source, "qc_min_total_bp", default_thresholds["min_total_bp"]),
+        "max_total_bp": _optional_int(source, "qc_max_total_bp", default_thresholds["max_total_bp"]),
+        "min_gc_percent": _optional_float(source, "qc_min_gc_percent", default_thresholds["min_gc_percent"]),
+        "max_gc_percent": _optional_float(source, "qc_max_gc_percent", default_thresholds["max_gc_percent"]),
+        "min_ani_percent": _optional_float(source, "qc_min_ani_percent", default_thresholds["min_ani_percent"]),
+        "max_mash_distance": _optional_float(source, "qc_max_mash_distance", default_thresholds["max_mash_distance"]),
     }
 
     return {
         "profile": profile,
         "run_mode": requested_run_mode,
         "selected_modules": selected_modules,
+        "decision_mode": "pass_fail",
         "qc_filter_mode": qc_filter_mode,
         "qc_filter_enabled": qc_filter_mode == "strict_pass",
         "taxonomy_match_rank": taxonomy_match_rank,
         "thresholds": thresholds,
         "external_modules": [key for key in selected_modules if key in external_module_keys()],
+        "use_existing_checkm": bool(use_existing_checkm),
     }

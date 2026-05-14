@@ -99,6 +99,7 @@ PUBLIC_ENDPOINTS = {
     "register",
     "forgot_password",
     "reset_password",
+    "healthz",
     "static",
     "index",
     "api_taxa_search",
@@ -185,6 +186,15 @@ TAXON_VERY_OLD_HOURS = max(TAXON_RECENT_HOURS + 1, int(os.environ.get("FETCHM_WE
 SEQUENCE_DOWNLOAD_WORKERS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_SEQUENCE_DOWNLOAD_WORKERS", "8"))
 )
+MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES = max(
+    0,
+    int(float(os.environ.get("FETCHM_WEBAPP_MIN_AVAILABLE_MEMORY_FOR_QUALITY_GIB", "12")) * 1024**3),
+)
+MAX_MEMORY_PERCENT_FOR_QUALITY = max(
+    0.0,
+    min(100.0, float(os.environ.get("FETCHM_WEBAPP_MAX_MEMORY_PERCENT_FOR_QUALITY", "88"))),
+)
+MAX_ACTIVE_QUALITY_JOBS = max(1, int(os.environ.get("FETCHM_WEBAPP_MAX_ACTIVE_QUALITY_JOBS", "1")))
 DISCOVERY_SCOPES = [
     item.strip()
     for item in os.environ.get("FETCHM_WEBAPP_DISCOVERY_SCOPES", "").split(",")
@@ -587,7 +597,7 @@ if configured_secret == DEFAULT_SECRET_KEY and runtime_env in {"prod", "producti
     raise RuntimeError("FETCHM_WEBAPP_SECRET must be set in production.")
 app.config["SECRET_KEY"] = configured_secret
 app.config["APP_VERSION"] = APP_VERSION
-app.config["MAX_CONTENT_LENGTH"] = 1024 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FETCHM_WEBAPP_SECURE_COOKIE") == "1"
@@ -7231,6 +7241,44 @@ def count_active_jobs_for_user(user_id: int) -> int:
     return int(row[0]) if row is not None else 0
 
 
+def count_active_quality_jobs() -> int:
+    reconcile_cancelled_running_jobs()
+    row = get_db().execute(
+        """
+        SELECT COUNT(*)
+        FROM jobs
+        WHERE mode = 'qc'
+          AND status IN ('queued', 'running')
+        """
+    ).fetchone()
+    return int(row[0]) if row is not None else 0
+
+
+def quality_submission_blockers() -> list[str]:
+    blockers: list[str] = []
+    memory = read_memory_usage()
+    if memory["total_bytes"]:
+        if memory["available_bytes"] < MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES:
+            blockers.append(
+                "The server is low on available memory "
+                f"({memory['available_label']} available; quality jobs require at least "
+                f"{format_bytes(MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES)})."
+            )
+        if memory["used_percent"] >= MAX_MEMORY_PERCENT_FOR_QUALITY:
+            blockers.append(
+                "The server memory load is too high "
+                f"({memory['used_percent']}% used; quality jobs pause at "
+                f"{MAX_MEMORY_PERCENT_FOR_QUALITY:g}% or higher)."
+            )
+    active_quality_jobs = count_active_quality_jobs()
+    if active_quality_jobs >= MAX_ACTIVE_QUALITY_JOBS:
+        blockers.append(
+            f"{active_quality_jobs} quality job(s) are already queued or running; "
+            f"the current limit is {MAX_ACTIVE_QUALITY_JOBS}."
+        )
+    return blockers
+
+
 def list_all_jobs() -> list[JobRecord]:
     reconcile_cancelled_running_jobs()
     rows = get_db().execute("SELECT * FROM jobs ORDER BY created_at DESC").fetchall()
@@ -10324,6 +10372,13 @@ def build_system_monitor(db: sqlite3.Connection) -> dict[str, Any]:
         "cpu_status": "failed" if cpu_percent is not None and cpu_percent >= 90 else ("queued" if cpu_percent is not None and cpu_percent >= 75 else "running"),
         "memory": memory,
         "memory_status": "failed" if memory["used_percent"] >= 90 else ("queued" if memory["used_percent"] >= 75 else "running"),
+        "quality_gate": {
+            "active_quality_jobs": count_active_quality_jobs(),
+            "max_active_quality_jobs": MAX_ACTIVE_QUALITY_JOBS,
+            "min_available_memory_label": format_bytes(MIN_AVAILABLE_MEMORY_FOR_QUALITY_BYTES),
+            "max_memory_percent": MAX_MEMORY_PERCENT_FOR_QUALITY,
+            "accepting_quality_jobs": not quality_submission_blockers(),
+        },
         "network": network,
         "alert_settings": {
             "enabled": get_system_temp_alert_enabled(db),
@@ -10551,6 +10606,14 @@ def parse_optional_float(value: Any) -> float | None:
         return float(text)
     except (TypeError, ValueError):
         return None
+
+
+def positive_percent_text(value: Any) -> str:
+    text = normalize_metadata_value(value)
+    number = parse_optional_float(text)
+    if number is None or number <= 0 or number > 100:
+        return ""
+    return text
 
 
 def parse_optional_int(value: Any) -> int | None:
@@ -14360,6 +14423,38 @@ def quality_threshold_value(thresholds: dict[str, Any], key: str) -> float | int
     return value
 
 
+def apply_pass_fail_decision_mode(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty or "Sequence_QC_Status" not in frame.columns:
+        return frame
+    result = frame.copy()
+    review_mask = result["Sequence_QC_Status"].astype(str).str.lower() == "review"
+    if not review_mask.any():
+        return result
+    if "Sequence_QC_Failure_Reasons" not in result.columns:
+        result["Sequence_QC_Failure_Reasons"] = ""
+    if "Sequence_QC_Review_Reasons" not in result.columns:
+        result["Sequence_QC_Review_Reasons"] = ""
+    result.loc[review_mask, "Sequence_QC_Failure_Reasons"] = result.loc[review_mask].apply(
+        lambda row: dedupe_reason_text(row.get("Sequence_QC_Failure_Reasons"), row.get("Sequence_QC_Review_Reasons")),
+        axis=1,
+    )
+    result.loc[review_mask, "Sequence_QC_Review_Reasons"] = ""
+    result.loc[review_mask, "Sequence_QC_Status"] = "fail"
+    if "Sequence_QC_Pass" in result.columns:
+        result.loc[review_mask, "Sequence_QC_Pass"] = False
+    return result
+
+
+def split_qc_decision_frames(enriched_frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    if enriched_frame.empty or "Sequence_QC_Status" not in enriched_frame.columns:
+        return enriched_frame, enriched_frame, enriched_frame
+    statuses = enriched_frame["Sequence_QC_Status"].astype(str).str.lower()
+    pass_frame = enriched_frame[statuses == "pass"].copy()
+    review_frame = enriched_frame[statuses == "review"].copy()
+    fail_frame = enriched_frame[statuses == "fail"].copy()
+    return pass_frame, review_frame, fail_frame
+
+
 def find_fasta_for_accession(output_dir: Path, accession: str) -> Path | None:
     if not accession:
         return None
@@ -14422,6 +14517,21 @@ def dedupe_reason_text(*values: Any) -> str:
             seen.add(key)
             reasons.append(reason)
     return "; ".join(reasons)
+
+
+def remove_invalid_ani_warning_reasons(value: Any) -> str:
+    text = normalize_metadata_value(value)
+    if not text:
+        return ""
+    kept: list[str] = []
+    for part in text.split(";"):
+        reason = part.strip()
+        if not reason:
+            continue
+        if re.fullmatch(r"ani_species_warning:0(?:\.0+)?<\d+(?:\.\d+)?", reason, re.IGNORECASE):
+            continue
+        kept.append(reason)
+    return "; ".join(kept)
 
 
 def latest_nextflow_qc_master_report(output_dir: Path) -> Path | None:
@@ -14559,6 +14669,14 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             failure_reasons,
             warning_reasons,
         )
+        raw_ani_closest_genome = first_nonempty_value(external_row, "ani_closest_genome")
+        raw_ani_closest_ani = first_nonempty_value(external_row, "ani_closest_ani")
+        ani_closest_genome = nonnumeric_label(raw_ani_closest_genome)
+        ani_closest_ani = positive_percent_text(raw_ani_closest_ani)
+        ani_status = first_nonempty_value(external_row, "ani_species_consistency_status")
+        if normalize_metadata_value(ani_status).upper() in {"WARN", "WARNING", "REVIEW"} and raw_ani_closest_ani and not ani_closest_ani:
+            warning_reasons = dedupe_reason_text(remove_invalid_ani_warning_reasons(warning_reasons), "NO_VALID_ANI_RESULT")
+            status = normalize_qc_decision_status(status, failure_reasons, warning_reasons)
 
         total_bp = first_nonempty_value(external_row, "sequence_total_length", "quast_total_length", "checkm2_genome_size")
         ambiguous_bases = parse_optional_float(first_nonempty_value(external_row, "sequence_ambiguous_bases"))
@@ -14594,9 +14712,9 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
             "CheckM2_Coding_Density": first_nonempty_value(external_row, "checkm2_coding_density"),
             "QUAST_Largest_Contig": first_nonempty_value(external_row, "quast_largest_contig"),
             "QUAST_Ns_Per_100kbp": first_nonempty_value(external_row, "quast_ns_per_100kbp"),
-            "ANI_Closest_Genome": first_nonempty_value(external_row, "ani_closest_genome"),
-            "ANI_Closest_ANI": first_nonempty_value(external_row, "ani_closest_ani"),
-            "ANI_Species_Consistency_Status": first_nonempty_value(external_row, "ani_species_consistency_status"),
+            "ANI_Closest_Genome": ani_closest_genome,
+            "ANI_Closest_ANI": ani_closest_ani,
+            "ANI_Species_Consistency_Status": ani_status,
             "ANI_Cluster": first_nonempty_value(external_row, "ani_cluster"),
             "ANI_Cluster_Representative": first_nonempty_value(external_row, "ani_cluster_representative"),
             "ANI_Cluster_Size": first_nonempty_value(external_row, "ani_cluster_size"),
@@ -14637,6 +14755,7 @@ def import_nextflow_qc_outputs(input_path: Path, output_dir: Path, qc_dir: Path)
     shutil.copy2(master_report, qc_dir / "external_qc_master_report.csv")
     decision_frame.to_csv(qc_dir / "qc_decisions.csv", index=False)
     enriched_frame.to_csv(qc_dir / "qc_enriched_metadata.csv", index=False)
+    enriched_frame.to_csv(qc_dir / "qc_all_metadata.csv", index=False)
     pass_frame.to_csv(qc_dir / "qc_pass_metadata.csv", index=False)
     review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
     fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
@@ -14805,13 +14924,15 @@ def run_sequence_quality_checks(
     decision_frame = pd.DataFrame(decision_rows)
     stats_frame = pd.DataFrame(stat_rows)
     enriched_frame = pd.DataFrame(enriched_rows)
-    pass_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "pass"].copy() if not enriched_frame.empty else enriched_frame
-    review_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "review"].copy() if not enriched_frame.empty else enriched_frame
-    fail_frame = enriched_frame[enriched_frame["Sequence_QC_Status"] == "fail"].copy() if not enriched_frame.empty else enriched_frame
+    if quality_config.get("decision_mode") == "pass_fail":
+        decision_frame = apply_pass_fail_decision_mode(decision_frame)
+        enriched_frame = apply_pass_fail_decision_mode(enriched_frame)
+    pass_frame, review_frame, fail_frame = split_qc_decision_frames(enriched_frame)
 
     stats_frame.to_csv(qc_dir / "assembly_stats.csv", index=False)
     decision_frame.to_csv(qc_dir / "qc_decisions.csv", index=False)
     enriched_frame.to_csv(qc_dir / "qc_enriched_metadata.csv", index=False)
+    enriched_frame.to_csv(qc_dir / "qc_all_metadata.csv", index=False)
     pass_frame.to_csv(qc_dir / "qc_pass_metadata.csv", index=False)
     review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
     fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
@@ -14867,14 +14988,21 @@ def run_sequence_quality_checks(
             decision_frame = external_qc_import["decision_frame"]
             enriched_frame = external_qc_import["enriched_frame"]
             stats_frame = external_qc_import["stats_frame"]
-            pass_frame = external_qc_import["pass_frame"]
-            review_frame = external_qc_import["review_frame"]
-            fail_frame = external_qc_import["fail_frame"]
+            if quality_config.get("decision_mode") == "pass_fail":
+                decision_frame = apply_pass_fail_decision_mode(decision_frame)
+                enriched_frame = apply_pass_fail_decision_mode(enriched_frame)
+            pass_frame, review_frame, fail_frame = split_qc_decision_frames(enriched_frame)
+            decision_frame.to_csv(qc_dir / "qc_decisions.csv", index=False)
+            enriched_frame.to_csv(qc_dir / "qc_enriched_metadata.csv", index=False)
+            enriched_frame.to_csv(qc_dir / "qc_all_metadata.csv", index=False)
+            pass_frame.to_csv(qc_dir / "qc_pass_metadata.csv", index=False)
+            review_frame.to_csv(qc_dir / "qc_review_metadata.csv", index=False)
+            fail_frame.to_csv(qc_dir / "qc_failed_metadata.csv", index=False)
             append_job_log(
                 job,
                 f"[{utc_now()}] Imported external QC master report "
-                f"({external_qc_import['pass']} pass, {external_qc_import['review']} review, "
-                f"{external_qc_import['fail']} fail).\n",
+                f"({len(pass_frame)} pass, {len(review_frame)} review, "
+                f"{len(fail_frame)} fail).\n",
             )
         else:
             append_job_log(job, f"[{utc_now()}] External QC completed, but no qc_master_report.csv was found to import.\n")
@@ -14886,6 +15014,7 @@ def run_sequence_quality_checks(
         "fail": int(len(fail_frame)),
         "thresholds": thresholds,
         "quality_profile": (quality_config.get("profile") or {}).get("label", "Quick QC"),
+        "decision_mode": quality_config.get("decision_mode", "pass_fail"),
         "run_mode": quality_config.get("run_mode", "quick"),
         "selected_modules": quality_config.get("selected_modules", ["quick_fasta"]),
         "external_modules": quality_config.get("external_modules", []),
@@ -14958,6 +15087,7 @@ def run_sequence_quality_checks(
             "",
             "- `sequence_qc/qc_decisions.csv`: one-row-per-assembly quality decision table.",
             "- `sequence_qc/qc_enriched_metadata.csv`: original filtered metadata with QC columns appended.",
+            "- `sequence_qc/qc_all_metadata.csv`: all checked genomes with QC columns appended.",
             "- `sequence_qc/qc_pass_metadata.csv`: metadata subset passing all applied quality checks.",
             "- `sequence_qc/qc_review_metadata.csv`: rows needing review because a required metric was missing.",
             "- `sequence_qc/qc_failed_metadata.csv`: rows failing at least one applied quality check.",
@@ -14967,6 +15097,7 @@ def run_sequence_quality_checks(
     )
     (qc_dir / "quality_check_report.md").write_text("\n".join(report_lines) + "\n", encoding="utf-8")
     (qc_dir / "quality_check_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (qc_dir / "qc_thresholds_used.json").write_text(json.dumps(thresholds, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_quality_check_html_summary(qc_dir, job=job, summary=summary, decisions=decision_frame.fillna(""))
 
     bundle_path = output_dir / "quality_check_bundle.zip"
@@ -15333,10 +15464,12 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
     html_summary_path = next((path for path in output_files if path == "sequence_qc/quality_check_summary.html"), None)
     summary_path = next((path for path in output_files if path == "sequence_qc/quality_check_summary.json"), None)
     decisions_path = next((path for path in output_files if path == "sequence_qc/qc_decisions.csv"), None)
+    all_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_all_metadata.csv"), None)
     pass_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_pass_metadata.csv"), None)
     review_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_review_metadata.csv"), None)
     failed_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_failed_metadata.csv"), None)
     enriched_metadata_path = next((path for path in output_files if path == "sequence_qc/qc_enriched_metadata.csv"), None)
+    thresholds_path = next((path for path in output_files if path == "sequence_qc/qc_thresholds_used.json"), None)
     external_master_path = next((path for path in output_files if path == "sequence_qc/external_qc_master_report.csv"), None)
     ani_summary_path = next((path for path in output_files if path == "sequence_qc/external_ani_summary.csv"), None)
     ani_run_status_path = next((path for path in output_files if path == "sequence_qc/external_ani_run_status.tsv"), None)
@@ -15398,10 +15531,12 @@ def summarize_quality_check_assets(job: JobRecord, output_files: list[str]) -> d
         "html_summary_path": html_summary_path,
         "summary_path": summary_path,
         "decisions_path": decisions_path,
+        "all_metadata_path": all_metadata_path,
         "pass_metadata_path": pass_metadata_path,
         "review_metadata_path": review_metadata_path,
         "failed_metadata_path": failed_metadata_path,
         "enriched_metadata_path": enriched_metadata_path,
+        "thresholds_path": thresholds_path,
         "external_master_path": external_master_path,
         "ani_summary_path": ani_summary_path,
         "ani_run_status_path": ani_run_status_path,
@@ -15560,6 +15695,24 @@ def clean_number_label(value: Any, suffix: str = "", decimals: int | None = None
     return f"{label}{suffix}"
 
 
+def nonnumeric_label(value: Any) -> str:
+    text = normalize_metadata_value(value)
+    if not text:
+        return ""
+    try:
+        float(text)
+    except ValueError:
+        return text
+    return ""
+
+
+def clean_positive_percent_label(value: Any, suffix: str = "", decimals: int | None = None) -> str:
+    text = positive_percent_text(value)
+    if not text:
+        return ""
+    return clean_number_label(text, suffix, decimals)
+
+
 def build_qc_decision_preview(decisions: pd.DataFrame, limit: int = 25) -> list[dict[str, Any]]:
     preview: list[dict[str, Any]] = []
     for _, row in decisions.head(limit).iterrows():
@@ -15583,8 +15736,8 @@ def build_qc_decision_preview(decisions: pd.DataFrame, limit: int = 25) -> list[
                 "coding_density": clean_number_label(row_first(row_dict, "CheckM2_Coding_Density"), "", 3),
                 "quast_largest_contig": clean_number_label(row_first(row_dict, "QUAST_Largest_Contig")),
                 "quast_ns": clean_number_label(row_first(row_dict, "QUAST_Ns_Per_100kbp"), "", 3),
-                "ani_closest": row_first(row_dict, "ANI_Closest_Genome"),
-                "ani": clean_number_label(row_first(row_dict, "ANI_Closest_ANI"), "", 2),
+                "ani_closest": nonnumeric_label(row_first(row_dict, "ANI_Closest_Genome")),
+                "ani": clean_positive_percent_label(row_first(row_dict, "ANI_Closest_ANI"), "", 2),
                 "ani_status": row_first(row_dict, "ANI_Species_Consistency_Status"),
                 "ani_cluster": row_first(row_dict, "ANI_Cluster"),
                 "mash_closest": row_first(row_dict, "Mash_Closest_Genome"),
@@ -15600,7 +15753,12 @@ def build_qc_decision_preview(decisions: pd.DataFrame, limit: int = 25) -> list[
                 "gtdbtk_reasons": dedupe_reason_text(row_dict.get("GTDBTK_QC_Fail_Reasons")),
                 "reasons": dedupe_reason_text(
                     row_dict.get("Sequence_QC_Failure_Reasons"),
-                    row_dict.get("Sequence_QC_Review_Reasons"),
+                    remove_invalid_ani_warning_reasons(row_dict.get("Sequence_QC_Review_Reasons")),
+                    "NO_VALID_ANI_RESULT"
+                    if row_first(row_dict, "ANI_Species_Consistency_Status").upper() in {"WARN", "WARNING", "REVIEW"}
+                    and row_first(row_dict, "ANI_Closest_ANI")
+                    and not positive_percent_text(row_first(row_dict, "ANI_Closest_ANI"))
+                    else "",
                     row_dict.get("GTDBTK_QC_Fail_Reasons"),
                 ),
             }
@@ -15658,7 +15816,12 @@ def apply_quality_post_filters(frame: pd.DataFrame, source: Any) -> tuple[pd.Dat
         ("min_n50", "QC_n50", ">="),
         ("max_contigs", "QC_contig_count", "<="),
         ("min_genome_size", "QC_total_bp", ">="),
+        ("max_genome_size", "QC_total_bp", "<="),
+        ("min_gc_percent", "QC_gc_percent", ">="),
+        ("max_gc_percent", "QC_gc_percent", "<="),
         ("max_n_percent", "QC_ambiguous_n_percent", "<="),
+        ("min_ani_percent", "ANI_Closest_ANI", ">="),
+        ("max_mash_distance", "Mash_Distance", "<="),
     ]
     for form_key, column, operator in numeric_filters:
         threshold = parse_optional_float(source.get(form_key) if hasattr(source, "get") else None)
@@ -15671,11 +15834,24 @@ def apply_quality_post_filters(frame: pd.DataFrame, source: Any) -> tuple[pd.Dat
             filtered = filtered[values <= threshold].copy()
         applied_filters[form_key] = threshold
 
+    ani_statuses = [value.upper() for value in qc_value_list(source, "ani_status")]
+    ani_statuses = [value for value in ani_statuses if value in {"PASS", "WARN", "FAIL", "SKIP", "NOT_RUN"}]
+    if ani_statuses and "ANI_Species_Consistency_Status" in filtered.columns:
+        filtered = filtered[filtered["ANI_Species_Consistency_Status"].astype(str).str.upper().isin(ani_statuses)].copy()
+        applied_filters["ani_status"] = ani_statuses
+
     gtdbtk_statuses = [value.upper() for value in qc_value_list(source, "gtdbtk_status")]
     gtdbtk_statuses = [value for value in gtdbtk_statuses if value in {"PASS", "WARN", "FAIL"}]
     if gtdbtk_statuses and "GTDBTK_QC_Status" in filtered.columns:
         filtered = filtered[filtered["GTDBTK_QC_Status"].astype(str).str.upper().isin(gtdbtk_statuses)].copy()
         applied_filters["gtdbtk_status"] = gtdbtk_statuses
+
+    gtdbtk_ranks = [value.lower() for value in qc_value_list(source, "gtdbtk_rank")]
+    gtdbtk_ranks = [value for value in gtdbtk_ranks if value in {"genus", "species", "none", "mismatch"}]
+    if gtdbtk_ranks and "GTDBTK_Match_Rank" in filtered.columns:
+        normalized_rank = filtered["GTDBTK_Match_Rank"].astype(str).str.lower().replace({"": "none"})
+        filtered = filtered[normalized_rank.isin(gtdbtk_ranks)].copy()
+        applied_filters["gtdbtk_rank"] = gtdbtk_ranks
 
     return filtered, applied_filters
 
@@ -15704,6 +15880,8 @@ def summarize_post_qc_filter_preview(quality_job: JobRecord, source: Any) -> dic
         "preview": build_qc_decision_preview(filtered.fillna(""), limit=12),
         "selected_statuses": applied_filters.get("qc_status", ["pass"]),
         "selected_gtdbtk_statuses": applied_filters.get("gtdbtk_status", []),
+        "selected_ani_statuses": applied_filters.get("ani_status", []),
+        "selected_gtdbtk_ranks": applied_filters.get("gtdbtk_rank", []),
         "query_args": [(key, value) for key in source.keys() for value in qc_value_list(source, key)],
     }
 
@@ -15860,31 +16038,59 @@ def write_quality_check_html_summary(
     summary: dict[str, Any],
     decisions: pd.DataFrame,
 ) -> None:
+    output_root = Path(job.output_dir)
+    filters = job.filters or {}
+    thresholds = summary.get("thresholds") or {}
     status_counts = {
         "pass": int(summary.get("pass") or 0),
         "review": int(summary.get("review") or 0),
         "fail": int(summary.get("fail") or 0),
     }
-    total = max(int(summary.get("total") or 0), 1)
-    reason_rows = qc_reason_counts(decisions, limit=12)
+    display_total = int(summary.get("total") or sum(status_counts.values()) or len(decisions) or 0)
+    total = max(display_total, 1)
+    runtime = job_runtime_summary(job)
+    reason_rows = qc_reason_counts(decisions, limit=16)
     preview_rows = build_qc_decision_preview(decisions, limit=50)
-    gtdbtk_counts = Counter(
-        normalize_metadata_value(value).upper() or "NOT REPORTED"
-        for value in decisions.get("GTDBTK_QC_Status", pd.Series(dtype=str)).fillna("")
-    )
-    gtdbtk_species_counts = Counter(
-        normalize_metadata_value(value) or "Not reported"
-        for value in decisions.get("GTDBTK_Species", pd.Series(dtype=str)).fillna("")
-    )
+
+    def column_counter(column: str, *, uppercase: bool = False, fallback: str = "Not reported") -> Counter[str]:
+        if column not in decisions.columns:
+            return Counter()
+        values = []
+        for value in decisions[column].fillna(""):
+            label = normalize_metadata_value(value) or fallback
+            values.append(label.upper() if uppercase else label)
+        return Counter(values)
+
+    gtdbtk_counts = column_counter("GTDBTK_QC_Status", uppercase=True)
+    gtdbtk_rank_counts = column_counter("GTDBTK_Match_Rank")
+    gtdbtk_species_counts = column_counter("GTDBTK_Species")
+    ani_status_counts = column_counter("ANI_Species_Consistency_Status", uppercase=True)
+    mash_neighbor_counts = column_counter("Mash_Closest_Genome")
     histograms = {
         "Completeness": numeric_histogram(decisions.get("CheckM completeness", pd.Series(dtype=str))),
         "Contamination": numeric_histogram(decisions.get("CheckM contamination", pd.Series(dtype=str))),
         "Genome size": numeric_histogram(decisions.get("QC_total_bp", pd.Series(dtype=str))),
+        "Contigs": numeric_histogram(decisions.get("QC_contig_count", pd.Series(dtype=str))),
         "N50": numeric_histogram(decisions.get("QC_n50", pd.Series(dtype=str))),
+        "GC percent": numeric_histogram(decisions.get("QC_gc_percent", pd.Series(dtype=str))),
+        "Ambiguous N percent": numeric_histogram(decisions.get("QC_ambiguous_n_percent", pd.Series(dtype=str))),
+        "ANI nearest percent": numeric_histogram(decisions.get("ANI_Closest_ANI", pd.Series(dtype=str))),
+        "Mash distance": numeric_histogram(decisions.get("Mash_Distance", pd.Series(dtype=str))),
     }
 
     def esc(value: Any) -> str:
         return html.escape(normalize_metadata_value(value) or "—")
+
+    def url(relative_path: str) -> str:
+        return f"/jobs/{esc(job.id)}/files/{html.escape(relative_path, quote=True)}"
+
+    def available_link(relative_path: str, label: str, detail: str) -> str:
+        if not (output_root / relative_path).exists():
+            return ""
+        return (
+            f'<a class="file-card" href="{url(relative_path)}">'
+            f"<strong>{esc(label)}</strong><span>{esc(detail)}</span></a>"
+        )
 
     def status_bar() -> str:
         colors = {"pass": "#1b6b39", "review": "#b8844d", "fail": "#8e2f1d"}
@@ -15895,6 +16101,17 @@ def write_quality_check_html_summary(
                 f'<span style="width:{width:.2f}%;background:{colors[status]}" title="{status}: {count}"></span>'
             )
         return "".join(segments)
+
+    selected_modules = [normalize_metadata_value(module) for module in summary.get("selected_modules", [])]
+    selected_modules = [module for module in selected_modules if module]
+    selected_modules_html = "".join(f"<span>{esc(module)}</span>" for module in selected_modules) or "<span>quick_fasta</span>"
+
+    threshold_items = []
+    for key, value in thresholds.items():
+        if value is None or normalize_metadata_value(value) == "":
+            continue
+        threshold_items.append(f"<li><strong>{esc(key.replace('_', ' '))}</strong>: {esc(value)}</li>")
+    threshold_html = "".join(threshold_items) or "<li>No hard threshold was applied for this profile.</li>"
 
     table_rows = []
     for row in preview_rows:
@@ -15912,6 +16129,7 @@ def write_quality_check_html_summary(
             f"<td>{esc(row.get('mash'))}</td>"
             f"<td>{esc(row.get('gtdbtk'))}</td>"
             f"<td>{esc(row.get('gtdbtk_species') or row.get('gtdbtk_genus'))}</td>"
+            f"<td>{esc(row.get('gtdbtk_fastani'))}</td>"
             f"<td>{esc(row.get('reasons'))}</td>"
             "</tr>"
         )
@@ -15944,6 +16162,24 @@ def write_quality_check_html_summary(
         return f'<div class="mini-chart"><h3>{esc(title)}</h3>{bars}</div>'
 
     histogram_section = "".join(histogram_html(title, rows) for title, rows in histograms.items())
+    important_links = "".join(
+        [
+            available_link("quality_check_bundle.zip", "Download QC ZIP", "Complete QC bundle with reports and key tables."),
+            available_link("sequence_qc/qc_decisions.csv", "Download decisions CSV", "Pass/fail decision and reasons per assembly."),
+            available_link("sequence_qc/qc_all_metadata.csv", "All QC metadata", "Every checked genome with QC columns appended."),
+            available_link("sequence_qc/qc_pass_metadata.csv", "Passed metadata", "Genome metadata passing the applied QC filters."),
+            available_link("sequence_qc/qc_review_metadata.csv", "Review metadata", "Rows that need review, when review mode is used."),
+            available_link("sequence_qc/qc_failed_metadata.csv", "Failed metadata", "Rows failing at least one applied threshold."),
+            available_link("sequence_qc/external_qc_master_report.csv", "External QC master report", "Imported CheckM2/QUAST/ANI/Mash/GTDB-Tk report."),
+            available_link("sequence_qc/quality_check_report.md", "Markdown report", "Plain-text report with thresholds and outputs."),
+        ]
+    )
+    if not important_links:
+        important_links = "<p>No downloadable QC files were found yet.</p>"
+    filter_sentence = normalize_metadata_value(filters.get("sequence_filter_sentence"))
+    profile = normalize_metadata_value(summary.get("quality_profile")) or "Quality Check"
+    decision_source = normalize_metadata_value(summary.get("qc_decision_source")) or "built_in"
+    run_mode = normalize_metadata_value(summary.get("run_mode")) or "qc"
 
     html_text = f"""<!doctype html>
 <html lang="en">
@@ -15951,15 +16187,22 @@ def write_quality_check_html_summary(
   <meta charset="utf-8">
   <title>FetchM Web QC Summary - {esc(job.id)}</title>
   <style>
-    body {{ margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17332e; background: #f7f2e8; }}
-    main {{ max-width: 1180px; margin: 0 auto; padding: 32px 22px; }}
+    :root {{ --ink: #17332e; --accent: #165c4e; --paper: #fffaf0; --line: rgba(22, 92, 78, 0.16); --muted: #67746d; }}
+    body {{ margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--ink); background: #f7f2e8; }}
+    main {{ max-width: 1240px; margin: 0 auto; padding: 32px 22px; }}
     .hero, .card {{ border: 1px solid rgba(22, 92, 78, 0.16); border-radius: 24px; background: rgba(255,255,255,0.82); box-shadow: 0 18px 50px rgba(28, 45, 40, 0.08); }}
     .hero {{ padding: 28px; background: radial-gradient(circle at top right, rgba(22,92,78,.14), transparent 35%), rgba(255,255,255,.86); }}
     .eyebrow {{ margin: 0 0 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; color: #165c4e; font-size: 12px; }}
     h1 {{ margin: 0 0 8px; font-size: clamp(30px, 5vw, 54px); line-height: .95; }}
+    h2 {{ margin-top: 0; }}
+    code {{ background: #fff2d7; border-radius: 8px; padding: 2px 6px; }}
+    .lede {{ max-width: 820px; color: var(--muted); }}
+    .pill-row {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }}
+    .pill-row span, .pill {{ display: inline-flex; padding: 7px 10px; border-radius: 999px; background: #e8f2ed; color: var(--accent); font-weight: 800; font-size: 12px; }}
     .grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 18px 0; }}
     .metric {{ padding: 16px; border-radius: 18px; background: #fff; border: 1px solid rgba(22,92,78,.12); }}
     .metric strong {{ display: block; font-size: 30px; }}
+    .metric span {{ color: var(--muted); }}
     .bar {{ display: flex; height: 16px; overflow: hidden; border-radius: 999px; background: #eadfca; }}
     .bar span {{ display: block; }}
     .card {{ padding: 22px; margin-top: 18px; }}
@@ -15969,12 +16212,17 @@ def write_quality_check_html_summary(
     .hist-row, .bar-row {{ display: grid; grid-template-columns: 96px minmax(20px, 1fr) 42px; gap: 8px; align-items: center; margin: 8px 0; font-size: 12px; }}
     .hist-row i, .bar-row i {{ display: block; height: 10px; min-width: 3px; border-radius: 999px; background: #165c4e; }}
     .bar-row {{ grid-template-columns: minmax(90px, 1fr) 42px minmax(20px, 1.2fr); }}
+    .file-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }}
+    .file-card {{ display: grid; gap: 4px; padding: 14px; border-radius: 16px; border: 1px solid rgba(22,92,78,.14); background: #fff; text-decoration: none; }}
+    .file-card span {{ color: var(--muted); font-weight: 500; font-size: 13px; }}
     table {{ width: 100%; border-collapse: collapse; min-width: 1180px; }}
     .table-wrap {{ overflow-x: auto; border: 1px solid rgba(22,92,78,.12); border-radius: 18px; background: #fff; }}
     th, td {{ padding: 10px 12px; border-bottom: 1px solid #eee4d2; text-align: left; font-size: 13px; vertical-align: top; }}
     th {{ position: sticky; top: 0; background: #fff8ea; color: #165c4e; }}
     li {{ margin: 8px 0; }}
     a {{ color: #165c4e; font-weight: 800; }}
+    .two-col {{ display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 18px; }}
+    @media (max-width: 860px) {{ .two-col {{ grid-template-columns: 1fr; }} }}
   </style>
 </head>
 <body>
@@ -15982,14 +16230,31 @@ def write_quality_check_html_summary(
   <section class="hero">
     <p class="eyebrow">FetchM Web Quality Summary</p>
     <h1>QC results for job {esc(job.id)}</h1>
-    <p>{esc(summary.get('quality_profile', 'Quality check'))} using {esc(summary.get('qc_decision_source', 'built_in'))} decisions.</p>
+    <p class="lede">{esc(profile)} using {esc(decision_source)} decisions. {esc(filter_sentence) if filter_sentence else 'This report summarizes the selected genome set, QC thresholds, distributions, taxonomy checks, and important output files.'}</p>
+    <div class="pill-row">
+      <span>{esc(run_mode)}</span>
+      <span>{esc(summary.get('decision_mode', 'pass_fail'))}</span>
+      <span>Created {esc(runtime.get('created_label'))}</span>
+      <span>Runtime {esc(runtime.get('duration_label'))}</span>
+    </div>
     <div class="grid">
       <div class="metric"><strong>{status_counts['pass']}</strong><span>Pass</span></div>
       <div class="metric"><strong>{status_counts['review']}</strong><span>Review</span></div>
       <div class="metric"><strong>{status_counts['fail']}</strong><span>Fail</span></div>
-      <div class="metric"><strong>{esc(summary.get('total'))}</strong><span>Total checked</span></div>
+      <div class="metric"><strong>{display_total}</strong><span>Total checked</span></div>
     </div>
     <div class="bar">{status_bar()}</div>
+  </section>
+  <section class="card two-col">
+    <div>
+      <h2>Run Configuration</h2>
+      <p class="eyebrow">Selected modules</p>
+      <div class="pill-row">{selected_modules_html}</div>
+    </div>
+    <div>
+      <h2>Thresholds Used</h2>
+      <ul>{threshold_html}</ul>
+    </div>
   </section>
   <section class="card">
     <h2>Top Review/Failure Reasons</h2>
@@ -16000,6 +16265,14 @@ def write_quality_check_html_summary(
     <div class="chart-grid">{histogram_section}</div>
   </section>
   <section class="card">
+    <h2>ANI, Mash, and GTDB-Tk Summary</h2>
+    <div class="chart-grid">
+      <div class="mini-chart"><h3>ANI status</h3>{count_bars(ani_status_counts)}</div>
+      <div class="mini-chart"><h3>Nearest Mash neighbors</h3>{count_bars(mash_neighbor_counts)}</div>
+      <div class="mini-chart"><h3>GTDB-Tk match rank</h3>{count_bars(gtdbtk_rank_counts)}</div>
+    </div>
+  </section>
+  <section class="card">
     <h2>GTDB-Tk Taxonomy Summary</h2>
     <div class="chart-grid">
       <div class="mini-chart"><h3>GTDB-Tk status</h3>{count_bars(gtdbtk_counts)}</div>
@@ -16007,11 +16280,17 @@ def write_quality_check_html_summary(
     </div>
   </section>
   <section class="card">
+    <h2>Important Files</h2>
+    <p>Use the job detail page to launch sequence downloads from passed or currently filtered genomes. These links expose the compact QC tables and reports.</p>
+    <div class="file-grid">{important_links}</div>
+    <p><a href="/jobs/{esc(job.id)}">Back to QC job page</a></p>
+  </section>
+  <section class="card">
     <h2>Comprehensive QC Table Preview</h2>
     <p>The full table is available in <code>qc_decisions.csv</code>. This preview includes the first 50 assemblies.</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Assembly</th><th>Status</th><th>Completeness</th><th>Contamination</th><th>Genome size</th><th>Contigs</th><th>N50</th><th>GC</th><th>ANI</th><th>Mash</th><th>GTDB-Tk</th><th>GTDB species/genus</th><th>Reason</th></tr></thead>
+        <thead><tr><th>Assembly</th><th>Status</th><th>Completeness</th><th>Contamination</th><th>Genome size</th><th>Contigs</th><th>N50</th><th>GC</th><th>ANI</th><th>Mash</th><th>GTDB-Tk</th><th>GTDB species/genus</th><th>GTDB reference ANI</th><th>Reason</th></tr></thead>
         <tbody>{''.join(table_rows)}</tbody>
       </table>
     </div>
@@ -16659,6 +16938,11 @@ def index() -> str:
         taxon_recent_hours=TAXON_RECENT_HOURS,
         taxon_very_old_hours=TAXON_VERY_OLD_HOURS,
     )
+
+
+@app.route("/healthz")
+def healthz() -> Any:
+    return {"status": "ok", "version": APP_VERSION}
 
 
 @app.route("/api/taxa/search")
@@ -17849,6 +18133,15 @@ def user_jobs() -> str:
 @app.route("/jobs/<job_id>")
 def job_detail(job_id: str) -> str:
     job = require_job_owner(job_id)
+    parent_quality_job = None
+    parent_quality_job_id = str(job.filters.get("parent_quality_job_id") or "").strip()
+    if parent_quality_job_id:
+        try:
+            candidate_parent = load_job(parent_quality_job_id)
+            if candidate_parent.owner_user_id == job.owner_user_id:
+                parent_quality_job = candidate_parent
+        except FileNotFoundError:
+            parent_quality_job = None
     log_text = Path(job.log_path).read_text(encoding="utf-8") if Path(job.log_path).exists() else ""
     output_files = collect_output_files(Path(job.output_dir))
     grouped_output_summary = summarize_grouped_sequence_outputs(job, output_files)
@@ -17871,6 +18164,8 @@ def job_detail(job_id: str) -> str:
         compact_qc_steps=compact_qc_steps,
         post_qc_filter_preview=post_qc_filter_preview,
         post_qc_filter_query=request.query_string.decode("utf-8"),
+        quality_tool_status=quality_tool_status(),
+        parent_quality_job=parent_quality_job,
     )
 
 
@@ -18170,6 +18465,14 @@ def create_taxon_sequence_quality_job(species_id: int) -> Any:
     filtered_frame.to_csv(input_path, index=False)
 
     quality_config = build_quality_config(request.form)
+    if (quality_config.get("profile") or {}).get("key") not in {"quick", "standard"}:
+        flash("Choose Quick QC or Standard QC before submitting the first quality-check stage.", "error")
+        return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
+    resource_blockers = quality_submission_blockers()
+    for blocker in resource_blockers:
+        flash(blocker, "error")
+    if resource_blockers:
+        return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
     tool_status = quality_tool_status()
     runtime_errors = validate_quality_runtime(quality_config, tool_status)
     if runtime_errors:
@@ -18407,6 +18710,137 @@ def create_quality_filtered_sequence_job(job_id: str) -> Any:
     )
     notify_job_event(record, "submitted")
     flash(f"Sequence job {new_job_id} submitted for {len(filtered):,} post-QC filtered genomes.", "success")
+    return redirect(url_for("job_detail", job_id=new_job_id))
+
+
+@app.route("/jobs/<job_id>/advanced-quality-job", methods=["POST"])
+def create_advanced_quality_job(job_id: str) -> Any:
+    user = g.current_user
+    assert user is not None
+    quality_job = require_job_owner(job_id)
+    if quality_job.mode != "qc":
+        abort(404)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    try:
+        frame = load_quality_filter_frame(quality_job)
+    except FileNotFoundError:
+        flash("QC metadata is not available yet.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    except Exception as exc:
+        flash(f"Could not read QC metadata: {exc}", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    if frame.empty:
+        flash("QC metadata is empty.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    filtered, applied_filters = apply_quality_post_filters(frame, request.form)
+    if filtered.empty:
+        flash("No genomes match the selected post-QC filters.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+
+    requested_modules = {"quick_fasta", "ani"}
+    if request.form.get("advanced_module_mash"):
+        requested_modules.add("mash")
+    if request.form.get("advanced_module_gtdbtk"):
+        requested_modules.add("gtdbtk")
+
+    class AdvancedQualityForm:
+        values = {
+            "quality_profile": "advanced",
+            "quality_run_mode": "nextflow",
+            "qc_min_ani_percent": request.form.get("advanced_min_ani_percent") or "95",
+            "qc_max_mash_distance": request.form.get("advanced_max_mash_distance") or "",
+            "taxonomy_match_rank": request.form.get("taxonomy_match_rank") or "genus",
+        }
+
+        def get(self, key: str, default: Any = None) -> Any:
+            return self.values.get(key, default)
+
+        def getlist(self, key: str) -> list[Any]:
+            if key == "quality_module":
+                return sorted(requested_modules)
+            return []
+
+    quality_config = build_quality_config(AdvancedQualityForm())
+    quality_config["advanced_qc"] = True
+    quality_config["parent_quality_job_id"] = quality_job.id
+    quality_config["decision_mode"] = "pass_fail"
+    resource_blockers = quality_submission_blockers()
+    for blocker in resource_blockers:
+        flash(blocker, "error")
+    if resource_blockers:
+        return redirect(url_for("job_detail", job_id=job_id))
+    tool_status = quality_tool_status()
+    runtime_errors = validate_quality_runtime(quality_config, tool_status)
+    if runtime_errors:
+        for error in runtime_errors:
+            flash(error, "error")
+        return redirect(url_for("job_detail", job_id=job_id, **request.form))
+
+    new_job_id = uuid.uuid4().hex[:12]
+    root = job_dir(new_job_id)
+    uploads_dir = root / UPLOADS_DIR_NAME
+    outputs_dir = root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    input_name = f"{quality_job.input_name} advanced-QC metadata.csv"
+    input_path = uploads_dir / "advanced_qc_metadata.csv"
+    filtered.to_csv(input_path, index=False)
+
+    thresholds = quality_config["thresholds"]
+    command = build_quality_display_command(input_path, outputs_dir, quality_config)
+    retries = (request.form.get("retries") or "3").strip()
+    retry_delay = (request.form.get("retry_delay") or "5").strip()
+    command.extend(["--retries", retries, "--retry-delay", retry_delay])
+    filters = {
+        "input_source": "advanced_quality_filtered_metadata",
+        "parent_quality_job_id": quality_job.id,
+        "advanced_qc": True,
+        "taxon_id": (quality_job.filters or {}).get("taxon_id"),
+        "taxon_name": (quality_job.filters or {}).get("taxon_name"),
+        "taxon_rank": (quality_job.filters or {}).get("taxon_rank"),
+        "matched_row_total": int(len(filtered)),
+        "sequence_filter_sentence": f"Advanced QC subset from quality job {quality_job.id}",
+        "post_qc_filters": applied_filters,
+        "quality_config": quality_config,
+        "quality_thresholds": thresholds,
+        "retries": retries,
+        "retry_delay": retry_delay,
+    }
+    record = JobRecord(
+        id=new_job_id,
+        mode="qc",
+        status="queued",
+        created_at=utc_now(),
+        updated_at=utc_now(),
+        input_name=input_name,
+        input_path=str(input_path),
+        output_dir=str(outputs_dir),
+        log_path=str(root / LOG_FILE_NAME),
+        command=command,
+        owner_user_id=int(user["id"]),
+        owner_username=str(user["username"]),
+        filters=filters,
+    )
+    save_job(record)
+    record_audit_event(
+        "job.created",
+        target_type="job",
+        target_id=new_job_id,
+        metadata={
+            "mode": "qc",
+            "input_source": "advanced_quality_filtered_metadata",
+            "parent_quality_job_id": quality_job.id,
+            "matched_row_total": int(len(filtered)),
+            "selected_modules": quality_config.get("selected_modules"),
+            "post_qc_filters": applied_filters,
+        },
+    )
+    notify_job_event(record, "submitted")
+    flash(f"Advanced QC job {new_job_id} submitted for {len(filtered):,} filtered genomes.", "success")
     return redirect(url_for("job_detail", job_id=new_job_id))
 
 

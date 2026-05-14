@@ -1,5 +1,10 @@
 FROM python:3.12-slim
 
+ARG NEXTFLOW_VERSION=25.04.6
+ARG MINIFORGE_VERSION=25.3.1-0
+ARG NCBI_DATASETS_URL=https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/linux-amd64/datasets
+ARG TAXONKIT_VERSION=0.20.0
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PORT=8000 \
@@ -26,11 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
  && rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL "https://github.com/nextflow-io/nextflow/releases/latest/download/nextflow" \
+RUN curl -fsSL "https://github.com/nextflow-io/nextflow/releases/download/v${NEXTFLOW_VERSION}/nextflow" \
     -o /usr/local/bin/nextflow \
  && chmod +x /usr/local/bin/nextflow
 
-RUN curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" \
+RUN curl -fsSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-x86_64.sh" \
     -o /tmp/miniforge.sh \
  && bash /tmp/miniforge.sh -b -p /opt/conda \
  && rm -f /tmp/miniforge.sh \
@@ -38,11 +43,11 @@ RUN curl -fsSL "https://github.com/conda-forge/miniforge/releases/latest/downloa
 
 ENV PATH=/opt/conda/bin:$PATH
 
-RUN curl -fsSL "https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/LATEST/linux-amd64/datasets" \
+RUN curl -fsSL "${NCBI_DATASETS_URL}" \
     -o /usr/local/bin/datasets \
  && chmod +x /usr/local/bin/datasets
 
-RUN curl -fsSL "https://github.com/shenwei356/taxonkit/releases/download/v0.20.0/taxonkit_linux_amd64.tar.gz" \
+RUN curl -fsSL "https://github.com/shenwei356/taxonkit/releases/download/v${TAXONKIT_VERSION}/taxonkit_linux_amd64.tar.gz" \
     -o /tmp/taxonkit.tar.gz \
  && tar -xzf /tmp/taxonkit.tar.gz -C /usr/local/bin taxonkit \
  && chmod +x /usr/local/bin/taxonkit \

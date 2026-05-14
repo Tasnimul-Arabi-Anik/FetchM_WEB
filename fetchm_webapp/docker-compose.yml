@@ -1,33 +1,62 @@
+x-fetchm-build: &fetchm-build
+  build:
+    context: ..
+    dockerfile: fetchm_webapp/Dockerfile
+
+x-fetchm-env-file: &fetchm-env-file
+  env_file:
+    - ./.env
+
+x-fetchm-data-volumes: &fetchm-data-volumes
+  volumes:
+    - ./data:/app/fetchm_webapp/data
+    - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+
+x-fetchm-worker-base: &fetchm-worker-base
+  <<: [*fetchm-build, *fetchm-env-file, *fetchm-data-volumes]
+  command: ["python", "worker.py"]
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "python", "-c", "from pathlib import Path; raise SystemExit(0 if Path('/app/fetchm_webapp/worker.py').exists() else 1)"]
+    interval: 60s
+    timeout: 10s
+    retries: 3
+    start_period: 30s
+
+x-fetchm-quality-env: &fetchm-quality-env
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
+  FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
+  FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
+  FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
+  FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
+  FETCHM_WEBAPP_QUALITY_THREADS: "16"
+  FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "8"
+  FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
+  NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
+  NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
+  CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
+  NXF_SYNTAX_PARSER: "v1"
+
 services:
   fetchm-web:
-    build:
-      context: ..
-      dockerfile: fetchm_webapp/Dockerfile
+    <<: [*fetchm-build, *fetchm-env-file, *fetchm-data-volumes]
     expose:
       - "8000"
-    env_file:
-      - ./.env
     environment:
       FETCHM_WEBAPP_SECURE_COOKIE: "1"
       FETCHM_WEBAPP_DEBUG: "0"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
-      FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
-      FETCHM_WEBAPP_QUALITY_THREADS: "32"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "16"
-      FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
-      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
-      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
-      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
-      NXF_SYNTAX_PARSER: "v1"
-    volumes:
-      - ./data:/app/fetchm_webapp/data
-      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+      <<: *fetchm-quality-env
+    mem_limit: 4g
+    cpus: "4"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5).read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   fetchm-worker:
     build:
@@ -387,116 +416,40 @@ services:
     restart: unless-stopped
 
   fetchm-job-worker:
-    build:
-      context: ..
-      dockerfile: fetchm_webapp/Dockerfile
-    command: ["python", "worker.py"]
-    env_file:
-      - ./.env
+    <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
-      FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
-      FETCHM_WEBAPP_QUALITY_THREADS: "32"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "16"
-      FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
-      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
-      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
-      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
-      NXF_SYNTAX_PARSER: "v1"
-    volumes:
-      - ./data:/app/fetchm_webapp/data
-    restart: unless-stopped
+      <<: *fetchm-quality-env
+    mem_limit: 48g
+    cpus: "16"
 
   fetchm-job-worker-2:
-    build:
-      context: ..
-      dockerfile: fetchm_webapp/Dockerfile
-    command: ["python", "worker.py"]
-    env_file:
-      - ./.env
+    <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
-      FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
-      FETCHM_WEBAPP_QUALITY_THREADS: "32"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "16"
-      FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
-      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
-      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
-      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
-      NXF_SYNTAX_PARSER: "v1"
-    volumes:
-      - ./data:/app/fetchm_webapp/data
-    restart: unless-stopped
+      <<: *fetchm-quality-env
+    mem_limit: 48g
+    cpus: "16"
 
   fetchm-job-worker-3:
-    build:
-      context: ..
-      dockerfile: fetchm_webapp/Dockerfile
-    command: ["python", "worker.py"]
-    env_file:
-      - ./.env
+    <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
-      FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
-      FETCHM_WEBAPP_QUALITY_THREADS: "32"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "16"
-      FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
-      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
-      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
-      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
-      NXF_SYNTAX_PARSER: "v1"
-    volumes:
-      - ./data:/app/fetchm_webapp/data
-    restart: unless-stopped
+      <<: *fetchm-quality-env
+    mem_limit: 48g
+    cpus: "16"
 
   fetchm-job-worker-4:
-    build:
-      context: ..
-      dockerfile: fetchm_webapp/Dockerfile
-    command: ["python", "worker.py"]
-    env_file:
-      - ./.env
+    <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: jobs
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_ENABLED: "1"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_WORKFLOW: "/app/fetchm_webapp/data/external_tools/workflows/PanResistome"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_CONFIG: "/app/fetchm_webapp/external_tools/quality_check/panresistome_qc/fetchm_web_qc.config"
-      FETCHM_WEBAPP_QUALITY_NEXTFLOW_PROFILE: "conda"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB: "/app/fetchm_webapp/data/external_tools/databases/checkm2/CheckM2_database/uniref100.KO.1.dmnd"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_DB_DIR: "/app/fetchm_webapp/data/external_tools/databases/checkm2"
-      FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH: "/app/fetchm_webapp/data/external_tools/databases/gtdbtk"
-      FETCHM_WEBAPP_QUALITY_THREADS: "32"
-      FETCHM_WEBAPP_QUALITY_CHECKM2_THREADS: "16"
-      FETCHM_WEBAPP_QUALITY_ANI_TOOL: "skani"
-      NXF_HOME: "/app/fetchm_webapp/data/external_tools/nextflow/home"
-      NXF_CONDA_CACHEDIR: "/app/fetchm_webapp/data/external_tools/conda/envs"
-      CONDA_PKGS_DIRS: "/app/fetchm_webapp/data/external_tools/conda/pkgs"
-      NXF_SYNTAX_PARSER: "v1"
-    volumes:
-      - ./data:/app/fetchm_webapp/data
-    restart: unless-stopped
+      <<: *fetchm-quality-env
+    mem_limit: 48g
+    cpus: "16"
 
   caddy:
     image: caddy:2
@@ -510,6 +463,12 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
   caddy_data:
