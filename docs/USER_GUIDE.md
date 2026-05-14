@@ -74,6 +74,7 @@ The quality-check workspace supports quick built-in QC and external-tool handoff
 
 The job detail page shows each stage as it finishes and provides:
 
+- `Open QC summary`, a browser-friendly HTML report with pass/review/fail counts, standard QC metrics, advanced ANI/Mash/GTDB-Tk summaries when available, and links to the key downloadable files.
 - `quality_check_report.md`
 - `qc_decisions.csv`
 - `qc_enriched_metadata.csv`

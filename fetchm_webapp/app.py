@@ -56,6 +56,7 @@ from external_tools.quality_check import (
 )
 
 APP_VERSION = "2026.05-genus-v1.1"
+APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"
@@ -16942,7 +16943,7 @@ def index() -> str:
 
 @app.route("/healthz")
 def healthz() -> Any:
-    return {"status": "ok", "version": APP_VERSION}
+    return {"commit": APP_COMMIT, "status": "ok", "version": APP_VERSION}
 
 
 @app.route("/api/taxa/search")

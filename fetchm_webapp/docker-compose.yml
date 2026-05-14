@@ -2,6 +2,8 @@ x-fetchm-build: &fetchm-build
   build:
     context: ..
     dockerfile: fetchm_webapp/Dockerfile
+    args:
+      FETCHM_WEBAPP_GIT_COMMIT: "${FETCHM_WEBAPP_GIT_COMMIT:-unknown}"
 
 x-fetchm-env-file: &fetchm-env-file
   env_file:
