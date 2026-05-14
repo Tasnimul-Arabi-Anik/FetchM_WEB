@@ -122,6 +122,42 @@
       </form>
     </div>
     <div class="hint-block top-gap">
+      <strong>Global Metadata Insights</strong>
+      <p>Generate the public Global Insights snapshot after metadata builds and standardization refreshes are complete. The snapshot is precomputed so the public page does not scan all metadata on each request.</p>
+      {% if metadata_dashboard.global_insights.latest_snapshot %}
+        <p class="job-meta">
+          Latest snapshot:
+          {{ metadata_dashboard.global_insights.latest_snapshot.snapshot_id }}
+          · {{ metadata_dashboard.global_insights.latest_snapshot.unique_assemblies or 0 }} unique assemblies
+          · generated {{ metadata_dashboard.global_insights.latest_snapshot.generated_at }}
+          {% if metadata_dashboard.global_insights.latest_snapshot.is_demo %} · DEMO DATA{% endif %}
+        </p>
+      {% else %}
+        <p class="job-meta">No Global Insights snapshot has been generated yet.</p>
+      {% endif %}
+      {% if metadata_dashboard.global_insights.latest_task %}
+        <p class="job-meta">
+          Latest task:
+          {{ metadata_dashboard.global_insights.latest_task.status }}
+          · {{ metadata_dashboard.global_insights.latest_task.snapshot_id }}
+          {% if metadata_dashboard.global_insights.latest_task.error %} · {{ metadata_dashboard.global_insights.latest_task.error }}{% endif %}
+        </p>
+      {% endif %}
+      {% if metadata_dashboard.global_insights.blockers %}
+        <p class="danger-text">Generation is blocked until {{ metadata_dashboard.global_insights.blockers|join('; ') }}.</p>
+      {% endif %}
+      <div class="action-row top-gap">
+        <form action="{{ url_for('admin_generate_global_insights') }}" method="post">
+          <button type="submit" {% if not metadata_dashboard.global_insights.can_generate %}disabled{% endif %}>Generate Global Insights</button>
+        </form>
+        <form action="{{ url_for('admin_generate_global_insights') }}" method="post">
+          <input type="hidden" name="demo" value="1">
+          <button type="submit" class="ghost">Generate demo snapshot</button>
+        </form>
+        <a class="button-like ghost" href="{{ url_for('global_insights') }}">Open public page</a>
+      </div>
+    </div>
+    <div class="hint-block top-gap">
       <strong>Current standardization refresh</strong>
       <p>Apply the latest approved dictionaries and in-code normalization to every ready taxon. This rewrites only managed metadata rows and output files; original metadata values remain unchanged.</p>
       <div class="action-row top-gap">

@@ -22,6 +22,7 @@ from app import (
     standardize_host_metadata,
 )
 from external_tools.quality_check.runner import validate_quality_runtime
+from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -1085,6 +1086,108 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertFalse(should_expose_output_file(Path("external_tools/quality_check/.nextflow.log")))
         self.assertTrue(should_expose_output_file(Path("external_tools/quality_check/nextflow_execution.log")))
         self.assertTrue(should_expose_output_file(Path("sequence_qc/qc_decisions.csv")))
+
+    def test_global_insights_snapshot_prefers_species_rows_and_writes_simulator_records(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            species_csv = root / "species.csv"
+            genus_csv = root / "genus.csv"
+            species_csv.write_text(
+                "Assembly Accession,Organism Name,Geographic Location,Country,Host,Host_SD,"
+                "Isolation Source,Isolation_Source_SD,Collection Date,Assembly Release Date,"
+                "Assembly Level,Assembly BioProject Accession,CheckM completeness,Country_Confidence\n"
+                "GCA_000001.1,Escherichia coli,USA,United States,Homo sapiens,Human,"
+                "human stool,feces/stool,2020,2021-01-02,Scaffold,PRJNA1,99,exact\n",
+                encoding="utf-8",
+            )
+            genus_csv.write_text(
+                "Assembly Accession,Organism Name,Geographic Location,Country,Host,Host_SD,"
+                "Isolation Source,Isolation_Source_SD,Collection Date,Assembly Release Date,"
+                "Assembly Level,Assembly BioProject Accession,CheckM completeness,Country_Confidence\n"
+                "GCA_000001.1,Escherichia coli duplicate,USA,United States,Homo sapiens,Human,"
+                "human stool,feces/stool,2020,2021-01-02,Scaffold,PRJNA1,99,exact\n"
+                "GCA_000002.1,Escherichia albertii,Bangladesh: Dhaka,Bangladesh,duck,Anas platyrhynchos,"
+                "pond water,wastewater,2021,2022-04-05,Contig,PRJNA2,96,synonym\n",
+                encoding="utf-8",
+            )
+
+            summary = generate_global_insights_snapshot(
+                [
+                    {
+                        "id": 1,
+                        "species_name": "Escherichia",
+                        "taxon_rank": "genus",
+                        "genome_count": 2,
+                        "metadata_clean_path": str(genus_csv),
+                        "last_synced_at": "2026-05-14T01:00:00+00:00",
+                    },
+                    {
+                        "id": 2,
+                        "species_name": "Escherichia coli",
+                        "taxon_rank": "species",
+                        "genome_count": 1,
+                        "metadata_clean_path": str(species_csv),
+                        "last_synced_at": "2026-05-14T00:00:00+00:00",
+                    },
+                ],
+                root / "global_insights",
+                app_version="test",
+                app_commit="unit",
+                snapshot_id="unit_global_insights",
+            )
+
+            self.assertEqual(summary["overview"]["unique_assemblies"], 2)
+            self.assertEqual(summary["overview"]["duplicate_rows_skipped"], 1)
+            self.assertEqual(summary["overview"]["metadata_files_scanned"], 2)
+            self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["label"], "Escherichia")
+            self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["count"], 2)
+            corrections = summary["standardization_impact"]["top_corrections"]
+            self.assertTrue(any(row["field"] == "Country" and row["raw_value"] == "USA" for row in corrections))
+            self.assertTrue((root / "global_insights" / "snapshots" / "unit_global_insights" / "summary.json").exists())
+
+            simulator = run_standardization_simulator(
+                root / "global_insights" / "snapshots" / "unit_global_insights" / "tables" / "simulator_records.csv",
+                {"taxon": "Escherichia", "country": "United States", "host": "Human"},
+            )
+            self.assertTrue(simulator["available"])
+            self.assertEqual(simulator["raw_count"], 0)
+            self.assertEqual(simulator["standardized_count"], 1)
+            self.assertEqual(simulator["rescued_count"], 1)
+            self.assertEqual(simulator["examples"][0]["assembly_accession"], "GCA_000001.1")
+
+    def test_global_insights_page_and_summary_download_are_public(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    generate_demo_snapshot(
+                        fetchm_app.global_insights_root(),
+                        app_version="test",
+                        app_commit="unit",
+                        snapshot_id="demo_global_insights",
+                    )
+                    client = fetchm_app.app.test_client()
+                    page = client.get("/global-insights")
+                    self.assertEqual(page.status_code, 200)
+                    html = page.data.decode("utf-8")
+                    self.assertIn("Global Metadata Insights", html)
+                    self.assertIn("DEMO DATA - NOT REAL RESULTS", html)
+                    self.assertIn("Methods & Reproducibility", html)
+                    self.assertIn("Standardization Impact Simulator", html)
+
+                    download = client.get("/global-insights/download/summary.json")
+                    self.assertEqual(download.status_code, 200)
+                    self.assertEqual(download.get_json()["snapshot_id"], "demo_global_insights")
+                    self.assertEqual(client.get("/global-insights/download/../fetchm_webapp.db").status_code, 404)
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
 
 if __name__ == "__main__":

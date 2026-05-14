@@ -1,0 +1,9 @@
+taxon_name,rank,group,notes
+Acinetobacter baumannii,species,WHO priority pathogen,Carbapenem-resistant Acinetobacter baumannii complex is a critical AMR concern.
+Escherichia coli,species,AMR and foodborne pathogen,"Commonly sequenced for AMR, food safety, and clinical surveillance."
+Klebsiella pneumoniae,species,WHO priority pathogen,Clinically important Enterobacterales species with AMR relevance.
+Mycobacterium tuberculosis,species,WHO priority pathogen,Major human pathogen with large public surveillance datasets.
+Pseudomonas aeruginosa,species,WHO priority pathogen,Opportunistic pathogen with clinical and environmental reservoirs.
+Salmonella enterica,species,foodborne pathogen,Major foodborne and public-health surveillance target.
+Staphylococcus aureus,species,WHO priority pathogen,Common clinical pathogen including MRSA surveillance datasets.
+Vibrio cholerae,species,waterborne pathogen,Waterborne pathogen with outbreak and environmental relevance.

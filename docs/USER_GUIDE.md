@@ -48,6 +48,14 @@ Original source metadata is preserved. Standardized values are written into deri
 - `Host_Disease_SD`
 - `Host_Health_State_SD`
 
+## Global Metadata Insights
+
+Use `Global Insights` from the top navigation to open the public `Global Metadata Insights` page. This page is generated after the full FetchM metadata update and standardization refresh are complete, so it reads a stable precomputed snapshot rather than scanning all metadata on every page load.
+
+The page summarizes genome growth, dominant species and genera, geographic representation, host/source bias, metadata completeness, raw-versus-standardized metadata gains, metadata quality scores, BioProject dominance, QC-ready taxa, priority-pathogen metadata quality, and copyable manuscript-style text. Results describe representation within public genome repositories and should not be interpreted as direct estimates of true bacterial abundance, disease burden, or environmental prevalence.
+
+Admins generate or regenerate the snapshot from `Admin > Metadata` using `Generate Global Insights`.
+
 ## Sequence Download
 
 The sequence page lets you filter genomes before downloading sequences.

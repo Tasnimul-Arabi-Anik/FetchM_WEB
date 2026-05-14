@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+{% macro count_table(rows, label_name="Label") %}
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>{{ label_name }}</th>
+          <th>Count</th>
+          <th>Share</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+          <tr>
+            <td>{{ row.rank }}</td>
+            <td>{{ row.label }}</td>
+            <td>{{ row.count }}</td>
+            <td>{{ row.percent }}%</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endmacro %}
+
+{% macro copy_block(title, text, block_id) %}
+  <div class="summary-box">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Manuscript text</p>
+        <h3>{{ title }}</h3>
+      </div>
+      <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy</button>
+    </div>
+    <p id="{{ block_id }}">{{ text }}</p>
+  </div>
+{% endmacro %}
+
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Global Insights</p>
+      <h1>Global Metadata Insights</h1>
+      <p class="lede">A precomputed overview of genome availability, metadata completeness, standardization impact, and repository bias across FetchM-indexed bacterial metadata.</p>
+    </div>
+    <div class="status-box">
+      {% if summary %}
+        <span class="status completed">{{ "demo" if summary.is_demo else "current" }}</span>
+        <div class="job-meta">Snapshot: {{ summary.snapshot_id }}</div>
+        <div class="job-meta">Generated: {{ summary.generated_at }}</div>
+      {% elif latest_task %}
+        <span class="status running">{{ latest_task.status }}</span>
+        <div class="job-meta">Snapshot: {{ latest_task.snapshot_id }}</div>
+      {% else %}
+        <span class="status queued">not generated</span>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if not summary %}
+    <section class="panel">
+      <h2>No Global Insights Snapshot Yet</h2>
+      <p>Global Insights are generated after the full metadata update and standardization refresh are complete. Ask an admin to open <strong>Admin &gt; Metadata</strong> and click <strong>Generate Global Insights</strong>.</p>
+      {% if latest_task %}
+        <div class="summary-box">
+          <strong>Latest task:</strong> {{ latest_task.status }} · {{ latest_task.snapshot_id }}
+          {% if latest_task.error %}<p class="danger-text">{{ latest_task.error }}</p>{% endif %}
+        </div>
+      {% endif %}
+    </section>
+  {% else %}
+    {% if summary.is_demo %}
+      <section class="panel warning-box">
+        <strong>DEMO DATA - NOT REAL RESULTS</strong>
+        <p>This snapshot uses placeholder values for UI development and manuscript-layout testing. Do not cite these numbers.</p>
+      </section>
+    {% endif %}
+
+    <section class="panel">
+      <h2>Overview</h2>
+      <div class="metrics-grid">
+        <div class="metric-card"><strong>{{ summary.overview.unique_assemblies }}</strong><span>Unique assemblies</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.metadata_files_scanned }}</strong><span>Metadata files scanned</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.species_observed }}</strong><span>Observed species labels</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.qc_ready_taxa }}</strong><span>QC-ready taxa</span></div>
+      </div>
+      <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
+    </section>
+
+    <section class="panel">
+      <h2>Taxonomic Landscape</h2>
+      <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot.</p>
+      <div class="grid two-column">
+        <div>
+          <h3>Top Genera</h3>
+          {{ count_table(summary.taxonomic_landscape.top_genera[:10], "Genus") }}
+        </div>
+        <div>
+          <h3>Top Species</h3>
+          {{ count_table(summary.taxonomic_landscape.top_species[:10], "Species") }}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Genome Growth And Assembly Quality</h2>
+      {% set yearly_rows = summary.get("yearly_growth", []) %}
+      {% set assembly_levels = (summary.get("assembly_quality") or {}).get("assembly_levels", []) %}
+      <div class="grid two-column">
+        <div>
+          <h3>Recent Genome Availability By Year</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Year</th><th>Assemblies</th><th>Cumulative assemblies</th></tr>
+              </thead>
+              <tbody>
+                {% for row in yearly_rows[-10:] %}
+                  <tr>
+                    <td>{{ row.year }}</td>
+                    <td>{{ row.assemblies }}</td>
+                    <td>{{ row.cumulative_assemblies }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="3">No release-year data were available in this snapshot.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>Assembly Levels</h3>
+          {{ count_table(assembly_levels[:10], "Assembly level") }}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Geographic, Host, And Source Bias</h2>
+      <div class="grid two-column">
+        <div>
+          <h3>Top Countries</h3>
+          {{ count_table(summary.geographic_bias.countries[:10], "Country") }}
+        </div>
+        <div>
+          <h3>Host/Source Categories</h3>
+          {{ count_table(summary.host_source_bias.host_categories[:10], "Category") }}
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Metadata Completeness And Standardization Impact</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Field</th>
+              <th>Raw usable</th>
+              <th>Standardized usable</th>
+              <th>Rescued records</th>
+              <th>Gain</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in summary.metadata_completeness %}
+              <tr>
+                <td>{{ row.field }}</td>
+                <td>{{ row.raw_usable_percent }}%</td>
+                <td>{{ row.standardized_usable_percent }}%</td>
+                <td>{{ row.rescued_records }}</td>
+                <td>{{ row.gain_percentage_points }} points</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if summary.standardization_impact.top_corrections %}
+        <h3>Most Common Metadata Corrections</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Raw value</th>
+                <th>Standardized value</th>
+                <th>Records</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in summary.standardization_impact.top_corrections[:12] %}
+                <tr>
+                  <td>{{ row.field }}</td>
+                  <td>{{ row.raw_value }}</td>
+                  <td>{{ row.standardized_value }}</td>
+                  <td>{{ row.records_rescued }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Standardization Impact Simulator</h2>
+      <p>Compare approximate dataset size under raw metadata filtering versus FetchM standardized metadata filtering. This uses the compact simulator table generated with the snapshot.</p>
+      <form method="get" action="{{ url_for('global_insights') }}" class="job-form">
+        <div class="grid two-column">
+          <label><span>Taxon contains</span><input name="taxon" value="{{ simulator_filters.taxon }}" placeholder="Escherichia coli"></label>
+          <label><span>Country contains</span><input name="country" value="{{ simulator_filters.country }}" placeholder="Bangladesh"></label>
+          <label><span>Host/source contains</span><input name="host" value="{{ simulator_filters.host }}" placeholder="human"></label>
+          <label><span>Assembly level contains</span><input name="assembly_level" value="{{ simulator_filters.assembly_level }}" placeholder="scaffold"></label>
+          <label><span>Year from</span><input name="year_from" value="{{ simulator_filters.year_from }}" placeholder="2018"></label>
+          <label><span>Year to</span><input name="year_to" value="{{ simulator_filters.year_to }}" placeholder="2025"></label>
+        </div>
+        <button type="submit">Compare raw vs standardized filters</button>
+      </form>
+      {% if simulator_result %}
+        {% if simulator_result.available %}
+          <div class="metrics-grid top-gap">
+            <div class="metric-card"><strong>{{ simulator_result.raw_count }}</strong><span>Raw metadata records</span></div>
+            <div class="metric-card"><strong>{{ simulator_result.standardized_count }}</strong><span>Standardized records</span></div>
+            <div class="metric-card"><strong>{{ simulator_result.rescued_count }}</strong><span>Additional records recovered</span></div>
+            <div class="metric-card"><strong>{{ simulator_result.gain_percent }}%</strong><span>Gain vs raw count</span></div>
+          </div>
+          {% if simulator_result.examples %}
+            <h3>Example Rescued Records</h3>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Assembly</th>
+                    <th>Taxon</th>
+                    <th>Raw country</th>
+                    <th>Standardized country</th>
+                    <th>Raw host</th>
+                    <th>Standardized host</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in simulator_result.examples %}
+                    <tr>
+                      <td>{{ row.assembly_accession }}</td>
+                      <td>{{ row.taxon }}</td>
+                      <td>{{ row.raw_country }}</td>
+                      <td>{{ row.standardized_country }}</td>
+                      <td>{{ row.raw_host }}</td>
+                      <td>{{ row.standardized_host }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="danger-text">{{ simulator_result.error }}</p>
+        {% endif %}
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2>Metadata Quality And Bias Warnings</h2>
+      <div class="grid two-column">
+        <div>
+          <h3>Top Metadata Quality Scores</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+              </thead>
+              <tbody>
+                {% for row in summary.metadata_quality[:10] %}
+                  <tr>
+                    <td>{{ row.taxon }}</td>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.assemblies }}</td>
+                    <td>{{ row.metadata_quality_score }}</td>
+                    <td>{{ row.metadata_quality_grade }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>Bias Warnings</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Scope</th><th>Type</th><th>Severity</th><th>Warning</th></tr>
+              </thead>
+              <tbody>
+                {% for row in summary.bias_warnings[:10] %}
+                  <tr>
+                    <td>{{ row.scope }}</td>
+                    <td>{{ row.bias_type }}</td>
+                    <td>{{ row.severity }}</td>
+                    <td>{{ row.warning }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="4">No strong bias warnings were generated for the top scanned taxa.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Methods & Reproducibility</h2>
+      <div class="coverage-table">
+        <div class="coverage-row"><strong>Snapshot ID</strong><span>{{ summary.snapshot_id }}</span><span></span></div>
+        <div class="coverage-row"><strong>Generated</strong><span>{{ summary.generated_at }}</span><span></span></div>
+        <div class="coverage-row"><strong>App version</strong><span>{{ summary.methods.app_version }}</span><span></span></div>
+        <div class="coverage-row"><strong>App commit</strong><span>{{ summary.methods.app_commit }}</span><span></span></div>
+        <div class="coverage-row"><strong>Generation scope</strong><span>{{ summary.methods.generation_scope }}</span><span></span></div>
+        <div class="coverage-row"><strong>Duplicate rule</strong><span>{{ summary.methods.duplicate_rule }}</span><span></span></div>
+        <div class="coverage-row"><strong>Field mappings</strong><span>{{ summary.methods.field_mappings }}</span><span></span></div>
+        <div class="coverage-row"><strong>Missing values</strong><span>{{ summary.methods.missing_value_rule }}</span><span></span></div>
+        <div class="coverage-row"><strong>QC-ready rule</strong><span>{{ summary.methods.qc_ready_rule }}</span><span></span></div>
+        <div class="coverage-row"><strong>Bias formulas</strong><span>{{ summary.methods.bias_score_formulas }}</span><span></span></div>
+        <div class="coverage-row"><strong>Quality score</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Copyable Manuscript Sections</h2>
+      {{ copy_block("Abstract-style summary", summary.manuscript.abstract, "copy-abstract") }}
+      {{ copy_block("Results paragraph", summary.manuscript.results, "copy-results") }}
+      {{ copy_block("Methods paragraph", summary.manuscript.methods, "copy-methods") }}
+      {{ copy_block("Limitations paragraph", summary.manuscript.limitations, "copy-limitations") }}
+      {{ copy_block("Figure legend", summary.manuscript.figure_legend, "copy-figure") }}
+      {{ copy_block("Table caption", summary.manuscript.table_caption, "copy-table") }}
+    </section>
+
+    <section class="panel">
+      <h2>Downloads</h2>
+      <div class="file-list">
+        <a href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">summary.json</a>
+        {% for label, relative_path in summary.downloads.items() %}
+          <a href="{{ url_for('download_global_insights_file', relative_path=relative_path) }}">{{ relative_path }}</a>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</main>
+
+<script>
+  document.querySelectorAll("[data-copy-target]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const target = document.getElementById(button.getAttribute("data-copy-target"));
+      if (!target) return;
+      await navigator.clipboard.writeText(target.textContent.trim());
+      button.textContent = "Copied";
+      setTimeout(() => { button.textContent = "Copy"; }, 1200);
+    });
+  });
+</script>
+{% endblock %}

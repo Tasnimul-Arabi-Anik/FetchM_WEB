@@ -14,6 +14,7 @@
         <a class="brand" href="{{ url_for('index') }}">FetchM Web</a>
         <div class="topbar-actions">
           <a class="tag ghost-link" href="{{ url_for('index') }}"><strong>Home</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('global_insights') }}"><strong>Global Insights</strong></a>
           <a class="tag ghost-link" href="{{ url_for('user_jobs') }}"><strong>Track Jobs</strong></a>
           <a class="tag ghost-link" href="{{ url_for('index') }}#feedback-form"><strong>Feedback / Report</strong></a>
           {% if g.current_user %}

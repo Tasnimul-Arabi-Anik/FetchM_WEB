@@ -54,12 +54,18 @@ from external_tools.quality_check import (
     quality_tool_status,
     validate_quality_runtime,
 )
+from global_insights import (
+    generate_demo_snapshot,
+    generate_global_insights_snapshot,
+    run_standardization_simulator,
+)
 
 APP_VERSION = "2026.05-genus-v1.1"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"
+GLOBAL_INSIGHTS_DIR_NAME = "global_insights"
 SPECIES_DIR = DATA_DIR / "species"
 METADATA_DIR = DATA_DIR / "metadata"
 LOCKS_DIR = DATA_DIR / "locks"
@@ -108,6 +114,8 @@ PUBLIC_ENDPOINTS = {
     "taxon_metadata_section",
     "download_taxon_metadata",
     "download_taxon_metadata_bundle",
+    "global_insights",
+    "download_global_insights_file",
 }
 _auth_rate_limit_lock = threading.Lock()
 _auth_rate_limit_events: dict[tuple[str, str], list[float]] = {}
@@ -775,6 +783,24 @@ def init_db() -> None:
             value TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS global_insight_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            snapshot_id TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL DEFAULT 'pending',
+            requested_by INTEGER,
+            requested_at TEXT NOT NULL,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            output_dir TEXT,
+            is_demo INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            FOREIGN KEY (requested_by) REFERENCES users (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_global_insight_tasks_status
+        ON global_insight_tasks (status, requested_at);
 
         CREATE TABLE IF NOT EXISTS taxon_sync_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -6133,6 +6159,249 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
     connection.commit()
 
 
+def global_insights_root() -> Path:
+    return DATA_DIR / GLOBAL_INSIGHTS_DIR_NAME
+
+
+def global_insights_latest_path() -> Path:
+    return global_insights_root() / "latest.json"
+
+
+def load_latest_global_insights_summary() -> tuple[dict[str, Any] | None, Path | None]:
+    latest_path = global_insights_latest_path()
+    if not latest_path.exists():
+        return None, None
+    try:
+        latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        summary_path = Path(str(latest.get("summary_path") or ""))
+        if not summary_path.is_absolute():
+            summary_path = global_insights_root() / summary_path
+        root = global_insights_root().resolve()
+        resolved_summary = summary_path.resolve()
+        if root not in resolved_summary.parents and resolved_summary != root:
+            return None, None
+        if not resolved_summary.exists():
+            return None, None
+        summary = json.loads(resolved_summary.read_text(encoding="utf-8"))
+        return summary, resolved_summary.parent
+    except Exception:
+        logging.exception("Failed to load latest Global Insights snapshot.")
+        return None, None
+
+
+def latest_global_insight_task(db: sqlite3.Connection | None = None) -> dict[str, Any] | None:
+    connection = db or get_db()
+    row = connection.execute(
+        """
+        SELECT *
+        FROM global_insight_tasks
+        ORDER BY requested_at DESC, id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    return dict(row) if row is not None else None
+
+
+def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> list[str]:
+    connection = db or get_db()
+    blockers: list[str] = []
+    metadata_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE metadata_status IN ('pending', 'building')
+           OR metadata_refresh_requested = 1
+           OR metadata_claimed_at IS NOT NULL
+        """
+    ).fetchone()
+    standardization_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM standardization_refresh_tasks
+        WHERE status IN ('pending', 'running', 'chunking', 'finalizing')
+        """
+    ).fetchone()
+    standardization_chunks_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM standardization_refresh_chunks
+        WHERE status IN ('pending', 'running')
+        """
+    ).fetchone()
+    insight_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM global_insight_tasks
+        WHERE status IN ('pending', 'running')
+        """
+    ).fetchone()
+    if int(metadata_active["total"] or 0):
+        blockers.append("metadata builds or refreshes are still active")
+    if int(standardization_active["total"] or 0) or int(standardization_chunks_active["total"] or 0):
+        blockers.append("standardization refresh is still active")
+    if int(insight_active["total"] or 0):
+        blockers.append("a Global Insights generation task is already queued or running")
+    return blockers
+
+
+def queue_global_insights_generation(requested_by: int | None, *, demo: bool = False) -> tuple[str | None, list[str]]:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        blockers = [] if demo else global_insight_generation_blockers(db)
+        if blockers:
+            db.commit()
+            return None, blockers
+        snapshot_id = (
+            "demo_global_insights"
+            if demo
+            else f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_global_insights"
+        )
+        if demo:
+            db.execute("DELETE FROM global_insight_tasks WHERE snapshot_id = ?", (snapshot_id,))
+        db.execute(
+            """
+            INSERT INTO global_insight_tasks (
+                snapshot_id, status, requested_by, requested_at, is_demo
+            )
+            VALUES (?, 'pending', ?, ?, ?)
+            """,
+            (snapshot_id, requested_by, utc_now(), 1 if demo else 0),
+        )
+        db.commit()
+        return snapshot_id, []
+
+
+def claim_next_global_insight_task(worker_name: str) -> sqlite3.Row | None:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        stale_rows = db.execute(
+            """
+            SELECT id, claimed_by
+            FROM global_insight_tasks
+            WHERE status = 'running'
+              AND claimed_by IS NOT NULL
+            """
+        ).fetchall()
+        for row in stale_rows:
+            claimed_by = str(row["claimed_by"] or "")
+            if claimed_by and worker_heartbeat_is_live(claimed_by):
+                continue
+            db.execute(
+                """
+                UPDATE global_insight_tasks
+                SET status = 'pending',
+                    claimed_by = NULL,
+                    claimed_at = NULL,
+                    error = 'Stale Global Insights claim from a dead worker was reset.'
+                WHERE id = ?
+                """,
+                (row["id"],),
+            )
+        task = db.execute(
+            """
+            SELECT *
+            FROM global_insight_tasks
+            WHERE status = 'pending'
+            ORDER BY requested_at ASC, id ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if task is None:
+            db.commit()
+            return None
+        claimed_at = utc_now()
+        cursor = db.execute(
+            """
+            UPDATE global_insight_tasks
+            SET status = 'running',
+                claimed_by = ?,
+                claimed_at = ?,
+                error = NULL
+            WHERE id = ?
+              AND status = 'pending'
+            """,
+            (worker_name, claimed_at, task["id"]),
+        )
+        if int(cursor.rowcount or 0) != 1:
+            db.commit()
+            return None
+        db.commit()
+        return task
+
+
+def process_global_insight_task(task: sqlite3.Row) -> None:
+    task_id = int(task["id"])
+    snapshot_id = str(task["snapshot_id"])
+    is_demo = bool(task["is_demo"])
+    try:
+        with get_sqlite_connection() as db:
+            rows = db.execute(
+                """
+                SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, last_synced_at
+                FROM species
+                WHERE metadata_status = 'ready'
+                  AND metadata_clean_path IS NOT NULL
+                """
+            ).fetchall()
+        taxa = [
+            {
+                "id": int(row["id"]),
+                "species_name": str(row["species_name"]),
+                "taxon_rank": str(row["taxon_rank"]),
+                "genome_count": row["genome_count"],
+                "metadata_clean_path": str(row["metadata_clean_path"] or ""),
+                "last_synced_at": str(row["last_synced_at"] or ""),
+            }
+            for row in rows
+            if row["metadata_clean_path"]
+        ]
+        if is_demo:
+            summary = generate_demo_snapshot(
+                global_insights_root(),
+                app_version=APP_VERSION,
+                app_commit=APP_COMMIT,
+                snapshot_id=snapshot_id,
+            )
+        else:
+            summary = generate_global_insights_snapshot(
+                taxa,
+                global_insights_root(),
+                app_version=APP_VERSION,
+                app_commit=APP_COMMIT,
+                snapshot_id=snapshot_id,
+            )
+        output_dir = str(global_insights_root() / "snapshots" / snapshot_id)
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE global_insight_tasks
+                SET status = 'completed',
+                    completed_at = ?,
+                    output_dir = ?,
+                    error = NULL
+                WHERE id = ?
+                """,
+                (utc_now(), output_dir, task_id),
+            )
+            set_setting("global_insights_latest_snapshot_id", str(summary.get("snapshot_id") or snapshot_id), db)
+            db.commit()
+    except Exception as exc:
+        logging.exception("Global Insights generation failed for %s.", snapshot_id)
+        with get_sqlite_connection() as db:
+            db.execute(
+                """
+                UPDATE global_insight_tasks
+                SET status = 'failed',
+                    completed_at = ?,
+                    error = ?
+                WHERE id = ?
+                """,
+                (utc_now(), str(exc)[:4000], task_id),
+            )
+            db.commit()
+        raise
+
+
 def get_discovery_policy(db: sqlite3.Connection | None = None) -> str:
     return normalize_discovery_policy(get_setting("discovery_policy", None, db))
 
@@ -7949,6 +8218,22 @@ def build_metadata_dashboard() -> dict[str, Any]:
         """
     ).fetchall()
     standardization_refresh["recent"] = [dict(row) for row in recent_standardization]
+    latest_insight = latest_global_insight_task(db)
+    insight_blockers = global_insight_generation_blockers(db)
+    latest_summary, _latest_summary_dir = load_latest_global_insights_summary()
+    global_insights = {
+        "latest_task": latest_insight,
+        "blockers": insight_blockers,
+        "can_generate": not insight_blockers,
+        "latest_snapshot": {
+            "snapshot_id": latest_summary.get("snapshot_id"),
+            "generated_at": latest_summary.get("generated_at"),
+            "is_demo": bool(latest_summary.get("is_demo")),
+            "unique_assemblies": ((latest_summary.get("overview") or {}).get("unique_assemblies")),
+        }
+        if latest_summary
+        else None,
+    }
     return {
         "totals": dict(totals) if totals is not None else {},
         "rank_breakdown": [dict(row) for row in rank_rows],
@@ -7957,6 +8242,7 @@ def build_metadata_dashboard() -> dict[str, Any]:
         "metadata_refresh_policy": get_metadata_refresh_policy(db),
         "host_refinement": build_host_refinement_review(db),
         "standardization_refresh": standardization_refresh,
+        "global_insights": global_insights,
     }
 
 
@@ -15359,6 +15645,13 @@ def run_worker_loop() -> None:
                         apply_current_standardization_to_taxon(standardization_task)
                     continue
 
+            if WORKER_MODE in {"all", "metadata", "global-insights"}:
+                global_insight_task = claim_next_global_insight_task(worker_name)
+                if global_insight_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_global_insight_task(global_insight_task)
+                    continue
+
             if WORKER_MODE in {"all", "sync", "jobs"}:
                 job = claim_next_job(worker_name)
                 if job is not None:
@@ -16946,6 +17239,52 @@ def healthz() -> Any:
     return {"commit": APP_COMMIT, "status": "ok", "version": APP_VERSION}
 
 
+@app.route("/global-insights")
+def global_insights() -> str:
+    summary, snapshot_dir = load_latest_global_insights_summary()
+    simulator_filters = {
+        "taxon": (request.args.get("taxon") or "").strip(),
+        "country": (request.args.get("country") or "").strip(),
+        "host": (request.args.get("host") or "").strip(),
+        "year_from": (request.args.get("year_from") or "").strip(),
+        "year_to": (request.args.get("year_to") or "").strip(),
+        "assembly_level": (request.args.get("assembly_level") or "").strip(),
+    }
+    simulator_result = None
+    if summary and snapshot_dir and any(simulator_filters.values()):
+        simulator_relative = ((summary.get("downloads") or {}).get("simulator_records") or "").strip()
+        if simulator_relative:
+            simulator_result = run_standardization_simulator(snapshot_dir / simulator_relative, simulator_filters)
+    return render_template(
+        "global_insights.html",
+        summary=summary,
+        snapshot_dir=snapshot_dir,
+        latest_task=latest_global_insight_task(),
+        simulator_filters=simulator_filters,
+        simulator_result=simulator_result,
+    )
+
+
+@app.route("/global-insights/download/<path:relative_path>")
+def download_global_insights_file(relative_path: str) -> Any:
+    summary, snapshot_dir = load_latest_global_insights_summary()
+    if not summary or not snapshot_dir:
+        abort(404)
+    allowed_files = {str(value) for value in (summary.get("downloads") or {}).values() if value}
+    allowed_files.add("summary.json")
+    normalized = Path(relative_path)
+    if normalized.is_absolute() or ".." in normalized.parts:
+        abort(404)
+    relative = normalized.as_posix()
+    if relative not in allowed_files:
+        abort(404)
+    path = snapshot_dir / relative
+    if not path.exists() or not path.is_file():
+        abort(404)
+    record_audit_event("download.global_insights", target_type="global_insights", target_id=str(summary.get("snapshot_id") or "latest"), metadata={"file": relative})
+    return send_from_directory(snapshot_dir, relative, as_attachment=True)
+
+
 @app.route("/api/taxa/search")
 def api_taxa_search() -> Any:
     query = normalize_species_name(request.args.get("q") or "")
@@ -17868,6 +18207,28 @@ def admin_queue_standardization_refresh() -> Any:
             f"{summary['queued']} taxa queued, {summary['running']} already running, "
             f"{summary['skipped']} skipped because files are missing.",
             "success",
+        )
+    return redirect(url_for("admin_metadata"))
+
+
+@app.route("/admin/metadata/global-insights/generate", methods=["POST"])
+def admin_generate_global_insights() -> Any:
+    require_admin()
+    demo = request.form.get("demo") == "1"
+    user_id = int(g.current_user["id"]) if g.current_user else None
+    snapshot_id, blockers = queue_global_insights_generation(user_id, demo=demo)
+    if blockers:
+        flash("Global Insights was not queued because " + "; ".join(blockers) + ".", "error")
+    else:
+        flash(
+            f"Queued {'demo ' if demo else ''}Global Insights snapshot {snapshot_id}.",
+            "success",
+        )
+        record_audit_event(
+            "admin.global_insights_generate",
+            target_type="global_insights",
+            target_id=snapshot_id,
+            metadata={"demo": demo},
         )
     return redirect(url_for("admin_metadata"))
 
