@@ -16,7 +16,10 @@
             <td>{{ row.rank }}</td>
             <td>{{ row.label }}</td>
             <td>{{ row.count }}</td>
-            <td>{{ row.percent }}%</td>
+            <td>
+              <span class="insight-percent">{{ row.percent }}%</span>
+              <span class="insight-bar" aria-hidden="true"><span style="width: {{ row.percent if row.percent <= 100 else 100 }}%"></span></span>
+            </td>
           </tr>
         {% endfor %}
       </tbody>
@@ -38,6 +41,70 @@
 {% endmacro %}
 
 {% block content %}
+<style>
+  .insight-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 11px;
+    border-radius: 999px;
+    background: rgba(22, 92, 78, 0.1);
+    color: var(--accent);
+    font-weight: 800;
+    width: max-content;
+  }
+
+  .insight-callout-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+  }
+
+  .insight-callout {
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(22, 92, 78, 0.16);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(246, 241, 229, 0.72));
+  }
+
+  .insight-callout strong {
+    display: block;
+    font-size: 1.35rem;
+    line-height: 1.1;
+  }
+
+  .insight-callout span,
+  .insight-explain {
+    color: var(--muted);
+  }
+
+  .insight-bar {
+    display: block;
+    height: 7px;
+    margin-top: 5px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(22, 92, 78, 0.11);
+  }
+
+  .insight-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), rgba(184, 132, 77, 0.88));
+  }
+
+  .insight-percent {
+    font-weight: 800;
+  }
+
+  .insight-note {
+    padding: 12px 14px;
+    border-radius: 16px;
+    border: 1px solid rgba(184, 132, 77, 0.25);
+    background: rgba(255, 247, 230, 0.72);
+  }
+</style>
 <main class="layout">
   <section class="panel detail-head">
     <div>
@@ -78,6 +145,17 @@
       </section>
     {% endif %}
 
+    {% set ns = namespace(country_comp={}, host_comp={}, source_comp={}) %}
+    {% for row in summary.metadata_completeness %}
+      {% if row.field == "Country" %}{% set ns.country_comp = row %}{% endif %}
+      {% if row.field == "Host" %}{% set ns.host_comp = row %}{% endif %}
+      {% if row.field == "Isolation source" %}{% set ns.source_comp = row %}{% endif %}
+    {% endfor %}
+    {% set top_genus = summary.taxonomic_landscape.top_genera[0] if summary.taxonomic_landscape.top_genera else none %}
+    {% set top_species = summary.taxonomic_landscape.top_species[0] if summary.taxonomic_landscape.top_species else none %}
+    {% set top_country = summary.geographic_bias.countries[0] if summary.geographic_bias.countries else none %}
+    {% set top_host_category = summary.host_source_bias.host_categories[0] if summary.host_source_bias.host_categories else none %}
+
     <section class="panel">
       <h2>Overview</h2>
       <div class="metrics-grid">
@@ -89,6 +167,46 @@
         <div class="metric-card"><strong>{{ summary.overview.qc_ready_taxa }}</strong><span>QC-ready taxa</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
+    </section>
+
+    <section class="panel">
+      <p class="insight-kicker">Executive interpretation</p>
+      <h2>Key Findings From This Snapshot</h2>
+      <div class="insight-callout-grid">
+        <div class="insight-callout">
+          <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong>
+          <span>of assemblies are in the top 10 genera, showing strong taxonomic concentration.</span>
+        </div>
+        {% if top_genus %}
+          <div class="insight-callout">
+            <strong>{{ top_genus.label }}</strong>
+            <span>is the most represented genus ({{ top_genus.count }} assemblies; {{ top_genus.percent }}%).</span>
+          </div>
+        {% endif %}
+        {% if top_country %}
+          <div class="insight-callout">
+            <strong>{{ top_country.label }}</strong>
+            <span>is the most represented country among standardized locations ({{ top_country.percent }}%).</span>
+          </div>
+        {% endif %}
+        {% if top_host_category %}
+          <div class="insight-callout">
+            <strong>{{ top_host_category.percent }}%</strong>
+            <span>of assemblies are classified as {{ top_host_category.label|lower }}.</span>
+          </div>
+        {% endif %}
+        <div class="insight-callout">
+          <strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong>
+          <span>have controlled standardized country assignments.</span>
+        </div>
+        <div class="insight-callout">
+          <strong>{{ summary.overview.qc_ready_taxa }}</strong>
+          <span>taxa meet the current QC-ready metadata thresholds.</span>
+        </div>
+      </div>
+      <p class="insight-explain top-gap">
+        These values describe repository representation, not biological abundance. Use them to motivate sampling-bias checks before cohort construction.
+      </p>
     </section>
 
     <section class="panel">
@@ -107,7 +225,7 @@
     </section>
 
     <section class="panel">
-      <h2>Genome Growth And Assembly Quality</h2>
+      <h2>Genome Growth and Assembly Quality</h2>
       {% set yearly_rows = summary.get("yearly_growth", []) %}
       {% set assembly_levels = (summary.get("assembly_quality") or {}).get("assembly_levels", []) %}
       <div class="grid two-column">
@@ -155,15 +273,20 @@
 
     <section class="panel">
       <h2>Metadata Completeness And Standardization Impact</h2>
+      <p class="insight-note">
+        Raw-field population and standardized-field usability are intentionally different measures. A raw value can be present but still be too free-text, ambiguous, or unmapped for controlled filtering.
+      </p>
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
               <th>Field</th>
-              <th>Raw usable</th>
-              <th>Standardized usable</th>
-              <th>Rescued records</th>
-              <th>Gain</th>
+              <th>Raw populated</th>
+              <th>Controlled usable</th>
+              <th>Standardized-only</th>
+              <th>Raw-only/unmapped</th>
+              <th>Changed mappings</th>
+              <th>Controlled delta</th>
             </tr>
           </thead>
           <tbody>
@@ -172,8 +295,10 @@
                 <td>{{ row.field }}</td>
                 <td>{{ row.raw_usable_percent }}%</td>
                 <td>{{ row.standardized_usable_percent }}%</td>
-                <td>{{ row.rescued_records }}</td>
-                <td>{{ row.gain_percentage_points }} points</td>
+                <td>{{ row.standardized_only_records|default(row.rescued_records|default(0)) }}</td>
+                <td>{{ row.raw_only_records|default("not recorded") }}</td>
+                <td>{{ row.changed_mappings|default("not recorded") }}</td>
+                <td>{{ row.controlled_delta_percentage_points|default(row.gain_percentage_points) }} points</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -188,7 +313,7 @@
                 <th>Field</th>
                 <th>Raw value</th>
                 <th>Standardized value</th>
-                <th>Records</th>
+                <th>Mapped records</th>
               </tr>
             </thead>
             <tbody>
@@ -289,21 +414,75 @@
         </div>
         <div>
           <h3>Bias Warnings</h3>
+          <p class="insight-explain">This table suppresses very small taxa so warnings focus on datasets large enough for practical downstream analysis.</p>
           <div class="table-scroll">
             <table>
               <thead>
-                <tr><th>Scope</th><th>Type</th><th>Severity</th><th>Warning</th></tr>
+                <tr><th>Scope</th><th>Assemblies</th><th>Type</th><th>Severity</th><th>Warning</th></tr>
               </thead>
               <tbody>
-                {% for row in summary.bias_warnings[:10] %}
+                {% for row in summary.bias_warnings if (row.assemblies|default(0, true)|int) >= 100 %}
                   <tr>
                     <td>{{ row.scope }}</td>
+                    <td>{{ row.assemblies }}</td>
                     <td>{{ row.bias_type }}</td>
                     <td>{{ row.severity }}</td>
                     <td>{{ row.warning }}</td>
                   </tr>
                 {% else %}
-                  <tr><td colspan="4">No strong bias warnings were generated for the top scanned taxa.</td></tr>
+                  <tr><td colspan="5">No large-taxon bias warnings are available in this snapshot. Regenerate Global Insights to use the latest warning filters.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Pathogen and QC-ready Taxa</h2>
+      <div class="grid two-column">
+        <div>
+          <h3>Priority Pathogen Metadata Quality</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Taxon</th><th>Group</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+              </thead>
+              <tbody>
+                {% for row in summary.pathogen_insights[:12] %}
+                  <tr>
+                    <td>{{ row.taxon_name or row.taxon }}</td>
+                    <td>{{ row.group }}</td>
+                    <td>{{ row.assemblies }}</td>
+                    <td>{{ row.metadata_quality_score }}</td>
+                    <td>{{ row.metadata_quality_grade }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5">No priority pathogen reference list was available for this snapshot.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <h3>QC-ready Taxa</h3>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+              </thead>
+              <tbody>
+                {% for row in summary.qc_ready_taxa[:12] %}
+                  <tr>
+                    <td>{{ row.taxon }}</td>
+                    <td>{{ row.rank }}</td>
+                    <td>{{ row.assemblies }}</td>
+                    <td>{{ row.metadata_quality_score }}</td>
+                    <td>{{ row.metadata_quality_grade }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="5">No taxa met the current QC-ready thresholds.</td></tr>
                 {% endfor %}
               </tbody>
             </table>

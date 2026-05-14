@@ -260,6 +260,23 @@ def confidence_available(row: dict[str, Any]) -> bool:
     return any(is_usable(row_value(row, fields)) for fields in (COUNTRY_CONFIDENCE_FIELDS, HOST_CONFIDENCE_FIELDS))
 
 
+def update_field_pair_stats(stats: dict[str, int], raw_value: str, standardized_value: str) -> None:
+    raw_ok = is_usable(raw_value)
+    standardized_ok = is_usable(standardized_value)
+    if raw_ok:
+        stats["raw_usable"] += 1
+    if standardized_ok:
+        stats["standardized_usable"] += 1
+    if raw_ok and standardized_ok:
+        stats["both_usable"] += 1
+        if normalized_key(raw_value) != normalized_key(standardized_value):
+            stats["changed_mappings"] += 1
+    elif standardized_ok:
+        stats["standardized_only"] += 1
+    elif raw_ok:
+        stats["raw_only"] += 1
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
@@ -343,10 +360,12 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     )
     results = (
         f"Genome availability was highly uneven across taxa. The most represented genera included {top_genus_names}. "
-        f"Country metadata usability increased from {country.get('raw_usable_percent', 0)}% in raw fields to "
-        f"{country.get('standardized_usable_percent', 0)}% after FetchM standardization. Host metadata usability increased "
-        f"from {host.get('raw_usable_percent', 0)}% to {host.get('standardized_usable_percent', 0)}%, and isolation-source "
-        f"metadata usability increased from {source.get('raw_usable_percent', 0)}% to {source.get('standardized_usable_percent', 0)}%."
+        f"Raw country fields were populated for {country.get('raw_usable_percent', 0)}% of unique assemblies, while "
+        f"controlled standardized country assignments were available for {country.get('standardized_usable_percent', 0)}%. "
+        f"Controlled host assignments were available for {host.get('standardized_usable_percent', 0)}% of assemblies, and "
+        f"controlled isolation-source assignments were available for {source.get('standardized_usable_percent', 0)}%. "
+        "The standardized-field percentages are intentionally stricter than raw-field population rates because free-text values "
+        "are not treated as analysis-ready unless they map to a controlled category."
     )
     methods = (
         "Global Metadata Insights were generated from ready FetchM standardized metadata files. Unique assemblies were counted "
@@ -427,12 +446,12 @@ def generate_global_insights_snapshot(
     correction_counter: Counter[tuple[str, str, str]] = Counter()
     taxon_stats: dict[str, TaxonStats] = {}
     completeness_fields = {
-        "Country": {"raw": 0, "standardized": 0},
-        "Host": {"raw": 0, "standardized": 0},
-        "Collection year": {"raw": 0, "standardized": 0},
-        "Isolation source": {"raw": 0, "standardized": 0},
-        "Sample type": {"raw": 0, "standardized": 0},
-        "Environment": {"raw": 0, "standardized": 0},
+        "Country": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Host": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Collection year": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Isolation source": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Sample type": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Environment": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
     }
 
     simulator_path = table_dir / "simulator_records.csv"
@@ -496,10 +515,8 @@ def generate_global_insights_snapshot(
                     continent = row_value(row, ("Continent",))
                     subcontinent = row_value(row, ("Subcontinent",))
 
-                    if is_usable(raw_country):
-                        completeness_fields["Country"]["raw"] += 1
+                    update_field_pair_stats(completeness_fields["Country"], raw_country, std_country)
                     if is_usable(std_country):
-                        completeness_fields["Country"]["standardized"] += 1
                         country_counter[std_country] += 1
                         stat.country_usable += 1
                         stat.countries[std_country] += 1
@@ -507,29 +524,18 @@ def generate_global_insights_snapshot(
                         continent_counter[continent] += 1
                     if is_usable(subcontinent):
                         subcontinent_counter[subcontinent] += 1
-                    if is_usable(raw_host):
-                        completeness_fields["Host"]["raw"] += 1
+                    update_field_pair_stats(completeness_fields["Host"], raw_host, std_host)
                     if is_usable(std_host):
-                        completeness_fields["Host"]["standardized"] += 1
                         host_counter[std_host] += 1
                         stat.hosts[std_host] += 1
-                    if is_usable(raw_source):
-                        completeness_fields["Isolation source"]["raw"] += 1
+                    update_field_pair_stats(completeness_fields["Isolation source"], raw_source, std_source)
                     if is_usable(std_source):
-                        completeness_fields["Isolation source"]["standardized"] += 1
                         source_counter[std_source] += 1
                         stat.isolation_usable += 1
-                    if is_usable(std_sample):
-                        completeness_fields["Sample type"]["standardized"] += 1
-                    if is_usable(raw_source):
-                        completeness_fields["Sample type"]["raw"] += 1
-                    if is_usable(std_env):
-                        completeness_fields["Environment"]["standardized"] += 1
-                    if is_usable(raw_source):
-                        completeness_fields["Environment"]["raw"] += 1
+                    update_field_pair_stats(completeness_fields["Sample type"], raw_source, std_sample)
+                    update_field_pair_stats(completeness_fields["Environment"], raw_source, std_env)
                     if collection_year:
-                        completeness_fields["Collection year"]["raw"] += 1
-                        completeness_fields["Collection year"]["standardized"] += 1
+                        update_field_pair_stats(completeness_fields["Collection year"], collection_year, collection_year)
                         stat.year_usable += 1
                         stat.years[collection_year] += 1
                     if release_year:
@@ -582,8 +588,9 @@ def generate_global_insights_snapshot(
 
     metadata_completeness = []
     for field_name, counts in completeness_fields.items():
-        raw_count = int(counts["raw"])
-        std_count = int(counts["standardized"])
+        raw_count = int(counts["raw_usable"])
+        std_count = int(counts["standardized_usable"])
+        delta_points = round(percent(std_count, unique_total) - percent(raw_count, unique_total), 2)
         metadata_completeness.append(
             {
                 "field": field_name,
@@ -591,8 +598,13 @@ def generate_global_insights_snapshot(
                 "raw_usable_percent": percent(raw_count, unique_total),
                 "standardized_usable": std_count,
                 "standardized_usable_percent": percent(std_count, unique_total),
-                "rescued_records": max(0, std_count - raw_count),
-                "gain_percentage_points": round(percent(std_count, unique_total) - percent(raw_count, unique_total), 2),
+                "both_usable_records": int(counts["both_usable"]),
+                "standardized_only_records": int(counts["standardized_only"]),
+                "raw_only_records": int(counts["raw_only"]),
+                "changed_mappings": int(counts["changed_mappings"]),
+                "rescued_records": int(counts["standardized_only"]),
+                "gain_percentage_points": delta_points,
+                "controlled_delta_percentage_points": delta_points,
             }
         )
 
@@ -626,11 +638,12 @@ def generate_global_insights_snapshot(
             "top_bioproject": top_projects[0][0] if top_projects else "",
         }
         bioproject_dominance.append(dominance)
-        if dominance["top_5_bioproject_share_percent"] >= 30:
+        if stat.rows >= 100 and dominance["top_5_bioproject_share_percent"] >= 30:
             bias_warnings.append(
                 {
                     "scope": stat.name,
                     "scope_type": stat.rank,
+                    "assemblies": stat.rows,
                     "bias_type": "BioProject dominance",
                     "severity": severity_from_share(dominance["top_5_bioproject_share_percent"]),
                     "metric_percent": dominance["top_5_bioproject_share_percent"],
@@ -650,6 +663,7 @@ def generate_global_insights_snapshot(
                     {
                         "scope": stat.name,
                         "scope_type": stat.rank,
+                        "assemblies": stat.rows,
                         "bias_type": f"{label} dominance",
                         "severity": severity_from_share(share),
                         "metric_percent": share,
@@ -658,7 +672,7 @@ def generate_global_insights_snapshot(
                 )
 
     bioproject_dominance.sort(key=lambda row: (-float(row["top_5_bioproject_share_percent"]), -int(row["assemblies"])))
-    bias_warnings.sort(key=lambda row: ({"severe": 0, "high": 1, "moderate": 2, "low": 3}.get(str(row["severity"]), 9), -float(row["metric_percent"])))
+    bias_warnings.sort(key=lambda row: ({"severe": 0, "high": 1, "moderate": 2, "low": 3}.get(str(row["severity"]), 9), -int(row.get("assemblies") or 0), -float(row["metric_percent"])))
 
     correction_rows = [
         {"field": field, "raw_value": raw, "standardized_value": std, "records_rescued": count}
@@ -734,6 +748,7 @@ def generate_global_insights_snapshot(
         "standardization_impact": {
             "top_corrections": correction_rows[:30],
             "confidence_methods": top_rows(confidence_counter, sum(confidence_counter.values()), 30),
+            "mapped_records": int(sum(row["records_rescued"] for row in correction_rows)),
         },
         "yearly_growth": yearly_growth_rows,
         "metadata_quality": taxon_quality[:100],
@@ -762,9 +777,26 @@ def generate_global_insights_snapshot(
     write_csv(table_dir / "top_genera.csv", summary["taxonomic_landscape"]["top_genera"], ["rank", "label", "count", "percent"])
     write_csv(table_dir / "top_species.csv", summary["taxonomic_landscape"]["top_species"], ["rank", "label", "count", "percent"])
     write_csv(table_dir / "countries.csv", summary["geographic_bias"]["countries"], ["rank", "label", "count", "percent"])
-    write_csv(table_dir / "metadata_completeness.csv", metadata_completeness, ["field", "raw_usable", "raw_usable_percent", "standardized_usable", "standardized_usable_percent", "rescued_records", "gain_percentage_points"])
+    write_csv(
+        table_dir / "metadata_completeness.csv",
+        metadata_completeness,
+        [
+            "field",
+            "raw_usable",
+            "raw_usable_percent",
+            "standardized_usable",
+            "standardized_usable_percent",
+            "both_usable_records",
+            "standardized_only_records",
+            "raw_only_records",
+            "changed_mappings",
+            "rescued_records",
+            "gain_percentage_points",
+            "controlled_delta_percentage_points",
+        ],
+    )
     write_csv(table_dir / "metadata_quality.csv", taxon_quality, list(taxon_quality[0].keys()) if taxon_quality else ["taxon", "rank", "assemblies"])
-    write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "bias_type", "severity", "metric_percent", "warning"])
+    write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "assemblies", "bias_type", "severity", "metric_percent", "warning"])
     write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "raw_value", "standardized_value", "records_rescued"])
     write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies"])
     write_csv(table_dir / "qc_ready_taxa.csv", qc_ready_taxa, list(qc_ready_taxa[0].keys()) if qc_ready_taxa else ["taxon", "rank", "assemblies"])
