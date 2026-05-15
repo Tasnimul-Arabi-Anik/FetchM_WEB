@@ -68,23 +68,23 @@
   <div class="impact-meter">
     <div class="section-heading">
       <h3>{{ title }}</h3>
-      <span class="status completed">{{ row.standardized_usable_percent|default(0) }}% controlled</span>
+      <span class="status completed">{{ row.standardized_usable_percent|default(0) }}% standardized</span>
     </div>
     <div class="impact-scale">
       <div>
-        <span>Raw populated</span>
+        <span>Raw field present</span>
         <strong>{{ row.raw_usable_percent|default(0) }}%</strong>
         <i><b style="width: {{ row.raw_usable_percent|default(0) if row.raw_usable_percent|default(0) <= 100 else 100 }}%"></b></i>
       </div>
       <div>
-        <span>Controlled usable</span>
+        <span>Standardized</span>
         <strong>{{ row.standardized_usable_percent|default(0) }}%</strong>
         <i><b style="width: {{ row.standardized_usable_percent|default(0) if row.standardized_usable_percent|default(0) <= 100 else 100 }}%"></b></i>
       </div>
     </div>
     <p class="job-meta">
-      {{ row.changed_mappings|default("not recorded") }} changed mappings;
-      {{ row.raw_only_records|default("not recorded") }} raw-only/unmapped records.
+      {{ row.changed_mappings|default("not recorded") }} raw values were mapped to a different standardized label;
+      {{ row.raw_only_records|default("not recorded") }} raw records still need mapping or review.
     </p>
   </div>
 {% endmacro %}
@@ -371,7 +371,7 @@
     <div>
       <p class="eyebrow">Global Insights</p>
       <h1>Global Metadata Insights</h1>
-      <p class="lede">A research-grade overview of bacterial genome availability, metadata completeness, standardization impact, and repository sampling bias across FetchM-indexed public genome resources.</p>
+      <p class="lede">A global summary of FetchM-indexed bacterial genomes, standardized metadata coverage, and repository sampling bias after the latest metadata update.</p>
       {% if summary %}
         <div class="insight-badge-row">
           <span class="status completed">{{ "demo data" if summary.is_demo else "real snapshot" }}</span>
@@ -417,12 +417,11 @@
       </section>
     {% endif %}
 
-    {% set ns = namespace(country_comp={}, host_comp={}, source_comp={}, standardized_only_total=0, changed_total=0) %}
+    {% set ns = namespace(country_comp={}, host_comp={}, source_comp={}, changed_total=0) %}
     {% for row in summary.metadata_completeness %}
       {% if row.field == "Country" %}{% set ns.country_comp = row %}{% endif %}
       {% if row.field == "Host" %}{% set ns.host_comp = row %}{% endif %}
       {% if row.field == "Isolation source" %}{% set ns.source_comp = row %}{% endif %}
-      {% set ns.standardized_only_total = ns.standardized_only_total + (row.standardized_only_records|default(row.rescued_records|default(0))|int) %}
       {% set ns.changed_total = ns.changed_total + (row.changed_mappings|default(0)|int) %}
     {% endfor %}
     {% set top_genus = summary.taxonomic_landscape.top_genera[0] if summary.taxonomic_landscape.top_genera else none %}
@@ -437,8 +436,8 @@
         <div class="metric-card"><strong>{{ summary.overview.species_observed }}</strong><span>Observed species labels</span></div>
         <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
         <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
-        <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Controlled country metadata</span></div>
-        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Changed controlled mappings</span></div>
+        <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Standardized country</span></div>
+        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Raw values standardized</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
     </section>
@@ -447,11 +446,11 @@
       <div class="section-heading">
         <div>
           <p class="eyebrow">Signature finding</p>
-          <h2>FetchM Standardization Changes Dataset Selection</h2>
+          <h2>Metadata Standardization and Usability</h2>
         </div>
-        <span class="status completed">{{ ns.standardized_only_total }} standardized-only records</span>
+        <span class="status completed">latest snapshot</span>
       </div>
-      <p class="lede">Raw metadata can be populated but still be too free-text, ambiguous, or unmapped for controlled filtering. FetchM separates raw field population from controlled standardized usability so users can evaluate whether metadata are analysis-ready.</p>
+      <p class="lede">A raw metadata field can be filled but still be too vague, inconsistent, or unmapped for reliable filtering. The standardized percentage shows records that FetchM mapped into an analysis-ready value.</p>
       <div class="impact-grid">
         {{ impact_meter(ns.country_comp, "Country") }}
         {{ impact_meter(ns.host_comp, "Host") }}
@@ -570,31 +569,27 @@
       <summary><span>How Complete Is Public Genome Metadata?</span><span class="tag">completeness</span></summary>
       <div class="insight-details-body">
       <p class="insight-note">
-        Raw-field population and standardized-field usability are intentionally different measures. A raw value can be present but still be too free-text, ambiguous, or unmapped for controlled filtering.
+        Raw field present means the submitter provided non-empty text. Standardized means FetchM mapped that text into a consistent value for filtering and analysis. Lower standardized percentages identify fields where many raw values remain ambiguous or unmapped.
       </p>
       <div class="table-scroll">
         <table>
           <thead>
             <tr>
               <th>Field</th>
-              <th>Raw populated</th>
-              <th>Controlled usable</th>
-              <th>Standardized-only</th>
-              <th>Raw-only/unmapped</th>
-              <th>Changed mappings</th>
-              <th>Controlled delta</th>
+              <th>Raw field present</th>
+              <th>Standardized</th>
+              <th>Raw but not standardized</th>
+              <th>Raw values remapped</th>
             </tr>
           </thead>
           <tbody>
             {% for row in summary.metadata_completeness %}
               <tr>
                 <td>{{ row.field }}</td>
-                <td>{{ row.raw_usable_percent }}%</td>
-                <td>{{ row.standardized_usable_percent }}%</td>
-                <td>{{ row.standardized_only_records|default(row.rescued_records|default(0)) }}</td>
+                <td>{{ row.raw_usable_percent }}% <small>({{ row.raw_usable }})</small></td>
+                <td>{{ row.standardized_usable_percent }}% <small>({{ row.standardized_usable }})</small></td>
                 <td>{{ row.raw_only_records|default("not recorded") }}</td>
                 <td>{{ row.changed_mappings|default("not recorded") }}</td>
-                <td>{{ row.controlled_delta_percentage_points|default(row.gain_percentage_points) }} points</td>
               </tr>
             {% endfor %}
           </tbody>

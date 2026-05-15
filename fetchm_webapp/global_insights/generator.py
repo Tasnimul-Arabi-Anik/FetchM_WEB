@@ -42,7 +42,9 @@ HOST_RAW_FIELDS = ("Host", "host")
 SOURCE_STD_FIELDS = ("Isolation_Source_SD", "isolation_source_standardized", "Isolation Source Standardized")
 SOURCE_RAW_FIELDS = ("Isolation Source", "isolation_source")
 SAMPLE_STD_FIELDS = ("Sample_Type_SD", "sample_type_standardized")
+SAMPLE_RAW_FIELDS = ("Sample Type", "sample_type", "sample type", "Sample_Type")
 ENV_STD_FIELDS = ("Environment_Medium_SD", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD")
+ENV_RAW_FIELDS = ("Environment", "environment", "env_broad_scale", "env_local_scale", "env_medium")
 BIOPROJECT_FIELDS = ("Assembly BioProject Accession", "BioProject Accession", "bioproject_accession")
 ASSEMBLY_FIELDS = ("Assembly Accession", "assembly_accession")
 ORGANISM_FIELDS = ("Organism Name", "organism_name")
@@ -360,12 +362,12 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     )
     results = (
         f"Genome availability was highly uneven across taxa. The most represented genera included {top_genus_names}. "
-        f"Raw country fields were populated for {country.get('raw_usable_percent', 0)}% of unique assemblies, while "
-        f"controlled standardized country assignments were available for {country.get('standardized_usable_percent', 0)}%. "
-        f"Controlled host assignments were available for {host.get('standardized_usable_percent', 0)}% of assemblies, and "
-        f"controlled isolation-source assignments were available for {source.get('standardized_usable_percent', 0)}%. "
-        "The standardized-field percentages are intentionally stricter than raw-field population rates because free-text values "
-        "are not treated as analysis-ready unless they map to a controlled category."
+        f"Raw country fields were present for {country.get('raw_usable_percent', 0)}% of unique assemblies, while "
+        f"FetchM standardized country assignments were available for {country.get('standardized_usable_percent', 0)}%. "
+        f"Standardized host assignments were available for {host.get('standardized_usable_percent', 0)}% of assemblies, and "
+        f"standardized isolation-source assignments were available for {source.get('standardized_usable_percent', 0)}%. "
+        "Raw-field presence and standardized-field availability are different measures: a submitter value can be present but "
+        "still too vague, inconsistent, or unmapped for reliable metadata filtering."
     )
     methods = (
         "Global Metadata Insights were generated from ready FetchM standardized metadata files. Unique assemblies were counted "
@@ -506,7 +508,9 @@ def generate_global_insights_snapshot(
                     std_host = row_value(row, HOST_STD_FIELDS)
                     raw_source = row_value(row, SOURCE_RAW_FIELDS)
                     std_source = row_value(row, SOURCE_STD_FIELDS)
+                    raw_sample = row_value(row, SAMPLE_RAW_FIELDS)
                     std_sample = row_value(row, SAMPLE_STD_FIELDS)
+                    raw_env = row_value(row, ENV_RAW_FIELDS)
                     std_env = row_value(row, ENV_STD_FIELDS)
                     release_year = parse_year(row_value(row, RELEASE_DATE_FIELDS))
                     collection_year = parse_year(row_value(row, COLLECTION_DATE_FIELDS))
@@ -532,8 +536,8 @@ def generate_global_insights_snapshot(
                     if is_usable(std_source):
                         source_counter[std_source] += 1
                         stat.isolation_usable += 1
-                    update_field_pair_stats(completeness_fields["Sample type"], raw_source, std_sample)
-                    update_field_pair_stats(completeness_fields["Environment"], raw_source, std_env)
+                    update_field_pair_stats(completeness_fields["Sample type"], raw_sample, std_sample)
+                    update_field_pair_stats(completeness_fields["Environment"], raw_env, std_env)
                     if collection_year:
                         update_field_pair_stats(completeness_fields["Collection year"], collection_year, collection_year)
                         stat.year_usable += 1
@@ -562,8 +566,8 @@ def generate_global_insights_snapshot(
                         ("Country", raw_country, std_country),
                         ("Host", raw_host, std_host),
                         ("Isolation source", raw_source, std_source),
-                        ("Sample type", raw_source, std_sample),
-                        ("Environment", raw_source, std_env),
+                        ("Sample type", raw_sample, std_sample),
+                        ("Environment", raw_env, std_env),
                     ):
                         if is_usable(raw_value) and is_usable(std_value) and normalized_key(raw_value) != normalized_key(std_value):
                             correction_counter[(label, raw_value[:120], std_value[:120])] += 1
@@ -596,15 +600,20 @@ def generate_global_insights_snapshot(
                 "field": field_name,
                 "raw_usable": raw_count,
                 "raw_usable_percent": percent(raw_count, unique_total),
+                "raw_present": raw_count,
+                "raw_present_percent": percent(raw_count, unique_total),
                 "standardized_usable": std_count,
                 "standardized_usable_percent": percent(std_count, unique_total),
+                "standardized_records": std_count,
+                "standardized_percent": percent(std_count, unique_total),
                 "both_usable_records": int(counts["both_usable"]),
                 "standardized_only_records": int(counts["standardized_only"]),
                 "raw_only_records": int(counts["raw_only"]),
+                "raw_not_standardized_records": int(counts["raw_only"]),
                 "changed_mappings": int(counts["changed_mappings"]),
+                "raw_values_remapped": int(counts["changed_mappings"]),
                 "rescued_records": int(counts["standardized_only"]),
                 "gain_percentage_points": delta_points,
-                "controlled_delta_percentage_points": delta_points,
             }
         )
 
@@ -719,7 +728,7 @@ def generate_global_insights_snapshot(
             "app_commit": app_commit,
             "generation_scope": "Ready FetchM taxa with metadata_status='ready' and a metadata_clean_path were scanned after metadata update and standardization refresh completion.",
             "duplicate_rule": "Unique assemblies are counted by Assembly Accession. Species-level metadata rows are preferred over genus-level rows; newer synced taxa are scanned first within each rank.",
-            "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample/environment categories: Isolation Source -> Sample_Type_SD and Environment_*_SD; collection year: Collection Date; growth year: Assembly Release Date.",
+            "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year: Collection Date; growth year: Assembly Release Date.",
             "missing_value_rule": "Empty, unknown, not collected, not applicable, unidentified, and similarly non-informative values are treated as unusable metadata.",
             "qc_ready_rule": "At least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
             "bias_score_formulas": "Dominance scores are calculated as the top category share among assemblies in scope: top 1/5/10 BioProject share, top country share, top host share, and top collection-year share. Warning severity uses low <25%, moderate 25-49.99%, high 50-74.99%, and severe >=75%.",
@@ -782,17 +791,13 @@ def generate_global_insights_snapshot(
         metadata_completeness,
         [
             "field",
-            "raw_usable",
-            "raw_usable_percent",
-            "standardized_usable",
-            "standardized_usable_percent",
+            "raw_present",
+            "raw_present_percent",
+            "standardized_records",
+            "standardized_percent",
             "both_usable_records",
-            "standardized_only_records",
-            "raw_only_records",
-            "changed_mappings",
-            "rescued_records",
-            "gain_percentage_points",
-            "controlled_delta_percentage_points",
+            "raw_not_standardized_records",
+            "raw_values_remapped",
         ],
     )
     write_csv(table_dir / "metadata_quality.csv", taxon_quality, list(taxon_quality[0].keys()) if taxon_quality else ["taxon", "rank", "assemblies"])
