@@ -6246,6 +6246,7 @@ DATASET_PIPELINE_STEPS = [
     ("catalog", "Update genus and species catalog"),
     ("metadata", "Update metadata build"),
     ("standardization", "Standardize newly updated metadata"),
+    ("verify", "Verify staged update"),
     ("replace", "Replace existing data"),
     ("global_insights", "Generate Global Insights"),
 ]
@@ -6270,6 +6271,11 @@ DATASET_PIPELINE_STEP_COPY = {
         "short": "Apply metadata standardization to newly updated metadata rows.",
         "run_label": "Run standardization now",
         "metric_label": "Standardization",
+    },
+    "verify": {
+        "short": "Confirm no update work is active or failed before any live dataset switch is allowed.",
+        "run_label": "Verify staged update",
+        "metric_label": "Verification",
     },
     "replace": {
         "short": "Switch live pointers only after the upstream update pipeline has completed successfully.",
@@ -6661,6 +6667,25 @@ def build_dataset_pipeline_step_cards(
             detail_lines = [
                 f"{counts.get('standardization_active', 0)} standardization tasks active",
                 f"{counts.get('standardization_updated_rows', 0)} standardized rows updated",
+            ]
+        elif step_key == "verify":
+            active_total = (
+                counts.get("discovery_active", 0)
+                + counts.get("catalog_active", 0)
+                + counts.get("metadata_active", 0)
+                + counts.get("standardization_active", 0)
+            )
+            failed_total = (
+                counts.get("discovery_failed", 0)
+                + counts.get("catalog_failed", 0)
+                + counts.get("metadata_failed", 0)
+                + counts.get("standardization_failed", 0)
+            )
+            percent = 100 if status == "completed" else 0
+            detail_lines = [
+                f"{active_total} update tasks still active",
+                f"{failed_total} update tasks failed",
+                "Replacement remains blocked until verification completes.",
             ]
         elif step_key == "replace":
             percent = 100 if active_version != "legacy-live" else 0
@@ -7289,7 +7314,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         """,
         (run_id, step["step_order"]),
     ).fetchall()
-    required = {"discovery", "catalog", "metadata", "standardization"}
+    required = {"discovery", "catalog", "metadata", "standardization", "verify"}
     upstream_by_key = {str(row["step_key"]): str(row["status"]) for row in upstream}
     missing = sorted(required.difference(upstream_by_key))
     incomplete = [
@@ -7407,15 +7432,42 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if counts["standardization_failed"]:
                     failed = True
                     blockers.append(f"{counts['standardization_failed']} standardization tasks/chunks failed")
-            if step_key in {"discovery", "catalog", "metadata", "standardization"}:
+            elif step_key == "verify":
+                active_parts = {
+                    "discovery": counts.get("discovery_active", 0),
+                    "catalog": counts.get("catalog_active", 0),
+                    "metadata": counts.get("metadata_active", 0),
+                    "standardization": counts.get("standardization_active", 0),
+                }
+                failed_parts = {
+                    "discovery": counts.get("discovery_failed", 0),
+                    "catalog": counts.get("catalog_failed", 0),
+                    "metadata": counts.get("metadata_failed", 0),
+                    "standardization": counts.get("standardization_failed", 0),
+                }
+                still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
+                failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
+                if still_active:
+                    blockers.append("Update work is still active: " + ", ".join(still_active))
+                if failures:
+                    failed = True
+                    blockers.append("Failed update tasks require review: " + ", ".join(failures))
+            if step_key in {"discovery", "catalog", "metadata", "standardization", "verify"}:
                 if failed:
                     set_pipeline_step_status(db, int(step["id"]), "failed", progress=progress, blockers=blockers, error="; ".join(blockers))
                     db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), step["run_id"]))
+                    if step_key == "verify":
+                        db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", ("; ".join(blockers), step["dataset_version_id"]))
                     continue
                 if blockers:
                     set_pipeline_step_status(db, int(step["id"]), "running", progress=progress, blockers=blockers)
                     db.execute("UPDATE dataset_update_pipeline_runs SET status = 'running' WHERE run_id = ?", (step["run_id"],))
                     continue
+                if step_key == "verify":
+                    db.execute(
+                        "UPDATE dataset_versions SET status = 'verified', verified_at = ?, error = NULL WHERE version_id = ?",
+                        (utc_now(), step["dataset_version_id"]),
+                    )
                 mark_pipeline_step_completed(db, step, progress)
         db.commit()
 
@@ -7606,22 +7658,16 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 update_db.commit()
             return
         if step_key == "verify":
-            version_root = dataset_version_root(version_id)
-            insight_latest = version_root / "global_insights" / "latest.json"
             counts = dataset_update_active_counts(db)
-            blockers = []
-            if counts["metadata_taxa"] <= 0:
-                blockers.append("no ready metadata taxa are available")
-            if not insight_latest.exists():
-                blockers.append("staging Global Insights latest.json is missing")
-            if blockers:
-                set_pipeline_step_status(db, int(step["id"]), "failed", progress=counts, blockers=blockers, error="; ".join(blockers))
-                db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", ("; ".join(blockers), version_id))
-                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), run_id))
-            else:
-                db.execute("UPDATE dataset_versions SET status = 'verified', verified_at = ? WHERE version_id = ?", (utc_now(), version_id))
-                mark_pipeline_step_completed(db, step, counts)
-                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'verified', completed_at = ? WHERE run_id = ?", (utc_now(), run_id))
+            set_pipeline_step_status(
+                db,
+                int(step["id"]),
+                "running",
+                progress={
+                    **counts,
+                    "note": "Verification waits until no discovery, catalog, metadata, or standardization work remains active or failed.",
+                },
+            )
             db.commit()
             return
         if step_key == "promote":
