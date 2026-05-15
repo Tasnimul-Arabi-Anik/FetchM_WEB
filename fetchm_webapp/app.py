@@ -668,6 +668,14 @@ def get_sqlite_connection() -> sqlite3.Connection:
     return connection
 
 
+def is_sqlite_locked_error(exc: BaseException) -> bool:
+    return isinstance(exc, sqlite3.OperationalError) and "database is locked" in str(exc).lower()
+
+
+def sqlite_lock_backoff(attempt: int) -> None:
+    time.sleep(min(5.0, 0.25 * (attempt + 1)))
+
+
 def get_db() -> sqlite3.Connection:
     if "db" not in g:
         g.db = get_sqlite_connection()
@@ -8960,6 +8968,41 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
     return saved
 
 
+def save_species_with_lock_retry(species: SpeciesRecord, attempts: int = 8) -> SpeciesRecord:
+    for attempt in range(attempts):
+        try:
+            return save_species(species)
+        except sqlite3.OperationalError as exc:
+            if not is_sqlite_locked_error(exc) or attempt >= attempts - 1:
+                raise
+            sqlite_lock_backoff(attempt)
+    raise RuntimeError("Species save retry loop exited unexpectedly.")
+
+
+def release_species_sync_claim_with_lock_retry(species: SpeciesRecord, attempts: int = 8) -> None:
+    for attempt in range(attempts):
+        try:
+            with get_sqlite_connection() as db:
+                db.execute(
+                    """
+                    UPDATE species
+                    SET claimed_by = NULL,
+                        claimed_at = NULL,
+                        refresh_requested = 1,
+                        status = CASE WHEN tsv_path IS NULL THEN 'pending' ELSE status END,
+                        updated_at = ?
+                    WHERE id = ?
+                    """,
+                    (utc_now(), species.id),
+                )
+                db.commit()
+            return
+        except sqlite3.OperationalError as exc:
+            if not is_sqlite_locked_error(exc) or attempt >= attempts - 1:
+                raise
+            sqlite_lock_backoff(attempt)
+
+
 def save_discovery_scope(scope: DiscoveryScopeRecord, db: sqlite3.Connection | None = None) -> DiscoveryScopeRecord:
     connection = db or get_db()
     cursor = connection.execute(
@@ -15234,7 +15277,7 @@ def sync_species_record(species: SpeciesRecord) -> None:
         current.claimed_at = None
         current.sync_attempt_count = 0
         current.sync_first_claimed_at = None
-        save_species(current)
+        save_species_with_lock_retry(current)
         record_taxon_sync_event(
             current,
             sync_kind=sync_kind,
@@ -15262,7 +15305,7 @@ def sync_species_record(species: SpeciesRecord) -> None:
         current.refresh_requested = False
         current.claimed_by = None
         current.claimed_at = None
-        save_species(current)
+        save_species_with_lock_retry(current)
 
 
 def merge_assembly_features_into_metadata_rows(
@@ -17561,9 +17604,23 @@ def run_worker_loop() -> None:
                     catalog_build_schedule_hours = catalog_build_hours(db)
                     catalog_refresh_schedule_hours = catalog_refresh_hours(db)
                 schedule_due_species_syncs(catalog_build_schedule_hours, catalog_refresh_schedule_hours)
-                species = claim_next_species_sync(worker_name)
+                try:
+                    species = claim_next_species_sync(worker_name)
+                except sqlite3.OperationalError as exc:
+                    if not is_sqlite_locked_error(exc):
+                        raise
+                    logging.warning("Catalog sync claim skipped because SQLite is busy.")
+                    time.sleep(WORKER_POLL_INTERVAL)
+                    continue
                 if species is not None:
-                    sync_species_record(species)
+                    try:
+                        sync_species_record(species)
+                    except sqlite3.OperationalError as exc:
+                        if not is_sqlite_locked_error(exc):
+                            raise
+                        logging.warning("Catalog sync save skipped because SQLite is busy.")
+                        release_species_sync_claim_with_lock_retry(species)
+                        time.sleep(WORKER_POLL_INTERVAL)
                     continue
 
             if WORKER_MODE in {"all", "sync", "metadata"}:
