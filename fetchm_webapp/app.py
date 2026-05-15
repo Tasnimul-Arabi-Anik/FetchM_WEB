@@ -6272,8 +6272,8 @@ DATASET_PIPELINE_STEP_COPY = {
         "metric_label": "Standardization",
     },
     "replace": {
-        "short": "Promote the verified updated dataset as the active live dataset.",
-        "run_label": "Replace data now",
+        "short": "Switch live pointers only after the upstream update pipeline has completed successfully.",
+        "run_label": "Replace after verified run",
         "metric_label": "Live version",
     },
     "global_insights": {
@@ -6615,13 +6615,11 @@ def build_dataset_pipeline_step_cards(
             pending = discovery_status_counts.get("pending", 0)
             discovering = discovery_status_counts.get("discovering", 0)
             failed = discovery_status_counts.get("failed", 0)
-            species_before = int(progress.get("species_before") or counts.get("catalog_species_total", 0))
             genus_before = int(progress.get("genus_before") or counts.get("catalog_genus_total", 0))
-            new_species = max(0, counts.get("catalog_species_total", 0) - species_before)
             new_genera = max(0, counts.get("catalog_genus_total", 0) - genus_before)
             detail_lines = [
                 f"{ready}/{total} scopes completed; {discovering} running, {pending} queued",
-                f"{new_genera} new genera and {new_species} new species in latest run",
+                f"{new_genera} new genera found in latest run",
             ]
             if active_discovery_scope is not None:
                 active_label = str(active_discovery_scope["scope_label"] or active_discovery_scope["scope_value"])
@@ -6635,7 +6633,7 @@ def build_dataset_pipeline_step_cards(
             if failed:
                 detail_lines.append(f"{failed} discovery scopes failed")
             if status == "running":
-                detail_lines.append("Queue size can grow while root scopes are split into genus/species child scopes.")
+                detail_lines.append("Species expansion waits until genus catalogs and genus metadata are ready.")
         elif step_key == "catalog":
             genus_ready = counts.get("catalog_genus_ready", 0)
             genus_total = counts.get("catalog_genus_total", 0)
@@ -6668,7 +6666,7 @@ def build_dataset_pipeline_step_cards(
             percent = 100 if active_version != "legacy-live" else 0
             detail_lines = [
                 f"Active dataset: {active_version}",
-                "Replacement waits for previous steps unless you run it manually.",
+                "Replacement is blocked unless upstream steps in the same run completed successfully.",
             ]
         elif step_key == "global_insights":
             percent = 100 if latest_insight and str(latest_insight.get("status")) == "completed" else 0
@@ -7277,6 +7275,57 @@ def mark_pipeline_step_completed(db: sqlite3.Connection, step: sqlite3.Row, prog
     queue_next_pipeline_step(db, str(step["run_id"]), int(step["step_order"]))
 
 
+def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list[str]:
+    """Keep live data swaps gated behind a completed upstream pipeline."""
+    blockers: list[str] = []
+    run_id = str(step["run_id"])
+    upstream = db.execute(
+        """
+        SELECT step_key, status
+        FROM dataset_update_pipeline_steps
+        WHERE run_id = ?
+          AND step_order < ?
+        ORDER BY step_order ASC
+        """,
+        (run_id, step["step_order"]),
+    ).fetchall()
+    required = {"discovery", "catalog", "metadata", "standardization"}
+    upstream_by_key = {str(row["step_key"]): str(row["status"]) for row in upstream}
+    missing = sorted(required.difference(upstream_by_key))
+    incomplete = [
+        dataset_pipeline_step_label(key)
+        for key, status in upstream_by_key.items()
+        if key in required and status != "completed"
+    ]
+    if missing:
+        blockers.append(
+            "Replacement must be queued after a full update run; missing upstream steps: "
+            + ", ".join(dataset_pipeline_step_label(key) for key in missing)
+        )
+    if incomplete:
+        blockers.append("Upstream steps are not complete: " + ", ".join(incomplete))
+    counts = dataset_update_active_counts(db)
+    active_parts = {
+        "discovery": counts.get("discovery_active", 0),
+        "catalog": counts.get("catalog_active", 0),
+        "metadata": counts.get("metadata_active", 0),
+        "standardization": counts.get("standardization_active", 0),
+    }
+    still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
+    if still_active:
+        blockers.append("Update work is still active: " + ", ".join(still_active))
+    failed_parts = {
+        "discovery": counts.get("discovery_failed", 0),
+        "catalog": counts.get("catalog_failed", 0),
+        "metadata": counts.get("metadata_failed", 0),
+        "standardization": counts.get("standardization_failed", 0),
+    }
+    failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
+    if failures:
+        blockers.append("Resolve failed update tasks before replacement: " + ", ".join(failures))
+    return blockers
+
+
 def advance_dataset_update_pipeline_runs() -> None:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
@@ -7471,6 +7520,14 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             db.commit()
             return
         if step_key == "replace":
+            blockers = replacement_step_blockers(db, step)
+            if blockers:
+                error = "; ".join(blockers)
+                set_pipeline_step_status(db, int(step["id"]), "failed", progress=dataset_update_active_counts(db), blockers=blockers, error=error)
+                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", (error, run_id))
+                db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", (error, version_id))
+                db.commit()
+                return
             previous = get_active_dataset_version_id(db)
             now = utc_now()
             db.execute(
@@ -19270,6 +19327,9 @@ def admin_run_dataset_pipeline() -> Any:
     require_admin()
     user_id = int(g.current_user["id"]) if g.current_user else None
     start_step = normalize_dataset_pipeline_step(request.form.get("start_step"))
+    if start_step == "replace":
+        flash("Replacement cannot be started as a standalone shortcut. Enable it as the sequential step after standardization so live data only switches after the full update run completes.", "error")
+        return redirect(url_for("admin_dashboard"))
     run_id, error = queue_dataset_update_pipeline_run("manual", user_id, start_step=start_step)
     if error:
         flash(error, "error")
