@@ -21,6 +21,130 @@
   <section class="panel">
     <div class="admin-group-head">
       <div>
+        <p class="eyebrow">Dataset Update Pipeline</p>
+        <h2>Live-safe weekly staging updates</h2>
+      </div>
+      <p class="section-note">Public pages keep using the current live dataset while discovery, metadata, standardization, and Global Insights are rebuilt in staging.</p>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card metric-wide">
+        <strong>{{ dataset_pipeline.live_version.version_id }}</strong>
+        <span>Current live dataset</span>
+        <span>Status: {{ dataset_pipeline.live_version.status }}</span>
+      </div>
+      <div class="metric-card metric-wide">
+        <strong>{{ dataset_pipeline.staging_version.version_id if dataset_pipeline.staging_version else "No staging version" }}</strong>
+        <span>Latest staging dataset</span>
+        <span>Status: {{ dataset_pipeline.staging_version.status if dataset_pipeline.staging_version else "not started" }}</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ "Enabled" if dataset_pipeline.enabled else "Paused" }}</strong>
+        <span>Weekly schedule</span>
+        <span>{{ dataset_pipeline.schedule_day|title }} {{ dataset_pipeline.schedule_hour_utc }}:00 UTC</span>
+      </div>
+      <div class="metric-card">
+        <strong>{{ dataset_pipeline.scope }}</strong>
+        <span>Discovery scope</span>
+        <span>Bacterial root taxon by default</span>
+      </div>
+    </div>
+
+    <div class="metrics-grid top-gap">
+      {% for step in dataset_pipeline.steps %}
+        <div class="metric-card metric-wide">
+          <strong>{{ loop.index }}. {{ step.label }}</strong>
+          <span>Status: {{ step.status }}</span>
+          {% if step.blockers %}
+            <span class="danger-text">{{ step.blockers|join('; ') }}</span>
+          {% elif step.completed_at %}
+            <span>Completed: {{ step.completed_at }}</span>
+          {% elif step.started_at %}
+            <span>Started: {{ step.started_at }}</span>
+          {% else %}
+            <span>Waiting for prerequisites</span>
+          {% endif %}
+        </div>
+      {% endfor %}
+      {% if not dataset_pipeline.steps %}
+        <div class="metric-card metric-wide">
+          <strong>No pipeline run yet</strong>
+          <span>Use Run staging update now to build a candidate dataset without changing public data.</span>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if dataset_pipeline.latest_run %}
+      <div class="hint-block top-gap">
+        <strong>Latest run</strong>
+        <p>
+          {{ dataset_pipeline.latest_run.run_id }} is {{ dataset_pipeline.latest_run.status }}.
+          Staging version: {{ dataset_pipeline.latest_run.dataset_version_id }}.
+          Requested: {{ dataset_pipeline.latest_run.requested_at }}.
+          {% if dataset_pipeline.latest_run.error %}<span class="danger-text">{{ dataset_pipeline.latest_run.error }}</span>{% endif %}
+        </p>
+      </div>
+    {% endif %}
+
+    <form action="{{ url_for('admin_set_dataset_pipeline_settings') }}" method="post" class="inline-form top-gap">
+      <label>
+        <span>Enable weekly pipeline</span>
+        <select name="dataset_pipeline_enabled">
+          <option value="1" {% if dataset_pipeline.enabled %}selected{% endif %}>Enabled</option>
+          <option value="0" {% if not dataset_pipeline.enabled %}selected{% endif %}>Paused</option>
+        </select>
+      </label>
+      <label>
+        <span>Schedule day</span>
+        <select name="dataset_pipeline_schedule_day">
+          {% for day in ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] %}
+            <option value="{{ day }}" {% if dataset_pipeline.schedule_day == day %}selected{% endif %}>{{ day|title }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>UTC hour</span>
+        <input type="number" name="dataset_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.schedule_hour_utc }}">
+      </label>
+      <label>
+        <span>Discovery scope</span>
+        <input type="text" name="dataset_pipeline_scope" value="{{ dataset_pipeline.scope }}">
+      </label>
+      <label>
+        <span>Auto-publish insights</span>
+        <select name="dataset_pipeline_auto_publish_insights">
+          <option value="0" {% if not dataset_pipeline.auto_publish_insights %}selected{% endif %}>Stage only</option>
+          <option value="1" {% if dataset_pipeline.auto_publish_insights %}selected{% endif %}>Publish on promotion</option>
+        </select>
+      </label>
+      <button type="submit">Update pipeline settings</button>
+    </form>
+
+    <div class="action-row top-gap">
+      <form action="{{ url_for('admin_run_dataset_pipeline') }}" method="post">
+        <button type="submit" {% if not dataset_pipeline.can_run_now %}disabled{% endif %}>Run staging update now</button>
+      </form>
+      {% if dataset_pipeline.active_run %}
+        <form action="{{ url_for('admin_cancel_dataset_pipeline') }}" method="post">
+          <input type="hidden" name="run_id" value="{{ dataset_pipeline.active_run.run_id }}">
+          <button type="submit" class="ghost">Cancel staging run</button>
+        </form>
+      {% endif %}
+      {% if dataset_pipeline.staging_version %}
+        <form action="{{ url_for('admin_promote_dataset_pipeline') }}" method="post">
+          <input type="hidden" name="version_id" value="{{ dataset_pipeline.staging_version.version_id }}">
+          <button type="submit" {% if not dataset_pipeline.can_promote %}disabled{% endif %}>Promote verified staging to live</button>
+        </form>
+      {% endif %}
+      <form action="{{ url_for('admin_rollback_dataset_pipeline') }}" method="post">
+        <button type="submit" class="ghost" {% if not dataset_pipeline.can_rollback %}disabled{% endif %}>Rollback live version</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="admin-group-head">
+      <div>
         <p class="eyebrow">Audit Export</p>
         <h2>Admin Audit Bundle</h2>
       </div>

@@ -66,6 +66,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"
 GLOBAL_INSIGHTS_DIR_NAME = "global_insights"
+DATASET_VERSIONS_DIR_NAME = "dataset_versions"
 SPECIES_DIR = DATA_DIR / "species"
 METADATA_DIR = DATA_DIR / "metadata"
 LOCKS_DIR = DATA_DIR / "locks"
@@ -640,6 +641,7 @@ def utc_now_dt() -> datetime:
 def ensure_directories() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     JOBS_DIR.mkdir(parents=True, exist_ok=True)
+    (DATA_DIR / DATASET_VERSIONS_DIR_NAME).mkdir(parents=True, exist_ok=True)
     SPECIES_DIR.mkdir(parents=True, exist_ok=True)
     METADATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -783,6 +785,62 @@ def init_db() -> None:
             value TEXT NOT NULL,
             updated_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS dataset_versions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            version_id TEXT NOT NULL UNIQUE,
+            status TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            verified_at TEXT,
+            promoted_at TEXT,
+            archived_at TEXT,
+            root_path TEXT NOT NULL,
+            summary_json TEXT NOT NULL DEFAULT '{}',
+            promoted_by INTEGER,
+            error TEXT,
+            FOREIGN KEY (promoted_by) REFERENCES users (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_dataset_versions_status_created
+        ON dataset_versions (status, created_at DESC);
+
+        CREATE TABLE IF NOT EXISTS dataset_update_pipeline_runs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT NOT NULL UNIQUE,
+            dataset_version_id TEXT NOT NULL,
+            trigger_type TEXT NOT NULL,
+            status TEXT NOT NULL,
+            requested_by INTEGER,
+            requested_at TEXT NOT NULL,
+            started_at TEXT,
+            completed_at TEXT,
+            error TEXT,
+            summary_json TEXT NOT NULL DEFAULT '{}',
+            FOREIGN KEY (requested_by) REFERENCES users (id),
+            FOREIGN KEY (dataset_version_id) REFERENCES dataset_versions (version_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_dataset_update_runs_status_requested
+        ON dataset_update_pipeline_runs (status, requested_at DESC);
+
+        CREATE TABLE IF NOT EXISTS dataset_update_pipeline_steps (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            run_id TEXT NOT NULL,
+            step_key TEXT NOT NULL,
+            step_order INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            queued_at TEXT,
+            started_at TEXT,
+            completed_at TEXT,
+            progress_json TEXT NOT NULL DEFAULT '{}',
+            blockers_json TEXT NOT NULL DEFAULT '[]',
+            error TEXT,
+            FOREIGN KEY (run_id) REFERENCES dataset_update_pipeline_runs (run_id),
+            UNIQUE(run_id, step_key)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_dataset_update_steps_status_order
+        ON dataset_update_pipeline_steps (status, step_order);
 
         CREATE TABLE IF NOT EXISTS global_insight_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -984,6 +1042,7 @@ def init_db() -> None:
     migrate_legacy_species(db)
     sync_discovery_scopes_from_env(db)
     ensure_default_settings(db)
+    ensure_legacy_live_dataset_version(db)
 
 
 def get_csrf_token() -> str:
@@ -5942,6 +6001,23 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         """,
         ("metadata_refresh_policy", metadata_refresh_policy, now),
     )
+    for key, value in [
+        ("dataset_pipeline_enabled", "0"),
+        ("dataset_pipeline_schedule_day", "sunday"),
+        ("dataset_pipeline_schedule_hour_utc", "18"),
+        ("dataset_pipeline_scope", "2"),
+        ("dataset_pipeline_auto_publish_insights", "1"),
+        ("active_dataset_version_id", "legacy-live"),
+        ("previous_dataset_version_id", ""),
+    ]:
+        db.execute(
+            """
+            INSERT INTO app_settings (key, value, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO NOTHING
+            """,
+            (key, value, now),
+        )
     db.execute(
         """
         INSERT INTO app_settings (key, value, updated_at)
@@ -6157,6 +6233,247 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
         (key, value, utc_now()),
     )
     connection.commit()
+
+
+DATASET_PIPELINE_STEPS = [
+    ("discovery", "Regular Discovery"),
+    ("catalog", "TSV Catalog"),
+    ("metadata", "Metadata Delta"),
+    ("standardization", "Standardization"),
+    ("global_insights", "Global Insights"),
+    ("verify", "Verification"),
+    ("promote", "Promotion"),
+]
+
+
+def dataset_versions_root() -> Path:
+    return DATA_DIR / DATASET_VERSIONS_DIR_NAME
+
+
+def dataset_version_root(version_id: str) -> Path:
+    return dataset_versions_root() / version_id
+
+
+def get_active_dataset_version_id(db: sqlite3.Connection | None = None) -> str:
+    return str(get_setting("active_dataset_version_id", "legacy-live", db) or "legacy-live")
+
+
+def ensure_legacy_live_dataset_version(db: sqlite3.Connection | None = None) -> None:
+    connection = db or get_db()
+    existing = connection.execute(
+        "SELECT version_id FROM dataset_versions WHERE version_id = ?",
+        ("legacy-live",),
+    ).fetchone()
+    if existing is not None:
+        return
+    now = utc_now()
+    summary = {
+        "mode": "legacy",
+        "note": "Initial live dataset registered from existing FetchM Web managed paths.",
+    }
+    connection.execute(
+        """
+        INSERT INTO dataset_versions (
+            version_id, status, created_at, promoted_at, root_path, summary_json
+        )
+        VALUES (?, 'live', ?, ?, ?, ?)
+        """,
+        ("legacy-live", now, now, str(DATA_DIR), json.dumps(summary, sort_keys=True)),
+    )
+    if get_setting("active_dataset_version_id", None, connection) is None:
+        set_setting("active_dataset_version_id", "legacy-live", connection)
+    connection.commit()
+
+
+def latest_dataset_update_run(db: sqlite3.Connection | None = None) -> dict[str, Any] | None:
+    connection = db or get_db()
+    row = connection.execute(
+        """
+        SELECT *
+        FROM dataset_update_pipeline_runs
+        ORDER BY requested_at DESC, id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    return dict(row) if row is not None else None
+
+
+def active_dataset_update_run(db: sqlite3.Connection | None = None) -> dict[str, Any] | None:
+    connection = db or get_db()
+    row = connection.execute(
+        """
+        SELECT *
+        FROM dataset_update_pipeline_runs
+        WHERE status IN ('pending', 'running', 'blocked', 'paused')
+        ORDER BY requested_at ASC, id ASC
+        LIMIT 1
+        """
+    ).fetchone()
+    return dict(row) if row is not None else None
+
+
+def dataset_update_steps(run_id: str, db: sqlite3.Connection | None = None) -> list[dict[str, Any]]:
+    connection = db or get_db()
+    rows = connection.execute(
+        """
+        SELECT *
+        FROM dataset_update_pipeline_steps
+        WHERE run_id = ?
+        ORDER BY step_order ASC
+        """,
+        (run_id,),
+    ).fetchall()
+    steps: list[dict[str, Any]] = []
+    for row in rows:
+        item = dict(row)
+        try:
+            item["progress"] = json.loads(str(item.get("progress_json") or "{}"))
+        except json.JSONDecodeError:
+            item["progress"] = {}
+        try:
+            item["blockers"] = json.loads(str(item.get("blockers_json") or "[]"))
+        except json.JSONDecodeError:
+            item["blockers"] = []
+        item["label"] = dict(DATASET_PIPELINE_STEPS).get(str(item["step_key"]), str(item["step_key"]))
+        steps.append(item)
+    return steps
+
+
+def queue_dataset_update_pipeline_run(trigger_type: str, requested_by: int | None = None) -> tuple[str | None, str | None]:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        active = active_dataset_update_run(db)
+        if active is not None:
+            db.commit()
+            return None, f"Pipeline run {active['run_id']} is already {active['status']}."
+        now = utc_now()
+        run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_dataset_update"
+        version_id = f"{run_id}_staging"
+        root = dataset_version_root(version_id)
+        root.mkdir(parents=True, exist_ok=True)
+        summary = {
+            "scope": get_setting("dataset_pipeline_scope", "2", db),
+            "schedule_day": get_setting("dataset_pipeline_schedule_day", "sunday", db),
+            "schedule_hour_utc": get_setting("dataset_pipeline_schedule_hour_utc", "18", db),
+            "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", db) == "1",
+        }
+        db.execute(
+            """
+            INSERT INTO dataset_versions (
+                version_id, status, created_at, root_path, summary_json
+            )
+            VALUES (?, 'staging', ?, ?, ?)
+            """,
+            (version_id, now, str(root), json.dumps(summary, sort_keys=True)),
+        )
+        db.execute(
+            """
+            INSERT INTO dataset_update_pipeline_runs (
+                run_id, dataset_version_id, trigger_type, status, requested_by, requested_at, summary_json
+            )
+            VALUES (?, ?, ?, 'pending', ?, ?, ?)
+            """,
+            (run_id, version_id, trigger_type, requested_by, now, json.dumps(summary, sort_keys=True)),
+        )
+        step_rows = [
+            (run_id, step_key, index, "pending" if index == 0 else "waiting", now if index == 0 else None)
+            for index, (step_key, _label) in enumerate(DATASET_PIPELINE_STEPS)
+        ]
+        db.executemany(
+            """
+            INSERT INTO dataset_update_pipeline_steps (
+                run_id, step_key, step_order, status, queued_at
+            )
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            step_rows,
+        )
+        db.commit()
+        return run_id, None
+
+
+def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
+    connection = db or get_db()
+    ensure_legacy_live_dataset_version(connection)
+    active_version_id = get_active_dataset_version_id(connection)
+    live = connection.execute(
+        "SELECT * FROM dataset_versions WHERE version_id = ?",
+        (active_version_id,),
+    ).fetchone()
+    staging = connection.execute(
+        """
+        SELECT *
+        FROM dataset_versions
+        WHERE status IN ('staging', 'verified', 'failed')
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    latest_run = latest_dataset_update_run(connection)
+    active_run = active_dataset_update_run(connection)
+    run_for_steps = active_run or latest_run
+    steps = dataset_update_steps(str(run_for_steps["run_id"]), connection) if run_for_steps else []
+    return {
+        "enabled": get_setting("dataset_pipeline_enabled", "0", connection) == "1",
+        "schedule_day": get_setting("dataset_pipeline_schedule_day", "sunday", connection),
+        "schedule_hour_utc": get_setting("dataset_pipeline_schedule_hour_utc", "18", connection),
+        "scope": get_setting("dataset_pipeline_scope", "2", connection),
+        "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "live_version": dict(live) if live is not None else {"version_id": active_version_id, "status": "live"},
+        "staging_version": dict(staging) if staging is not None else None,
+        "latest_run": latest_run,
+        "active_run": active_run,
+        "steps": steps,
+        "can_run_now": active_run is None,
+        "can_promote": bool(staging is not None and str(staging["status"]) == "verified"),
+        "can_rollback": bool(get_setting("previous_dataset_version_id", "", connection)),
+    }
+
+
+def scheduled_dataset_pipeline_due_at(db: sqlite3.Connection | None = None) -> datetime:
+    connection = db or get_db()
+    day = str(get_setting("dataset_pipeline_schedule_day", "sunday", connection) or "sunday").lower()
+    hour = int(get_setting("dataset_pipeline_schedule_hour_utc", "18", connection) or "18")
+    day_index = {
+        "monday": 0,
+        "tuesday": 1,
+        "wednesday": 2,
+        "thursday": 3,
+        "friday": 4,
+        "saturday": 5,
+        "sunday": 6,
+    }.get(day, 6)
+    now = datetime.now(timezone.utc)
+    start_of_week = now - timedelta(days=now.weekday())
+    due = start_of_week.replace(hour=hour, minute=0, second=0, microsecond=0) + timedelta(days=day_index)
+    if due > now:
+        due -= timedelta(days=7)
+    return due
+
+
+def schedule_due_dataset_pipeline_run() -> None:
+    with get_sqlite_connection() as db:
+        if get_setting("dataset_pipeline_enabled", "0", db) != "1":
+            return
+        if active_dataset_update_run(db) is not None:
+            return
+        due = scheduled_dataset_pipeline_due_at(db)
+        latest = db.execute(
+            """
+            SELECT requested_at
+            FROM dataset_update_pipeline_runs
+            WHERE trigger_type = 'scheduled'
+            ORDER BY requested_at DESC, id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        if latest is not None:
+            try:
+                if parse_utc(str(latest["requested_at"])) >= due:
+                    return
+            except ValueError:
+                pass
+    queue_dataset_update_pipeline_run("scheduled", None)
 
 
 def global_insights_root() -> Path:
@@ -6401,6 +6718,340 @@ def process_global_insight_task(task: sqlite3.Row) -> None:
             db.commit()
         raise
 
+
+def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
+    discovery = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN status IN ('pending', 'discovering') THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM discovery_scopes
+        """
+    ).fetchone()
+    catalog = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN status = 'pending' OR status = 'syncing' OR refresh_requested = 1 OR claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM species
+        """
+    ).fetchone()
+    metadata = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN metadata_status IN ('pending', 'building') OR metadata_refresh_requested = 1 OR metadata_claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN metadata_status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM species
+        WHERE status = 'ready'
+          AND tsv_path IS NOT NULL
+        """
+    ).fetchone()
+    standardization_tasks = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN status IN ('pending', 'running', 'chunking', 'finalizing') THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM standardization_refresh_tasks
+        """
+    ).fetchone()
+    standardization_chunks = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN status IN ('pending', 'running') THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM standardization_refresh_chunks
+        """
+    ).fetchone()
+    ready_taxa = db.execute(
+        """
+        SELECT
+            COUNT(*) AS taxa,
+            SUM(CASE WHEN metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_taxa,
+            COALESCE(SUM(genome_count), 0) AS taxon_scoped_genomes
+        FROM species
+        WHERE status = 'ready'
+        """
+    ).fetchone()
+    return {
+        "discovery_active": int(discovery["active"] or 0),
+        "discovery_failed": int(discovery["failed"] or 0),
+        "catalog_active": int(catalog["active"] or 0),
+        "catalog_failed": int(catalog["failed"] or 0),
+        "metadata_active": int(metadata["active"] or 0),
+        "metadata_failed": int(metadata["failed"] or 0),
+        "standardization_active": int(standardization_tasks["active"] or 0) + int(standardization_chunks["active"] or 0),
+        "standardization_failed": int(standardization_tasks["failed"] or 0) + int(standardization_chunks["failed"] or 0),
+        "ready_taxa": int(ready_taxa["taxa"] or 0),
+        "metadata_taxa": int(ready_taxa["metadata_taxa"] or 0),
+        "taxon_scoped_genomes": int(ready_taxa["taxon_scoped_genomes"] or 0),
+    }
+
+
+def set_pipeline_step_status(
+    db: sqlite3.Connection,
+    step_id: int,
+    status: str,
+    *,
+    progress: dict[str, Any] | None = None,
+    blockers: list[str] | None = None,
+    error: str | None = None,
+) -> None:
+    now = utc_now()
+    fields = ["status = ?", "progress_json = ?", "blockers_json = ?", "error = ?"]
+    params: list[Any] = [
+        status,
+        json.dumps(progress or {}, sort_keys=True),
+        json.dumps(blockers or []),
+        error,
+    ]
+    if status == "running":
+        fields.append("started_at = COALESCE(started_at, ?)")
+        params.append(now)
+    if status in {"completed", "failed", "skipped"}:
+        fields.append("completed_at = COALESCE(completed_at, ?)")
+        params.append(now)
+    params.append(step_id)
+    db.execute(f"UPDATE dataset_update_pipeline_steps SET {', '.join(fields)} WHERE id = ?", tuple(params))
+
+
+def queue_next_pipeline_step(db: sqlite3.Connection, run_id: str, completed_order: int) -> None:
+    next_step = db.execute(
+        """
+        SELECT id
+        FROM dataset_update_pipeline_steps
+        WHERE run_id = ?
+          AND step_order > ?
+          AND status = 'waiting'
+        ORDER BY step_order ASC
+        LIMIT 1
+        """,
+        (run_id, completed_order),
+    ).fetchone()
+    if next_step is None:
+        return
+    db.execute(
+        """
+        UPDATE dataset_update_pipeline_steps
+        SET status = 'pending',
+            queued_at = COALESCE(queued_at, ?)
+        WHERE id = ?
+        """,
+        (utc_now(), next_step["id"]),
+    )
+
+
+def mark_pipeline_step_completed(db: sqlite3.Connection, step: sqlite3.Row, progress: dict[str, Any] | None = None) -> None:
+    set_pipeline_step_status(db, int(step["id"]), "completed", progress=progress)
+    queue_next_pipeline_step(db, str(step["run_id"]), int(step["step_order"]))
+
+
+def advance_dataset_update_pipeline_runs() -> None:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        rows = db.execute(
+            """
+            SELECT s.*, r.dataset_version_id
+            FROM dataset_update_pipeline_steps s
+            JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
+            WHERE s.status = 'running'
+            ORDER BY s.step_order ASC
+            """
+        ).fetchall()
+        counts = dataset_update_active_counts(db)
+        for step in rows:
+            step_key = str(step["step_key"])
+            blockers: list[str] = []
+            failed = False
+            progress = dict(counts)
+            if step_key == "discovery":
+                if counts["discovery_active"]:
+                    blockers.append(f"{counts['discovery_active']} discovery scopes still active")
+                if counts["discovery_failed"]:
+                    failed = True
+                    blockers.append(f"{counts['discovery_failed']} discovery scopes failed")
+            elif step_key == "catalog":
+                if counts["catalog_active"]:
+                    blockers.append(f"{counts['catalog_active']} catalog syncs still active")
+                if counts["catalog_failed"]:
+                    failed = True
+                    blockers.append(f"{counts['catalog_failed']} catalog syncs failed")
+            elif step_key == "metadata":
+                if counts["metadata_active"]:
+                    blockers.append(f"{counts['metadata_active']} metadata builds or refreshes still active")
+                if counts["metadata_failed"]:
+                    failed = True
+                    blockers.append(f"{counts['metadata_failed']} metadata builds failed")
+            elif step_key == "standardization":
+                if counts["standardization_active"]:
+                    blockers.append(f"{counts['standardization_active']} standardization tasks/chunks still active")
+                if counts["standardization_failed"]:
+                    failed = True
+                    blockers.append(f"{counts['standardization_failed']} standardization tasks/chunks failed")
+            if step_key in {"discovery", "catalog", "metadata", "standardization"}:
+                if failed:
+                    set_pipeline_step_status(db, int(step["id"]), "failed", progress=progress, blockers=blockers, error="; ".join(blockers))
+                    db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), step["run_id"]))
+                    continue
+                if blockers:
+                    set_pipeline_step_status(db, int(step["id"]), "running", progress=progress, blockers=blockers)
+                    db.execute("UPDATE dataset_update_pipeline_runs SET status = 'running' WHERE run_id = ?", (step["run_id"],))
+                    continue
+                mark_pipeline_step_completed(db, step, progress)
+        db.commit()
+
+
+def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute(
+            """
+            SELECT s.*, r.dataset_version_id
+            FROM dataset_update_pipeline_steps s
+            JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
+            WHERE s.status = 'pending'
+              AND r.status IN ('pending', 'running')
+            ORDER BY r.requested_at ASC, s.step_order ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        now = utc_now()
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_steps
+            SET status = 'running',
+                started_at = COALESCE(started_at, ?),
+                blockers_json = '[]',
+                error = NULL
+            WHERE id = ?
+            """,
+            (now, row["id"]),
+        )
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_runs
+            SET status = 'running',
+                started_at = COALESCE(started_at, ?),
+                error = NULL
+            WHERE run_id = ?
+            """,
+            (now, row["run_id"]),
+        )
+        db.commit()
+        return row
+
+
+def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
+    step_key = str(step["step_key"])
+    run_id = str(step["run_id"])
+    version_id = str(step["dataset_version_id"])
+    with get_sqlite_connection() as db:
+        if step_key == "discovery":
+            progress = {
+                "scope": "Bacteria taxon 2",
+                "mode": "staging-plan",
+                "note": "Live discovery scopes are not changed until versioned discovery writers are enabled.",
+            }
+            mark_pipeline_step_completed(db, step, progress)
+            db.commit()
+            return
+        if step_key == "catalog":
+            progress = dataset_update_active_counts(db)
+            progress["mode"] = "staging-plan"
+            progress["note"] = "Live TSV catalog paths were not changed."
+            mark_pipeline_step_completed(db, step, progress)
+            db.commit()
+            return
+        if step_key == "metadata":
+            progress = dataset_update_active_counts(db)
+            progress["mode"] = "staging-plan"
+            progress["note"] = "Live metadata paths were not changed."
+            mark_pipeline_step_completed(db, step, progress)
+            db.commit()
+            return
+        if step_key == "standardization":
+            db.commit()
+            summary = queue_standardization_refresh_for_ready_taxa(limit=None, dry_run=True, rank_scope="all")
+            summary["mode"] = "dry-run"
+            summary["note"] = "Live standardized metadata files were not rewritten."
+            db.execute("BEGIN IMMEDIATE")
+            mark_pipeline_step_completed(db, step, summary)
+            db.commit()
+            return
+        if step_key == "global_insights":
+            rows = db.execute(
+                """
+                SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, last_synced_at
+                FROM species
+                WHERE metadata_status = 'ready'
+                  AND metadata_clean_path IS NOT NULL
+                """
+            ).fetchall()
+            taxa = [
+                {
+                    "id": int(row["id"]),
+                    "species_name": str(row["species_name"]),
+                    "taxon_rank": str(row["taxon_rank"]),
+                    "genome_count": row["genome_count"],
+                    "metadata_clean_path": str(row["metadata_clean_path"] or ""),
+                    "last_synced_at": str(row["last_synced_at"] or ""),
+                }
+                for row in rows
+                if row["metadata_clean_path"]
+            ]
+            staging_root = dataset_version_root(version_id) / "global_insights"
+            snapshot_id = f"{version_id}_global_insights"
+            db.commit()
+            summary = generate_global_insights_snapshot(
+                taxa,
+                staging_root,
+                app_version=APP_VERSION,
+                app_commit=APP_COMMIT,
+                snapshot_id=snapshot_id,
+            )
+            with get_sqlite_connection() as update_db:
+                update_db.execute(
+                    """
+                    UPDATE dataset_versions
+                    SET summary_json = ?
+                    WHERE version_id = ?
+                    """,
+                    (json.dumps({"global_insights": summary}, sort_keys=True), version_id),
+                )
+                mark_pipeline_step_completed(
+                    update_db,
+                    step,
+                    {
+                        "snapshot_id": summary.get("snapshot_id"),
+                        "unique_assemblies": (summary.get("overview") or {}).get("unique_assemblies"),
+                    },
+                )
+                update_db.commit()
+            return
+        if step_key == "verify":
+            version_root = dataset_version_root(version_id)
+            insight_latest = version_root / "global_insights" / "latest.json"
+            counts = dataset_update_active_counts(db)
+            blockers = []
+            if counts["metadata_taxa"] <= 0:
+                blockers.append("no ready metadata taxa are available")
+            if not insight_latest.exists():
+                blockers.append("staging Global Insights latest.json is missing")
+            if blockers:
+                set_pipeline_step_status(db, int(step["id"]), "failed", progress=counts, blockers=blockers, error="; ".join(blockers))
+                db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", ("; ".join(blockers), version_id))
+                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), run_id))
+            else:
+                db.execute("UPDATE dataset_versions SET status = 'verified', verified_at = ? WHERE version_id = ?", (utc_now(), version_id))
+                mark_pipeline_step_completed(db, step, counts)
+                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'verified', completed_at = ? WHERE run_id = ?", (utc_now(), run_id))
+            db.commit()
+            return
+        if step_key == "promote":
+            set_pipeline_step_status(db, int(step["id"]), "waiting", blockers=["Admin promotion is required before public data changes."])
+            db.commit()
 
 def get_discovery_policy(db: sqlite3.Connection | None = None) -> str:
     return normalize_discovery_policy(get_setting("discovery_policy", None, db))
@@ -15587,6 +16238,14 @@ def run_worker_loop() -> None:
                 last_heartbeat = now
             with get_sqlite_connection() as db:
                 reconcile_cancelled_running_jobs(worker_name, db)
+            if WORKER_MODE in {"all", "sync", "metadata", "standardization", "global-insights"}:
+                schedule_due_dataset_pipeline_run()
+                advance_dataset_update_pipeline_runs()
+                pipeline_step = claim_next_dataset_pipeline_step(worker_name)
+                if pipeline_step is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_dataset_pipeline_step(pipeline_step)
+                    continue
             if WORKER_MODE in {"all", "sync"}:
                 with get_sqlite_connection() as db:
                     catalog_build_schedule_hours = catalog_build_hours(db)
@@ -17441,6 +18100,7 @@ def admin_dashboard() -> str:
         "admin_overview.html",
         backfill=backfill,
         metadata_dashboard=build_metadata_dashboard(),
+        dataset_pipeline=build_dataset_pipeline_dashboard(),
         observability=build_observability_dashboard(),
         security_posture=build_security_posture(),
         **admin_common_context("overview"),
@@ -18040,6 +18700,128 @@ def admin_set_system_monitor() -> Any:
     set_setting("system_temp_alert_threshold_c", str(threshold))
     set_setting("system_temp_alert_cooldown_minutes", str(cooldown))
     flash("System monitor settings updated.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/settings", methods=["POST"])
+def admin_set_dataset_pipeline_settings() -> Any:
+    require_admin()
+    enabled = "1" if request.form.get("dataset_pipeline_enabled") == "1" else "0"
+    auto_publish = "1" if request.form.get("dataset_pipeline_auto_publish_insights") == "1" else "0"
+    schedule_day = (request.form.get("dataset_pipeline_schedule_day") or "sunday").strip().lower()
+    if schedule_day not in {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"}:
+        schedule_day = "sunday"
+    try:
+        schedule_hour = max(0, min(23, int(request.form.get("dataset_pipeline_schedule_hour_utc") or "18")))
+    except ValueError:
+        schedule_hour = 18
+    scope = (request.form.get("dataset_pipeline_scope") or "2").strip() or "2"
+    set_setting("dataset_pipeline_enabled", enabled)
+    set_setting("dataset_pipeline_auto_publish_insights", auto_publish)
+    set_setting("dataset_pipeline_schedule_day", schedule_day)
+    set_setting("dataset_pipeline_schedule_hour_utc", str(schedule_hour))
+    set_setting("dataset_pipeline_scope", scope)
+    record_audit_event(
+        "admin.dataset_pipeline_settings",
+        target_type="dataset_pipeline",
+        target_id="settings",
+        metadata={"enabled": enabled == "1", "schedule_day": schedule_day, "schedule_hour_utc": schedule_hour, "scope": scope},
+    )
+    flash("Dataset update pipeline settings updated.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/run", methods=["POST"])
+def admin_run_dataset_pipeline() -> Any:
+    require_admin()
+    user_id = int(g.current_user["id"]) if g.current_user else None
+    run_id, error = queue_dataset_update_pipeline_run("manual", user_id)
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event("admin.dataset_pipeline_run", target_type="dataset_pipeline", target_id=run_id)
+        flash(f"Staging dataset update pipeline queued: {run_id}. Public data will not change until promotion.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/cancel", methods=["POST"])
+def admin_cancel_dataset_pipeline() -> Any:
+    require_admin()
+    run_id = (request.form.get("run_id") or "").strip()
+    if not run_id:
+        flash("No pipeline run selected.", "error")
+        return redirect(url_for("admin_dashboard"))
+    with get_sqlite_connection() as db:
+        row = db.execute("SELECT * FROM dataset_update_pipeline_runs WHERE run_id = ?", (run_id,)).fetchone()
+        if row is None:
+            flash("Pipeline run was not found.", "error")
+            return redirect(url_for("admin_dashboard"))
+        db.execute("UPDATE dataset_update_pipeline_runs SET status = 'cancelled', completed_at = ?, error = 'Cancelled by admin.' WHERE run_id = ?", (utc_now(), run_id))
+        db.execute("UPDATE dataset_update_pipeline_steps SET status = 'skipped', completed_at = ?, blockers_json = '[]' WHERE run_id = ? AND status IN ('pending', 'waiting', 'running')", (utc_now(), run_id))
+        db.execute("UPDATE dataset_versions SET status = 'failed', error = 'Staging update cancelled by admin.' WHERE version_id = ?", (row["dataset_version_id"],))
+        db.commit()
+    record_audit_event("admin.dataset_pipeline_cancel", target_type="dataset_pipeline", target_id=run_id)
+    flash(f"Cancelled staging dataset update {run_id}. Public data was unchanged.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/promote", methods=["POST"])
+def admin_promote_dataset_pipeline() -> Any:
+    require_admin()
+    version_id = (request.form.get("version_id") or "").strip()
+    user_id = int(g.current_user["id"]) if g.current_user else None
+    with get_sqlite_connection() as db:
+        version = db.execute("SELECT * FROM dataset_versions WHERE version_id = ?", (version_id,)).fetchone()
+        if version is None or str(version["status"]) != "verified":
+            flash("Only verified staging versions can be promoted.", "error")
+            return redirect(url_for("admin_dashboard"))
+        previous = get_active_dataset_version_id(db)
+        now = utc_now()
+        db.execute("UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'", (now, previous))
+        db.execute("UPDATE dataset_versions SET status = 'live', promoted_at = ?, promoted_by = ? WHERE version_id = ?", (now, user_id, version_id))
+        set_setting("previous_dataset_version_id", previous, db)
+        set_setting("active_dataset_version_id", version_id, db)
+        if get_setting("dataset_pipeline_auto_publish_insights", "1", db) == "1":
+            staging_latest_path = dataset_version_root(version_id) / "global_insights" / "latest.json"
+            if staging_latest_path.exists():
+                staging_latest = json.loads(staging_latest_path.read_text(encoding="utf-8"))
+                staging_summary_path = Path(str(staging_latest.get("summary_path") or ""))
+                staging_snapshot_dir = staging_summary_path.parent
+                public_snapshot_dir = global_insights_root() / "snapshots" / staging_snapshot_dir.name
+                if staging_snapshot_dir.exists():
+                    public_snapshot_dir.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copytree(staging_snapshot_dir, public_snapshot_dir, dirs_exist_ok=True)
+                    public_latest = dict(staging_latest)
+                    public_latest["summary_path"] = str(public_snapshot_dir / "summary.json")
+                    global_insights_root().mkdir(parents=True, exist_ok=True)
+                    global_insights_latest_path().write_text(json.dumps(public_latest, indent=2), encoding="utf-8")
+        run = db.execute("SELECT run_id FROM dataset_update_pipeline_runs WHERE dataset_version_id = ? ORDER BY id DESC LIMIT 1", (version_id,)).fetchone()
+        if run is not None:
+            db.execute("UPDATE dataset_update_pipeline_runs SET status = 'promoted', completed_at = ? WHERE run_id = ?", (now, run["run_id"]))
+            db.execute("UPDATE dataset_update_pipeline_steps SET status = 'completed', completed_at = ?, blockers_json = '[]' WHERE run_id = ? AND step_key = 'promote'", (now, run["run_id"]))
+        db.commit()
+    record_audit_event("admin.dataset_pipeline_promote", target_type="dataset_version", target_id=version_id)
+    flash(f"Promoted dataset version {version_id}. Public pointers are now ready to switch to this version as versioned readers are adopted.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/rollback", methods=["POST"])
+def admin_rollback_dataset_pipeline() -> Any:
+    require_admin()
+    with get_sqlite_connection() as db:
+        previous = str(get_setting("previous_dataset_version_id", "", db) or "")
+        current = get_active_dataset_version_id(db)
+        if not previous:
+            flash("No previous dataset version is available for rollback.", "error")
+            return redirect(url_for("admin_dashboard"))
+        now = utc_now()
+        db.execute("UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ?", (now, current))
+        db.execute("UPDATE dataset_versions SET status = 'live', promoted_at = ? WHERE version_id = ?", (now, previous))
+        set_setting("active_dataset_version_id", previous, db)
+        set_setting("previous_dataset_version_id", current, db)
+        db.commit()
+    record_audit_event("admin.dataset_pipeline_rollback", target_type="dataset_version", target_id=previous)
+    flash(f"Rolled back active dataset version to {previous}.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
