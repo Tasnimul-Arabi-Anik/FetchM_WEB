@@ -7305,8 +7305,9 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if counts["discovery_active"]:
                     blockers.append(f"{counts['discovery_active']} discovery scopes still active")
                 if counts["discovery_failed"]:
-                    failed = True
                     blockers.append(f"{counts['discovery_failed']} discovery scopes failed")
+                    if not counts["discovery_active"]:
+                        failed = True
             elif step_key == "catalog":
                 phase = str(progress.get("phase") or "genus")
                 if phase == "genus":
