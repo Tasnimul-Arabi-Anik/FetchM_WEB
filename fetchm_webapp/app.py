@@ -7330,8 +7330,19 @@ def advance_dataset_update_pipeline_runs() -> None:
                     if rank_counts.get("metadata_genus_active", 0):
                         blockers.append(f"{rank_counts.get('metadata_genus_active', 0)} genus metadata builds still active")
                     elif not blockers:
+                        expansion_summary = progress.get("species_expansion")
+                        if not isinstance(expansion_summary, dict):
+                            db.commit()
+                            expansion_summary = expand_species_catalog_from_genus_metadata()
+                            db.execute("BEGIN IMMEDIATE")
+                            progress["species_expansion"] = expansion_summary
+                            rank_counts = dataset_pipeline_rank_counts(db)
                         species_queue = request_pipeline_metadata_builds(db, "species")
-                        progress.update({"phase": "species", "species_queue": species_queue})
+                        progress.update({
+                            "phase": "species",
+                            "species_queue": species_queue,
+                            "species_expansion": expansion_summary,
+                        })
                         blockers.append(f"{species_queue['queued']} species metadata builds queued")
                 elif rank_counts.get("metadata_species_active", 0):
                     blockers.append(f"{rank_counts.get('metadata_species_active', 0)} species metadata builds still active")
