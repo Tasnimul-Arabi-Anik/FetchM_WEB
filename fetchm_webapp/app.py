@@ -191,6 +191,7 @@ SQLITE_VARIABLE_CHUNK_SIZE = 900
 DISCOVERY_REFRESH_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_DISCOVERY_REFRESH_HOURS", "24")))
 DISCOVERY_LIMIT_PER_SCOPE = os.environ.get("FETCHM_WEBAPP_DISCOVERY_LIMIT_PER_SCOPE", "100").strip() or "100"
 DATASETS_BINARY = os.environ.get("FETCHM_WEBAPP_DATASETS_BIN", "datasets")
+TAXONKIT_BINARY = os.environ.get("FETCHM_WEBAPP_TAXONKIT_BIN", "taxonkit")
 TAXON_RECENT_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_TAXON_RECENT_HOURS", "168")))
 TAXON_VERY_OLD_HOURS = max(TAXON_RECENT_HOURS + 1, int(os.environ.get("FETCHM_WEBAPP_TAXON_VERY_OLD_HOURS", "720")))
 SEQUENCE_DOWNLOAD_WORKERS = max(
@@ -6648,6 +6649,7 @@ def dataset_pipeline_rank_counts(db: sqlite3.Connection) -> dict[str, int]:
         SELECT taxon_rank,
                COUNT(*) AS total,
                SUM(CASE WHEN status = 'ready' AND tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS ready,
+               SUM(CASE WHEN status = 'no_data' THEN 1 ELSE 0 END) AS no_data,
                SUM(CASE WHEN status IN ('pending', 'syncing') OR refresh_requested = 1 OR claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
         FROM species
@@ -6673,6 +6675,8 @@ def dataset_pipeline_rank_counts(db: sqlite3.Connection) -> dict[str, int]:
             rank = str(row["taxon_rank"] or "unknown")
             counts[f"{prefix}_{rank}_total"] = int(row["total"] or 0)
             counts[f"{prefix}_{rank}_ready"] = int(row["ready"] or 0)
+            if prefix == "catalog":
+                counts[f"{prefix}_{rank}_no_data"] = int(row["no_data"] or 0)
             counts[f"{prefix}_{rank}_active"] = int(row["active"] or 0)
             counts[f"{prefix}_{rank}_failed"] = int(row["failed"] or 0)
     discovery = db.execute(
@@ -6798,13 +6802,17 @@ def build_dataset_pipeline_step_cards(
                 detail_lines.append("Species expansion waits until genus catalogs and genus metadata are ready.")
         elif step_key == "catalog":
             genus_ready = counts.get("catalog_genus_ready", 0)
+            genus_no_data = counts.get("catalog_genus_no_data", 0)
             genus_total = counts.get("catalog_genus_total", 0)
             species_ready = counts.get("catalog_species_ready", 0)
+            species_no_data = counts.get("catalog_species_no_data", 0)
             species_total = counts.get("catalog_species_total", 0)
-            percent = progress_percent(genus_ready + species_ready, genus_total + species_total)
+            genus_resolved = genus_ready + genus_no_data
+            species_resolved = species_ready + species_no_data
+            percent = progress_percent(genus_resolved + species_resolved, genus_total + species_total)
             detail_lines = [
-                f"{genus_ready}/{genus_total} genus catalogs ready",
-                f"{species_ready}/{species_total} species catalogs ready",
+                f"{genus_resolved}/{genus_total} genus catalog scopes resolved ({genus_ready} ready, {genus_no_data} no genome data)",
+                f"{species_resolved}/{species_total} species catalog scopes resolved ({species_ready} ready, {species_no_data} no genome data)",
             ]
         elif step_key == "metadata":
             genus_ready = counts.get("metadata_genus_ready", 0)
@@ -7764,12 +7772,22 @@ def advance_dataset_update_pipeline_runs() -> None:
                         blockers.append(f"{species_queue['queued']} species catalogs queued")
                 elif rank_counts.get("catalog_species_active", 0):
                     blockers.append(f"{rank_counts.get('catalog_species_active', 0)} species catalogs still active")
-                if rank_counts.get("catalog_genus_failed", 0) or rank_counts.get("catalog_species_failed", 0):
-                    failed = True
-                    blockers.append(
-                        f"{rank_counts.get('catalog_genus_failed', 0)} genus and "
-                        f"{rank_counts.get('catalog_species_failed', 0)} species catalog syncs failed"
-                    )
+                relevant_catalog_failures = (
+                    rank_counts.get("catalog_genus_failed", 0)
+                    if phase == "genus"
+                    else rank_counts.get("catalog_species_failed", 0)
+                )
+                relevant_catalog_active = (
+                    rank_counts.get("catalog_genus_active", 0)
+                    if phase == "genus"
+                    else rank_counts.get("catalog_species_active", 0)
+                )
+                if relevant_catalog_failures:
+                    if relevant_catalog_active:
+                        blockers.append(f"{relevant_catalog_failures} {phase} catalog syncs need retry/no-data handling")
+                    else:
+                        failed = True
+                        blockers.append(f"{relevant_catalog_failures} {phase} catalog syncs failed")
             elif step_key == "metadata":
                 phase = str(progress.get("phase") or "genus")
                 if phase == "genus":
@@ -14013,6 +14031,11 @@ def fetch_scope_taxon_candidates(
     limit_override: str | None = None,
 ) -> list[tuple[str, int | None]]:
     requested_rank = normalize_taxon_rank(rank_override or scope.target_rank)
+    if requested_rank == "genus" and is_bacterial_root_scope(scope):
+        try:
+            return fetch_bacterial_genera_from_local_taxonomy()
+        except Exception:
+            logging.exception("Local taxonkit genus discovery failed; falling back to NCBI datasets taxonomy discovery.")
     command = [
         DATASETS_BINARY,
         "summary",
@@ -14062,6 +14085,52 @@ def fetch_scope_taxon_candidates(
     return unique
 
 
+def fetch_bacterial_genera_from_local_taxonomy() -> list[tuple[str, int | None]]:
+    result = subprocess.run(
+        [
+            TAXONKIT_BINARY,
+            "list",
+            "--ids",
+            "2",
+            "-n",
+            "-r",
+            "--indent",
+            "",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    if result.returncode != 0:
+        stderr = (result.stderr or result.stdout or "").strip()
+        raise RuntimeError(stderr or "taxonkit bacterial genus discovery failed without an error message.")
+
+    candidates: list[tuple[str, int | None]] = []
+    for raw_line in result.stdout.splitlines():
+        line = raw_line.strip()
+        match = re.match(r"^(\d+)\s+\[([^\]]+)\]\s+(.+)$", line)
+        if not match:
+            continue
+        tax_id_text, rank, name = match.groups()
+        if rank.strip().lower() != "genus":
+            continue
+        normalized_name = normalize_species_name(name)
+        if not normalized_name:
+            continue
+        candidates.append((normalized_name, int(tax_id_text)))
+
+    seen: set[str] = set()
+    unique: list[tuple[str, int | None]] = []
+    for name, tax_id in candidates:
+        key = name.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append((name, tax_id))
+    return unique
+
+
 def create_species(
     species_name: str,
     db: sqlite3.Connection | None = None,
@@ -14069,6 +14138,9 @@ def create_species(
     assembly_source: str = "all",
     taxon_rank: str = "species",
     staging_dataset_version_id: str | None = None,
+    taxon_id: int | None = None,
+    query_name: str | None = None,
+    queue_catalog: bool = True,
 ) -> SpeciesRecord:
     normalized = normalize_species_name(species_name)
     if len(normalized) < 3:
@@ -14093,11 +14165,12 @@ def create_species(
             sync_attempt_count=0,
             sync_first_claimed_at=None,
             assembly_source=normalize_assembly_source(assembly_source),
-            status="pending",
+            status="pending" if queue_catalog else "missing",
             created_at=created_at,
             updated_at=created_at,
-            query_name=normalized,
-            refresh_requested=True,
+            query_name=query_name or normalized,
+            taxon_id=taxon_id,
+            refresh_requested=queue_catalog,
             metadata_status="missing",
             is_live=False if staging_dataset_version_id else True,
             staging_dataset_version_id=staging_dataset_version_id,
@@ -15049,7 +15122,7 @@ def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
                     WHEN status = 'ready' AND refresh_requested = 1 THEN 1
                     ELSE 2
                 END,
-                CASE WHEN taxon_rank = 'species' THEN 0 ELSE 1 END,
+                CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
                 updated_at ASC,
                 created_at ASC
             LIMIT 1
@@ -15118,6 +15191,16 @@ def claim_next_discovery_scope(worker_name: str) -> DiscoveryScopeRecord | None:
         return claimed
 
 
+def is_no_catalog_data_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "no annotations matching your query" in message
+        or "no genome data is currently available" in message
+        or "no genome assemblies were found" in message
+        or "no assemblies were found" in message
+    )
+
+
 def sync_species_record(species: SpeciesRecord) -> None:
     try:
         initial = load_species(species.id)
@@ -15158,7 +15241,10 @@ def sync_species_record(species: SpeciesRecord) -> None:
             return
         current.updated_at = utc_now()
         has_existing_tsv = bool(current.tsv_path and Path(current.tsv_path).exists())
-        if current.sync_attempt_count < SPECIES_MAX_AUTO_RETRIES:
+        if is_no_catalog_data_error(exc):
+            current.status = "ready" if has_existing_tsv else "no_data"
+            current.sync_error = str(exc)
+        elif current.sync_attempt_count < SPECIES_MAX_AUTO_RETRIES:
             current.status = "pending"
             current.sync_error = (
                 f"{exc} (auto-retrying {current.sync_attempt_count}/{SPECIES_MAX_AUTO_RETRIES})"
@@ -15953,44 +16039,59 @@ def sync_discovery_scope(scope: DiscoveryScopeRecord) -> None:
         discovered = 0
         with get_sqlite_connection() as db:
             staging_version_id = active_pipeline_dataset_version_for_step("discovery", db)
+            existing_rows = db.execute("SELECT species_name, slug FROM species").fetchall()
+            existing_names = {normalize_species_name(str(row["species_name"] or "")).lower() for row in existing_rows}
+            used_slugs = {str(row["slug"] or "") for row in existing_rows}
+            now = utc_now()
+            discovered_rows: list[tuple[Any, ...]] = []
+            discovered_names: set[str] = set()
             for taxon_name, taxon_id in candidates:
-                existing = get_taxon_by_name(taxon_name, latest.target_rank, db)
-                if existing is None:
-                    created = create_species(
-                        taxon_name,
-                        db,
-                        assembly_source=latest.assembly_source,
-                        taxon_rank=latest.target_rank,
-                        staging_dataset_version_id=staging_version_id,
+                normalized_name = normalize_species_name(taxon_name)
+                name_key = normalized_name.lower()
+                if not normalized_name or name_key in existing_names or name_key in discovered_names:
+                    continue
+                base_slug = species_slug(normalized_name)
+                slug = base_slug
+                suffix = 2
+                while slug in used_slugs:
+                    slug = f"{base_slug}-{suffix}"
+                    suffix += 1
+                used_slugs.add(slug)
+                discovered_names.add(name_key)
+                discovered_rows.append(
+                    (
+                        normalized_name,
+                        slug,
+                        latest.target_rank,
+                        normalize_assembly_source(latest.assembly_source),
+                        "missing",
+                        now,
+                        now,
+                        str(taxon_id) if taxon_id else normalized_name,
+                        taxon_id,
+                        0,
+                        "missing",
+                        0,
+                        0,
+                        0,
+                        0 if staging_version_id else 1,
+                        staging_version_id,
                     )
-                    created.taxon_id = taxon_id
-                    created.query_name = str(taxon_id) if taxon_id else taxon_name
-                    if staging_version_id:
-                        created.staging_dataset_version_id = staging_version_id
-                        created.is_live = False
-                    created.updated_at = utc_now()
-                    save_species(created, db)
-                    request_species_sync(created, db)
-                    discovered += 1
-                else:
-                    changed = False
-                    if staging_version_id:
-                        existing.staging_dataset_version_id = staging_version_id
-                        changed = True
-                    source_changed = False
-                    if existing.assembly_source != latest.assembly_source:
-                        existing.assembly_source = latest.assembly_source
-                        changed = True
-                        source_changed = True
-                    if taxon_id and existing.taxon_id != taxon_id:
-                        existing.taxon_id = taxon_id
-                        existing.query_name = str(taxon_id)
-                        changed = True
-                    if changed:
-                        existing.updated_at = utc_now()
-                        save_species(existing, db)
-                        if source_changed:
-                            request_species_sync(existing, db)
+                )
+            if discovered_rows:
+                db.executemany(
+                    """
+                    INSERT OR IGNORE INTO species (
+                        species_name, slug, taxon_rank, assembly_source, status,
+                        created_at, updated_at, query_name, taxon_id, refresh_requested,
+                        metadata_status, metadata_refresh_requested, metadata_claim_token,
+                        metadata_attempt_count, is_live, staging_dataset_version_id
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    discovered_rows,
+                )
+                discovered = len(discovered_rows)
             latest.status = "ready"
             latest.updated_at = utc_now()
             latest.last_discovered_at = latest.updated_at
@@ -17440,7 +17541,7 @@ def run_worker_loop() -> None:
                 last_heartbeat = now
             with get_sqlite_connection() as db:
                 reconcile_cancelled_running_jobs(worker_name, db)
-            if WORKER_MODE in {"all", "sync", "metadata", "standardization", "global-insights"}:
+            if WORKER_MODE in {"all", "sync", "metadata", "global-insights"}:
                 schedule_due_dataset_pipeline_run()
                 advance_dataset_update_pipeline_runs()
                 pipeline_step = claim_next_dataset_pipeline_step(worker_name)

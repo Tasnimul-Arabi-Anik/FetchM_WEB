@@ -120,7 +120,7 @@ services:
       - ./.env
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
-      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_WORKER_MODE: sync
       FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
@@ -137,7 +137,7 @@ services:
       - ./.env
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
-      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_WORKER_MODE: sync
       FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
@@ -154,7 +154,7 @@ services:
       - ./.env
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
-      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_WORKER_MODE: sync
       FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
     volumes:
