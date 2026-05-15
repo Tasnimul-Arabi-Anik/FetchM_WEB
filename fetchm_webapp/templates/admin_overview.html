@@ -219,7 +219,8 @@
     </div>
     <div class="grid admin-group-grid">
       <section class="panel">
-        <h3>Pipeline Board</h3>
+        <h3>Current Live Dataset Footprint</h3>
+        <p class="section-note">Read-only summary of the dataset currently serving public pages. Operational updates are controlled by the staged Dataset Update Pipeline above.</p>
         <div class="metrics-grid">
           <div class="metric-card">
             <strong>{{ backfill.genome_totals.catalog_genomes_total or 0 }}</strong>
@@ -240,23 +241,6 @@
         </div>
         <div class="metrics-grid top-gap">
           <div class="metric-card metric-wide">
-            <strong>1. Discovery</strong>
-            <span>Current cadence: {{ discovery_policies[backfill.discovery_policy].label }}</span>
-            <span>{{ backfill.discovery_totals.ready_total or 0 }} scopes ready, {{ backfill.recent_scopes.last_6h or 0 }} completed in 6h</span>
-          </div>
-          <div class="metric-card metric-wide">
-            <strong>2. TSV Catalog</strong>
-            <span>Build missing: {{ catalog_policies[backfill.catalog_build_policy].label }} | Refresh existing: {{ catalog_policies[backfill.catalog_refresh_policy].label }}</span>
-            <span>{{ backfill.taxa_totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.catalog_genomes_total or 0 }} unique genome accessions currently represented</span>
-          </div>
-          <div class="metric-card metric-wide">
-            <strong>3. Metadata</strong>
-            <span>Build missing: {{ metadata_policies[metadata_dashboard.metadata_build_policy].label }} | Refresh existing: {{ metadata_policies[metadata_dashboard.metadata_refresh_policy].label }}</span>
-            <span>{{ metadata_dashboard.totals.ready_total or 0 }} ready taxa, {{ backfill.genome_totals.metadata_genomes_total or 0 }} unique genomes with metadata coverage</span>
-          </div>
-        </div>
-        <div class="metrics-grid top-gap">
-          <div class="metric-card metric-wide">
             <strong>Recent catalog additions</strong>
             <span>{{ backfill.recent_taxa_added.last_7d or 0 }} taxa added in 7 days</span>
             <span>{{ backfill.recent_taxa_added.species_last_30d or 0 }} species and {{ backfill.recent_taxa_added.genus_last_30d or 0 }} genera added in 30 days</span>
@@ -268,8 +252,8 @@
           </div>
           <div class="metric-card metric-wide">
             <strong>Metadata behavior</strong>
-            <span>Current metadata updates reuse stored per-assembly metadata rows and only fetch enrichment for newly seen assemblies.</span>
-            <span>Existing assemblies are regenerated from the latest TSV plus stored metadata, while the BioSample cache still reduces repeat upstream calls.</span>
+            <span>Live metadata rows are preserved while staging updates are prepared.</span>
+            <span>Future versioned writers will reuse stored per-assembly metadata and enrich only newly seen accessions before promotion.</span>
           </div>
         </div>
         {% if backfill.latest_sync_event %}
