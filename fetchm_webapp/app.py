@@ -6242,7 +6242,7 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
 
 
 DATASET_PIPELINE_STEPS = [
-    ("discovery", "Discover new genus or species"),
+    ("discovery", "Discover bacterial genera"),
     ("catalog", "Update genus and species catalog"),
     ("metadata", "Update metadata build"),
     ("standardization", "Standardize newly updated metadata"),
@@ -6252,7 +6252,7 @@ DATASET_PIPELINE_STEPS = [
 
 DATASET_PIPELINE_STEP_COPY = {
     "discovery": {
-        "short": "Find new bacterial genera and species from NCBI taxonomy.",
+        "short": "Find bacterial genera first; species are expanded later from genus catalogs and metadata.",
         "run_label": "Run discovery now",
         "metric_label": "Discovery scopes",
     },
@@ -7116,16 +7116,14 @@ def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
 
 def request_pipeline_discovery_refresh(db: sqlite3.Connection) -> dict[str, Any]:
     now = utc_now()
-    existing = db.execute("SELECT COUNT(*) AS total FROM discovery_scopes").fetchone()
-    if int(existing["total"] or 0) == 0:
-        scope = get_setting("dataset_pipeline_scope", "2", db) or "2"
-        create_discovery_scope(
-            str(scope),
-            label="Bacteria genera",
-            assembly_source=DEFAULT_ASSEMBLY_SOURCE,
-            target_rank="genus",
-            db=db,
-        )
+    scope = get_setting("dataset_pipeline_scope", "2", db) or "2"
+    root_scope = create_discovery_scope(
+        str(scope),
+        label="Bacteria genera",
+        assembly_source=DEFAULT_ASSEMBLY_SOURCE,
+        target_rank="genus",
+        db=db,
+    )
     cursor = db.execute(
         """
         UPDATE discovery_scopes
@@ -7135,9 +7133,10 @@ def request_pipeline_discovery_refresh(db: sqlite3.Connection) -> dict[str, Any]
             last_error = NULL,
             claimed_by = NULL,
             claimed_at = NULL
-        WHERE status != 'discovering'
+        WHERE id = ?
+          AND status != 'discovering'
         """,
-        (now,),
+        (now, root_scope.id),
     )
     counts = dataset_pipeline_rank_counts(db)
     return {
@@ -7417,7 +7416,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "queued": queued,
                 "species_before": before.get("catalog_species_total", 0),
                 "genus_before": before.get("catalog_genus_total", 0),
-                "note": "Discovery refresh queued for managed scopes.",
+                "note": "Genus-first discovery queued. Species are expanded after genus catalogs and metadata are available.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()

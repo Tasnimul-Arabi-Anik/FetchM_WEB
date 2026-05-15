@@ -177,6 +177,66 @@ services:
       - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
+  fetchm-discovery-worker-2:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: discovery
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-discovery-worker-3:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: discovery
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-discovery-worker-4:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: discovery
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+    restart: unless-stopped
+
+  fetchm-discovery-worker-5:
+    build:
+      context: ..
+      dockerfile: fetchm_webapp/Dockerfile
+    command: ["python", "worker.py"]
+    env_file:
+      - ./.env
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: discovery
+    volumes:
+      - ./data:/app/fetchm_webapp/data
+      - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
+    restart: unless-stopped
+
   fetchm-assembly-backfill-worker:
     build:
       context: ..
