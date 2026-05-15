@@ -16791,11 +16791,10 @@ def run_worker_loop() -> None:
                 with get_sqlite_connection() as db:
                     refresh_hours = discovery_refresh_hours(db)
                 schedule_due_discovery_scope_syncs(refresh_hours)
-                if refresh_hours is not None:
-                    discovery_scope = claim_next_discovery_scope(worker_name)
-                    if discovery_scope is not None:
-                        sync_discovery_scope(discovery_scope)
-                        continue
+                discovery_scope = claim_next_discovery_scope(worker_name)
+                if discovery_scope is not None:
+                    sync_discovery_scope(discovery_scope)
+                    continue
 
             time.sleep(WORKER_POLL_INTERVAL)
 
