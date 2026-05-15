@@ -6728,7 +6728,7 @@ def dataset_pipeline_rank_counts(db: sqlite3.Connection) -> dict[str, int]:
 def progress_percent(done: int, total: int) -> int:
     if total <= 0:
         return 0
-    return max(0, min(100, int(round((done / total) * 100))))
+    return max(0, min(100, int((done / total) * 100)))
 
 
 def build_dataset_pipeline_step_cards(
