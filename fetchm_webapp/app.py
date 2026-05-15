@@ -6377,7 +6377,7 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
 
 DATASET_PIPELINE_STEPS = [
     ("discovery", "Discover bacterial genera"),
-    ("catalog", "Update genus and species catalog"),
+    ("catalog", "Update genus catalog"),
     ("metadata", "Update metadata build"),
     ("standardization", "Standardize newly updated metadata"),
     ("verify", "Verify staged update"),
@@ -6392,9 +6392,9 @@ DATASET_PIPELINE_STEP_COPY = {
         "metric_label": "Discovery scopes",
     },
     "catalog": {
-        "short": "Run a full genus TSV refresh first, then a full species TSV refresh.",
+        "short": "Run a full genus TSV refresh. Species are derived later from refreshed genus metadata.",
         "run_label": "Run catalog now",
-        "metric_label": "Catalog refresh",
+        "metric_label": "Genus catalog refresh",
     },
     "metadata": {
         "short": "Build genus metadata first, then derive/build species metadata.",
@@ -6822,20 +6822,14 @@ def build_dataset_pipeline_step_cards(
             genus_ready = counts.get("catalog_genus_ready", 0)
             genus_no_data = counts.get("catalog_genus_no_data", 0)
             genus_total = counts.get("catalog_genus_total", 0)
-            species_ready = counts.get("catalog_species_ready", 0)
-            species_no_data = counts.get("catalog_species_no_data", 0)
-            species_total = counts.get("catalog_species_total", 0)
             genus_remaining = counts.get("catalog_genus_active", 0)
-            species_remaining = counts.get("catalog_species_active", 0)
             genus_failed = counts.get("catalog_genus_failed", 0)
-            species_failed = counts.get("catalog_species_failed", 0)
             genus_finished = max(0, genus_total - genus_remaining - genus_failed)
-            species_finished = max(0, species_total - species_remaining - species_failed)
-            percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
+            percent = progress_percent(genus_finished, genus_total)
             detail_lines = [
                 f"Full genus refresh: {genus_finished}/{genus_total} finished, {genus_remaining} remaining",
                 f"Current genus coverage: {genus_ready} ready, {genus_no_data} no genome data",
-                f"Full species refresh: {species_finished}/{species_total} finished, {species_remaining} remaining",
+                "Species are derived after genus metadata is rebuilt.",
             ]
         elif step_key == "metadata":
             genus_ready = counts.get("metadata_genus_ready", 0)
@@ -7787,31 +7781,19 @@ def advance_dataset_update_pipeline_runs() -> None:
                         failed = True
             elif step_key == "catalog":
                 phase = str(progress.get("phase") or "genus")
-                if phase == "genus":
-                    if rank_counts.get("catalog_genus_active", 0):
-                        blockers.append(f"Full genus catalog refresh in progress: {rank_counts.get('catalog_genus_active', 0)} remaining")
-                    elif not blockers:
-                        species_queue = request_pipeline_catalog_syncs(db, "species", str(step["dataset_version_id"]))
-                        progress.update({"phase": "species", "species_queue": species_queue})
-                        blockers.append(f"{species_queue['queued']} species catalogs queued")
-                elif rank_counts.get("catalog_species_active", 0):
-                    blockers.append(f"Full species catalog refresh in progress: {rank_counts.get('catalog_species_active', 0)} remaining")
-                relevant_catalog_failures = (
-                    rank_counts.get("catalog_genus_failed", 0)
-                    if phase == "genus"
-                    else rank_counts.get("catalog_species_failed", 0)
-                )
-                relevant_catalog_active = (
-                    rank_counts.get("catalog_genus_active", 0)
-                    if phase == "genus"
-                    else rank_counts.get("catalog_species_active", 0)
-                )
+                if phase != "genus":
+                    progress["phase"] = "genus"
+                    phase = "genus"
+                if rank_counts.get("catalog_genus_active", 0):
+                    blockers.append(f"Full genus catalog refresh in progress: {rank_counts.get('catalog_genus_active', 0)} remaining")
+                relevant_catalog_failures = rank_counts.get("catalog_genus_failed", 0)
+                relevant_catalog_active = rank_counts.get("catalog_genus_active", 0)
                 if relevant_catalog_failures:
                     if relevant_catalog_active:
-                        blockers.append(f"{relevant_catalog_failures} {phase} catalog scopes need retry/no-data handling")
+                        blockers.append(f"{relevant_catalog_failures} genus catalog scopes need retry/no-data handling")
                     else:
                         failed = True
-                        blockers.append(f"{relevant_catalog_failures} {phase} catalog scopes failed")
+                        blockers.append(f"{relevant_catalog_failures} genus catalog scopes failed")
             elif step_key == "metadata":
                 phase = str(progress.get("phase") or "genus")
                 if phase == "genus":
@@ -7954,7 +7936,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             progress = {
                 "phase": "genus",
                 "genus_queue": genus_queue,
-                "note": "Genus catalogs are refreshed before species catalogs.",
+                "note": "Genus catalogs are refreshed first. Species are derived after genus metadata is rebuilt.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
