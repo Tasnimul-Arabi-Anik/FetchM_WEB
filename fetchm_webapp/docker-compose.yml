@@ -162,6 +162,48 @@ services:
       - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
+  fetchm-worker-7:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-8:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-9:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-10:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-11:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-12:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
+  fetchm-worker-13:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: sync
+
   fetchm-discovery-worker:
     build:
       context: ..
