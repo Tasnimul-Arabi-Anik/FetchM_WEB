@@ -27,21 +27,99 @@
   </div>
 {% endmacro %}
 
-{% macro copy_block(title, text, block_id) %}
-  <div class="summary-box">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow">Manuscript text</p>
-        <h3>{{ title }}</h3>
+{% macro compact_bar_chart(rows, label_name="Label", limit=6) %}
+  {% set ns = namespace(max_count=1) %}
+  {% for row in rows[:limit] %}
+    {% if row.count > ns.max_count %}{% set ns.max_count = row.count %}{% endif %}
+  {% endfor %}
+  <div class="insight-chart-list">
+    {% for row in rows[:limit] %}
+      {% set width = ((row.count / ns.max_count) * 100) | round(2) %}
+      <div class="insight-chart-row">
+        <span title="{{ row.label }}">{{ row.label }}</span>
+        <div class="insight-chart-track"><i style="width: {{ width }}%"></i></div>
+        <strong>{{ row.percent }}%</strong>
       </div>
-      <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy</button>
-    </div>
-    <p id="{{ block_id }}">{{ text }}</p>
+    {% else %}
+      <p class="job-meta">No {{ label_name|lower }} data available.</p>
+    {% endfor %}
   </div>
+{% endmacro %}
+
+{% macro yearly_chart(rows) %}
+  {% set ns = namespace(max_count=1) %}
+  {% for row in rows[-10:] %}
+    {% if row.assemblies > ns.max_count %}{% set ns.max_count = row.assemblies %}{% endif %}
+  {% endfor %}
+  <div class="insight-year-chart">
+    {% for row in rows[-10:] %}
+      {% set height = 18 + (((row.assemblies / ns.max_count) * 82) | round(2)) %}
+      <div class="insight-year-bar">
+        <span style="height: {{ height }}%" title="{{ row.year }}: {{ row.assemblies }} assemblies"></span>
+        <small>{{ row.year }}</small>
+      </div>
+    {% else %}
+      <p class="job-meta">No release-year data were available in this snapshot.</p>
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro impact_meter(row, title) %}
+  <div class="impact-meter">
+    <div class="section-heading">
+      <h3>{{ title }}</h3>
+      <span class="status completed">{{ row.standardized_usable_percent|default(0) }}% controlled</span>
+    </div>
+    <div class="impact-scale">
+      <div>
+        <span>Raw populated</span>
+        <strong>{{ row.raw_usable_percent|default(0) }}%</strong>
+        <i><b style="width: {{ row.raw_usable_percent|default(0) if row.raw_usable_percent|default(0) <= 100 else 100 }}%"></b></i>
+      </div>
+      <div>
+        <span>Controlled usable</span>
+        <strong>{{ row.standardized_usable_percent|default(0) }}%</strong>
+        <i><b style="width: {{ row.standardized_usable_percent|default(0) if row.standardized_usable_percent|default(0) <= 100 else 100 }}%"></b></i>
+      </div>
+    </div>
+    <p class="job-meta">
+      {{ row.changed_mappings|default("not recorded") }} changed mappings;
+      {{ row.raw_only_records|default("not recorded") }} raw-only/unmapped records.
+    </p>
+  </div>
+{% endmacro %}
+
+{% macro copy_block(title, text, block_id) %}
+  <details class="insight-details compact">
+    <summary>
+      <span>{{ title }}</span>
+      <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy</button>
+    </summary>
+    <p id="{{ block_id }}">{{ text }}</p>
+  </details>
 {% endmacro %}
 
 {% block content %}
 <style>
+  .insight-hero {
+    position: relative;
+    overflow: hidden;
+    border-color: rgba(22, 92, 78, 0.18);
+    background:
+      radial-gradient(circle at 14% 10%, rgba(184, 132, 77, 0.22), transparent 30%),
+      radial-gradient(circle at 86% 0%, rgba(22, 92, 78, 0.2), transparent 34%),
+      linear-gradient(135deg, rgba(253, 250, 241, 0.98), rgba(234, 243, 237, 0.9));
+  }
+
+  .insight-hero-actions,
+  .insight-badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 14px;
+  }
+
   .insight-kicker {
     display: inline-flex;
     align-items: center;
@@ -56,7 +134,7 @@
 
   .insight-callout-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
   }
 
@@ -76,6 +154,91 @@
   .insight-callout span,
   .insight-explain {
     color: var(--muted);
+  }
+
+  .signature-panel {
+    border-color: rgba(22, 92, 78, 0.24);
+    background:
+      radial-gradient(circle at top right, rgba(22, 92, 78, 0.14), transparent 32%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(246, 241, 229, 0.82));
+  }
+
+  .impact-grid,
+  .story-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .impact-meter,
+  .story-card {
+    padding: 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(22, 92, 78, 0.15);
+    background: rgba(255, 255, 255, 0.76);
+  }
+
+  .impact-scale {
+    display: grid;
+    gap: 10px;
+  }
+
+  .impact-scale div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .impact-scale span {
+    color: var(--muted);
+  }
+
+  .impact-scale i,
+  .insight-chart-track {
+    display: block;
+    grid-column: 1 / -1;
+    height: 9px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(22, 92, 78, 0.12);
+  }
+
+  .impact-scale b,
+  .insight-chart-track i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), rgba(184, 132, 77, 0.88));
+  }
+
+  .story-card {
+    display: grid;
+    gap: 12px;
+  }
+
+  .story-card > strong {
+    font-size: 1.8rem;
+    line-height: 1.05;
+  }
+
+  .insight-chart-list {
+    display: grid;
+    gap: 9px;
+  }
+
+  .insight-chart-row {
+    display: grid;
+    grid-template-columns: minmax(72px, 0.85fr) minmax(90px, 1.25fr) auto;
+    gap: 10px;
+    align-items: center;
+    font-size: 0.88rem;
+  }
+
+  .insight-chart-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .insight-bar {
@@ -104,13 +267,122 @@
     border: 1px solid rgba(184, 132, 77, 0.25);
     background: rgba(255, 247, 230, 0.72);
   }
+
+  .insight-year-chart {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+    min-height: 180px;
+    padding: 12px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.58);
+  }
+
+  .insight-year-bar {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 7px;
+    align-items: end;
+    flex: 1;
+    min-width: 32px;
+    height: 160px;
+    text-align: center;
+  }
+
+  .insight-year-bar span {
+    display: block;
+    width: 100%;
+    min-height: 12px;
+    border-radius: 10px 10px 4px 4px;
+    background: linear-gradient(180deg, rgba(22, 92, 78, 0.88), rgba(184, 132, 77, 0.82));
+  }
+
+  .insight-year-bar small {
+    color: var(--muted);
+    font-size: 0.72rem;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    justify-self: center;
+  }
+
+  .insight-details {
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.66);
+    overflow: hidden;
+  }
+
+  .insight-details + .insight-details {
+    margin-top: 12px;
+  }
+
+  .insight-details summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    cursor: pointer;
+    padding: 16px 18px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+
+  .insight-details summary span {
+    color: var(--accent);
+  }
+
+  .insight-details-body {
+    padding: 0 18px 18px;
+  }
+
+  .insight-details.compact p {
+    padding: 0 18px 18px;
+    margin: 0;
+  }
+
+  @media (max-width: 1100px) {
+    .insight-callout-grid,
+    .impact-grid,
+    .story-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 760px) {
+    .insight-callout-grid,
+    .impact-grid,
+    .story-grid,
+    .insight-chart-row {
+      grid-template-columns: 1fr;
+    }
+
+    .insight-year-chart {
+      overflow-x: auto;
+    }
+
+    .insight-year-bar {
+      min-width: 42px;
+    }
+  }
 </style>
 <main class="layout">
-  <section class="panel detail-head">
+  <section class="panel detail-head insight-hero">
     <div>
       <p class="eyebrow">Global Insights</p>
       <h1>Global Metadata Insights</h1>
-      <p class="lede">A precomputed overview of genome availability, metadata completeness, standardization impact, and repository bias across FetchM-indexed bacterial metadata.</p>
+      <p class="lede">A research-grade overview of bacterial genome availability, metadata completeness, standardization impact, and repository sampling bias across FetchM-indexed public genome resources.</p>
+      {% if summary %}
+        <div class="insight-badge-row">
+          <span class="status completed">{{ "demo data" if summary.is_demo else "real snapshot" }}</span>
+          <span class="tag">Snapshot: {{ summary.snapshot_id }}</span>
+          <span class="tag">Generated: {{ summary.generated_at }}</span>
+        </div>
+        <div class="insight-hero-actions">
+          <a class="button-like" href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">Download report JSON</a>
+          <button type="button" class="ghost" data-copy-target="copy-results">Copy results summary</button>
+        </div>
+      {% endif %}
     </div>
     <div class="status-box">
       {% if summary %}
@@ -145,11 +417,13 @@
       </section>
     {% endif %}
 
-    {% set ns = namespace(country_comp={}, host_comp={}, source_comp={}) %}
+    {% set ns = namespace(country_comp={}, host_comp={}, source_comp={}, standardized_only_total=0, changed_total=0) %}
     {% for row in summary.metadata_completeness %}
       {% if row.field == "Country" %}{% set ns.country_comp = row %}{% endif %}
       {% if row.field == "Host" %}{% set ns.host_comp = row %}{% endif %}
       {% if row.field == "Isolation source" %}{% set ns.source_comp = row %}{% endif %}
+      {% set ns.standardized_only_total = ns.standardized_only_total + (row.standardized_only_records|default(row.rescued_records|default(0))|int) %}
+      {% set ns.changed_total = ns.changed_total + (row.changed_mappings|default(0)|int) %}
     {% endfor %}
     {% set top_genus = summary.taxonomic_landscape.top_genera[0] if summary.taxonomic_landscape.top_genera else none %}
     {% set top_species = summary.taxonomic_landscape.top_species[0] if summary.taxonomic_landscape.top_species else none %}
@@ -157,60 +431,70 @@
     {% set top_host_category = summary.host_source_bias.host_categories[0] if summary.host_source_bias.host_categories else none %}
 
     <section class="panel">
-      <h2>Overview</h2>
+      <h2>Global Snapshot</h2>
       <div class="metrics-grid">
         <div class="metric-card"><strong>{{ summary.overview.unique_assemblies }}</strong><span>Unique assemblies</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.metadata_files_scanned }}</strong><span>Metadata files scanned</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
         <div class="metric-card"><strong>{{ summary.overview.species_observed }}</strong><span>Observed species labels</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
         <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.qc_ready_taxa }}</strong><span>QC-ready taxa</span></div>
+        <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Controlled country metadata</span></div>
+        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Changed controlled mappings</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
     </section>
 
+    <section class="panel signature-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Signature finding</p>
+          <h2>FetchM Standardization Changes Dataset Selection</h2>
+        </div>
+        <span class="status completed">{{ ns.standardized_only_total }} standardized-only records</span>
+      </div>
+      <p class="lede">Raw metadata can be populated but still be too free-text, ambiguous, or unmapped for controlled filtering. FetchM separates raw field population from controlled standardized usability so users can evaluate whether metadata are analysis-ready.</p>
+      <div class="impact-grid">
+        {{ impact_meter(ns.country_comp, "Country") }}
+        {{ impact_meter(ns.host_comp, "Host") }}
+        {{ impact_meter(ns.source_comp, "Isolation source") }}
+      </div>
+    </section>
+
     <section class="panel">
-      <p class="insight-kicker">Executive interpretation</p>
-      <h2>Key Findings From This Snapshot</h2>
-      <div class="insight-callout-grid">
-        <div class="insight-callout">
+      <p class="insight-kicker">Main story</p>
+      <h2>What Exists, What Is Biased, and What Researchers Should Check</h2>
+      <div class="story-grid">
+        <article class="story-card">
+          <p class="eyebrow">Taxonomic concentration</p>
           <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong>
-          <span>of assemblies are in the top 10 genera, showing strong taxonomic concentration.</span>
-        </div>
-        {% if top_genus %}
-          <div class="insight-callout">
-            <strong>{{ top_genus.label }}</strong>
-            <span>is the most represented genus ({{ top_genus.count }} assemblies; {{ top_genus.percent }}%).</span>
-          </div>
-        {% endif %}
-        {% if top_country %}
-          <div class="insight-callout">
-            <strong>{{ top_country.label }}</strong>
-            <span>is the most represented country among standardized locations ({{ top_country.percent }}%).</span>
-          </div>
-        {% endif %}
-        {% if top_host_category %}
-          <div class="insight-callout">
-            <strong>{{ top_host_category.percent }}%</strong>
-            <span>of assemblies are classified as {{ top_host_category.label|lower }}.</span>
-          </div>
-        {% endif %}
-        <div class="insight-callout">
-          <strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong>
-          <span>have controlled standardized country assignments.</span>
-        </div>
-        <div class="insight-callout">
-          <strong>{{ summary.overview.qc_ready_taxa }}</strong>
-          <span>taxa meet the current QC-ready metadata thresholds.</span>
-        </div>
+          <p>of assemblies are concentrated in the top 10 genera.</p>
+          {{ compact_bar_chart(summary.taxonomic_landscape.top_genera, "Genus", 6) }}
+        </article>
+        <article class="story-card">
+          <p class="eyebrow">Geographic representation</p>
+          <strong>{{ top_country.label if top_country else "No country" }}</strong>
+          <p>{% if top_country %}is the most represented standardized country ({{ top_country.percent }}%).{% else %}No country summary is available.{% endif %}</p>
+          {{ compact_bar_chart(summary.geographic_bias.countries, "Country", 6) }}
+        </article>
+        <article class="story-card">
+          <p class="eyebrow">Host and source skew</p>
+          <strong>{{ top_host_category.percent if top_host_category else 0 }}%</strong>
+          <p>{% if top_host_category %}of assemblies are classified as {{ top_host_category.label|lower }}.{% else %}No host/source category summary is available.{% endif %}</p>
+          {{ compact_bar_chart(summary.host_source_bias.host_categories, "Category", 6) }}
+        </article>
       </div>
       <p class="insight-explain top-gap">
-        These values describe repository representation, not biological abundance. Use them to motivate sampling-bias checks before cohort construction.
+        These values describe repository representation, not biological abundance. Expand the supporting analyses below for full tables, methods, and exportable data.
       </p>
     </section>
 
     <section class="panel">
-      <h2>Taxonomic Landscape</h2>
+      <h2>Deeper Analysis</h2>
+      <p class="insight-explain">Supporting tables and figure-ready summaries are collapsed by default to keep the page readable. Expand only the analysis you need.</p>
+    </section>
+
+    <details class="panel insight-details">
+      <summary><span>Which Bacterial Taxa Dominate Public Sequencing?</span><span class="tag">taxa</span></summary>
+      <div class="insight-details-body">
       <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot.</p>
       <div class="grid two-column">
         <div>
@@ -222,15 +506,21 @@
           {{ count_table(summary.taxonomic_landscape.top_species[:10], "Species") }}
         </div>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Genome Growth and Assembly Quality</h2>
+    <details class="panel insight-details">
+      <summary><span>Growth of Public Bacterial Genome Sequencing</span><span class="tag">yearly trend</span></summary>
+      <div class="insight-details-body">
       {% set yearly_rows = summary.get("yearly_growth", []) %}
       {% set assembly_levels = (summary.get("assembly_quality") or {}).get("assembly_levels", []) %}
       <div class="grid two-column">
         <div>
-          <h3>Recent Genome Availability By Year</h3>
+          <h3>Recent genome availability by year</h3>
+          {{ yearly_chart(yearly_rows) }}
+          <details class="insight-details top-gap">
+            <summary><span>View yearly data table</span><span class="tag">table</span></summary>
+            <div class="insight-details-body">
           <div class="table-scroll">
             <table>
               <thead>
@@ -249,16 +539,20 @@
               </tbody>
             </table>
           </div>
+            </div>
+          </details>
         </div>
         <div>
           <h3>Assembly Levels</h3>
           {{ count_table(assembly_levels[:10], "Assembly level") }}
         </div>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Geographic, Host, And Source Bias</h2>
+    <details class="panel insight-details">
+      <summary><span>Geographic, Host, Source, and Environment Representation</span><span class="tag">bias</span></summary>
+      <div class="insight-details-body">
       <div class="grid two-column">
         <div>
           <h3>Top Countries</h3>
@@ -269,10 +563,12 @@
           {{ count_table(summary.host_source_bias.host_categories[:10], "Category") }}
         </div>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Metadata Completeness And Standardization Impact</h2>
+    <details class="panel insight-details">
+      <summary><span>How Complete Is Public Genome Metadata?</span><span class="tag">completeness</span></summary>
+      <div class="insight-details-body">
       <p class="insight-note">
         Raw-field population and standardized-field usability are intentionally different measures. A raw value can be present but still be too free-text, ambiguous, or unmapped for controlled filtering.
       </p>
@@ -329,10 +625,12 @@
           </table>
         </div>
       {% endif %}
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Standardization Impact Simulator</h2>
+    <details class="panel insight-details">
+      <summary><span>Try the Standardization Impact Simulator</span><span class="tag">query</span></summary>
+      <div class="insight-details-body">
       <p>Compare approximate dataset size under raw metadata filtering versus FetchM standardized metadata filtering. This uses the compact simulator table generated with the snapshot.</p>
       <form method="get" action="{{ url_for('global_insights') }}" class="job-form">
         <div class="grid two-column">
@@ -386,10 +684,12 @@
           <p class="danger-text">{{ simulator_result.error }}</p>
         {% endif %}
       {% endif %}
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Metadata Quality And Bias Warnings</h2>
+    <details class="panel insight-details">
+      <summary><span>Metadata Quality and Automated Bias Warnings</span><span class="tag">warnings</span></summary>
+      <div class="insight-details-body">
       <div class="grid two-column">
         <div>
           <h3>Top Metadata Quality Scores</h3>
@@ -437,10 +737,12 @@
           </div>
         </div>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Pathogen and QC-ready Taxa</h2>
+    <details class="panel insight-details">
+      <summary><span>Pathogen Insights and QC-ready Taxa</span><span class="tag">readiness</span></summary>
+      <div class="insight-details-body">
       <div class="grid two-column">
         <div>
           <h3>Priority Pathogen Metadata Quality</h3>
@@ -489,10 +791,12 @@
           </div>
         </div>
       </div>
-    </section>
+      </div>
+    </details>
 
-    <section class="panel">
-      <h2>Methods & Reproducibility</h2>
+    <details class="panel insight-details">
+      <summary><span>Methods & Reproducibility</span><span class="tag">expand</span></summary>
+      <div class="insight-details-body">
       <div class="coverage-table">
         <div class="coverage-row"><strong>Snapshot ID</strong><span>{{ summary.snapshot_id }}</span><span></span></div>
         <div class="coverage-row"><strong>Generated</strong><span>{{ summary.generated_at }}</span><span></span></div>
@@ -506,27 +810,31 @@
         <div class="coverage-row"><strong>Bias formulas</strong><span>{{ summary.methods.bias_score_formulas }}</span><span></span></div>
         <div class="coverage-row"><strong>Quality score</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>
       </div>
-    </section>
+      </div>
+    </details>
 
     <section class="panel">
-      <h2>Copyable Manuscript Sections</h2>
+      <h2>Copyable Manuscript-ready Summary</h2>
+      <p class="insight-explain">These are copyable text outputs, not figures. Figure-ready visual summaries are shown above in the main story and growth sections.</p>
       {{ copy_block("Abstract-style summary", summary.manuscript.abstract, "copy-abstract") }}
       {{ copy_block("Results paragraph", summary.manuscript.results, "copy-results") }}
       {{ copy_block("Methods paragraph", summary.manuscript.methods, "copy-methods") }}
       {{ copy_block("Limitations paragraph", summary.manuscript.limitations, "copy-limitations") }}
-      {{ copy_block("Figure legend", summary.manuscript.figure_legend, "copy-figure") }}
-      {{ copy_block("Table caption", summary.manuscript.table_caption, "copy-table") }}
+      {{ copy_block("Figure legend text", summary.manuscript.figure_legend, "copy-figure") }}
+      {{ copy_block("Table caption text", summary.manuscript.table_caption, "copy-table") }}
     </section>
 
-    <section class="panel">
-      <h2>Downloads</h2>
+    <details class="panel insight-details">
+      <summary><span>Downloads</span><span class="tag">export tables</span></summary>
+      <div class="insight-details-body">
       <div class="file-list">
         <a href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">summary.json</a>
         {% for label, relative_path in summary.downloads.items() %}
           <a href="{{ url_for('download_global_insights_file', relative_path=relative_path) }}">{{ relative_path }}</a>
         {% endfor %}
       </div>
-    </section>
+      </div>
+    </details>
   {% endif %}
 </main>
 
