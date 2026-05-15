@@ -6572,6 +6572,35 @@ def build_dataset_pipeline_step_cards(
     counts = dataset_pipeline_rank_counts(db)
     active_version = get_active_dataset_version_id(db)
     latest_insight = latest_global_insight_task(db)
+    discovery_status_rows = db.execute(
+        """
+        SELECT status, COUNT(*) AS total
+        FROM discovery_scopes
+        GROUP BY status
+        """
+    ).fetchall()
+    discovery_status_counts = {
+        str(row["status"]): int(row["total"] or 0)
+        for row in discovery_status_rows
+    }
+    active_discovery_scope = db.execute(
+        """
+        SELECT scope_label, scope_value, target_rank, claimed_at, updated_at
+        FROM discovery_scopes
+        WHERE status = 'discovering'
+        ORDER BY claimed_at ASC, updated_at ASC
+        LIMIT 1
+        """
+    ).fetchone()
+    latest_ready_discovery_scope = db.execute(
+        """
+        SELECT scope_label, target_rank, discovered_species_count, updated_at
+        FROM discovery_scopes
+        WHERE status = 'ready'
+        ORDER BY updated_at DESC
+        LIMIT 1
+        """
+    ).fetchone()
     cards: list[dict[str, Any]] = []
     for index, (step_key, label) in enumerate(DATASET_PIPELINE_STEPS, start=1):
         row = step_rows_by_key.get(step_key)
@@ -6583,14 +6612,30 @@ def build_dataset_pipeline_step_cards(
             total = counts.get("discovery_total", 0)
             ready = counts.get("discovery_ready", 0)
             percent = progress_percent(ready, total)
+            pending = discovery_status_counts.get("pending", 0)
+            discovering = discovery_status_counts.get("discovering", 0)
+            failed = discovery_status_counts.get("failed", 0)
             species_before = int(progress.get("species_before") or counts.get("catalog_species_total", 0))
             genus_before = int(progress.get("genus_before") or counts.get("catalog_genus_total", 0))
             new_species = max(0, counts.get("catalog_species_total", 0) - species_before)
             new_genera = max(0, counts.get("catalog_genus_total", 0) - genus_before)
             detail_lines = [
-                f"{counts.get('discovery_active', 0)} scopes running or queued",
+                f"{ready}/{total} scopes completed; {discovering} running, {pending} queued",
                 f"{new_genera} new genera and {new_species} new species in latest run",
             ]
+            if active_discovery_scope is not None:
+                active_label = str(active_discovery_scope["scope_label"] or active_discovery_scope["scope_value"])
+                detail_lines.append(
+                    f"Active now: {active_label} ({active_discovery_scope['target_rank']})"
+                )
+            if latest_ready_discovery_scope is not None:
+                latest_label = str(latest_ready_discovery_scope["scope_label"] or "discovery scope")
+                discovered_count = int(latest_ready_discovery_scope["discovered_species_count"] or 0)
+                detail_lines.append(f"Last completed: {latest_label}, {discovered_count} taxa found")
+            if failed:
+                detail_lines.append(f"{failed} discovery scopes failed")
+            if status == "running":
+                detail_lines.append("Queue size can grow while root scopes are split into genus/species child scopes.")
         elif step_key == "catalog":
             genus_ready = counts.get("catalog_genus_ready", 0)
             genus_total = counts.get("catalog_genus_total", 0)

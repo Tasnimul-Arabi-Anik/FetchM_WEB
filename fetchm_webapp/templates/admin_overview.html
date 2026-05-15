@@ -110,6 +110,17 @@
       background: linear-gradient(90deg, #165c4e, #d08a3c);
     }
 
+    .pipeline-stage.is-running .pipeline-bar span {
+      min-width: 24px;
+      background-size: 220% 100%;
+      animation: pipeline-flow 1.8s linear infinite;
+    }
+
+    @keyframes pipeline-flow {
+      from { background-position: 0% 50%; }
+      to { background-position: 220% 50%; }
+    }
+
     .pipeline-detail-list {
       display: grid;
       gap: 4px;
@@ -152,6 +163,9 @@
       </div>
       <p class="section-note">Run each activity directly, or let enabled stages continue automatically after the previous stage finishes.</p>
     </div>
+    {% if dataset_pipeline.active_run %}
+      <p class="job-meta">Auto-refreshing every 30 seconds while {{ dataset_pipeline.active_run.run_id }} is active.</p>
+    {% endif %}
 
     <form id="pipeline-settings-form" action="{{ url_for('admin_set_dataset_pipeline_settings') }}" method="post"></form>
     <div class="pipeline-settings top-gap">
@@ -191,7 +205,7 @@
 
       <div class="pipeline-board top-gap">
         {% for stage in dataset_pipeline.step_cards %}
-          <article class="pipeline-stage">
+          <article class="pipeline-stage {% if stage.status == 'running' %}is-running{% endif %}">
             <div>
               <div class="pipeline-stage-head">
                 <span class="pipeline-index">{{ stage.index }}</span>
@@ -836,4 +850,11 @@
     </div>
   </section>
 </main>
+{% if dataset_pipeline.active_run %}
+  <script>
+    window.setTimeout(() => {
+      if (!document.hidden) window.location.reload();
+    }, 30000);
+  </script>
+{% endif %}
 {% endblock %}
