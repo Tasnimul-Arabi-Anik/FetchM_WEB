@@ -6392,9 +6392,9 @@ DATASET_PIPELINE_STEP_COPY = {
         "metric_label": "Discovery scopes",
     },
     "catalog": {
-        "short": "Refresh genus TSV catalogs first, then species catalogs.",
+        "short": "Run a full genus TSV refresh first, then a full species TSV refresh.",
         "run_label": "Run catalog now",
-        "metric_label": "Catalog ready",
+        "metric_label": "Catalog refresh",
     },
     "metadata": {
         "short": "Build genus metadata first, then derive/build species metadata.",
@@ -6731,6 +6731,20 @@ def progress_percent(done: int, total: int) -> int:
     return max(0, min(100, int((done / total) * 100)))
 
 
+def pipeline_step_time_label(row: Mapping[str, Any] | None, status: str) -> str:
+    if not row:
+        return ""
+    started = parse_optional_utc(row.get("started_at"))
+    completed = parse_optional_utc(row.get("completed_at"))
+    if completed is not None and started is not None:
+        return f"Completed in {format_elapsed_brief((completed - started).total_seconds())}"
+    if status == "running" and started is not None:
+        return f"Running for {format_elapsed_brief((utc_now_dt() - started).total_seconds())}"
+    if started is not None:
+        return f"Started {compact_datetime_label(row.get('started_at'))}"
+    return ""
+
+
 def build_dataset_pipeline_step_cards(
     db: sqlite3.Connection,
     step_rows_by_key: dict[str, dict[str, Any]],
@@ -6782,10 +6796,14 @@ def build_dataset_pipeline_step_cards(
             discovering = discovery_status_counts.get("discovering", 0)
             failed = discovery_status_counts.get("failed", 0)
             genus_before = int(progress.get("genus_before") or counts.get("catalog_genus_total", 0))
+            species_before = int(progress.get("species_before") or counts.get("catalog_species_total", 0))
             new_genera = max(0, counts.get("catalog_genus_total", 0) - genus_before)
+            species_now = counts.get("catalog_species_total", 0)
+            new_species = max(0, species_now - species_before)
             detail_lines = [
                 f"{ready}/{total} scopes completed; {discovering} running, {pending} queued",
-                f"{new_genera} new genera found in latest run",
+                f"Genera: {genus_before} before, {counts.get('catalog_genus_total', 0)} now, +{new_genera} this run",
+                f"Species: {species_before} before, {species_now} now, +{new_species} this run",
             ]
             if active_discovery_scope is not None:
                 active_label = str(active_discovery_scope["scope_label"] or active_discovery_scope["scope_value"])
@@ -6810,9 +6828,12 @@ def build_dataset_pipeline_step_cards(
             genus_resolved = genus_ready + genus_no_data
             species_resolved = species_ready + species_no_data
             percent = progress_percent(genus_resolved + species_resolved, genus_total + species_total)
+            genus_remaining = counts.get("catalog_genus_active", 0)
+            species_remaining = counts.get("catalog_species_active", 0)
             detail_lines = [
-                f"{genus_resolved}/{genus_total} genus catalog scopes resolved ({genus_ready} ready, {genus_no_data} no genome data)",
-                f"{species_resolved}/{species_total} species catalog scopes resolved ({species_ready} ready, {species_no_data} no genome data)",
+                f"Full genus refresh: {genus_resolved}/{genus_total} resolved ({genus_remaining} remaining)",
+                f"Genus result: {genus_ready} ready, {genus_no_data} no genome data",
+                f"Full species refresh: {species_resolved}/{species_total} resolved ({species_remaining} remaining)",
             ]
         elif step_key == "metadata":
             genus_ready = counts.get("metadata_genus_ready", 0)
@@ -6884,6 +6905,7 @@ def build_dataset_pipeline_step_cards(
                 "status": status,
                 "percent": percent,
                 "details": detail_lines,
+                "time_label": pipeline_step_time_label(row, status),
                 "row": row,
                 "sequential_enabled": dataset_pipeline_sequential_enabled(step_key, db),
                 "has_sequential_control": step_key in DATASET_PIPELINE_SEQUENTIAL_KEYS,
@@ -7765,13 +7787,13 @@ def advance_dataset_update_pipeline_runs() -> None:
                 phase = str(progress.get("phase") or "genus")
                 if phase == "genus":
                     if rank_counts.get("catalog_genus_active", 0):
-                        blockers.append(f"{rank_counts.get('catalog_genus_active', 0)} genus catalogs still active")
+                        blockers.append(f"Full genus catalog refresh in progress: {rank_counts.get('catalog_genus_active', 0)} remaining")
                     elif not blockers:
                         species_queue = request_pipeline_catalog_syncs(db, "species", str(step["dataset_version_id"]))
                         progress.update({"phase": "species", "species_queue": species_queue})
                         blockers.append(f"{species_queue['queued']} species catalogs queued")
                 elif rank_counts.get("catalog_species_active", 0):
-                    blockers.append(f"{rank_counts.get('catalog_species_active', 0)} species catalogs still active")
+                    blockers.append(f"Full species catalog refresh in progress: {rank_counts.get('catalog_species_active', 0)} remaining")
                 relevant_catalog_failures = (
                     rank_counts.get("catalog_genus_failed", 0)
                     if phase == "genus"
@@ -7784,10 +7806,10 @@ def advance_dataset_update_pipeline_runs() -> None:
                 )
                 if relevant_catalog_failures:
                     if relevant_catalog_active:
-                        blockers.append(f"{relevant_catalog_failures} {phase} catalog syncs need retry/no-data handling")
+                        blockers.append(f"{relevant_catalog_failures} {phase} catalog scopes need retry/no-data handling")
                     else:
                         failed = True
-                        blockers.append(f"{relevant_catalog_failures} {phase} catalog syncs failed")
+                        blockers.append(f"{relevant_catalog_failures} {phase} catalog scopes failed")
             elif step_key == "metadata":
                 phase = str(progress.get("phase") or "genus")
                 if phase == "genus":
@@ -15198,6 +15220,7 @@ def is_no_catalog_data_error(exc: Exception) -> bool:
         or "no genome data is currently available" in message
         or "no genome assemblies were found" in message
         or "no assemblies were found" in message
+        or "no assemblies were returned" in message
     )
 
 

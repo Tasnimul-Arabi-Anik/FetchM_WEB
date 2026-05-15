@@ -241,12 +241,11 @@
                 {% for detail in stage.details %}
                   <span>{{ detail }}</span>
                 {% endfor %}
+                {% if stage.time_label %}
+                  <span>{{ stage.time_label }}</span>
+                {% endif %}
                 {% if stage.row and stage.row.blockers %}
                   <span class="danger-text">{{ stage.row.blockers|join('; ') }}</span>
-                {% elif stage.row and stage.row.completed_at %}
-                  <span>Completed: {{ stage.row.completed_at }}</span>
-                {% elif stage.row and stage.row.started_at %}
-                  <span>Started: {{ stage.row.started_at }}</span>
                 {% endif %}
               </div>
             </div>
