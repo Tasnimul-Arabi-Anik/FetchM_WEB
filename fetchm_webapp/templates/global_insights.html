@@ -90,12 +90,20 @@
 {% endmacro %}
 
 {% macro copy_block(title, text, block_id) %}
+  {% set cleaned_text = (text|default("", true))
+    | replace("controlled standardized", "standardized")
+    | replace("Controlled host", "Standardized host")
+    | replace("controlled host", "standardized host")
+    | replace("controlled isolation-source", "standardized isolation-source")
+    | replace("controlled category", "standardized category")
+    | replace("The standardized-field percentages are intentionally stricter than raw-field population rates because free-text values are not treated as analysis-ready unless they map to a controlled category.", "Raw-field presence and standardized-field availability are different measures: a submitter value can be present but still too vague, inconsistent, or unmapped for reliable metadata filtering.")
+  %}
   <details class="insight-details compact">
     <summary>
       <span>{{ title }}</span>
       <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy</button>
     </summary>
-    <p id="{{ block_id }}">{{ text }}</p>
+    <p id="{{ block_id }}">{{ cleaned_text }}</p>
   </details>
 {% endmacro %}
 
@@ -835,7 +843,9 @@
 
 <script>
   document.querySelectorAll("[data-copy-target]").forEach((button) => {
-    button.addEventListener("click", async () => {
+    button.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       const target = document.getElementById(button.getAttribute("data-copy-target"));
       if (!target) return;
       await navigator.clipboard.writeText(target.textContent.trim());
