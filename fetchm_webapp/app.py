@@ -24,7 +24,7 @@ import uuid
 import zipfile
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, replace as dataclass_replace
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from functools import lru_cache
@@ -580,6 +580,18 @@ class SpeciesRecord:
     assembly_backfill_claimed_at: str | None = None
     assembly_backfill_last_built_at: str | None = None
     assembly_backfill_error: str | None = None
+    is_live: bool = True
+    staging_dataset_version_id: str | None = None
+    live_status: str | None = None
+    live_tsv_path: str | None = None
+    live_metadata_status: str | None = None
+    live_metadata_path: str | None = None
+    live_metadata_clean_path: str | None = None
+    live_genome_count: int | None = None
+    live_taxon_id: int | None = None
+    live_last_synced_at: str | None = None
+    live_metadata_last_built_at: str | None = None
+    live_updated_at: str | None = None
 
 
 @dataclass
@@ -754,7 +766,19 @@ def init_db() -> None:
             assembly_backfill_claimed_by TEXT,
             assembly_backfill_claimed_at TEXT,
             assembly_backfill_last_built_at TEXT,
-            assembly_backfill_error TEXT
+            assembly_backfill_error TEXT,
+            is_live INTEGER NOT NULL DEFAULT 1,
+            staging_dataset_version_id TEXT,
+            live_status TEXT,
+            live_tsv_path TEXT,
+            live_metadata_status TEXT,
+            live_metadata_path TEXT,
+            live_metadata_clean_path TEXT,
+            live_genome_count INTEGER,
+            live_taxon_id INTEGER,
+            live_last_synced_at TEXT,
+            live_metadata_last_built_at TEXT,
+            live_updated_at TEXT
         );
 
         CREATE INDEX IF NOT EXISTS idx_species_status_updated ON species (status, updated_at);
@@ -842,6 +866,40 @@ def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_dataset_update_steps_status_order
         ON dataset_update_pipeline_steps (status, step_order);
 
+        CREATE TABLE IF NOT EXISTS dataset_species_live_snapshots (
+            dataset_version_id TEXT NOT NULL,
+            species_id INTEGER NOT NULL,
+            species_name TEXT NOT NULL,
+            taxon_rank TEXT NOT NULL,
+            is_live INTEGER NOT NULL,
+            live_status TEXT,
+            live_tsv_path TEXT,
+            live_metadata_status TEXT,
+            live_metadata_path TEXT,
+            live_metadata_clean_path TEXT,
+            live_genome_count INTEGER,
+            live_taxon_id INTEGER,
+            live_last_synced_at TEXT,
+            live_metadata_last_built_at TEXT,
+            live_updated_at TEXT,
+            captured_at TEXT NOT NULL,
+            PRIMARY KEY (dataset_version_id, species_id),
+            FOREIGN KEY (species_id) REFERENCES species (id)
+        );
+
+        CREATE TABLE IF NOT EXISTS dataset_metadata_species_search_snapshots (
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            species_name TEXT NOT NULL,
+            search_name TEXT NOT NULL,
+            genome_count INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL,
+            captured_at TEXT NOT NULL,
+            PRIMARY KEY (dataset_version_id, source_taxon_id, species_name),
+            FOREIGN KEY (source_taxon_id) REFERENCES species (id)
+        );
+
         CREATE TABLE IF NOT EXISTS global_insight_tasks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             snapshot_id TEXT NOT NULL UNIQUE,
@@ -925,6 +983,25 @@ def init_db() -> None:
 
         CREATE INDEX IF NOT EXISTS idx_metadata_species_search_source
         ON metadata_species_search (source_taxon_id, genome_count DESC);
+
+        CREATE TABLE IF NOT EXISTS metadata_species_search_staging (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            species_name TEXT NOT NULL,
+            search_name TEXT NOT NULL,
+            genome_count INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY (source_taxon_id) REFERENCES species (id),
+            UNIQUE(dataset_version_id, source_taxon_id, species_name)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_species_search_staging_version
+        ON metadata_species_search_staging (dataset_version_id, source_taxon_id, genome_count DESC);
+
+        CREATE INDEX IF NOT EXISTS idx_metadata_species_search_staging_name
+        ON metadata_species_search_staging (dataset_version_id, search_name);
 
         CREATE TABLE IF NOT EXISTS metadata_chunks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -5747,10 +5824,43 @@ def ensure_species_columns(db: sqlite3.Connection) -> None:
         "assembly_backfill_claimed_at": "TEXT",
         "assembly_backfill_last_built_at": "TEXT",
         "assembly_backfill_error": "TEXT",
+        "is_live": "INTEGER NOT NULL DEFAULT 1",
+        "staging_dataset_version_id": "TEXT",
+        "live_status": "TEXT",
+        "live_tsv_path": "TEXT",
+        "live_metadata_status": "TEXT",
+        "live_metadata_path": "TEXT",
+        "live_metadata_clean_path": "TEXT",
+        "live_genome_count": "INTEGER",
+        "live_taxon_id": "INTEGER",
+        "live_last_synced_at": "TEXT",
+        "live_metadata_last_built_at": "TEXT",
+        "live_updated_at": "TEXT",
     }
     for column, definition in additions.items():
         if column not in columns:
             db.execute(f"ALTER TABLE species ADD COLUMN {column} {definition}")
+    db.execute(
+        """
+        UPDATE species
+        SET live_status = COALESCE(live_status, status),
+            live_tsv_path = COALESCE(live_tsv_path, tsv_path),
+            live_metadata_status = COALESCE(live_metadata_status, metadata_status),
+            live_metadata_path = COALESCE(live_metadata_path, metadata_path),
+            live_metadata_clean_path = COALESCE(live_metadata_clean_path, metadata_clean_path),
+            live_genome_count = COALESCE(live_genome_count, genome_count),
+            live_taxon_id = COALESCE(live_taxon_id, taxon_id),
+            live_last_synced_at = COALESCE(live_last_synced_at, last_synced_at),
+            live_metadata_last_built_at = COALESCE(live_metadata_last_built_at, metadata_last_built_at),
+            live_updated_at = COALESCE(live_updated_at, updated_at)
+        WHERE is_live = 1
+          AND (
+              live_status IS NULL
+              OR (tsv_path IS NOT NULL AND live_tsv_path IS NULL)
+              OR (metadata_clean_path IS NOT NULL AND live_metadata_clean_path IS NULL)
+          )
+        """
+    )
     db.commit()
 
 
@@ -6186,22 +6296,45 @@ def refresh_metadata_species_search_entries(species: SpeciesRecord, rows: list[d
         for organism_name, count in counts.items()
     ]
     with get_sqlite_connection() as db:
-        db.execute("DELETE FROM metadata_species_search WHERE source_taxon_id = ?", (species.id,))
-        if records:
-            db.executemany(
-                """
-                INSERT INTO metadata_species_search (
-                    source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
-                )
-                VALUES (?, ?, ?, ?, ?, ?)
-                ON CONFLICT(source_taxon_id, species_name) DO UPDATE SET
-                    source_taxon_name = excluded.source_taxon_name,
-                    search_name = excluded.search_name,
-                    genome_count = excluded.genome_count,
-                    updated_at = excluded.updated_at
-                """,
-                records,
+        if species.staging_dataset_version_id:
+            dataset_version_id = species.staging_dataset_version_id
+            db.execute(
+                "DELETE FROM metadata_species_search_staging WHERE dataset_version_id = ? AND source_taxon_id = ?",
+                (dataset_version_id, species.id),
             )
+            if records:
+                db.executemany(
+                    """
+                    INSERT INTO metadata_species_search_staging (
+                        dataset_version_id, source_taxon_id, source_taxon_name, species_name,
+                        search_name, genome_count, updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(dataset_version_id, source_taxon_id, species_name) DO UPDATE SET
+                        source_taxon_name = excluded.source_taxon_name,
+                        search_name = excluded.search_name,
+                        genome_count = excluded.genome_count,
+                        updated_at = excluded.updated_at
+                    """,
+                    ((dataset_version_id, *record) for record in records),
+                )
+        else:
+            db.execute("DELETE FROM metadata_species_search WHERE source_taxon_id = ?", (species.id,))
+            if records:
+                db.executemany(
+                    """
+                    INSERT INTO metadata_species_search (
+                        source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(source_taxon_id, species_name) DO UPDATE SET
+                        source_taxon_name = excluded.source_taxon_name,
+                        search_name = excluded.search_name,
+                        genome_count = excluded.genome_count,
+                        updated_at = excluded.updated_at
+                    """,
+                    records,
+                )
         db.commit()
 
 
@@ -6362,6 +6495,29 @@ def active_dataset_update_run(db: sqlite3.Connection | None = None) -> dict[str,
         """
     ).fetchone()
     return dict(row) if row is not None else None
+
+
+def active_pipeline_dataset_version_for_step(step_key: str, db: sqlite3.Connection | None = None) -> str | None:
+    connection = db or get_db()
+    row = connection.execute(
+        """
+        SELECT r.dataset_version_id
+        FROM dataset_update_pipeline_runs r
+        JOIN dataset_update_pipeline_steps s ON s.run_id = r.run_id
+        WHERE r.status IN ('pending', 'running')
+          AND s.step_key = ?
+          AND s.status IN ('pending', 'running')
+        ORDER BY r.requested_at ASC, r.id ASC
+        LIMIT 1
+        """,
+        (step_key,),
+    ).fetchone()
+    return str(row["dataset_version_id"]) if row is not None else None
+
+
+def active_pipeline_dataset_version(db: sqlite3.Connection | None = None) -> str | None:
+    run = active_dataset_update_run(db)
+    return str(run["dataset_version_id"]) if run is not None and run.get("dataset_version_id") else None
 
 
 def dataset_pipeline_step_keys() -> list[str]:
@@ -6872,6 +7028,23 @@ def latest_global_insight_task(db: sqlite3.Connection | None = None) -> dict[str
 def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> list[str]:
     connection = db or get_db()
     blockers: list[str] = []
+    discovery_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM discovery_scopes
+        WHERE status IN ('pending', 'discovering')
+           OR refresh_requested = 1
+        """
+    ).fetchone()
+    catalog_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE status IN ('pending', 'syncing')
+           OR refresh_requested = 1
+           OR claimed_at IS NOT NULL
+        """
+    ).fetchone()
     metadata_active = connection.execute(
         """
         SELECT COUNT(*) AS total
@@ -6902,6 +7075,10 @@ def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> 
         WHERE status IN ('pending', 'running')
         """
     ).fetchone()
+    if int(discovery_active["total"] or 0):
+        blockers.append("discovery is still active")
+    if int(catalog_active["total"] or 0):
+        blockers.append("catalog syncs are still active")
     if int(metadata_active["total"] or 0):
         blockers.append("metadata builds or refreshes are still active")
     if int(standardization_active["total"] or 0) or int(standardization_chunks_active["total"] or 0):
@@ -7004,10 +7181,14 @@ def process_global_insight_task(task: sqlite3.Row) -> None:
         with get_sqlite_connection() as db:
             rows = db.execute(
                 """
-                SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, last_synced_at
+                SELECT id, species_name, taxon_rank,
+                       live_genome_count AS genome_count,
+                       live_metadata_clean_path AS metadata_clean_path,
+                       live_last_synced_at AS last_synced_at
                 FROM species
-                WHERE metadata_status = 'ready'
-                  AND metadata_clean_path IS NOT NULL
+                WHERE is_live = 1
+                  AND live_metadata_status = 'ready'
+                  AND live_metadata_clean_path IS NOT NULL
                 """
             ).fetchall()
         taxa = [
@@ -7170,7 +7351,7 @@ def request_pipeline_discovery_refresh(db: sqlite3.Connection) -> dict[str, Any]
     }
 
 
-def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str) -> dict[str, Any]:
+def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str, dataset_version_id: str | None = None) -> dict[str, Any]:
     rank = normalize_taxon_rank(rank)
     now = utc_now()
     cursor = db.execute(
@@ -7178,6 +7359,7 @@ def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str) -> dict[st
         UPDATE species
         SET status = CASE WHEN tsv_path IS NULL THEN 'pending' ELSE status END,
             refresh_requested = 1,
+            staging_dataset_version_id = COALESCE(?, staging_dataset_version_id),
             updated_at = ?,
             sync_error = NULL,
             claimed_by = NULL,
@@ -7188,7 +7370,7 @@ def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str) -> dict[st
           AND status != 'syncing'
           AND claimed_at IS NULL
         """,
-        (now, rank),
+        (dataset_version_id, now, rank),
     )
     counts = dataset_pipeline_rank_counts(db)
     return {
@@ -7200,7 +7382,7 @@ def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str) -> dict[st
     }
 
 
-def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str) -> dict[str, Any]:
+def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_version_id: str | None = None) -> dict[str, Any]:
     rank = normalize_taxon_rank(rank)
     now = utc_now()
     cursor = db.execute(
@@ -7208,6 +7390,7 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str) -> dict[
         UPDATE species
         SET metadata_status = CASE WHEN metadata_path IS NULL THEN 'pending' ELSE metadata_status END,
             metadata_refresh_requested = 1,
+            staging_dataset_version_id = COALESCE(?, staging_dataset_version_id),
             metadata_error = NULL,
             metadata_claimed_by = NULL,
             metadata_claimed_at = NULL,
@@ -7220,7 +7403,7 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str) -> dict[
           AND metadata_status != 'building'
           AND metadata_claimed_at IS NULL
         """,
-        (now, rank),
+        (dataset_version_id, now, rank),
     )
     counts = dataset_pipeline_rank_counts(db)
     return {
@@ -7351,6 +7534,195 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
     return blockers
 
 
+def snapshot_live_species_state(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    now = utc_now()
+    existing = db.execute(
+        "SELECT COUNT(*) AS total FROM dataset_species_live_snapshots WHERE dataset_version_id = ?",
+        (dataset_version_id,),
+    ).fetchone()
+    if int(existing["total"] or 0):
+        return 0
+    cursor = db.execute(
+        """
+        INSERT INTO dataset_species_live_snapshots (
+            dataset_version_id, species_id, species_name, taxon_rank, is_live, live_status,
+            live_tsv_path, live_metadata_status, live_metadata_path, live_metadata_clean_path,
+            live_genome_count, live_taxon_id, live_last_synced_at, live_metadata_last_built_at,
+            live_updated_at, captured_at
+        )
+        SELECT ?, id, species_name, taxon_rank, is_live, live_status,
+               live_tsv_path, live_metadata_status, live_metadata_path, live_metadata_clean_path,
+               live_genome_count, live_taxon_id, live_last_synced_at, live_metadata_last_built_at,
+               live_updated_at, ?
+        FROM species
+        """,
+        (dataset_version_id, now),
+    )
+    return int(cursor.rowcount or 0)
+
+
+def promote_staged_species_state(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    now = utc_now()
+    cursor = db.execute(
+        """
+        UPDATE species
+        SET is_live = 1,
+            live_status = status,
+            live_tsv_path = tsv_path,
+            live_metadata_status = metadata_status,
+            live_metadata_path = metadata_path,
+            live_metadata_clean_path = metadata_clean_path,
+            live_genome_count = genome_count,
+            live_taxon_id = taxon_id,
+            live_last_synced_at = last_synced_at,
+            live_metadata_last_built_at = metadata_last_built_at,
+            live_updated_at = ?,
+            staging_dataset_version_id = NULL
+        WHERE staging_dataset_version_id = ?
+        """,
+        (now, dataset_version_id),
+    )
+    return int(cursor.rowcount or 0)
+
+
+def restore_live_species_snapshot(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    snapshots = db.execute(
+        """
+        SELECT *
+        FROM dataset_species_live_snapshots
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchall()
+    restored = 0
+    now = utc_now()
+    for row in snapshots:
+        cursor = db.execute(
+            """
+            UPDATE species
+            SET is_live = ?,
+                live_status = ?,
+                live_tsv_path = ?,
+                live_metadata_status = ?,
+                live_metadata_path = ?,
+                live_metadata_clean_path = ?,
+                live_genome_count = ?,
+                live_taxon_id = ?,
+                live_last_synced_at = ?,
+                live_metadata_last_built_at = ?,
+                live_updated_at = COALESCE(?, ?),
+                staging_dataset_version_id = NULL
+            WHERE id = ?
+            """,
+            (
+                int(row["is_live"] or 0),
+                row["live_status"],
+                row["live_tsv_path"],
+                row["live_metadata_status"],
+                row["live_metadata_path"],
+                row["live_metadata_clean_path"],
+                row["live_genome_count"],
+                row["live_taxon_id"],
+                row["live_last_synced_at"],
+                row["live_metadata_last_built_at"],
+                row["live_updated_at"],
+                now,
+                row["species_id"],
+            ),
+        )
+        restored += int(cursor.rowcount or 0)
+    return restored
+
+
+def snapshot_live_metadata_species_search(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    now = utc_now()
+    existing = db.execute(
+        "SELECT COUNT(*) AS total FROM dataset_metadata_species_search_snapshots WHERE dataset_version_id = ?",
+        (dataset_version_id,),
+    ).fetchone()
+    if int(existing["total"] or 0):
+        return 0
+    cursor = db.execute(
+        """
+        INSERT INTO dataset_metadata_species_search_snapshots (
+            dataset_version_id, source_taxon_id, source_taxon_name, species_name,
+            search_name, genome_count, updated_at, captured_at
+        )
+        SELECT ?, source_taxon_id, source_taxon_name, species_name,
+               search_name, genome_count, updated_at, ?
+        FROM metadata_species_search
+        """,
+        (dataset_version_id, now),
+    )
+    return int(cursor.rowcount or 0)
+
+
+def promote_staged_metadata_species_search(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    source_rows = db.execute(
+        """
+        SELECT DISTINCT source_taxon_id
+        FROM metadata_species_search_staging
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchall()
+    source_ids = [int(row["source_taxon_id"]) for row in source_rows]
+    if not source_ids:
+        return 0
+    placeholders = ", ".join("?" for _ in source_ids)
+    db.execute(
+        f"DELETE FROM metadata_species_search WHERE source_taxon_id IN ({placeholders})",
+        tuple(source_ids),
+    )
+    cursor = db.execute(
+        """
+        INSERT INTO metadata_species_search (
+            source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+        )
+        SELECT source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+        FROM metadata_species_search_staging
+        WHERE dataset_version_id = ?
+        ON CONFLICT(source_taxon_id, species_name) DO UPDATE SET
+            source_taxon_name = excluded.source_taxon_name,
+            search_name = excluded.search_name,
+            genome_count = excluded.genome_count,
+            updated_at = excluded.updated_at
+        """,
+        (dataset_version_id,),
+    )
+    db.execute(
+        "DELETE FROM metadata_species_search_staging WHERE dataset_version_id = ?",
+        (dataset_version_id,),
+    )
+    return int(cursor.rowcount or 0)
+
+
+def restore_live_metadata_species_search_snapshot(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    snapshot_count = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM dataset_metadata_species_search_snapshots
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    if int(snapshot_count["total"] or 0) <= 0:
+        return 0
+    db.execute("DELETE FROM metadata_species_search")
+    cursor = db.execute(
+        """
+        INSERT INTO metadata_species_search (
+            source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+        )
+        SELECT source_taxon_id, source_taxon_name, species_name, search_name, genome_count, updated_at
+        FROM dataset_metadata_species_search_snapshots
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    )
+    return int(cursor.rowcount or 0)
+
+
 def advance_dataset_update_pipeline_runs() -> None:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
@@ -7387,7 +7759,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     if rank_counts.get("catalog_genus_active", 0):
                         blockers.append(f"{rank_counts.get('catalog_genus_active', 0)} genus catalogs still active")
                     elif not blockers:
-                        species_queue = request_pipeline_catalog_syncs(db, "species")
+                        species_queue = request_pipeline_catalog_syncs(db, "species", str(step["dataset_version_id"]))
                         progress.update({"phase": "species", "species_queue": species_queue})
                         blockers.append(f"{species_queue['queued']} species catalogs queued")
                 elif rank_counts.get("catalog_species_active", 0):
@@ -7407,11 +7779,13 @@ def advance_dataset_update_pipeline_runs() -> None:
                         expansion_summary = progress.get("species_expansion")
                         if not isinstance(expansion_summary, dict):
                             db.commit()
-                            expansion_summary = expand_species_catalog_from_genus_metadata()
+                            expansion_summary = expand_species_catalog_from_genus_metadata(
+                                staging_dataset_version_id=str(step["dataset_version_id"])
+                            )
                             db.execute("BEGIN IMMEDIATE")
                             progress["species_expansion"] = expansion_summary
                             rank_counts = dataset_pipeline_rank_counts(db)
-                        species_queue = request_pipeline_metadata_builds(db, "species")
+                        species_queue = request_pipeline_metadata_builds(db, "species", str(step["dataset_version_id"]))
                         progress.update({
                             "phase": "species",
                             "species_queue": species_queue,
@@ -7534,7 +7908,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             db.commit()
             return
         if step_key == "catalog":
-            genus_queue = request_pipeline_catalog_syncs(db, "genus")
+            genus_queue = request_pipeline_catalog_syncs(db, "genus", version_id)
             progress = {
                 "phase": "genus",
                 "genus_queue": genus_queue,
@@ -7544,7 +7918,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             db.commit()
             return
         if step_key == "metadata":
-            genus_queue = request_pipeline_metadata_builds(db, "genus")
+            genus_queue = request_pipeline_metadata_builds(db, "genus", version_id)
             progress = {
                 "phase": "genus",
                 "genus_queue": genus_queue,
@@ -7582,6 +7956,10 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 return
             previous = get_active_dataset_version_id(db)
             now = utc_now()
+            snapshot_count = snapshot_live_species_state(db, previous)
+            metadata_search_snapshot_count = snapshot_live_metadata_species_search(db, previous)
+            promoted_taxa = promote_staged_species_state(db, version_id)
+            promoted_metadata_search_entries = promote_staged_metadata_species_search(db, version_id)
             db.execute(
                 "UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'",
                 (now, previous),
@@ -7602,7 +7980,11 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 {
                     "previous_version": previous,
                     "active_version": version_id,
-                    "note": "Active dataset pointer replaced after upstream steps completed.",
+                    "snapshot_taxa": snapshot_count,
+                    "promoted_taxa": promoted_taxa,
+                    "metadata_search_snapshot_entries": metadata_search_snapshot_count,
+                    "promoted_metadata_search_entries": promoted_metadata_search_entries,
+                    "note": "Live species pointers were replaced after upstream steps completed and verification passed.",
                 },
             )
             db.commit()
@@ -7610,10 +7992,14 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
         if step_key == "global_insights":
             rows = db.execute(
                 """
-                SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, last_synced_at
+                SELECT id, species_name, taxon_rank,
+                       live_genome_count AS genome_count,
+                       live_metadata_clean_path AS metadata_clean_path,
+                       live_last_synced_at AS last_synced_at
                 FROM species
-                WHERE metadata_status = 'ready'
-                  AND metadata_clean_path IS NOT NULL
+                WHERE is_live = 1
+                  AND live_metadata_status = 'ready'
+                  AND live_metadata_clean_path IS NOT NULL
                 """
             ).fetchall()
             taxa = [
@@ -7670,10 +8056,6 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             )
             db.commit()
             return
-        if step_key == "promote":
-            set_pipeline_step_status(db, int(step["id"]), "waiting", blockers=["Admin promotion is required before public data changes."])
-            db.commit()
-
 def get_discovery_policy(db: sqlite3.Connection | None = None) -> str:
     return normalize_discovery_policy(get_setting("discovery_policy", None, db))
 
@@ -7795,11 +8177,19 @@ def species_dir(slug: str) -> Path:
     return SPECIES_DIR / slug
 
 
-def species_tsv_path(slug: str) -> Path:
-    return species_dir(slug) / "ncbi_dataset.tsv"
+def species_dir_for_version(slug: str, dataset_version_id: str | None = None) -> Path:
+    if dataset_version_id:
+        return dataset_version_root(dataset_version_id) / "species" / slug
+    return species_dir(slug)
 
 
-def metadata_taxon_dir(slug: str) -> Path:
+def species_tsv_path(slug: str, dataset_version_id: str | None = None) -> Path:
+    return species_dir_for_version(slug, dataset_version_id) / "ncbi_dataset.tsv"
+
+
+def metadata_taxon_dir(slug: str, dataset_version_id: str | None = None) -> Path:
+    if dataset_version_id:
+        return dataset_version_root(dataset_version_id) / "metadata" / slug
     return METADATA_DIR / slug
 
 
@@ -7922,12 +8312,12 @@ def metadata_root_dir(slug: str) -> Path:
     return metadata_taxon_dir(slug) / "build"
 
 
-def metadata_dataset_path(slug: str) -> Path:
-    return metadata_taxon_dir(slug) / "metadata_output" / "ncbi_dataset_updated.tsv"
+def metadata_dataset_path(slug: str, dataset_version_id: str | None = None) -> Path:
+    return metadata_taxon_dir(slug, dataset_version_id) / "metadata_output" / "ncbi_dataset_updated.tsv"
 
 
-def metadata_clean_path(slug: str) -> Path:
-    return metadata_taxon_dir(slug) / "metadata_output" / "ncbi_clean.csv"
+def metadata_clean_path(slug: str, dataset_version_id: str | None = None) -> Path:
+    return metadata_taxon_dir(slug, dataset_version_id) / "metadata_output" / "ncbi_clean.csv"
 
 
 def is_admin_user(user: sqlite3.Row | None) -> bool:
@@ -8296,7 +8686,55 @@ def row_to_species(row: sqlite3.Row) -> SpeciesRecord:
         assembly_backfill_claimed_at=str(row["assembly_backfill_claimed_at"]) if row["assembly_backfill_claimed_at"] else None,
         assembly_backfill_last_built_at=str(row["assembly_backfill_last_built_at"]) if row["assembly_backfill_last_built_at"] else None,
         assembly_backfill_error=str(row["assembly_backfill_error"]) if row["assembly_backfill_error"] else None,
+        is_live=bool(row["is_live"]) if "is_live" in row.keys() else True,
+        staging_dataset_version_id=str(row["staging_dataset_version_id"]) if "staging_dataset_version_id" in row.keys() and row["staging_dataset_version_id"] else None,
+        live_status=str(row["live_status"]) if "live_status" in row.keys() and row["live_status"] else None,
+        live_tsv_path=str(row["live_tsv_path"]) if "live_tsv_path" in row.keys() and row["live_tsv_path"] else None,
+        live_metadata_status=str(row["live_metadata_status"]) if "live_metadata_status" in row.keys() and row["live_metadata_status"] else None,
+        live_metadata_path=str(row["live_metadata_path"]) if "live_metadata_path" in row.keys() and row["live_metadata_path"] else None,
+        live_metadata_clean_path=str(row["live_metadata_clean_path"]) if "live_metadata_clean_path" in row.keys() and row["live_metadata_clean_path"] else None,
+        live_genome_count=row["live_genome_count"] if "live_genome_count" in row.keys() else None,
+        live_taxon_id=row["live_taxon_id"] if "live_taxon_id" in row.keys() else None,
+        live_last_synced_at=str(row["live_last_synced_at"]) if "live_last_synced_at" in row.keys() and row["live_last_synced_at"] else None,
+        live_metadata_last_built_at=str(row["live_metadata_last_built_at"]) if "live_metadata_last_built_at" in row.keys() and row["live_metadata_last_built_at"] else None,
+        live_updated_at=str(row["live_updated_at"]) if "live_updated_at" in row.keys() and row["live_updated_at"] else None,
     )
+
+
+def public_species_record(species: SpeciesRecord) -> SpeciesRecord | None:
+    if not species.is_live:
+        return None
+    live_status = species.live_status or species.status
+    live_tsv_path = species.live_tsv_path or species.tsv_path
+    if live_status != "ready" or not live_tsv_path:
+        return None
+    return dataclass_replace(
+        species,
+        status=live_status,
+        tsv_path=live_tsv_path,
+        metadata_status=species.live_metadata_status or species.metadata_status,
+        metadata_path=species.live_metadata_path or species.metadata_path,
+        metadata_clean_path=species.live_metadata_clean_path or species.metadata_clean_path,
+        genome_count=species.live_genome_count if species.live_genome_count is not None else species.genome_count,
+        taxon_id=species.live_taxon_id if species.live_taxon_id is not None else species.taxon_id,
+        last_synced_at=species.live_last_synced_at or species.last_synced_at,
+        metadata_last_built_at=species.live_metadata_last_built_at or species.metadata_last_built_at,
+        updated_at=species.live_updated_at or species.updated_at,
+        refresh_requested=False,
+        claimed_by=None,
+        claimed_at=None,
+        metadata_refresh_requested=False,
+        metadata_claimed_by=None,
+        metadata_claimed_at=None,
+    )
+
+
+def require_public_species(species_id: int) -> SpeciesRecord:
+    species = load_species(species_id)
+    public_species = public_species_record(species)
+    if public_species is None:
+        raise FileNotFoundError(str(species_id))
+    return public_species
 
 
 def row_to_discovery_scope(row: sqlite3.Row) -> DiscoveryScopeRecord:
@@ -8386,8 +8824,10 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             metadata_last_built_at, metadata_error, metadata_refresh_requested, metadata_claim_token,
             metadata_attempt_count, metadata_first_claimed_at, metadata_claimed_by, metadata_claimed_at,
             metadata_source_taxon_id, metadata_progress_total, metadata_progress_completed,
-            metadata_progress_current_accession, metadata_progress_updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            metadata_progress_current_accession, metadata_progress_updated_at, is_live, staging_dataset_version_id,
+            live_status, live_tsv_path, live_metadata_status, live_metadata_path, live_metadata_clean_path,
+            live_genome_count, live_taxon_id, live_last_synced_at, live_metadata_last_built_at, live_updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
             species_name = excluded.species_name,
             slug = excluded.slug,
@@ -8423,7 +8863,19 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             metadata_progress_total = excluded.metadata_progress_total,
             metadata_progress_completed = excluded.metadata_progress_completed,
             metadata_progress_current_accession = excluded.metadata_progress_current_accession,
-            metadata_progress_updated_at = excluded.metadata_progress_updated_at
+            metadata_progress_updated_at = excluded.metadata_progress_updated_at,
+            is_live = excluded.is_live,
+            staging_dataset_version_id = excluded.staging_dataset_version_id,
+            live_status = excluded.live_status,
+            live_tsv_path = excluded.live_tsv_path,
+            live_metadata_status = excluded.live_metadata_status,
+            live_metadata_path = excluded.live_metadata_path,
+            live_metadata_clean_path = excluded.live_metadata_clean_path,
+            live_genome_count = excluded.live_genome_count,
+            live_taxon_id = excluded.live_taxon_id,
+            live_last_synced_at = excluded.live_last_synced_at,
+            live_metadata_last_built_at = excluded.live_metadata_last_built_at,
+            live_updated_at = excluded.live_updated_at
         """,
         (
             species.id if species.id else None,
@@ -8462,6 +8914,18 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
             species.metadata_progress_completed,
             species.metadata_progress_current_accession,
             species.metadata_progress_updated_at,
+            int(species.is_live),
+            species.staging_dataset_version_id,
+            species.live_status,
+            species.live_tsv_path,
+            species.live_metadata_status,
+            species.live_metadata_path,
+            species.live_metadata_clean_path,
+            species.live_genome_count,
+            species.live_taxon_id,
+            species.live_last_synced_at,
+            species.live_metadata_last_built_at,
+            species.live_updated_at,
         ),
     )
     if not species.id:
@@ -8528,12 +8992,13 @@ def list_available_species() -> list[SpeciesRecord]:
         """
         SELECT *
         FROM species
-        WHERE status = 'ready'
-          AND tsv_path IS NOT NULL
+        WHERE is_live = 1
+          AND live_status = 'ready'
+          AND live_tsv_path IS NOT NULL
         ORDER BY taxon_rank, species_name COLLATE NOCASE ASC
         """
     ).fetchall()
-    return [row_to_species(row) for row in rows]
+    return [species for row in rows if (species := public_species_record(row_to_species(row))) is not None]
 
 
 def list_recent_metadata_taxa(limit: int = 100) -> list[SpeciesRecord]:
@@ -8632,13 +9097,13 @@ def build_public_home_metrics() -> dict[str, Any]:
     counts = db.execute(
         """
         SELECT
-            SUM(CASE WHEN taxon_rank = 'species' THEN 1 ELSE 0 END) AS species_total,
-            SUM(CASE WHEN taxon_rank = 'species' AND tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS species_ready,
-            SUM(CASE WHEN taxon_rank = 'genus' THEN 1 ELSE 0 END) AS genus_total,
-            SUM(CASE WHEN taxon_rank = 'genus' AND tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_ready,
-            SUM(CASE WHEN tsv_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS genome_total,
-            SUM(CASE WHEN metadata_clean_path IS NOT NULL AND genome_count IS NOT NULL THEN genome_count ELSE 0 END) AS metadata_genome_total,
-            SUM(CASE WHEN metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_taxa_ready
+            SUM(CASE WHEN taxon_rank = 'species' AND is_live = 1 THEN 1 ELSE 0 END) AS species_total,
+            SUM(CASE WHEN taxon_rank = 'species' AND is_live = 1 AND live_tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS species_ready,
+            SUM(CASE WHEN taxon_rank = 'genus' AND is_live = 1 THEN 1 ELSE 0 END) AS genus_total,
+            SUM(CASE WHEN taxon_rank = 'genus' AND is_live = 1 AND live_tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_ready,
+            SUM(CASE WHEN is_live = 1 AND live_tsv_path IS NOT NULL AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END) AS genome_total,
+            SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END) AS metadata_genome_total,
+            SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_taxa_ready
         FROM species
         """
     ).fetchone()
@@ -10626,7 +11091,11 @@ def refine_taxon_host_standardization(species: SpeciesRecord) -> int:
         return 0
     rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
     save_taxon_metadata_rows(species.id, rows, refreshed_at=utc_now())
-    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, rows)
+    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
+        species.slug,
+        rows,
+        dataset_version_id=species.staging_dataset_version_id,
+    )
     latest = load_species(species.id)
     latest.metadata_path = metadata_path
     latest.metadata_clean_path = clean_path
@@ -10859,6 +11328,7 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
         if row is None:
             db.commit()
             return None
+        staging_version_id = active_pipeline_dataset_version(db)
         updated = db.execute(
             """
             UPDATE standardization_refresh_tasks
@@ -10872,10 +11342,21 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
             """,
             (worker_name, now, int(row["task_id"])),
         ).rowcount
+        if updated:
+            db.execute(
+                """
+                UPDATE species
+                SET staging_dataset_version_id = COALESCE(staging_dataset_version_id, ?)
+                WHERE id = ?
+                """,
+                (staging_version_id, int(row["id"])),
+            )
         db.commit()
     if not updated:
         return None
-    return {"task_id": int(row["task_id"]), "species": row_to_species(row)}
+    with get_sqlite_connection() as db:
+        species = get_species_by_id(int(row["id"]), db)
+    return {"task_id": int(row["task_id"]), "species": species or row_to_species(row)}
 
 
 def mark_standardization_refresh_task_failed(task_id: int, error: str) -> None:
@@ -11073,6 +11554,7 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
         if row is None:
             db.commit()
             return None
+        staging_version_id = active_pipeline_dataset_version(db)
         updated = db.execute(
             """
             UPDATE standardization_refresh_chunks
@@ -11086,6 +11568,15 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
             """,
             (worker_name, now, int(row["chunk_id"])),
         ).rowcount
+        if updated:
+            db.execute(
+                """
+                UPDATE species
+                SET staging_dataset_version_id = COALESCE(staging_dataset_version_id, ?)
+                WHERE id = ?
+                """,
+                (staging_version_id, int(row["chunk_species_id"])),
+            )
         db.commit()
     if not updated:
         return None
@@ -11104,7 +11595,9 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
         "updated_rows": int(row["chunk_updated_rows"] or 0),
         "error": row["chunk_error"],
     }
-    return {"chunk": chunk, "species": row_to_species(row)}
+    with get_sqlite_connection() as db:
+        species = get_species_by_id(int(row["chunk_species_id"]), db)
+    return {"chunk": chunk, "species": species or row_to_species(row)}
 
 
 def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: str) -> bool:
@@ -11179,6 +11672,7 @@ def finalize_standardization_refresh_task_if_ready(task_id: int, worker_name: st
             species.slug,
             rows,
             normalize_rows=False,
+            dataset_version_id=species.staging_dataset_version_id,
         )
         try:
             refresh_metadata_species_search_entries(species, rows)
@@ -11354,6 +11848,7 @@ def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
             species.slug,
             rows,
             normalize_rows=False,
+            dataset_version_id=species.staging_dataset_version_id,
         )
         try:
             refresh_metadata_species_search_entries(species, rows)
@@ -13573,6 +14068,7 @@ def create_species(
     *,
     assembly_source: str = "all",
     taxon_rank: str = "species",
+    staging_dataset_version_id: str | None = None,
 ) -> SpeciesRecord:
     normalized = normalize_species_name(species_name)
     if len(normalized) < 3:
@@ -13581,6 +14077,10 @@ def create_species(
     normalized_rank = normalize_taxon_rank(taxon_rank)
     existing = get_taxon_by_name(normalized, normalized_rank, connection)
     if existing is not None:
+        if staging_dataset_version_id and existing.staging_dataset_version_id != staging_dataset_version_id:
+            existing.staging_dataset_version_id = staging_dataset_version_id
+            existing.updated_at = utc_now()
+            return save_species(existing, connection)
         return existing
     created_at = utc_now()
     return save_species(
@@ -13599,6 +14099,8 @@ def create_species(
             query_name=normalized,
             refresh_requested=True,
             metadata_status="missing",
+            is_live=False if staging_dataset_version_id else True,
+            staging_dataset_version_id=staging_dataset_version_id,
         ),
         connection,
     )
@@ -14105,6 +14607,7 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
             if not metadata_lock_is_available(int(row["id"])):
                 continue
             claimed_at = utc_now()
+            staging_version_id = active_pipeline_dataset_version(db)
             has_existing_metadata = bool(row["metadata_path"])
             metadata_status = "building" if row["metadata_status"] == "pending" else "ready"
             cursor = db.execute(
@@ -14117,7 +14620,8 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
                     metadata_attempt_count = metadata_attempt_count + 1,
                     metadata_refresh_requested = 0,
                     metadata_claim_token = metadata_claim_token + 1,
-                    updated_at = ?
+                    updated_at = ?,
+                    staging_dataset_version_id = COALESCE(staging_dataset_version_id, ?)
                 WHERE id = ?
                   AND metadata_claimed_at IS NULL
                   AND (
@@ -14125,7 +14629,7 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
                         OR (metadata_status = 'ready' AND metadata_refresh_requested = 1 AND metadata_path IS NOT NULL)
                       )
                 """,
-                (metadata_status, worker_name, claimed_at, claimed_at, claimed_at, row["id"]),
+                (metadata_status, worker_name, claimed_at, claimed_at, claimed_at, staging_version_id, row["id"]),
             )
             if int(cursor.rowcount or 0) == 1:
                 claimed_row = row
@@ -14556,6 +15060,7 @@ def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
             return None
 
         claimed_at = utc_now()
+        staging_version_id = active_pipeline_dataset_version(db)
         has_existing_tsv = bool(row["tsv_path"])
         status = "ready" if has_existing_tsv else "syncing"
         cursor = db.execute(
@@ -14568,7 +15073,8 @@ def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
                 sync_first_claimed_at = COALESCE(sync_first_claimed_at, ?),
                 sync_attempt_count = sync_attempt_count + 1,
                 refresh_requested = 0,
-                claim_token = claim_token + 1
+                claim_token = claim_token + 1,
+                staging_dataset_version_id = COALESCE(staging_dataset_version_id, ?)
             WHERE id = ?
               AND claimed_at IS NULL
               AND (
@@ -14576,7 +15082,7 @@ def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
                     OR (status = 'ready' AND refresh_requested = 1 AND tsv_path IS NOT NULL)
                   )
             """,
-            (status, claimed_at, worker_name, claimed_at, claimed_at, row["id"]),
+            (status, claimed_at, worker_name, claimed_at, claimed_at, staging_version_id, row["id"]),
         )
         if int(cursor.rowcount or 0) != 1:
             db.commit()
@@ -14623,7 +15129,7 @@ def sync_species_record(species: SpeciesRecord) -> None:
         current = load_species(species.id)
         if current.claim_token != species.claim_token:
             return
-        output_path = species_tsv_path(current.slug)
+        output_path = species_tsv_path(current.slug, current.staging_dataset_version_id)
         write_species_tsv(rows, output_path)
         current.tsv_path = str(output_path)
         current.taxon_id = taxon_id
@@ -14716,7 +15222,7 @@ def backfill_species_assembly_features(species: SpeciesRecord) -> None:
             return
 
         refreshed_rows, taxon_id = fetch_species_dataset_rows(current)
-        output_path = species_tsv_path(current.slug)
+        output_path = species_tsv_path(current.slug, current.staging_dataset_version_id)
         write_species_tsv(refreshed_rows, output_path)
 
         stored_rows = load_taxon_metadata_rows(current.id)
@@ -14736,7 +15242,11 @@ def backfill_species_assembly_features(species: SpeciesRecord) -> None:
 
         refreshed_at = utc_now()
         save_taxon_metadata_rows(current.id, merged_rows, refreshed_at=refreshed_at)
-        metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(current.slug, merged_rows)
+        metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
+            current.slug,
+            merged_rows,
+            dataset_version_id=current.staging_dataset_version_id,
+        )
 
         latest = load_species(current.id)
         latest.tsv_path = str(output_path)
@@ -14820,6 +15330,8 @@ def derive_species_metadata_from_genus(species: SpeciesRecord) -> tuple[str, str
     if not genus_name:
         return None
     genus = get_taxon_by_name(genus_name, "genus")
+    if genus is not None and not species.staging_dataset_version_id:
+        genus = public_species_record(genus)
     if genus is None or genus.metadata_status != "ready":
         return None
     source_dataset = Path(genus.metadata_path or "")
@@ -14840,10 +15352,14 @@ def derive_species_metadata_from_genus(species: SpeciesRecord) -> tuple[str, str
         ]
         if filtered_rows:
             save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now())
-            updated_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, filtered_rows)
+            updated_path, clean_path, clean_count = write_taxon_metadata_outputs(
+                species.slug,
+                filtered_rows,
+                dataset_version_id=species.staging_dataset_version_id,
+            )
             return str(updated_path), str(clean_path), int(genus.id), clean_count
 
-    taxon_dir = metadata_taxon_dir(species.slug)
+    taxon_dir = metadata_taxon_dir(species.slug, species.staging_dataset_version_id)
     shutil.rmtree(taxon_dir, ignore_errors=True)
     metadata_output_dir = taxon_dir / "metadata_output"
     updated_path = metadata_output_dir / "ncbi_dataset_updated.tsv"
@@ -14858,13 +15374,28 @@ def derive_species_metadata_from_genus(species: SpeciesRecord) -> tuple[str, str
 
 def ensure_species_from_genus_metadata(species_name: str, source_taxon_id: int) -> SpeciesRecord:
     normalized = normalize_species_name(species_name)
-    genus = load_species(source_taxon_id)
+    genus = require_public_species(source_taxon_id)
     if genus.taxon_rank != "genus":
         raise ValueError("The source taxon must be a genus.")
     if not species_search_name(normalized).startswith(f"{species_search_name(genus.species_name)} "):
         raise ValueError("The selected species does not belong to the source genus.")
     if not genus.metadata_path or not genus.metadata_clean_path:
         raise ValueError("Source genus metadata is not ready.")
+
+    existing = get_taxon_by_name(normalized, "species")
+    if existing is not None:
+        public_existing = public_species_record(existing)
+        if public_existing is None:
+            raise ValueError("That species is currently being updated and is not ready yet.")
+        if (
+            public_existing.status == "ready"
+            and public_existing.tsv_path
+            and Path(public_existing.tsv_path).exists()
+            and public_existing.metadata_status == "ready"
+            and public_existing.metadata_clean_path
+            and Path(public_existing.metadata_clean_path).exists()
+        ):
+            return public_existing
 
     species = create_species(normalized, taxon_rank="species", assembly_source=genus.assembly_source)
     if (
@@ -14913,7 +15444,11 @@ def save_species_metadata_from_genus_rows(
     if not filtered_rows:
         raise ValueError("No matching genomes were found in the source genus metadata.")
     save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now())
-    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, filtered_rows)
+    metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
+        species.slug,
+        filtered_rows,
+        dataset_version_id=species.staging_dataset_version_id,
+    )
     latest = load_species(species.id)
     latest.tsv_path = metadata_path
     latest.status = "ready"
@@ -14935,15 +15470,30 @@ def save_species_metadata_from_genus_rows(
     return latest
 
 
-def expand_species_catalog_from_genus_metadata(limit: int | None = None) -> dict[str, int]:
+def expand_species_catalog_from_genus_metadata(
+    limit: int | None = None,
+    *,
+    staging_dataset_version_id: str | None = None,
+) -> dict[str, int]:
     with get_sqlite_connection() as db:
-        rows = db.execute(
-            """
-            SELECT source_taxon_id, source_taxon_name, species_name, genome_count
-            FROM metadata_species_search
-            ORDER BY source_taxon_name COLLATE NOCASE ASC, genome_count DESC, species_name COLLATE NOCASE ASC
-            """
-        ).fetchall()
+        if staging_dataset_version_id:
+            rows = db.execute(
+                """
+                SELECT source_taxon_id, source_taxon_name, species_name, genome_count
+                FROM metadata_species_search_staging
+                WHERE dataset_version_id = ?
+                ORDER BY source_taxon_name COLLATE NOCASE ASC, genome_count DESC, species_name COLLATE NOCASE ASC
+                """,
+                (staging_dataset_version_id,),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                """
+                SELECT source_taxon_id, source_taxon_name, species_name, genome_count
+                FROM metadata_species_search
+                ORDER BY source_taxon_name COLLATE NOCASE ASC, genome_count DESC, species_name COLLATE NOCASE ASC
+                """
+            ).fetchall()
 
     candidates: dict[tuple[int, str], dict[str, Any]] = {}
     for row in rows:
@@ -15016,7 +15566,17 @@ def expand_species_catalog_from_genus_metadata(limit: int | None = None) -> dict
                 continue
             try:
                 was_existing = existing is not None
-                species = create_species(species_name, taxon_rank="species", assembly_source=genus.assembly_source)
+                species = create_species(
+                    species_name,
+                    taxon_rank="species",
+                    assembly_source=genus.assembly_source,
+                    staging_dataset_version_id=staging_dataset_version_id,
+                )
+                if staging_dataset_version_id:
+                    species.staging_dataset_version_id = staging_dataset_version_id
+                    if not species.live_tsv_path:
+                        species.is_live = False
+                    species = save_species(species)
                 save_species_metadata_from_genus_rows(species, genus, filtered_rows)
                 if was_existing:
                     updated += 1
@@ -15041,10 +15601,11 @@ def write_taxon_metadata_outputs(
     rows: list[dict[str, Any]],
     *,
     normalize_rows: bool = True,
+    dataset_version_id: str | None = None,
 ) -> tuple[str, str, int]:
     if not rows:
         raise RuntimeError("No metadata rows are available to write.")
-    taxon_dir = metadata_taxon_dir(slug)
+    taxon_dir = metadata_taxon_dir(slug, dataset_version_id)
     shutil.rmtree(taxon_dir, ignore_errors=True)
     metadata_output_dir = taxon_dir / "metadata_output"
     metadata_output_dir.mkdir(parents=True, exist_ok=True)
@@ -15244,7 +15805,11 @@ def run_taxon_metadata_pipeline(species: SpeciesRecord) -> tuple[str, str, int |
     update_taxon_metadata_progress(species.id, total=total_rows, completed=len(final_rows))
     if len(final_rows) < total_rows:
         raise RuntimeError(f"Metadata build incomplete after helper merge: {len(final_rows)}/{total_rows} rows are stored.")
-    updated_path, clean_path, clean_count = write_taxon_metadata_outputs(species.slug, final_rows)
+    updated_path, clean_path, clean_count = write_taxon_metadata_outputs(
+        species.slug,
+        final_rows,
+        dataset_version_id=species.staging_dataset_version_id,
+    )
     return str(updated_path), str(clean_path), None, clean_count
 
 
@@ -15387,6 +15952,7 @@ def sync_discovery_scope(scope: DiscoveryScopeRecord) -> None:
         candidates = fetch_scope_taxon_candidates(latest)
         discovered = 0
         with get_sqlite_connection() as db:
+            staging_version_id = active_pipeline_dataset_version_for_step("discovery", db)
             for taxon_name, taxon_id in candidates:
                 existing = get_taxon_by_name(taxon_name, latest.target_rank, db)
                 if existing is None:
@@ -15395,15 +15961,22 @@ def sync_discovery_scope(scope: DiscoveryScopeRecord) -> None:
                         db,
                         assembly_source=latest.assembly_source,
                         taxon_rank=latest.target_rank,
+                        staging_dataset_version_id=staging_version_id,
                     )
                     created.taxon_id = taxon_id
                     created.query_name = str(taxon_id) if taxon_id else taxon_name
+                    if staging_version_id:
+                        created.staging_dataset_version_id = staging_version_id
+                        created.is_live = False
                     created.updated_at = utc_now()
                     save_species(created, db)
                     request_species_sync(created, db)
                     discovered += 1
                 else:
                     changed = False
+                    if staging_version_id:
+                        existing.staging_dataset_version_id = staging_version_id
+                        changed = True
                     source_changed = False
                     if existing.assembly_source != latest.assembly_source:
                         existing.assembly_source = latest.assembly_source
@@ -18583,10 +19156,11 @@ def api_taxa_search() -> Any:
     starts_value = f"{search}%"
     rows = get_db().execute(
         """
-        SELECT id, species_name, taxon_rank, genome_count, assembly_source
+        SELECT id, species_name, taxon_rank, COALESCE(live_genome_count, genome_count) AS genome_count, assembly_source
         FROM species
-        WHERE status = 'ready'
-          AND tsv_path IS NOT NULL
+        WHERE is_live = 1
+          AND live_status = 'ready'
+          AND live_tsv_path IS NOT NULL
           AND lower(species_name) LIKE ?
         ORDER BY
             CASE WHEN lower(species_name) LIKE ? THEN 0 ELSE 1 END,
@@ -18612,13 +19186,17 @@ def api_taxa_search() -> Any:
     if g.current_user is not None:
         metadata_rows = get_db().execute(
             """
-            SELECT source_taxon_id, source_taxon_name, species_name, genome_count
-            FROM metadata_species_search
-            WHERE search_name LIKE ?
+            SELECT m.source_taxon_id, m.source_taxon_name, m.species_name, m.genome_count
+            FROM metadata_species_search m
+            JOIN species s ON s.id = m.source_taxon_id
+            WHERE m.search_name LIKE ?
+              AND s.is_live = 1
+              AND s.live_metadata_status = 'ready'
+              AND s.live_metadata_clean_path IS NOT NULL
             ORDER BY
-                CASE WHEN search_name LIKE ? THEN 0 ELSE 1 END,
-                genome_count DESC,
-                species_name COLLATE NOCASE ASC
+                CASE WHEN m.search_name LIKE ? THEN 0 ELSE 1 END,
+                m.genome_count DESC,
+                m.species_name COLLATE NOCASE ASC
             LIMIT 8
             """,
             (like_value, starts_value),
@@ -19450,6 +20028,10 @@ def admin_promote_dataset_pipeline() -> Any:
             return redirect(url_for("admin_dashboard"))
         previous = get_active_dataset_version_id(db)
         now = utc_now()
+        snapshot_live_species_state(db, previous)
+        snapshot_live_metadata_species_search(db, previous)
+        promote_staged_species_state(db, version_id)
+        promote_staged_metadata_species_search(db, version_id)
         db.execute("UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'", (now, previous))
         db.execute("UPDATE dataset_versions SET status = 'live', promoted_at = ?, promoted_by = ? WHERE version_id = ?", (now, user_id, version_id))
         set_setting("previous_dataset_version_id", previous, db)
@@ -19471,10 +20053,10 @@ def admin_promote_dataset_pipeline() -> Any:
         run = db.execute("SELECT run_id FROM dataset_update_pipeline_runs WHERE dataset_version_id = ? ORDER BY id DESC LIMIT 1", (version_id,)).fetchone()
         if run is not None:
             db.execute("UPDATE dataset_update_pipeline_runs SET status = 'promoted', completed_at = ? WHERE run_id = ?", (now, run["run_id"]))
-            db.execute("UPDATE dataset_update_pipeline_steps SET status = 'completed', completed_at = ?, blockers_json = '[]' WHERE run_id = ? AND step_key = 'promote'", (now, run["run_id"]))
+            db.execute("UPDATE dataset_update_pipeline_steps SET status = 'completed', completed_at = ?, blockers_json = '[]' WHERE run_id = ? AND step_key = 'replace'", (now, run["run_id"]))
         db.commit()
     record_audit_event("admin.dataset_pipeline_promote", target_type="dataset_version", target_id=version_id)
-    flash(f"Promoted dataset version {version_id}. Public pointers are now ready to switch to this version as versioned readers are adopted.", "success")
+    flash(f"Promoted dataset version {version_id}. Public dataset pointers now use the verified staging data.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -19488,6 +20070,8 @@ def admin_rollback_dataset_pipeline() -> Any:
             flash("No previous dataset version is available for rollback.", "error")
             return redirect(url_for("admin_dashboard"))
         now = utc_now()
+        restore_live_species_snapshot(db, previous)
+        restore_live_metadata_species_search_snapshot(db, previous)
         db.execute("UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ?", (now, current))
         db.execute("UPDATE dataset_versions SET status = 'live', promoted_at = ? WHERE version_id = ?", (now, previous))
         set_setting("active_dataset_version_id", previous, db)
@@ -19754,7 +20338,7 @@ def create_job() -> Any:
                 flash("Select a taxon from the managed catalog or switch to TSV upload.", "error")
                 return redirect(url_for("index"))
             try:
-                species = load_species(int(taxon_id_raw))
+                species = require_public_species(int(taxon_id_raw))
             except (ValueError, FileNotFoundError):
                 flash("Selected taxon was not found.", "error")
                 return redirect(url_for("index"))
@@ -19844,7 +20428,7 @@ def create_job() -> Any:
                 flash("Select a taxon from the managed catalog or switch to TSV upload.", "error")
                 return redirect(url_for("index"))
             try:
-                species = load_species(int(taxon_id_raw))
+                species = require_public_species(int(taxon_id_raw))
             except (ValueError, FileNotFoundError):
                 flash("Selected taxon was not found.", "error")
                 return redirect(url_for("index"))
@@ -19987,7 +20571,11 @@ def job_detail(job_id: str) -> str:
 
 
 def render_taxon_metadata_section(species_id: int, section: str) -> str:
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if species.status != "ready" or not species.tsv_path:
         flash("That taxon is not ready in the managed catalog yet.", "error")
         return redirect(url_for("index"))
@@ -20030,7 +20618,11 @@ def taxon_metadata_section(species_id: int, section: str) -> str:
 
 @app.route("/taxa/<int:species_id>/metadata/download")
 def download_taxon_metadata(species_id: int):
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Metadata download is not ready for that taxon yet.", "error")
         return redirect(url_for("taxon_metadata", species_id=species_id))
@@ -20041,7 +20633,11 @@ def download_taxon_metadata(species_id: int):
 
 @app.route("/taxa/<int:species_id>/metadata/download-bundle")
 def download_taxon_metadata_bundle(species_id: int):
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Metadata bundle is not ready for that taxon yet.", "error")
         return redirect(url_for("taxon_metadata", species_id=species_id))
@@ -20061,7 +20657,11 @@ def download_taxon_metadata_bundle(species_id: int):
 def taxon_sequences(species_id: int) -> str:
     user = g.current_user
     assert user is not None
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if species.status != "ready" or not species.tsv_path:
         flash("That taxon is not ready in the managed catalog yet.", "error")
         return redirect(url_for("index"))
@@ -20095,7 +20695,11 @@ def taxon_sequences(species_id: int) -> str:
 def taxon_quality_check(species_id: int) -> str:
     user = g.current_user
     assert user is not None
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if species.status != "ready" or not species.tsv_path:
         flash("That taxon is not ready in the managed catalog yet.", "error")
         return redirect(url_for("index"))
@@ -20134,7 +20738,11 @@ def taxon_quality_check(species_id: int) -> str:
 def download_taxon_sequence_metadata_subset(species_id: int):
     user = g.current_user
     assert user is not None
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Combined metadata is not ready for that taxon yet.", "error")
         return redirect(url_for("taxon_sequences", species_id=species_id))
@@ -20162,7 +20770,11 @@ def download_taxon_sequence_metadata_subset(species_id: int):
 def create_taxon_sequence_job(species_id: int) -> Any:
     user = g.current_user
     assert user is not None
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if count_active_jobs_for_user(int(user["id"])) >= 1:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
         return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
@@ -20256,7 +20868,11 @@ def create_taxon_sequence_job(species_id: int) -> Any:
 def create_taxon_sequence_quality_job(species_id: int) -> Any:
     user = g.current_user
     assert user is not None
-    species = load_species(species_id)
+    try:
+        species = require_public_species(species_id)
+    except FileNotFoundError:
+        flash("That taxon is not ready in the managed catalog yet.", "error")
+        return redirect(url_for("index"))
     if count_active_jobs_for_user(int(user["id"])) >= 1:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
         return redirect(url_for("taxon_quality_check", species_id=species_id, **request.form))
