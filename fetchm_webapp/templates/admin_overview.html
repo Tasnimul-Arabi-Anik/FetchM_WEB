@@ -18,122 +18,269 @@
 
   {% include "_admin_nav.html" %}
 
+  <style>
+    .pipeline-board {
+      display: grid;
+      gap: 14px;
+    }
+
+    .pipeline-stage {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+      gap: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.86), rgba(246,241,228,0.72));
+    }
+
+    .pipeline-stage-head {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .pipeline-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(22, 92, 78, 0.12);
+      color: var(--accent);
+      font-weight: 900;
+    }
+
+    .pipeline-stage h3 {
+      margin: 0 0 5px;
+      font-size: 1.12rem;
+    }
+
+    .pipeline-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .pipeline-controls form,
+    .pipeline-inline-form {
+      margin: 0;
+    }
+
+    .pipeline-check {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.72);
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .pipeline-progress-box {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .pipeline-progress-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      font-weight: 800;
+    }
+
+    .pipeline-bar {
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(22, 92, 78, 0.12);
+    }
+
+    .pipeline-bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #165c4e, #d08a3c);
+    }
+
+    .pipeline-detail-list {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .pipeline-settings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: end;
+      margin-top: 12px;
+    }
+
+    .pipeline-settings label {
+      min-width: 150px;
+    }
+
+    .pipeline-danger-panel {
+      margin-top: 14px;
+      padding: 14px;
+      border: 1px solid rgba(142, 47, 29, 0.2);
+      border-radius: 16px;
+      background: rgba(142, 47, 29, 0.06);
+    }
+
+    @media (max-width: 980px) {
+      .pipeline-stage {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+
   <section class="panel">
     <div class="admin-group-head">
       <div>
         <p class="eyebrow">Dataset Update Pipeline</p>
-        <h2>Live-safe weekly staging updates</h2>
+        <h2>Sequential dataset refresh controls</h2>
       </div>
-      <p class="section-note">Public pages keep using the current live dataset while discovery, metadata, standardization, and Global Insights are rebuilt in staging.</p>
+      <p class="section-note">Run each activity directly, or let enabled stages continue automatically after the previous stage finishes.</p>
     </div>
 
-    <div class="metrics-grid">
-      <div class="metric-card metric-wide">
-        <strong>{{ dataset_pipeline.live_version.version_id }}</strong>
-        <span>Current live dataset</span>
-        <span>Status: {{ dataset_pipeline.live_version.status }}</span>
-      </div>
-      <div class="metric-card metric-wide">
-        <strong>{{ dataset_pipeline.staging_version.version_id if dataset_pipeline.staging_version else "No staging version" }}</strong>
-        <span>Latest staging dataset</span>
-        <span>Status: {{ dataset_pipeline.staging_version.status if dataset_pipeline.staging_version else "not started" }}</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ "Enabled" if dataset_pipeline.enabled else "Paused" }}</strong>
-        <span>Weekly schedule</span>
-        <span>{{ dataset_pipeline.schedule_day|title }} {{ dataset_pipeline.schedule_hour_utc }}:00 UTC</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ dataset_pipeline.scope }}</strong>
-        <span>Discovery scope</span>
-        <span>Bacterial root taxon by default</span>
-      </div>
+    <form id="pipeline-settings-form" action="{{ url_for('admin_set_dataset_pipeline_settings') }}" method="post"></form>
+    <div class="pipeline-settings top-gap">
+        <label>
+          <span>Discovery schedule</span>
+          <select form="pipeline-settings-form" name="dataset_pipeline_discovery_schedule_enabled">
+            <option value="1" {% if dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Enabled</option>
+            <option value="0" {% if not dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Paused</option>
+          </select>
+        </label>
+        <label>
+          <span>Every N days</span>
+          <input form="pipeline-settings-form" type="number" name="dataset_pipeline_discovery_interval_days" min="1" max="365" value="{{ dataset_pipeline.discovery_interval_days }}" list="pipeline-day-options">
+          <datalist id="pipeline-day-options">
+            <option value="7"></option>
+            <option value="14"></option>
+            <option value="30"></option>
+          </datalist>
+        </label>
+        <label>
+          <span>UTC hour</span>
+          <input form="pipeline-settings-form" type="number" name="dataset_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.schedule_hour_utc }}">
+        </label>
+        <label>
+          <span>Discovery taxon</span>
+          <input form="pipeline-settings-form" type="text" name="dataset_pipeline_scope" value="{{ dataset_pipeline.scope }}">
+        </label>
+        <label>
+          <span>Insights publish mode</span>
+          <select form="pipeline-settings-form" name="dataset_pipeline_auto_publish_insights">
+            <option value="1" {% if dataset_pipeline.auto_publish_insights %}selected{% endif %}>Publish after replacement</option>
+            <option value="0" {% if not dataset_pipeline.auto_publish_insights %}selected{% endif %}>Stage only</option>
+          </select>
+        </label>
+        <button form="pipeline-settings-form" type="submit">Save pipeline settings</button>
     </div>
 
-    <div class="metrics-grid top-gap">
-      {% for step in dataset_pipeline.steps %}
-        <div class="metric-card metric-wide">
-          <strong>{{ loop.index }}. {{ step.label }}</strong>
-          <span>Status: {{ step.status }}</span>
-          {% if step.blockers %}
-            <span class="danger-text">{{ step.blockers|join('; ') }}</span>
-          {% elif step.completed_at %}
-            <span>Completed: {{ step.completed_at }}</span>
-          {% elif step.started_at %}
-            <span>Started: {{ step.started_at }}</span>
-          {% else %}
-            <span>Waiting for prerequisites</span>
-          {% endif %}
-        </div>
-      {% endfor %}
-      {% if not dataset_pipeline.steps %}
-        <div class="metric-card metric-wide">
-          <strong>No pipeline run yet</strong>
-          <span>Use Run staging update now to build a candidate dataset without changing public data.</span>
-        </div>
-      {% endif %}
-    </div>
+      <div class="pipeline-board top-gap">
+        {% for stage in dataset_pipeline.step_cards %}
+          <article class="pipeline-stage">
+            <div>
+              <div class="pipeline-stage-head">
+                <span class="pipeline-index">{{ stage.index }}</span>
+                <div>
+                  <h3>{{ stage.label }}</h3>
+                  <p class="section-note">{{ stage.short }}</p>
+                </div>
+              </div>
+              <div class="pipeline-controls">
+                <form action="{{ url_for('admin_run_dataset_pipeline') }}" method="post">
+                  <input type="hidden" name="start_step" value="{{ stage.key }}">
+                  <button type="submit" {% if not dataset_pipeline.can_run_now %}disabled{% endif %}>{{ stage.run_label }}</button>
+                </form>
+                {% if stage.has_sequential_control %}
+                  {% set setting_name = "dataset_pipeline_" ~ stage.key ~ "_sequential" %}
+                  <label class="pipeline-check">
+                    <input form="pipeline-settings-form" type="checkbox" name="{{ setting_name }}" value="1" {% if stage.sequential_enabled %}checked{% endif %}>
+                    Run sequentially after previous step
+                  </label>
+                {% else %}
+                  <span class="pipeline-check">Scheduled from Discovery settings</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="pipeline-progress-box">
+              <div class="pipeline-progress-top">
+                <span>{{ stage.metric_label }}</span>
+                <span>{{ stage.percent }}%</span>
+              </div>
+              <div class="pipeline-bar" aria-hidden="true"><span style="width: {{ stage.percent }}%"></span></div>
+              <div class="pipeline-detail-list">
+                <span>Status: {{ stage.status }}</span>
+                {% for detail in stage.details %}
+                  <span>{{ detail }}</span>
+                {% endfor %}
+                {% if stage.row and stage.row.blockers %}
+                  <span class="danger-text">{{ stage.row.blockers|join('; ') }}</span>
+                {% elif stage.row and stage.row.completed_at %}
+                  <span>Completed: {{ stage.row.completed_at }}</span>
+                {% elif stage.row and stage.row.started_at %}
+                  <span>Started: {{ stage.row.started_at }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
 
     {% if dataset_pipeline.latest_run %}
       <div class="hint-block top-gap">
-        <strong>Latest run</strong>
+        <strong>Latest pipeline run</strong>
         <p>
           {{ dataset_pipeline.latest_run.run_id }} is {{ dataset_pipeline.latest_run.status }}.
-          Staging version: {{ dataset_pipeline.latest_run.dataset_version_id }}.
           Requested: {{ dataset_pipeline.latest_run.requested_at }}.
           {% if dataset_pipeline.latest_run.error %}<span class="danger-text">{{ dataset_pipeline.latest_run.error }}</span>{% endif %}
         </p>
       </div>
     {% endif %}
 
-    <form action="{{ url_for('admin_set_dataset_pipeline_settings') }}" method="post" class="inline-form top-gap">
-      <label>
-        <span>Enable weekly pipeline</span>
-        <select name="dataset_pipeline_enabled">
-          <option value="1" {% if dataset_pipeline.enabled %}selected{% endif %}>Enabled</option>
-          <option value="0" {% if not dataset_pipeline.enabled %}selected{% endif %}>Paused</option>
-        </select>
-      </label>
-      <label>
-        <span>Schedule day</span>
-        <select name="dataset_pipeline_schedule_day">
-          {% for day in ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"] %}
-            <option value="{{ day }}" {% if dataset_pipeline.schedule_day == day %}selected{% endif %}>{{ day|title }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <label>
-        <span>UTC hour</span>
-        <input type="number" name="dataset_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.schedule_hour_utc }}">
-      </label>
-      <label>
-        <span>Discovery scope</span>
-        <input type="text" name="dataset_pipeline_scope" value="{{ dataset_pipeline.scope }}">
-      </label>
-      <label>
-        <span>Auto-publish insights</span>
-        <select name="dataset_pipeline_auto_publish_insights">
-          <option value="0" {% if not dataset_pipeline.auto_publish_insights %}selected{% endif %}>Stage only</option>
-          <option value="1" {% if dataset_pipeline.auto_publish_insights %}selected{% endif %}>Publish on promotion</option>
-        </select>
-      </label>
-      <button type="submit">Update pipeline settings</button>
-    </form>
+    <div class="pipeline-danger-panel">
+      <div class="admin-group-head">
+        <div>
+          <p class="eyebrow">Manual Maintenance</p>
+          <h3>Restart Metadata Standardization</h3>
+          <p class="section-note">Use this after adding or changing standardization rules. It reprocesses existing ready metadata, independent of the incremental pipeline.</p>
+        </div>
+      </div>
+      <form action="{{ url_for('admin_restart_dataset_standardization') }}" method="post" class="pipeline-settings">
+        <label>
+          <span>Taxa scope</span>
+          <select name="rank_scope">
+            <option value="all">Genus and species</option>
+            <option value="genus">Genus only</option>
+            <option value="species">Species only</option>
+          </select>
+        </label>
+        <label>
+          <span>Optional limit</span>
+          <input type="number" name="limit" min="1" max="100000" placeholder="all">
+        </label>
+        <button type="submit" class="ghost">Restart standardization</button>
+      </form>
+    </div>
 
     <div class="action-row top-gap">
-      <form action="{{ url_for('admin_run_dataset_pipeline') }}" method="post">
-        <button type="submit" {% if not dataset_pipeline.can_run_now %}disabled{% endif %}>Run staging update now</button>
-      </form>
       {% if dataset_pipeline.active_run %}
         <form action="{{ url_for('admin_cancel_dataset_pipeline') }}" method="post">
           <input type="hidden" name="run_id" value="{{ dataset_pipeline.active_run.run_id }}">
-          <button type="submit" class="ghost">Cancel staging run</button>
-        </form>
-      {% endif %}
-      {% if dataset_pipeline.staging_version %}
-        <form action="{{ url_for('admin_promote_dataset_pipeline') }}" method="post">
-          <input type="hidden" name="version_id" value="{{ dataset_pipeline.staging_version.version_id }}">
-          <button type="submit" {% if not dataset_pipeline.can_promote %}disabled{% endif %}>Promote verified staging to live</button>
+          <button type="submit" class="ghost">Cancel active pipeline run</button>
         </form>
       {% endif %}
       <form action="{{ url_for('admin_rollback_dataset_pipeline') }}" method="post">

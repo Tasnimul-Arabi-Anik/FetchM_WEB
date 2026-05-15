@@ -6003,10 +6003,16 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
     )
     for key, value in [
         ("dataset_pipeline_enabled", "0"),
-        ("dataset_pipeline_schedule_day", "sunday"),
+        ("dataset_pipeline_discovery_schedule_enabled", "0"),
+        ("dataset_pipeline_discovery_interval_days", "7"),
         ("dataset_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_scope", "2"),
         ("dataset_pipeline_auto_publish_insights", "1"),
+        ("dataset_pipeline_catalog_sequential", "1"),
+        ("dataset_pipeline_metadata_sequential", "1"),
+        ("dataset_pipeline_standardization_sequential", "1"),
+        ("dataset_pipeline_replace_sequential", "0"),
+        ("dataset_pipeline_global_insights_sequential", "1"),
         ("active_dataset_version_id", "legacy-live"),
         ("previous_dataset_version_id", ""),
     ]:
@@ -6236,14 +6242,54 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
 
 
 DATASET_PIPELINE_STEPS = [
-    ("discovery", "Regular Discovery"),
-    ("catalog", "TSV Catalog"),
-    ("metadata", "Metadata Delta"),
-    ("standardization", "Standardization"),
-    ("global_insights", "Global Insights"),
-    ("verify", "Verification"),
-    ("promote", "Promotion"),
+    ("discovery", "Discover new genus or species"),
+    ("catalog", "Update genus and species catalog"),
+    ("metadata", "Update metadata build"),
+    ("standardization", "Standardize newly updated metadata"),
+    ("replace", "Replace existing data"),
+    ("global_insights", "Generate Global Insights"),
 ]
+
+DATASET_PIPELINE_STEP_COPY = {
+    "discovery": {
+        "short": "Find new bacterial genera and species from NCBI taxonomy.",
+        "run_label": "Run discovery now",
+        "metric_label": "Discovery scopes",
+    },
+    "catalog": {
+        "short": "Refresh genus TSV catalogs first, then species catalogs.",
+        "run_label": "Run catalog now",
+        "metric_label": "Catalog ready",
+    },
+    "metadata": {
+        "short": "Build genus metadata first, then derive/build species metadata.",
+        "run_label": "Run metadata now",
+        "metric_label": "Metadata ready",
+    },
+    "standardization": {
+        "short": "Apply metadata standardization to newly updated metadata rows.",
+        "run_label": "Run standardization now",
+        "metric_label": "Standardization",
+    },
+    "replace": {
+        "short": "Promote the verified updated dataset as the active live dataset.",
+        "run_label": "Replace data now",
+        "metric_label": "Live version",
+    },
+    "global_insights": {
+        "short": "Regenerate the Global Insights snapshot from the active metadata.",
+        "run_label": "Generate insights now",
+        "metric_label": "Insights snapshot",
+    },
+}
+
+DATASET_PIPELINE_SEQUENTIAL_KEYS = {
+    "catalog": "dataset_pipeline_catalog_sequential",
+    "metadata": "dataset_pipeline_metadata_sequential",
+    "standardization": "dataset_pipeline_standardization_sequential",
+    "replace": "dataset_pipeline_replace_sequential",
+    "global_insights": "dataset_pipeline_global_insights_sequential",
+}
 
 
 def dataset_versions_root() -> Path:
@@ -6312,6 +6358,39 @@ def active_dataset_update_run(db: sqlite3.Connection | None = None) -> dict[str,
     return dict(row) if row is not None else None
 
 
+def dataset_pipeline_step_keys() -> list[str]:
+    return [step_key for step_key, _label in DATASET_PIPELINE_STEPS]
+
+
+def dataset_pipeline_step_label(step_key: str) -> str:
+    return dict(DATASET_PIPELINE_STEPS).get(step_key, step_key.replace("_", " ").title())
+
+
+def normalize_dataset_pipeline_step(value: str | None) -> str:
+    candidate = str(value or "discovery").strip().lower()
+    return candidate if candidate in dataset_pipeline_step_keys() else "discovery"
+
+
+def dataset_pipeline_sequential_enabled(step_key: str, db: sqlite3.Connection | None = None) -> bool:
+    setting_key = DATASET_PIPELINE_SEQUENTIAL_KEYS.get(step_key)
+    if setting_key is None:
+        return True
+    default = "0" if step_key == "replace" else "1"
+    return get_setting(setting_key, default, db) == "1"
+
+
+def dataset_pipeline_steps_for_start(start_step: str, db: sqlite3.Connection | None = None) -> list[str]:
+    ordered = dataset_pipeline_step_keys()
+    start = normalize_dataset_pipeline_step(start_step)
+    start_index = ordered.index(start)
+    selected = [start]
+    for step_key in ordered[start_index + 1 :]:
+        if not dataset_pipeline_sequential_enabled(step_key, db):
+            break
+        selected.append(step_key)
+    return selected
+
+
 def dataset_update_steps(run_id: str, db: sqlite3.Connection | None = None) -> list[dict[str, Any]]:
     connection = db or get_db()
     rows = connection.execute(
@@ -6334,12 +6413,17 @@ def dataset_update_steps(run_id: str, db: sqlite3.Connection | None = None) -> l
             item["blockers"] = json.loads(str(item.get("blockers_json") or "[]"))
         except json.JSONDecodeError:
             item["blockers"] = []
-        item["label"] = dict(DATASET_PIPELINE_STEPS).get(str(item["step_key"]), str(item["step_key"]))
+        item["label"] = dataset_pipeline_step_label(str(item["step_key"]))
         steps.append(item)
     return steps
 
 
-def queue_dataset_update_pipeline_run(trigger_type: str, requested_by: int | None = None) -> tuple[str | None, str | None]:
+def queue_dataset_update_pipeline_run(
+    trigger_type: str,
+    requested_by: int | None = None,
+    *,
+    start_step: str = "discovery",
+) -> tuple[str | None, str | None]:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
         active = active_dataset_update_run(db)
@@ -6347,13 +6431,17 @@ def queue_dataset_update_pipeline_run(trigger_type: str, requested_by: int | Non
             db.commit()
             return None, f"Pipeline run {active['run_id']} is already {active['status']}."
         now = utc_now()
-        run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_dataset_update"
+        normalized_start = normalize_dataset_pipeline_step(start_step)
+        selected_steps = dataset_pipeline_steps_for_start(normalized_start, db)
+        run_id = f"{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}_{normalized_start}_update"
         version_id = f"{run_id}_staging"
         root = dataset_version_root(version_id)
         root.mkdir(parents=True, exist_ok=True)
         summary = {
             "scope": get_setting("dataset_pipeline_scope", "2", db),
-            "schedule_day": get_setting("dataset_pipeline_schedule_day", "sunday", db),
+            "start_step": normalized_start,
+            "step_keys": selected_steps,
+            "discovery_interval_days": get_setting("dataset_pipeline_discovery_interval_days", "7", db),
             "schedule_hour_utc": get_setting("dataset_pipeline_schedule_hour_utc", "18", db),
             "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", db) == "1",
         }
@@ -6377,7 +6465,7 @@ def queue_dataset_update_pipeline_run(trigger_type: str, requested_by: int | Non
         )
         step_rows = [
             (run_id, step_key, index, "pending" if index == 0 else "waiting", now if index == 0 else None)
-            for index, (step_key, _label) in enumerate(DATASET_PIPELINE_STEPS)
+            for index, step_key in enumerate(selected_steps)
         ]
         db.executemany(
             """
@@ -6390,6 +6478,186 @@ def queue_dataset_update_pipeline_run(trigger_type: str, requested_by: int | Non
         )
         db.commit()
         return run_id, None
+
+
+def dataset_pipeline_rank_counts(db: sqlite3.Connection) -> dict[str, int]:
+    catalog_rows = db.execute(
+        """
+        SELECT taxon_rank,
+               COUNT(*) AS total,
+               SUM(CASE WHEN status = 'ready' AND tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS ready,
+               SUM(CASE WHEN status IN ('pending', 'syncing') OR refresh_requested = 1 OR claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
+               SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM species
+        GROUP BY taxon_rank
+        """
+    ).fetchall()
+    metadata_rows = db.execute(
+        """
+        SELECT taxon_rank,
+               COUNT(*) AS total,
+               SUM(CASE WHEN metadata_status = 'ready' AND metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS ready,
+               SUM(CASE WHEN metadata_status IN ('pending', 'building') OR metadata_refresh_requested = 1 OR metadata_claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
+               SUM(CASE WHEN metadata_status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM species
+        WHERE status = 'ready'
+          AND tsv_path IS NOT NULL
+        GROUP BY taxon_rank
+        """
+    ).fetchall()
+    counts: dict[str, int] = {}
+    for prefix, rows in [("catalog", catalog_rows), ("metadata", metadata_rows)]:
+        for row in rows:
+            rank = str(row["taxon_rank"] or "unknown")
+            counts[f"{prefix}_{rank}_total"] = int(row["total"] or 0)
+            counts[f"{prefix}_{rank}_ready"] = int(row["ready"] or 0)
+            counts[f"{prefix}_{rank}_active"] = int(row["active"] or 0)
+            counts[f"{prefix}_{rank}_failed"] = int(row["failed"] or 0)
+    discovery = db.execute(
+        """
+        SELECT COUNT(*) AS total,
+               SUM(CASE WHEN status = 'ready' THEN 1 ELSE 0 END) AS ready,
+               SUM(CASE WHEN status IN ('pending', 'discovering') OR refresh_requested = 1 THEN 1 ELSE 0 END) AS active,
+               SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+               COALESCE(SUM(discovered_species_count), 0) AS discovered
+        FROM discovery_scopes
+        """
+    ).fetchone()
+    counts.update(
+        {
+            "discovery_total": int(discovery["total"] or 0),
+            "discovery_ready": int(discovery["ready"] or 0),
+            "discovery_active": int(discovery["active"] or 0),
+            "discovery_failed": int(discovery["failed"] or 0),
+            "discovery_found_total": int(discovery["discovered"] or 0),
+        }
+    )
+    standardization = db.execute(
+        """
+        SELECT COUNT(*) AS total,
+               SUM(CASE WHEN status IN ('pending', 'running', 'chunking', 'finalizing') THEN 1 ELSE 0 END) AS active,
+               SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+               SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+               COALESCE(SUM(total_rows), 0) AS total_rows,
+               COALESCE(SUM(updated_rows), 0) AS updated_rows
+        FROM standardization_refresh_tasks
+        """
+    ).fetchone()
+    counts.update(
+        {
+            "standardization_total": int(standardization["total"] or 0),
+            "standardization_active": int(standardization["active"] or 0),
+            "standardization_completed": int(standardization["completed"] or 0),
+            "standardization_failed": int(standardization["failed"] or 0),
+            "standardization_total_rows": int(standardization["total_rows"] or 0),
+            "standardization_updated_rows": int(standardization["updated_rows"] or 0),
+        }
+    )
+    insights = latest_global_insight_task(db)
+    counts["global_insights_active"] = 1 if insights and str(insights.get("status")) in {"pending", "running"} else 0
+    counts["global_insights_completed"] = 1 if insights and str(insights.get("status")) == "completed" else 0
+    return counts
+
+
+def progress_percent(done: int, total: int) -> int:
+    if total <= 0:
+        return 0
+    return max(0, min(100, int(round((done / total) * 100))))
+
+
+def build_dataset_pipeline_step_cards(
+    db: sqlite3.Connection,
+    step_rows_by_key: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    counts = dataset_pipeline_rank_counts(db)
+    active_version = get_active_dataset_version_id(db)
+    latest_insight = latest_global_insight_task(db)
+    cards: list[dict[str, Any]] = []
+    for index, (step_key, label) in enumerate(DATASET_PIPELINE_STEPS, start=1):
+        row = step_rows_by_key.get(step_key)
+        status = str(row["status"]) if row else "idle"
+        progress = row.get("progress", {}) if row else {}
+        detail_lines: list[str] = []
+        percent = 0
+        if step_key == "discovery":
+            total = counts.get("discovery_total", 0)
+            ready = counts.get("discovery_ready", 0)
+            percent = progress_percent(ready, total)
+            species_before = int(progress.get("species_before") or counts.get("catalog_species_total", 0))
+            genus_before = int(progress.get("genus_before") or counts.get("catalog_genus_total", 0))
+            new_species = max(0, counts.get("catalog_species_total", 0) - species_before)
+            new_genera = max(0, counts.get("catalog_genus_total", 0) - genus_before)
+            detail_lines = [
+                f"{counts.get('discovery_active', 0)} scopes running or queued",
+                f"{new_genera} new genera and {new_species} new species in latest run",
+            ]
+        elif step_key == "catalog":
+            genus_ready = counts.get("catalog_genus_ready", 0)
+            genus_total = counts.get("catalog_genus_total", 0)
+            species_ready = counts.get("catalog_species_ready", 0)
+            species_total = counts.get("catalog_species_total", 0)
+            percent = progress_percent(genus_ready + species_ready, genus_total + species_total)
+            detail_lines = [
+                f"{genus_ready}/{genus_total} genus catalogs ready",
+                f"{species_ready}/{species_total} species catalogs ready",
+            ]
+        elif step_key == "metadata":
+            genus_ready = counts.get("metadata_genus_ready", 0)
+            genus_total = counts.get("metadata_genus_total", 0)
+            species_ready = counts.get("metadata_species_ready", 0)
+            species_total = counts.get("metadata_species_total", 0)
+            percent = progress_percent(genus_ready + species_ready, genus_total + species_total)
+            detail_lines = [
+                f"{genus_ready}/{genus_total} genus metadata builds ready",
+                f"{species_ready}/{species_total} species metadata builds ready",
+            ]
+        elif step_key == "standardization":
+            completed = counts.get("standardization_completed", 0)
+            total = counts.get("standardization_total", 0)
+            percent = progress_percent(completed, total)
+            detail_lines = [
+                f"{counts.get('standardization_active', 0)} standardization tasks active",
+                f"{counts.get('standardization_updated_rows', 0)} standardized rows updated",
+            ]
+        elif step_key == "replace":
+            percent = 100 if active_version != "legacy-live" else 0
+            detail_lines = [
+                f"Active dataset: {active_version}",
+                "Replacement waits for previous steps unless you run it manually.",
+            ]
+        elif step_key == "global_insights":
+            percent = 100 if latest_insight and str(latest_insight.get("status")) == "completed" else 0
+            if latest_insight:
+                detail_lines = [
+                    f"Latest snapshot: {latest_insight.get('snapshot_id')}",
+                    f"Status: {latest_insight.get('status')}",
+                ]
+            else:
+                detail_lines = ["No Global Insights snapshot task has run yet."]
+        if status == "completed":
+            percent = 100
+        elif status in {"running", "pending"} and progress:
+            if step_key == "standardization" and progress.get("queued"):
+                total = int(progress.get("eligible") or progress.get("queued") or 0)
+                done = max(0, total - counts.get("standardization_active", 0))
+                percent = progress_percent(done, total)
+        cards.append(
+            {
+                "key": step_key,
+                "index": index,
+                "label": label,
+                "short": DATASET_PIPELINE_STEP_COPY[step_key]["short"],
+                "run_label": DATASET_PIPELINE_STEP_COPY[step_key]["run_label"],
+                "metric_label": DATASET_PIPELINE_STEP_COPY[step_key]["metric_label"],
+                "status": status,
+                "percent": percent,
+                "details": detail_lines,
+                "row": row,
+                "sequential_enabled": dataset_pipeline_sequential_enabled(step_key, db),
+                "has_sequential_control": step_key in DATASET_PIPELINE_SEQUENTIAL_KEYS,
+            }
+        )
+    return cards
 
 
 def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
@@ -6413,17 +6681,28 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     active_run = active_dataset_update_run(connection)
     run_for_steps = active_run or latest_run
     steps = dataset_update_steps(str(run_for_steps["run_id"]), connection) if run_for_steps else []
+    step_rows_by_key = {str(step["step_key"]): step for step in steps}
+    step_cards = build_dataset_pipeline_step_cards(connection, step_rows_by_key)
+    discovery_schedule_enabled = get_setting("dataset_pipeline_discovery_schedule_enabled", "0", connection) == "1"
+    discovery_interval_days = get_setting("dataset_pipeline_discovery_interval_days", "7", connection)
+    schedule_hour_utc = get_setting("dataset_pipeline_schedule_hour_utc", "18", connection)
     return {
         "enabled": get_setting("dataset_pipeline_enabled", "0", connection) == "1",
-        "schedule_day": get_setting("dataset_pipeline_schedule_day", "sunday", connection),
-        "schedule_hour_utc": get_setting("dataset_pipeline_schedule_hour_utc", "18", connection),
+        "discovery_schedule_enabled": discovery_schedule_enabled,
+        "discovery_interval_days": discovery_interval_days,
+        "schedule_hour_utc": schedule_hour_utc,
         "scope": get_setting("dataset_pipeline_scope", "2", connection),
         "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "sequential": {
+            step_key: dataset_pipeline_sequential_enabled(step_key, connection)
+            for step_key in DATASET_PIPELINE_SEQUENTIAL_KEYS
+        },
         "live_version": dict(live) if live is not None else {"version_id": active_version_id, "status": "live"},
         "staging_version": dict(staging) if staging is not None else None,
         "latest_run": latest_run,
         "active_run": active_run,
         "steps": steps,
+        "step_cards": step_cards,
         "can_run_now": active_run is None,
         "can_promote": bool(staging is not None and str(staging["status"]) == "verified"),
         "can_rollback": bool(get_setting("previous_dataset_version_id", "", connection)),
@@ -6432,48 +6711,51 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
 
 def scheduled_dataset_pipeline_due_at(db: sqlite3.Connection | None = None) -> datetime:
     connection = db or get_db()
-    day = str(get_setting("dataset_pipeline_schedule_day", "sunday", connection) or "sunday").lower()
-    hour = int(get_setting("dataset_pipeline_schedule_hour_utc", "18", connection) or "18")
-    day_index = {
-        "monday": 0,
-        "tuesday": 1,
-        "wednesday": 2,
-        "thursday": 3,
-        "friday": 4,
-        "saturday": 5,
-        "sunday": 6,
-    }.get(day, 6)
+    try:
+        interval_days = max(1, int(get_setting("dataset_pipeline_discovery_interval_days", "7", connection) or "7"))
+    except ValueError:
+        interval_days = 7
+    try:
+        hour = max(0, min(23, int(get_setting("dataset_pipeline_schedule_hour_utc", "18", connection) or "18")))
+    except ValueError:
+        hour = 18
     now = datetime.now(timezone.utc)
-    start_of_week = now - timedelta(days=now.weekday())
-    due = start_of_week.replace(hour=hour, minute=0, second=0, microsecond=0) + timedelta(days=day_index)
-    if due > now:
-        due -= timedelta(days=7)
-    return due
+    latest = connection.execute(
+        """
+        SELECT requested_at
+        FROM dataset_update_pipeline_runs
+        WHERE trigger_type = 'scheduled'
+          AND summary_json LIKE '%"start_step": "discovery"%'
+        ORDER BY requested_at DESC, id DESC
+        LIMIT 1
+        """
+    ).fetchone()
+    if latest is not None:
+        try:
+            return parse_utc(str(latest["requested_at"])) + timedelta(days=interval_days)
+        except ValueError:
+            pass
+    candidate = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    if candidate > now:
+        candidate -= timedelta(days=1)
+    return candidate
 
 
 def schedule_due_dataset_pipeline_run() -> None:
     with get_sqlite_connection() as db:
-        if get_setting("dataset_pipeline_enabled", "0", db) != "1":
+        if get_setting("dataset_pipeline_discovery_schedule_enabled", "0", db) != "1":
             return
         if active_dataset_update_run(db) is not None:
             return
         due = scheduled_dataset_pipeline_due_at(db)
-        latest = db.execute(
-            """
-            SELECT requested_at
-            FROM dataset_update_pipeline_runs
-            WHERE trigger_type = 'scheduled'
-            ORDER BY requested_at DESC, id DESC
-            LIMIT 1
-            """
-        ).fetchone()
-        if latest is not None:
-            try:
-                if parse_utc(str(latest["requested_at"])) >= due:
-                    return
-            except ValueError:
-                pass
-    queue_dataset_update_pipeline_run("scheduled", None)
+        try:
+            hour = int(get_setting("dataset_pipeline_schedule_hour_utc", "18", db) or "18")
+        except ValueError:
+            hour = 18
+        now = datetime.now(timezone.utc)
+        if now < due or now.hour < hour:
+            return
+    queue_dataset_update_pipeline_run("scheduled", None, start_step="discovery")
 
 
 def global_insights_root() -> Path:
@@ -6787,6 +7069,102 @@ def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
     }
 
 
+def request_pipeline_discovery_refresh(db: sqlite3.Connection) -> dict[str, Any]:
+    now = utc_now()
+    existing = db.execute("SELECT COUNT(*) AS total FROM discovery_scopes").fetchone()
+    if int(existing["total"] or 0) == 0:
+        scope = get_setting("dataset_pipeline_scope", "2", db) or "2"
+        create_discovery_scope(
+            str(scope),
+            label="Bacteria genera",
+            assembly_source=DEFAULT_ASSEMBLY_SOURCE,
+            target_rank="genus",
+            db=db,
+        )
+    cursor = db.execute(
+        """
+        UPDATE discovery_scopes
+        SET status = 'pending',
+            refresh_requested = 1,
+            updated_at = ?,
+            last_error = NULL,
+            claimed_by = NULL,
+            claimed_at = NULL
+        WHERE status != 'discovering'
+        """,
+        (now,),
+    )
+    counts = dataset_pipeline_rank_counts(db)
+    return {
+        "queued": int(cursor.rowcount or 0),
+        "active": counts.get("discovery_active", 0),
+        "ready": counts.get("discovery_ready", 0),
+        "total": counts.get("discovery_total", 0),
+    }
+
+
+def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str) -> dict[str, Any]:
+    rank = normalize_taxon_rank(rank)
+    now = utc_now()
+    cursor = db.execute(
+        """
+        UPDATE species
+        SET status = CASE WHEN tsv_path IS NULL THEN 'pending' ELSE status END,
+            refresh_requested = 1,
+            updated_at = ?,
+            sync_error = NULL,
+            claimed_by = NULL,
+            claimed_at = NULL,
+            sync_attempt_count = CASE WHEN tsv_path IS NULL THEN 0 ELSE sync_attempt_count END,
+            sync_first_claimed_at = CASE WHEN tsv_path IS NULL THEN NULL ELSE sync_first_claimed_at END
+        WHERE taxon_rank = ?
+          AND status != 'syncing'
+          AND claimed_at IS NULL
+        """,
+        (now, rank),
+    )
+    counts = dataset_pipeline_rank_counts(db)
+    return {
+        "queued": int(cursor.rowcount or 0),
+        "rank": rank,
+        "active": counts.get(f"catalog_{rank}_active", 0),
+        "ready": counts.get(f"catalog_{rank}_ready", 0),
+        "total": counts.get(f"catalog_{rank}_total", 0),
+    }
+
+
+def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str) -> dict[str, Any]:
+    rank = normalize_taxon_rank(rank)
+    now = utc_now()
+    cursor = db.execute(
+        """
+        UPDATE species
+        SET metadata_status = CASE WHEN metadata_path IS NULL THEN 'pending' ELSE metadata_status END,
+            metadata_refresh_requested = 1,
+            metadata_error = NULL,
+            metadata_claimed_by = NULL,
+            metadata_claimed_at = NULL,
+            metadata_attempt_count = CASE WHEN metadata_path IS NULL THEN 0 ELSE metadata_attempt_count END,
+            metadata_first_claimed_at = CASE WHEN metadata_path IS NULL THEN NULL ELSE metadata_first_claimed_at END,
+            updated_at = ?
+        WHERE taxon_rank = ?
+          AND status = 'ready'
+          AND tsv_path IS NOT NULL
+          AND metadata_status != 'building'
+          AND metadata_claimed_at IS NULL
+        """,
+        (now, rank),
+    )
+    counts = dataset_pipeline_rank_counts(db)
+    return {
+        "queued": int(cursor.rowcount or 0),
+        "rank": rank,
+        "active": counts.get(f"metadata_{rank}_active", 0),
+        "ready": counts.get(f"metadata_{rank}_ready", 0),
+        "total": counts.get(f"metadata_{rank}_total", 0),
+    }
+
+
 def set_pipeline_step_status(
     db: sqlite3.Connection,
     step_id: int,
@@ -6828,6 +7206,16 @@ def queue_next_pipeline_step(db: sqlite3.Connection, run_id: str, completed_orde
         (run_id, completed_order),
     ).fetchone()
     if next_step is None:
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_runs
+            SET status = 'completed',
+                completed_at = COALESCE(completed_at, ?)
+            WHERE run_id = ?
+              AND status IN ('pending', 'running')
+            """,
+            (utc_now(), run_id),
+        )
         return
     db.execute(
         """
@@ -6850,7 +7238,7 @@ def advance_dataset_update_pipeline_runs() -> None:
         db.execute("BEGIN IMMEDIATE")
         rows = db.execute(
             """
-            SELECT s.*, r.dataset_version_id
+            SELECT s.*, r.dataset_version_id, r.requested_at
             FROM dataset_update_pipeline_steps s
             JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
             WHERE s.status = 'running'
@@ -6858,11 +7246,16 @@ def advance_dataset_update_pipeline_runs() -> None:
             """
         ).fetchall()
         counts = dataset_update_active_counts(db)
+        rank_counts = dataset_pipeline_rank_counts(db)
         for step in rows:
             step_key = str(step["step_key"])
             blockers: list[str] = []
             failed = False
-            progress = dict(counts)
+            try:
+                progress = json.loads(str(step["progress_json"] or "{}"))
+            except json.JSONDecodeError:
+                progress = {}
+            progress.update(counts)
             if step_key == "discovery":
                 if counts["discovery_active"]:
                     blockers.append(f"{counts['discovery_active']} discovery scopes still active")
@@ -6870,17 +7263,39 @@ def advance_dataset_update_pipeline_runs() -> None:
                     failed = True
                     blockers.append(f"{counts['discovery_failed']} discovery scopes failed")
             elif step_key == "catalog":
-                if counts["catalog_active"]:
-                    blockers.append(f"{counts['catalog_active']} catalog syncs still active")
-                if counts["catalog_failed"]:
+                phase = str(progress.get("phase") or "genus")
+                if phase == "genus":
+                    if rank_counts.get("catalog_genus_active", 0):
+                        blockers.append(f"{rank_counts.get('catalog_genus_active', 0)} genus catalogs still active")
+                    elif not blockers:
+                        species_queue = request_pipeline_catalog_syncs(db, "species")
+                        progress.update({"phase": "species", "species_queue": species_queue})
+                        blockers.append(f"{species_queue['queued']} species catalogs queued")
+                elif rank_counts.get("catalog_species_active", 0):
+                    blockers.append(f"{rank_counts.get('catalog_species_active', 0)} species catalogs still active")
+                if rank_counts.get("catalog_genus_failed", 0) or rank_counts.get("catalog_species_failed", 0):
                     failed = True
-                    blockers.append(f"{counts['catalog_failed']} catalog syncs failed")
+                    blockers.append(
+                        f"{rank_counts.get('catalog_genus_failed', 0)} genus and "
+                        f"{rank_counts.get('catalog_species_failed', 0)} species catalog syncs failed"
+                    )
             elif step_key == "metadata":
-                if counts["metadata_active"]:
-                    blockers.append(f"{counts['metadata_active']} metadata builds or refreshes still active")
-                if counts["metadata_failed"]:
+                phase = str(progress.get("phase") or "genus")
+                if phase == "genus":
+                    if rank_counts.get("metadata_genus_active", 0):
+                        blockers.append(f"{rank_counts.get('metadata_genus_active', 0)} genus metadata builds still active")
+                    elif not blockers:
+                        species_queue = request_pipeline_metadata_builds(db, "species")
+                        progress.update({"phase": "species", "species_queue": species_queue})
+                        blockers.append(f"{species_queue['queued']} species metadata builds queued")
+                elif rank_counts.get("metadata_species_active", 0):
+                    blockers.append(f"{rank_counts.get('metadata_species_active', 0)} species metadata builds still active")
+                if rank_counts.get("metadata_genus_failed", 0) or rank_counts.get("metadata_species_failed", 0):
                     failed = True
-                    blockers.append(f"{counts['metadata_failed']} metadata builds failed")
+                    blockers.append(
+                        f"{rank_counts.get('metadata_genus_failed', 0)} genus and "
+                        f"{rank_counts.get('metadata_species_failed', 0)} species metadata builds failed"
+                    )
             elif step_key == "standardization":
                 if counts["standardization_active"]:
                     blockers.append(f"{counts['standardization_active']} standardization tasks/chunks still active")
@@ -6905,7 +7320,7 @@ def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute(
             """
-            SELECT s.*, r.dataset_version_id
+            SELECT s.*, r.dataset_version_id, r.requested_at
             FROM dataset_update_pipeline_steps s
             JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
             WHERE s.status = 'pending'
@@ -6949,35 +7364,82 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
     version_id = str(step["dataset_version_id"])
     with get_sqlite_connection() as db:
         if step_key == "discovery":
+            before = dataset_pipeline_rank_counts(db)
+            queued = request_pipeline_discovery_refresh(db)
             progress = {
-                "scope": "Bacteria taxon 2",
-                "mode": "staging-plan",
-                "note": "Live discovery scopes are not changed until versioned discovery writers are enabled.",
+                "scope": get_setting("dataset_pipeline_scope", "2", db),
+                "queued": queued,
+                "species_before": before.get("catalog_species_total", 0),
+                "genus_before": before.get("catalog_genus_total", 0),
+                "note": "Discovery refresh queued for managed scopes.",
             }
-            mark_pipeline_step_completed(db, step, progress)
+            set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
             return
         if step_key == "catalog":
-            progress = dataset_update_active_counts(db)
-            progress["mode"] = "staging-plan"
-            progress["note"] = "Live TSV catalog paths were not changed."
-            mark_pipeline_step_completed(db, step, progress)
+            genus_queue = request_pipeline_catalog_syncs(db, "genus")
+            progress = {
+                "phase": "genus",
+                "genus_queue": genus_queue,
+                "note": "Genus catalogs are refreshed before species catalogs.",
+            }
+            set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
             return
         if step_key == "metadata":
-            progress = dataset_update_active_counts(db)
-            progress["mode"] = "staging-plan"
-            progress["note"] = "Live metadata paths were not changed."
-            mark_pipeline_step_completed(db, step, progress)
+            genus_queue = request_pipeline_metadata_builds(db, "genus")
+            progress = {
+                "phase": "genus",
+                "genus_queue": genus_queue,
+                "note": "Genus metadata is refreshed before species metadata.",
+            }
+            set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
             return
         if step_key == "standardization":
             db.commit()
-            summary = queue_standardization_refresh_for_ready_taxa(limit=None, dry_run=True, rank_scope="all")
-            summary["mode"] = "dry-run"
-            summary["note"] = "Live standardized metadata files were not rewritten."
+            changed_since = str(step["requested_at"] or "") or None
+            summary = queue_standardization_refresh_for_ready_taxa(
+                limit=None,
+                dry_run=False,
+                rank_scope="all",
+                changed_since=changed_since,
+            )
+            summary["mode"] = "incremental"
+            summary["note"] = "Only metadata built or refreshed after this pipeline run began was queued."
             db.execute("BEGIN IMMEDIATE")
-            mark_pipeline_step_completed(db, step, summary)
+            if int(summary.get("queued") or 0) or int(summary.get("running") or 0):
+                set_pipeline_step_status(db, int(step["id"]), "running", progress=summary)
+            else:
+                mark_pipeline_step_completed(db, step, summary)
+            db.commit()
+            return
+        if step_key == "replace":
+            previous = get_active_dataset_version_id(db)
+            now = utc_now()
+            db.execute(
+                "UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'",
+                (now, previous),
+            )
+            db.execute(
+                """
+                UPDATE dataset_versions
+                SET status = 'live', promoted_at = ?, promoted_by = ?
+                WHERE version_id = ?
+                """,
+                (now, None, version_id),
+            )
+            set_setting("previous_dataset_version_id", previous, db)
+            set_setting("active_dataset_version_id", version_id, db)
+            mark_pipeline_step_completed(
+                db,
+                step,
+                {
+                    "previous_version": previous,
+                    "active_version": version_id,
+                    "note": "Active dataset pointer replaced after upstream steps completed.",
+                },
+            )
             db.commit()
             return
         if step_key == "global_insights":
@@ -7001,7 +7463,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 for row in rows
                 if row["metadata_clean_path"]
             ]
-            staging_root = dataset_version_root(version_id) / "global_insights"
+            staging_root = global_insights_root()
             snapshot_id = f"{version_id}_global_insights"
             db.commit()
             summary = generate_global_insights_snapshot(
@@ -10066,6 +10528,7 @@ def queue_standardization_refresh_for_ready_taxa(
     limit: int | None = None,
     dry_run: bool = False,
     rank_scope: str = "genus",
+    changed_since: str | None = None,
 ) -> dict[str, Any]:
     rank_scope = str(rank_scope or "genus").strip().lower()
     if rank_scope not in {"genus", "species", "all"}:
@@ -10075,14 +10538,19 @@ def queue_standardization_refresh_for_ready_taxa(
     if rank_scope != "all":
         rank_clause = "AND taxon_rank = ?"
         params.append(rank_scope)
+    changed_clause = ""
+    if changed_since:
+        changed_clause = "AND metadata_last_built_at IS NOT NULL AND metadata_last_built_at >= ?"
+        params.append(changed_since)
     rows = get_db().execute(
         f"""
-        SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path
+        SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, metadata_last_built_at
         FROM species
         WHERE status = 'ready'
           AND metadata_status = 'ready'
           AND metadata_clean_path IS NOT NULL
           {rank_clause}
+          {changed_clause}
         ORDER BY
           CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
           COALESCE(genome_count, 0) DESC,
@@ -10108,6 +10576,7 @@ def queue_standardization_refresh_for_ready_taxa(
             "skipped": skipped,
             "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
             "rank_scope": rank_scope,
+            "changed_since": changed_since,
         }
 
     now = utc_now()
@@ -10160,6 +10629,7 @@ def queue_standardization_refresh_for_ready_taxa(
         "skipped": skipped,
         "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
         "rank_scope": rank_scope,
+        "changed_since": changed_since,
     }
 
 
@@ -18706,26 +19176,35 @@ def admin_set_system_monitor() -> Any:
 @app.route("/admin/dataset-pipeline/settings", methods=["POST"])
 def admin_set_dataset_pipeline_settings() -> Any:
     require_admin()
-    enabled = "1" if request.form.get("dataset_pipeline_enabled") == "1" else "0"
+    enabled = "1" if request.form.get("dataset_pipeline_discovery_schedule_enabled") == "1" else "0"
     auto_publish = "1" if request.form.get("dataset_pipeline_auto_publish_insights") == "1" else "0"
-    schedule_day = (request.form.get("dataset_pipeline_schedule_day") or "sunday").strip().lower()
-    if schedule_day not in {"sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"}:
-        schedule_day = "sunday"
     try:
         schedule_hour = max(0, min(23, int(request.form.get("dataset_pipeline_schedule_hour_utc") or "18")))
     except ValueError:
         schedule_hour = 18
+    try:
+        interval_days = max(1, min(365, int(request.form.get("dataset_pipeline_discovery_interval_days") or "7")))
+    except ValueError:
+        interval_days = 7
     scope = (request.form.get("dataset_pipeline_scope") or "2").strip() or "2"
     set_setting("dataset_pipeline_enabled", enabled)
+    set_setting("dataset_pipeline_discovery_schedule_enabled", enabled)
+    set_setting("dataset_pipeline_discovery_interval_days", str(interval_days))
     set_setting("dataset_pipeline_auto_publish_insights", auto_publish)
-    set_setting("dataset_pipeline_schedule_day", schedule_day)
     set_setting("dataset_pipeline_schedule_hour_utc", str(schedule_hour))
     set_setting("dataset_pipeline_scope", scope)
+    for step_key, setting_key in DATASET_PIPELINE_SEQUENTIAL_KEYS.items():
+        set_setting(setting_key, "1" if request.form.get(setting_key) == "1" else "0")
     record_audit_event(
         "admin.dataset_pipeline_settings",
         target_type="dataset_pipeline",
         target_id="settings",
-        metadata={"enabled": enabled == "1", "schedule_day": schedule_day, "schedule_hour_utc": schedule_hour, "scope": scope},
+        metadata={
+            "discovery_schedule_enabled": enabled == "1",
+            "discovery_interval_days": interval_days,
+            "schedule_hour_utc": schedule_hour,
+            "scope": scope,
+        },
     )
     flash("Dataset update pipeline settings updated.", "success")
     return redirect(url_for("admin_dashboard"))
@@ -18735,12 +19214,45 @@ def admin_set_dataset_pipeline_settings() -> Any:
 def admin_run_dataset_pipeline() -> Any:
     require_admin()
     user_id = int(g.current_user["id"]) if g.current_user else None
-    run_id, error = queue_dataset_update_pipeline_run("manual", user_id)
+    start_step = normalize_dataset_pipeline_step(request.form.get("start_step"))
+    run_id, error = queue_dataset_update_pipeline_run("manual", user_id, start_step=start_step)
     if error:
         flash(error, "error")
     else:
-        record_audit_event("admin.dataset_pipeline_run", target_type="dataset_pipeline", target_id=run_id)
-        flash(f"Staging dataset update pipeline queued: {run_id}. Public data will not change until promotion.", "success")
+        record_audit_event(
+            "admin.dataset_pipeline_run",
+            target_type="dataset_pipeline",
+            target_id=run_id,
+            metadata={"start_step": start_step},
+        )
+        flash(f"{dataset_pipeline_step_label(start_step)} queued: {run_id}. Sequentially enabled downstream steps will follow.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/restart-standardization", methods=["POST"])
+def admin_restart_dataset_standardization() -> Any:
+    require_admin()
+    rank_scope = request.form.get("rank_scope") or "all"
+    limit = parse_optional_int(request.form.get("limit"))
+    if limit is not None:
+        limit = max(1, min(limit, 100000))
+    summary = queue_standardization_refresh_for_ready_taxa(
+        limit=limit,
+        dry_run=False,
+        rank_scope=rank_scope,
+        changed_since=None,
+    )
+    record_audit_event(
+        "admin.dataset_pipeline_restart_standardization",
+        target_type="dataset_pipeline",
+        target_id="standardization",
+        metadata=summary,
+    )
+    flash(
+        f"Restarted metadata standardization ({summary['rank_scope']}): "
+        f"{summary['queued']} queued, {summary['running']} already running, {summary['skipped']} skipped.",
+        "success",
+    )
     return redirect(url_for("admin_dashboard"))
 
 
