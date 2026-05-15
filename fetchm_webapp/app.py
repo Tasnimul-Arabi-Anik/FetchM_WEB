@@ -6736,7 +6736,7 @@ def pipeline_step_time_label(row: Mapping[str, Any] | None, status: str) -> str:
         return ""
     started = parse_optional_utc(row.get("started_at"))
     completed = parse_optional_utc(row.get("completed_at"))
-    if completed is not None and started is not None:
+    if status == "completed" and completed is not None and started is not None:
         return f"Completed in {format_elapsed_brief((completed - started).total_seconds())}"
     if status == "running" and started is not None:
         return f"Running for {format_elapsed_brief((utc_now_dt() - started).total_seconds())}"
@@ -6825,15 +6825,17 @@ def build_dataset_pipeline_step_cards(
             species_ready = counts.get("catalog_species_ready", 0)
             species_no_data = counts.get("catalog_species_no_data", 0)
             species_total = counts.get("catalog_species_total", 0)
-            genus_resolved = genus_ready + genus_no_data
-            species_resolved = species_ready + species_no_data
-            percent = progress_percent(genus_resolved + species_resolved, genus_total + species_total)
             genus_remaining = counts.get("catalog_genus_active", 0)
             species_remaining = counts.get("catalog_species_active", 0)
+            genus_failed = counts.get("catalog_genus_failed", 0)
+            species_failed = counts.get("catalog_species_failed", 0)
+            genus_finished = max(0, genus_total - genus_remaining - genus_failed)
+            species_finished = max(0, species_total - species_remaining - species_failed)
+            percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
             detail_lines = [
-                f"Full genus refresh: {genus_resolved}/{genus_total} resolved ({genus_remaining} remaining)",
-                f"Genus result: {genus_ready} ready, {genus_no_data} no genome data",
-                f"Full species refresh: {species_resolved}/{species_total} resolved ({species_remaining} remaining)",
+                f"Full genus refresh: {genus_finished}/{genus_total} finished, {genus_remaining} remaining",
+                f"Current genus coverage: {genus_ready} ready, {genus_no_data} no genome data",
+                f"Full species refresh: {species_finished}/{species_total} finished, {species_remaining} remaining",
             ]
         elif step_key == "metadata":
             genus_ready = counts.get("metadata_genus_ready", 0)
