@@ -51,6 +51,41 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
+    def test_standardization_reuses_unchanged_rows_and_forces_when_requested(self) -> None:
+        row = {
+            "Assembly Accession": "GCA_000001.1",
+            "Assembly Name": "ASM1",
+            "Organism Name": "Escherichia coli strain test",
+            "Host": "human",
+            "Isolation Source": "stool",
+            "Geographic Location": "USA",
+            "Collection Date": "2024",
+        }
+        first = ensure_managed_metadata_schema(dict(row))
+        fingerprint_column = fetchm_app.METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN
+        self.assertTrue(first.get(fingerprint_column))
+
+        legacy_reusable = dict(first)
+        legacy_reusable.pop(fingerprint_column, None)
+        legacy_reusable.pop(fetchm_app.METADATA_STANDARDIZATION_UPDATED_AT_COLUMN, None)
+        legacy_reusable["Host_SD"] = "Existing standardized host"
+        seeded = ensure_managed_metadata_schema(legacy_reusable)
+        self.assertEqual(seeded["Host_SD"], "Existing standardized host")
+        self.assertTrue(seeded.get(fingerprint_column))
+
+        changed_same_input = dict(seeded)
+        changed_same_input["Host_SD"] = "Preserved standardized host"
+        reused = ensure_managed_metadata_schema(changed_same_input)
+        self.assertEqual(reused["Host_SD"], "Preserved standardized host")
+
+        forced = ensure_managed_metadata_schema(changed_same_input, force_standardization=True)
+        self.assertNotEqual(forced["Host_SD"], "Preserved standardized host")
+
+        changed_raw_input = dict(reused)
+        changed_raw_input["Host"] = "mouse"
+        refreshed = ensure_managed_metadata_schema(changed_raw_input)
+        self.assertNotEqual(refreshed["Host_SD"], "Preserved standardized host")
+
     def test_advanced_quality_job_detail_loads_parent_owner_field(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

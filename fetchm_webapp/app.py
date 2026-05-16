@@ -5,6 +5,7 @@ import contextlib
 import csv
 import difflib
 import fcntl
+import hashlib
 import html
 import json
 import logging
@@ -1071,6 +1072,7 @@ def init_db() -> None:
             completed_at TEXT,
             total_rows INTEGER NOT NULL DEFAULT 0,
             updated_rows INTEGER NOT NULL DEFAULT 0,
+            force_standardization INTEGER NOT NULL DEFAULT 0,
             error TEXT,
             FOREIGN KEY (species_id) REFERENCES species (id)
         );
@@ -1121,6 +1123,9 @@ def init_db() -> None:
         ON audit_log (actor_user_id, created_at DESC);
         """
     )
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(standardization_refresh_tasks)").fetchall()}
+    if "force_standardization" not in columns:
+        db.execute("ALTER TABLE standardization_refresh_tasks ADD COLUMN force_standardization INTEGER NOT NULL DEFAULT 0")
     db.commit()
     ensure_job_columns(db)
     ensure_species_columns(db)
@@ -1612,6 +1617,96 @@ SECONDARY_STANDARDIZATION_COLUMNS = [
     "Host_Health_State_SD_Method",
     "Host_Health_State_Ontology_ID",
 ]
+
+METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN = "FetchM_Standardization_Input_Fingerprint"
+METADATA_STANDARDIZATION_UPDATED_AT_COLUMN = "FetchM_Standardized_At"
+METADATA_STANDARDIZATION_INTERNAL_COLUMNS = {
+    METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN,
+    METADATA_STANDARDIZATION_UPDATED_AT_COLUMN,
+}
+METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | set(SECONDARY_STANDARDIZATION_COLUMNS) | {
+    "Country",
+    "Continent",
+    "Subcontinent",
+    "Country_Source",
+    "Country_Confidence",
+    "Country_Evidence",
+    "Geo_Recovery_Status",
+}
+
+
+def metadata_standardization_input_fingerprint(row: Mapping[str, Any]) -> str:
+    payload: dict[str, Any] = {}
+    for key, value in row.items():
+        column = str(key)
+        if column in METADATA_STANDARDIZATION_INTERNAL_COLUMNS:
+            continue
+        if column in METADATA_STANDARDIZATION_OUTPUT_COLUMNS:
+            continue
+        payload[column] = normalize_json_scalar(value)
+    return hashlib.sha256(
+        json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
+
+
+def row_has_reusable_standardization(row: Mapping[str, Any]) -> bool:
+    if not str(row.get("Host_SD") or "").strip():
+        return False
+    if "Geo_Recovery_Status" not in row:
+        return False
+    return all(column in row for column in SECONDARY_STANDARDIZATION_COLUMNS)
+
+
+def normalize_managed_metadata_row(
+    row: dict[str, Any],
+    *,
+    force_standardization: bool = False,
+) -> tuple[dict[str, Any], bool]:
+    normalized = harmonize_primary_metadata_aliases(dict(row))
+    for column in SPECIES_TSV_COLUMNS:
+        normalized.setdefault(column, None)
+    fingerprint = metadata_standardization_input_fingerprint(normalized)
+    previous_fingerprint = str(row.get(METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN) or "").strip()
+    if (
+        not force_standardization
+        and row_has_reusable_standardization(row)
+        and (previous_fingerprint == fingerprint or not previous_fingerprint)
+    ):
+        normalized.update(
+            {
+                column: row.get(column)
+                for column in METADATA_STANDARDIZATION_OUTPUT_COLUMNS
+                if column in row
+            }
+        )
+        for column in METADATA_STANDARDIZATION_INTERNAL_COLUMNS:
+            if column in row:
+                normalized[column] = row.get(column)
+        normalized[METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN] = fingerprint
+        return normalized, False
+
+    normalized = harmonize_geography_metadata(harmonize_collection_date_metadata(normalized))
+    host_source_value = normalized.get("Host")
+    host_standardization = standardize_host_metadata(normalized.get("Host"))
+    if not host_standardization.get("Host_TaxID"):
+        context_host_standardization = standardize_host_from_metadata_context(normalized)
+        if context_host_standardization is not None:
+            host_standardization = context_host_standardization
+            host_source_value = context_host_standardization.get("_Host_Source_Value") or host_source_value
+    host_standardization = enrich_host_standardization(host_source_value, host_standardization)
+    for column in HOST_STANDARDIZATION_COLUMNS:
+        normalized[column] = host_standardization[column]
+    secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
+    for column in SECONDARY_STANDARDIZATION_COLUMNS:
+        normalized[column] = secondary_standardization[column]
+    if not str(normalized.get("Host_Anatomical_Site_SD") or "").strip():
+        anatomical_site = canonical_anatomical_site(secondary_standardization.get("Isolation_Site_SD"))
+        if anatomical_site:
+            normalized["Host_Anatomical_Site_SD"] = anatomical_site
+    normalized[METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN] = fingerprint
+    normalized[METADATA_STANDARDIZATION_UPDATED_AT_COLUMN] = utc_now()
+    return normalized, True
+
 
 HOST_SYNONYMS = {
     "human": ("Homo sapiens", "9606"),
@@ -5459,27 +5554,11 @@ def harmonize_geography_metadata(row: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
-def ensure_managed_metadata_schema(row: dict[str, Any]) -> dict[str, Any]:
-    normalized = harmonize_geography_metadata(harmonize_collection_date_metadata(harmonize_primary_metadata_aliases(row)))
-    for column in SPECIES_TSV_COLUMNS:
-        normalized.setdefault(column, None)
-    host_source_value = normalized.get("Host")
-    host_standardization = standardize_host_metadata(normalized.get("Host"))
-    if not host_standardization.get("Host_TaxID"):
-        context_host_standardization = standardize_host_from_metadata_context(normalized)
-        if context_host_standardization is not None:
-            host_standardization = context_host_standardization
-            host_source_value = context_host_standardization.get("_Host_Source_Value") or host_source_value
-    host_standardization = enrich_host_standardization(host_source_value, host_standardization)
-    for column in HOST_STANDARDIZATION_COLUMNS:
-        normalized[column] = host_standardization[column]
-    secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
-    for column in SECONDARY_STANDARDIZATION_COLUMNS:
-        normalized[column] = secondary_standardization[column]
-    if not str(normalized.get("Host_Anatomical_Site_SD") or "").strip():
-        anatomical_site = canonical_anatomical_site(secondary_standardization.get("Isolation_Site_SD"))
-        if anatomical_site:
-            normalized["Host_Anatomical_Site_SD"] = anatomical_site
+def ensure_managed_metadata_schema(row: dict[str, Any], *, force_standardization: bool = False) -> dict[str, Any]:
+    normalized, _standardized = normalize_managed_metadata_row(
+        row,
+        force_standardization=force_standardization,
+    )
     return normalized
 
 
@@ -5593,6 +5672,7 @@ def save_taxon_metadata_rows(
     *,
     refreshed_at: str,
     normalize_rows: bool = True,
+    force_standardization: bool = False,
 ) -> None:
     if not rows:
         return
@@ -5600,7 +5680,7 @@ def save_taxon_metadata_rows(
     accessions: list[str] = []
     for row in rows:
         if normalize_rows:
-            row = ensure_managed_metadata_schema(row)
+            row = ensure_managed_metadata_schema(row, force_standardization=force_standardization)
         accession = metadata_row_accession(row)
         if not accession:
             continue
@@ -5679,12 +5759,15 @@ def upsert_taxon_metadata_rows(
     rows: list[dict[str, Any]],
     *,
     refreshed_at: str,
+    force_standardization: bool = False,
+    normalize_rows: bool = True,
 ) -> int:
     if not rows:
         return 0
     serialized_rows = []
     for row in rows:
-        row = ensure_managed_metadata_schema(row)
+        if normalize_rows:
+            row = ensure_managed_metadata_schema(row, force_standardization=force_standardization)
         accession = metadata_row_accession(row)
         if not accession:
             continue
@@ -5720,6 +5803,24 @@ def upsert_taxon_metadata_rows(
         )
         db.commit()
     return len(serialized_rows)
+
+
+def standardize_taxon_metadata_rows_with_reuse(
+    rows: list[dict[str, Any]],
+    *,
+    force_standardization: bool = False,
+) -> tuple[list[dict[str, Any]], int]:
+    normalized_rows: list[dict[str, Any]] = []
+    standardized_count = 0
+    for row in rows:
+        normalized, standardized = normalize_managed_metadata_row(
+            row,
+            force_standardization=force_standardization,
+        )
+        normalized_rows.append(normalized)
+        if standardized:
+            standardized_count += 1
+    return normalized_rows, standardized_count
 
 
 def update_taxon_metadata_progress(
@@ -11260,8 +11361,11 @@ def refine_taxon_host_standardization(species: SpeciesRecord) -> int:
     rows_by_accession = load_taxon_metadata_rows(species.id)
     if not rows_by_accession:
         return 0
-    rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
-    save_taxon_metadata_rows(species.id, rows, refreshed_at=utc_now())
+    rows = [
+        ensure_managed_metadata_schema(row, force_standardization=True)
+        for row in rows_by_accession.values()
+    ]
+    save_taxon_metadata_rows(species.id, rows, refreshed_at=utc_now(), normalize_rows=False)
     metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
         species.slug,
         rows,
@@ -11328,6 +11432,7 @@ def queue_standardization_refresh_for_ready_taxa(
     dry_run: bool = False,
     rank_scope: str = "genus",
     changed_since: str | None = None,
+    force_standardization: bool = False,
 ) -> dict[str, Any]:
     rank_scope = str(rank_scope or "genus").strip().lower()
     if rank_scope not in {"genus", "species", "all"}:
@@ -11376,6 +11481,7 @@ def queue_standardization_refresh_for_ready_taxa(
             "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
             "rank_scope": rank_scope,
             "changed_since": changed_since,
+            "force_standardization": force_standardization,
         }
 
     now = utc_now()
@@ -11395,9 +11501,9 @@ def queue_standardization_refresh_for_ready_taxa(
                 """
                 INSERT INTO standardization_refresh_tasks (
                     species_id, status, requested_at, claimed_by, claimed_at,
-                    completed_at, total_rows, updated_rows, error
+                    completed_at, total_rows, updated_rows, force_standardization, error
                 )
-                VALUES (?, 'pending', ?, NULL, NULL, NULL, 0, 0, NULL)
+                VALUES (?, 'pending', ?, NULL, NULL, NULL, 0, 0, ?, NULL)
                 ON CONFLICT(species_id) DO UPDATE SET
                     status = 'pending',
                     requested_at = excluded.requested_at,
@@ -11406,9 +11512,10 @@ def queue_standardization_refresh_for_ready_taxa(
                     completed_at = NULL,
                     total_rows = 0,
                     updated_rows = 0,
+                    force_standardization = excluded.force_standardization,
                     error = NULL
                 """,
-                (species_id, now),
+                (species_id, now, 1 if force_standardization else 0),
             )
             task_row = db.execute(
                 "SELECT id FROM standardization_refresh_tasks WHERE species_id = ?",
@@ -11429,6 +11536,7 @@ def queue_standardization_refresh_for_ready_taxa(
         "estimated_rows": sum(int(row["genome_count"] or 0) for row in eligible),
         "rank_scope": rank_scope,
         "changed_since": changed_since,
+        "force_standardization": force_standardization,
     }
 
 
@@ -11476,7 +11584,7 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
         db.execute("BEGIN IMMEDIATE")
         row = db.execute(
             """
-            SELECT s.*, t.id AS task_id
+            SELECT s.*, t.id AS task_id, t.force_standardization AS task_force_standardization
             FROM standardization_refresh_tasks t
             JOIN species s ON s.id = t.species_id
             WHERE t.status = 'pending'
@@ -11527,7 +11635,11 @@ def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] 
         return None
     with get_sqlite_connection() as db:
         species = get_species_by_id(int(row["id"]), db)
-    return {"task_id": int(row["task_id"]), "species": species or row_to_species(row)}
+    return {
+        "task_id": int(row["task_id"]),
+        "species": species or row_to_species(row),
+        "force_standardization": bool(int(row["task_force_standardization"] or 0)),
+    }
 
 
 def mark_standardization_refresh_task_failed(task_id: int, error: str) -> None:
@@ -11707,7 +11819,8 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
                 c.completed_at AS chunk_completed_at,
                 c.total_rows AS chunk_total_rows,
                 c.updated_rows AS chunk_updated_rows,
-                c.error AS chunk_error
+                c.error AS chunk_error,
+                t.force_standardization AS task_force_standardization
             FROM standardization_refresh_chunks c
             JOIN standardization_refresh_tasks t ON t.id = c.task_id
             JOIN species s ON s.id = c.species_id
@@ -11765,6 +11878,7 @@ def claim_next_standardization_refresh_chunk(worker_name: str) -> dict[str, Any]
         "total_rows": int(row["chunk_total_rows"] or 0),
         "updated_rows": int(row["chunk_updated_rows"] or 0),
         "error": row["chunk_error"],
+        "force_standardization": bool(int(row["task_force_standardization"] or 0)),
     }
     with get_sqlite_connection() as db:
         species = get_species_by_id(int(row["chunk_species_id"]), db)
@@ -11904,6 +12018,7 @@ def process_standardization_refresh_chunk(payload: dict[str, Any], worker_name: 
     assert isinstance(species, SpeciesRecord)
     chunk_id = int(chunk["id"])
     task_id = int(chunk["task_id"])
+    force_standardization = bool(chunk.get("force_standardization"))
     start_offset = max(0, int(chunk["start_offset"]))
     end_offset = max(start_offset, int(chunk["end_offset"]))
     try:
@@ -11913,10 +12028,15 @@ def process_standardization_refresh_chunk(payload: dict[str, Any], worker_name: 
             offset=start_offset,
         )
         refreshed_at = utc_now()
-        updated_rows = upsert_taxon_metadata_rows(
-            species.id,
+        normalized_rows, updated_rows = standardize_taxon_metadata_rows_with_reuse(
             rows,
+            force_standardization=force_standardization,
+        )
+        upsert_taxon_metadata_rows(
+            species.id,
+            normalized_rows,
             refreshed_at=refreshed_at,
+            normalize_rows=False,
         )
         with get_sqlite_connection() as db:
             db.execute(
@@ -11978,6 +12098,7 @@ def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
     task_id = int(task["task_id"])
     species = task["species"]
     assert isinstance(species, SpeciesRecord)
+    force_standardization = bool(task.get("force_standardization"))
     try:
         stored_row_total = count_taxon_metadata_rows(species.id)
         if not stored_row_total:
@@ -11994,11 +12115,17 @@ def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
                 )
                 if not chunk_rows:
                     continue
-                updated_total += upsert_taxon_metadata_rows(
-                    species.id,
+                normalized_rows, updated_rows = standardize_taxon_metadata_rows_with_reuse(
                     chunk_rows,
-                    refreshed_at=refreshed_at,
+                    force_standardization=force_standardization,
                 )
+                upsert_taxon_metadata_rows(
+                    species.id,
+                    normalized_rows,
+                    refreshed_at=refreshed_at,
+                    normalize_rows=False,
+                )
+                updated_total += updated_rows
                 logging.info(
                     "Standardized %s rows for %s (%s/%s).",
                     len(chunk_rows),
@@ -12011,9 +12138,11 @@ def apply_current_standardization_to_taxon(task: dict[str, Any]) -> int:
             rows = list(rows_by_accession.values())
         else:
             rows_by_accession = load_taxon_metadata_rows(species.id)
-            rows = [ensure_managed_metadata_schema(row) for row in rows_by_accession.values()]
+            rows, updated_total = standardize_taxon_metadata_rows_with_reuse(
+                list(rows_by_accession.values()),
+                force_standardization=force_standardization,
+            )
             save_taxon_metadata_rows(species.id, rows, refreshed_at=refreshed_at, normalize_rows=False)
-            updated_total = len(rows)
 
         metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
             species.slug,
@@ -15894,18 +16023,19 @@ def write_taxon_metadata_outputs(
     if normalize_rows:
         rows = [ensure_managed_metadata_schema(row) for row in rows]
     df = pd.DataFrame(rows)
+    output_df = df.drop(columns=list(METADATA_STANDARDIZATION_INTERNAL_COLUMNS), errors="ignore")
 
     updated_path = metadata_output_dir / "ncbi_dataset_updated.tsv"
-    save_summary(df, str(updated_path))
+    save_summary(output_df, str(updated_path))
 
-    if "Assembly Accession" in df.columns:
-        df_sorted = df.sort_values(
+    if "Assembly Accession" in output_df.columns:
+        df_sorted = output_df.sort_values(
             by="Assembly Accession",
             key=lambda x: x.astype("string").str.startswith("GCF"),
             ascending=False,
         )
     else:
-        df_sorted = df
+        df_sorted = output_df
     dedup_key = "Assembly Name" if "Assembly Name" in df_sorted.columns else "Assembly Accession"
     if dedup_key in df_sorted.columns:
         df_dedup = df_sorted.drop_duplicates(subset=[dedup_key], keep="first")
@@ -19883,7 +20013,12 @@ def admin_host_curation_apply() -> Any:
     if limit is not None:
         limit = max(1, min(limit, 10000))
     rank_scope = request.form.get("rank_scope") or "genus"
-    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope=rank_scope)
+    summary = queue_standardization_refresh_for_ready_taxa(
+        limit=limit,
+        dry_run=False,
+        rank_scope=rank_scope,
+        force_standardization=True,
+    )
     flash(
         f"Queued standardization refresh after host curation ({summary['rank_scope']}): "
         f"{summary['queued']} taxa queued, {summary['running']} already running, {summary['skipped']} skipped.",
@@ -19941,7 +20076,12 @@ def admin_geography_curation_apply() -> Any:
     limit = parse_optional_int(request.form.get("limit"))
     if limit is not None:
         limit = max(1, min(limit, 10000))
-    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope="genus")
+    summary = queue_standardization_refresh_for_ready_taxa(
+        limit=limit,
+        dry_run=False,
+        rank_scope="genus",
+        force_standardization=True,
+    )
     flash(
         f"Queued geography-aware standardization refresh: {summary['queued']} taxa queued, "
         f"{summary['running']} already running, {summary['skipped']} skipped.",
@@ -19999,7 +20139,12 @@ def admin_collection_date_curation_apply() -> Any:
     limit = parse_optional_int(request.form.get("limit"))
     if limit is not None:
         limit = max(1, min(limit, 10000))
-    summary = queue_standardization_refresh_for_ready_taxa(limit=limit, dry_run=False, rank_scope="genus")
+    summary = queue_standardization_refresh_for_ready_taxa(
+        limit=limit,
+        dry_run=False,
+        rank_scope="genus",
+        force_standardization=True,
+    )
     flash(
         f"Queued collection-date standardization refresh: {summary['queued']} taxa queued, "
         f"{summary['running']} already running, {summary['skipped']} skipped.",
@@ -20300,6 +20445,7 @@ def admin_restart_dataset_standardization() -> Any:
         dry_run=False,
         rank_scope=rank_scope,
         changed_since=None,
+        force_standardization=True,
     )
     record_audit_event(
         "admin.dataset_pipeline_restart_standardization",
