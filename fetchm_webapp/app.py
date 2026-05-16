@@ -6407,7 +6407,7 @@ DATASET_PIPELINE_STEP_COPY = {
     "metadata": {
         "short": "Build genus metadata first, then derive/build species metadata.",
         "run_label": "Run metadata now",
-        "metric_label": "Metadata ready",
+        "metric_label": "Metadata refresh",
     },
     "standardization": {
         "short": "Apply metadata standardization to newly updated metadata rows.",
@@ -6842,12 +6842,19 @@ def build_dataset_pipeline_step_cards(
         elif step_key == "metadata":
             genus_ready = counts.get("metadata_genus_ready", 0)
             genus_total = counts.get("metadata_genus_total", 0)
+            genus_active = counts.get("metadata_genus_active", 0)
+            genus_failed = counts.get("metadata_genus_failed", 0)
+            genus_finished = max(0, genus_total - genus_active - genus_failed)
             species_ready = counts.get("metadata_species_ready", 0)
             species_total = counts.get("metadata_species_total", 0)
-            percent = progress_percent(genus_ready + species_ready, genus_total + species_total)
+            species_active = counts.get("metadata_species_active", 0)
+            species_failed = counts.get("metadata_species_failed", 0)
+            species_finished = max(0, species_total - species_active - species_failed)
+            percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
             detail_lines = [
-                f"{genus_ready}/{genus_total} genus metadata builds ready",
-                f"{species_ready}/{species_total} species metadata builds ready",
+                f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
+                f"Current species metadata refresh: {species_finished}/{species_total} finished, {species_active} active/queued",
+                f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
             ]
         elif step_key == "standardization":
             completed = counts.get("standardization_completed", 0)
@@ -6858,16 +6865,18 @@ def build_dataset_pipeline_step_cards(
                 f"{counts.get('standardization_updated_rows', 0)} standardized rows updated",
             ]
         elif step_key == "verify":
+            metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
+            metadata_failed = counts.get("metadata_genus_failed", 0) + counts.get("metadata_species_failed", 0)
             active_total = (
                 counts.get("discovery_active", 0)
-                + counts.get("catalog_active", 0)
-                + counts.get("metadata_active", 0)
+                + counts.get("catalog_genus_active", 0)
+                + metadata_active
                 + counts.get("standardization_active", 0)
             )
             failed_total = (
                 counts.get("discovery_failed", 0)
-                + counts.get("catalog_failed", 0)
-                + counts.get("metadata_failed", 0)
+                + counts.get("catalog_genus_failed", 0)
+                + metadata_failed
                 + counts.get("standardization_failed", 0)
             )
             percent = 100 if status == "completed" else 0
@@ -7074,9 +7083,12 @@ def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> 
         """
         SELECT COUNT(*) AS total
         FROM species
-        WHERE status IN ('pending', 'syncing')
-           OR refresh_requested = 1
-           OR claimed_at IS NOT NULL
+        WHERE taxon_rank = 'genus'
+          AND (
+                status IN ('pending', 'syncing')
+                OR refresh_requested = 1
+                OR claimed_at IS NOT NULL
+              )
         """
     ).fetchone()
     metadata_active = connection.execute(
@@ -7299,6 +7311,7 @@ def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
             SUM(CASE WHEN status = 'pending' OR status = 'syncing' OR refresh_requested = 1 OR claimed_at IS NOT NULL THEN 1 ELSE 0 END) AS active,
             SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
         FROM species
+        WHERE taxon_rank = 'genus'
         """
     ).fetchone()
     metadata = db.execute(
@@ -7841,13 +7854,13 @@ def advance_dataset_update_pipeline_runs() -> None:
             elif step_key == "verify":
                 active_parts = {
                     "discovery": counts.get("discovery_active", 0),
-                    "catalog": counts.get("catalog_active", 0),
+                    "catalog": rank_counts.get("catalog_genus_active", 0),
                     "metadata": counts.get("metadata_active", 0),
                     "standardization": counts.get("standardization_active", 0),
                 }
                 failed_parts = {
                     "discovery": counts.get("discovery_failed", 0),
-                    "catalog": counts.get("catalog_failed", 0),
+                    "catalog": rank_counts.get("catalog_genus_failed", 0),
                     "metadata": counts.get("metadata_failed", 0),
                     "standardization": counts.get("standardization_failed", 0),
                 }
@@ -14482,6 +14495,8 @@ def schedule_due_species_syncs(build_hours: int | None, refresh_hours: int | Non
     with get_sqlite_connection() as db:
         rows = db.execute("SELECT * FROM species").fetchall()
         for row in rows:
+            if normalize_taxon_rank(row["taxon_rank"]) != "genus":
+                continue
             last_synced_at = str(row["last_synced_at"]) if row["last_synced_at"] else None
             refresh_requested = bool(row["refresh_requested"])
             status = str(row["status"])
@@ -15165,13 +15180,13 @@ def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
                     status = 'pending'
                     OR (status = 'ready' AND refresh_requested = 1 AND tsv_path IS NOT NULL)
                 )
+              AND taxon_rank = 'genus'
             ORDER BY
                 CASE
                     WHEN status = 'pending' AND tsv_path IS NULL THEN 0
                     WHEN status = 'ready' AND refresh_requested = 1 THEN 1
                     ELSE 2
                 END,
-                CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
                 updated_at ASC,
                 created_at ASC
             LIMIT 1
