@@ -17591,7 +17591,7 @@ def run_worker_loop() -> None:
                 last_heartbeat = now
             with get_sqlite_connection() as db:
                 reconcile_cancelled_running_jobs(worker_name, db)
-            if WORKER_MODE in {"all", "sync", "metadata", "global-insights"}:
+            if WORKER_MODE in {"all", "metadata", "global-insights"}:
                 schedule_due_dataset_pipeline_run()
                 advance_dataset_update_pipeline_runs()
                 pipeline_step = claim_next_dataset_pipeline_step(worker_name)
@@ -17600,10 +17600,6 @@ def run_worker_loop() -> None:
                         process_dataset_pipeline_step(pipeline_step)
                     continue
             if WORKER_MODE in {"all", "sync"}:
-                with get_sqlite_connection() as db:
-                    catalog_build_schedule_hours = catalog_build_hours(db)
-                    catalog_refresh_schedule_hours = catalog_refresh_hours(db)
-                schedule_due_species_syncs(catalog_build_schedule_hours, catalog_refresh_schedule_hours)
                 try:
                     species = claim_next_species_sync(worker_name)
                 except sqlite3.OperationalError as exc:
@@ -17612,6 +17608,19 @@ def run_worker_loop() -> None:
                     logging.warning("Catalog sync claim skipped because SQLite is busy.")
                     time.sleep(WORKER_POLL_INTERVAL)
                     continue
+                if species is None:
+                    with get_sqlite_connection() as db:
+                        catalog_build_schedule_hours = catalog_build_hours(db)
+                        catalog_refresh_schedule_hours = catalog_refresh_hours(db)
+                    schedule_due_species_syncs(catalog_build_schedule_hours, catalog_refresh_schedule_hours)
+                    try:
+                        species = claim_next_species_sync(worker_name)
+                    except sqlite3.OperationalError as exc:
+                        if not is_sqlite_locked_error(exc):
+                            raise
+                        logging.warning("Catalog sync claim skipped because SQLite is busy.")
+                        time.sleep(WORKER_POLL_INTERVAL)
+                        continue
                 if species is not None:
                     try:
                         sync_species_record(species)
@@ -17623,7 +17632,7 @@ def run_worker_loop() -> None:
                         time.sleep(WORKER_POLL_INTERVAL)
                     continue
 
-            if WORKER_MODE in {"all", "sync", "metadata"}:
+            if WORKER_MODE in {"all", "metadata"}:
                 ensure_metadata_chunks_for_active_builds()
                 metadata_species = claim_next_species_metadata_build(worker_name)
                 if metadata_species is not None:
@@ -17678,7 +17687,7 @@ def run_worker_loop() -> None:
                         process_global_insight_task(global_insight_task)
                     continue
 
-            if WORKER_MODE in {"all", "sync", "jobs"}:
+            if WORKER_MODE in {"all", "jobs"}:
                 job = claim_next_job(worker_name)
                 if job is not None:
                     launch_job(job)
