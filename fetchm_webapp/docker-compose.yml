@@ -111,6 +111,30 @@ services:
       - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
     restart: unless-stopped
 
+  fetchm-worker-14:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
+
+  fetchm-worker-15:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
+
+  fetchm-worker-16:
+    <<: *fetchm-worker-base
+    environment:
+      FETCHM_WEBAPP_DEBUG: "0"
+      FETCHM_WEBAPP_WORKER_MODE: metadata
+      FETCHM_WEBAPP_METADATA_FETCH_WORKERS: "2"
+      FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
+
   fetchm-worker-4:
     build:
       context: ..
