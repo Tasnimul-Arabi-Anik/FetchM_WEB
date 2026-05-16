@@ -26,6 +26,31 @@ from global_insights.generator import generate_demo_snapshot, generate_global_in
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_dataset_pipeline_derives_species_after_genus_standardization(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    self.assertEqual(
+                        fetchm_app.dataset_pipeline_steps_for_start("metadata", db),
+                        ["metadata", "standardization", "derive_species", "verify"],
+                    )
+                    self.assertLess(
+                        fetchm_app.dataset_pipeline_step_keys().index("standardization"),
+                        fetchm_app.dataset_pipeline_step_keys().index("derive_species"),
+                    )
+                    self.assertIn("genus", fetchm_app.DATASET_PIPELINE_STEP_COPY["standardization"]["short"].lower())
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_advanced_quality_job_detail_loads_parent_owner_field(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -183,6 +183,10 @@ STANDARDIZATION_PARALLEL_CHUNK_SIZE = max(
     1,
     int(os.environ.get("FETCHM_WEBAPP_STANDARDIZATION_PARALLEL_CHUNK_SIZE", "200000")),
 )
+DERIVED_SPECIES_METADATA_BATCH_SIZE = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_BATCH_SIZE", "250")),
+)
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_NEGATIVE_CACHE_HOURS", "168"))
@@ -6130,6 +6134,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_catalog_sequential", "1"),
         ("dataset_pipeline_metadata_sequential", "1"),
         ("dataset_pipeline_standardization_sequential", "1"),
+        ("dataset_pipeline_derive_species_sequential", "1"),
         ("dataset_pipeline_replace_sequential", "0"),
         ("dataset_pipeline_global_insights_sequential", "1"),
         ("active_dataset_version_id", "legacy-live"),
@@ -6386,8 +6391,9 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
 DATASET_PIPELINE_STEPS = [
     ("discovery", "Discover bacterial genera"),
     ("catalog", "Update genus catalog"),
-    ("metadata", "Update metadata build"),
-    ("standardization", "Standardize newly updated metadata"),
+    ("metadata", "Build genus metadata"),
+    ("standardization", "Standardize genus metadata"),
+    ("derive_species", "Derive species metadata"),
     ("verify", "Verify staged update"),
     ("replace", "Replace existing data"),
     ("global_insights", "Generate Global Insights"),
@@ -6405,14 +6411,19 @@ DATASET_PIPELINE_STEP_COPY = {
         "metric_label": "Genus catalog refresh",
     },
     "metadata": {
-        "short": "Build genus metadata first, then derive/build species metadata.",
+        "short": "Build or refresh genus metadata only. Species metadata is derived after genus standardization.",
         "run_label": "Run metadata now",
-        "metric_label": "Metadata refresh",
+        "metric_label": "Genus metadata refresh",
     },
     "standardization": {
-        "short": "Apply metadata standardization to newly updated metadata rows.",
+        "short": "Standardize refreshed genus metadata once before partitioning it into species datasets.",
         "run_label": "Run standardization now",
-        "metric_label": "Standardization",
+        "metric_label": "Genus standardization",
+    },
+    "derive_species": {
+        "short": "Create species metadata files from standardized genus metadata, without re-fetching or re-standardizing the same assemblies.",
+        "run_label": "Derive species now",
+        "metric_label": "Species derivation",
     },
     "verify": {
         "short": "Confirm no update work is active or failed before any live dataset switch is allowed.",
@@ -6435,6 +6446,7 @@ DATASET_PIPELINE_SEQUENTIAL_KEYS = {
     "catalog": "dataset_pipeline_catalog_sequential",
     "metadata": "dataset_pipeline_metadata_sequential",
     "standardization": "dataset_pipeline_standardization_sequential",
+    "derive_species": "dataset_pipeline_derive_species_sequential",
     "replace": "dataset_pipeline_replace_sequential",
     "global_insights": "dataset_pipeline_global_insights_sequential",
 }
@@ -6855,14 +6867,14 @@ def build_dataset_pipeline_step_cards(
                 percent = progress_percent(genus_finished, genus_total)
                 detail_lines = [
                     f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
-                    "Species metadata refresh starts after genus metadata is refreshed.",
+                    "Species metadata is derived after genus standardization.",
                     f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
                 ]
             else:
-                percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
+                percent = progress_percent(genus_finished, genus_total)
                 detail_lines = [
                     f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
-                    f"Current species metadata refresh: {species_finished}/{species_total} finished, {species_active} active/queued",
+                    "Genus metadata is ready for standardization.",
                     f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
                 ]
         elif step_key == "standardization":
@@ -6870,8 +6882,22 @@ def build_dataset_pipeline_step_cards(
             total = counts.get("standardization_total", 0)
             percent = progress_percent(completed, total)
             detail_lines = [
-                f"{counts.get('standardization_active', 0)} standardization tasks active",
-                f"{counts.get('standardization_updated_rows', 0)} standardized rows updated",
+                f"{counts.get('standardization_active', 0)} genus standardization tasks active",
+                f"{counts.get('standardization_updated_rows', 0)} genus rows standardized",
+                "Species files are derived after this step completes.",
+            ]
+        elif step_key == "derive_species":
+            candidate_total = int(progress.get("candidate_total") or 0)
+            resolved = int(progress.get("resolved") or progress.get("processed") or 0)
+            already_current = int(progress.get("already_current") or progress.get("skipped") or 0)
+            failed = int(progress.get("failed") or 0)
+            completed_candidates = min(candidate_total, resolved)
+            percent = progress_percent(completed_candidates, candidate_total)
+            detail_lines = [
+                f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
+                f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
+                f"{failed} species derivations skipped or failed",
+                f"Batch size: {DERIVED_SPECIES_METADATA_BATCH_SIZE}",
             ]
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
@@ -7138,6 +7164,16 @@ def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> 
         blockers.append("metadata builds or refreshes are still active")
     if int(standardization_active["total"] or 0) or int(standardization_chunks_active["total"] or 0):
         blockers.append("standardization refresh is still active")
+    derive_species_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM dataset_update_pipeline_steps
+        WHERE step_key = 'derive_species'
+          AND status IN ('pending', 'running')
+        """
+    ).fetchone()
+    if int(derive_species_active["total"] or 0):
+        blockers.append("species metadata derivation is still active")
     if int(insight_active["total"] or 0):
         blockers.append("a Global Insights generation task is already queued or running")
     return blockers
@@ -7349,6 +7385,15 @@ def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
         FROM standardization_refresh_chunks
         """
     ).fetchone()
+    derive_species = db.execute(
+        """
+        SELECT
+            SUM(CASE WHEN status IN ('pending', 'running') THEN 1 ELSE 0 END) AS active,
+            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM dataset_update_pipeline_steps
+        WHERE step_key = 'derive_species'
+        """
+    ).fetchone()
     ready_taxa = db.execute(
         """
         SELECT
@@ -7368,6 +7413,8 @@ def dataset_update_active_counts(db: sqlite3.Connection) -> dict[str, int]:
         "metadata_failed": int(metadata["failed"] or 0),
         "standardization_active": int(standardization_tasks["active"] or 0) + int(standardization_chunks["active"] or 0),
         "standardization_failed": int(standardization_tasks["failed"] or 0) + int(standardization_chunks["failed"] or 0),
+        "derive_species_active": int(derive_species["active"] or 0),
+        "derive_species_failed": int(derive_species["failed"] or 0),
         "ready_taxa": int(ready_taxa["taxa"] or 0),
         "metadata_taxa": int(ready_taxa["metadata_taxa"] or 0),
         "taxon_scoped_genomes": int(ready_taxa["taxon_scoped_genomes"] or 0),
@@ -7553,7 +7600,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         """,
         (run_id, step["step_order"]),
     ).fetchall()
-    required = {"discovery", "catalog", "metadata", "standardization", "verify"}
+    required = {"discovery", "catalog", "metadata", "standardization", "derive_species", "verify"}
     upstream_by_key = {str(row["step_key"]): str(row["status"]) for row in upstream}
     missing = sorted(required.difference(upstream_by_key))
     incomplete = [
@@ -7574,6 +7621,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         "catalog": counts.get("catalog_active", 0),
         "metadata": counts.get("metadata_active", 0),
         "standardization": counts.get("standardization_active", 0),
+        "derive species": counts.get("derive_species_active", 0),
     }
     still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
     if still_active:
@@ -7583,6 +7631,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         "catalog": counts.get("catalog_failed", 0),
         "metadata": counts.get("metadata_failed", 0),
         "standardization": counts.get("standardization_failed", 0),
+        "derive species": counts.get("derive_species_failed", 0),
     }
     failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
     if failures:
@@ -7825,34 +7874,13 @@ def advance_dataset_update_pipeline_runs() -> None:
                         failed = True
                         blockers.append(f"{relevant_catalog_failures} genus catalog scopes failed")
             elif step_key == "metadata":
-                phase = str(progress.get("phase") or "genus")
-                if phase == "genus":
-                    if rank_counts.get("metadata_genus_active", 0):
-                        blockers.append(f"{rank_counts.get('metadata_genus_active', 0)} genus metadata builds still active")
-                    elif not blockers:
-                        expansion_summary = progress.get("species_expansion")
-                        if not isinstance(expansion_summary, dict):
-                            db.commit()
-                            expansion_summary = expand_species_catalog_from_genus_metadata(
-                                staging_dataset_version_id=str(step["dataset_version_id"])
-                            )
-                            db.execute("BEGIN IMMEDIATE")
-                            progress["species_expansion"] = expansion_summary
-                            rank_counts = dataset_pipeline_rank_counts(db)
-                        species_queue = request_pipeline_metadata_builds(db, "species", str(step["dataset_version_id"]))
-                        progress.update({
-                            "phase": "species",
-                            "species_queue": species_queue,
-                            "species_expansion": expansion_summary,
-                        })
-                        blockers.append(f"{species_queue['queued']} species metadata builds queued")
-                elif rank_counts.get("metadata_species_active", 0):
-                    blockers.append(f"{rank_counts.get('metadata_species_active', 0)} species metadata builds still active")
-                if rank_counts.get("metadata_genus_failed", 0) or rank_counts.get("metadata_species_failed", 0):
+                progress["phase"] = "genus"
+                if rank_counts.get("metadata_genus_active", 0):
+                    blockers.append(f"{rank_counts.get('metadata_genus_active', 0)} genus metadata builds still active")
+                if rank_counts.get("metadata_genus_failed", 0):
                     failed = True
                     blockers.append(
-                        f"{rank_counts.get('metadata_genus_failed', 0)} genus and "
-                        f"{rank_counts.get('metadata_species_failed', 0)} species metadata builds failed"
+                        f"{rank_counts.get('metadata_genus_failed', 0)} genus metadata builds failed"
                     )
             elif step_key == "standardization":
                 if counts["standardization_active"]:
@@ -7860,18 +7888,58 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if counts["standardization_failed"]:
                     failed = True
                     blockers.append(f"{counts['standardization_failed']} standardization tasks/chunks failed")
+            elif step_key == "derive_species":
+                if counts["standardization_active"]:
+                    blockers.append(f"{counts['standardization_active']} genus standardization tasks/chunks still active")
+                if counts["standardization_failed"]:
+                    failed = True
+                    blockers.append(f"{counts['standardization_failed']} genus standardization tasks/chunks failed")
+                if not blockers:
+                    db.commit()
+                    summary = expand_species_catalog_from_genus_metadata(
+                        limit=DERIVED_SPECIES_METADATA_BATCH_SIZE,
+                        staging_dataset_version_id=str(step["dataset_version_id"]),
+                        force_refresh_existing=True,
+                    )
+                    db.execute("BEGIN IMMEDIATE")
+                    previous_created = int(progress.get("created") or 0)
+                    previous_updated = int(progress.get("updated") or 0)
+                    candidate_total = int(summary.get("candidate_total") or 0)
+                    batch_processed = int(summary.get("processed") or 0)
+                    already_current = int(summary.get("skipped") or 0)
+                    failed_count = int(summary.get("failed") or 0)
+                    resolved = min(candidate_total, already_current + batch_processed + failed_count)
+                    progress.update(
+                        {
+                            "candidate_total": candidate_total,
+                            "resolved": resolved,
+                            "created": previous_created + int(summary.get("created") or 0),
+                            "updated": previous_updated + int(summary.get("updated") or 0),
+                            "already_current": already_current,
+                            "failed": failed_count,
+                            "last_batch_processed": batch_processed,
+                            "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
+                            "note": "Species metadata is derived from standardized genus metadata; no BioSample re-fetch or second standardization pass is performed.",
+                        }
+                    )
+                    if candidate_total and resolved < candidate_total:
+                        blockers.append(f"Deriving species metadata: {resolved}/{candidate_total} species candidates resolved")
+                    elif candidate_total == 0:
+                        progress["note"] = "No species candidates were found in standardized genus metadata."
             elif step_key == "verify":
                 active_parts = {
                     "discovery": counts.get("discovery_active", 0),
                     "catalog": rank_counts.get("catalog_genus_active", 0),
                     "metadata": counts.get("metadata_active", 0),
                     "standardization": counts.get("standardization_active", 0),
+                    "derive species": counts.get("derive_species_active", 0),
                 }
                 failed_parts = {
                     "discovery": counts.get("discovery_failed", 0),
                     "catalog": rank_counts.get("catalog_genus_failed", 0),
                     "metadata": counts.get("metadata_failed", 0),
                     "standardization": counts.get("standardization_failed", 0),
+                    "derive species": counts.get("derive_species_failed", 0),
                 }
                 still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
                 failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
@@ -7880,7 +7948,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if failures:
                     failed = True
                     blockers.append("Failed update tasks require review: " + ", ".join(failures))
-            if step_key in {"discovery", "catalog", "metadata", "standardization", "verify"}:
+            if step_key in {"discovery", "catalog", "metadata", "standardization", "derive_species", "verify"}:
                 if failed:
                     set_pipeline_step_status(db, int(step["id"]), "failed", progress=progress, blockers=blockers, error="; ".join(blockers))
                     db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), step["run_id"]))
@@ -7976,7 +8044,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             progress = {
                 "phase": "genus",
                 "genus_queue": genus_queue,
-                "note": "Genus metadata is refreshed before species metadata.",
+                "note": "Genus metadata is refreshed first. Species metadata will be derived after genus standardization.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
@@ -7987,16 +8055,30 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             summary = queue_standardization_refresh_for_ready_taxa(
                 limit=None,
                 dry_run=False,
-                rank_scope="all",
+                rank_scope="genus",
                 changed_since=changed_since,
             )
             summary["mode"] = "incremental"
-            summary["note"] = "Only metadata built or refreshed after this pipeline run began was queued."
+            summary["note"] = "Only genus metadata built or refreshed after this pipeline run began was queued. Species metadata is derived from these standardized genus rows next."
             db.execute("BEGIN IMMEDIATE")
             if int(summary.get("queued") or 0) or int(summary.get("running") or 0):
                 set_pipeline_step_status(db, int(step["id"]), "running", progress=summary)
             else:
                 mark_pipeline_step_completed(db, step, summary)
+            db.commit()
+            return
+        if step_key == "derive_species":
+            progress = {
+                "candidate_total": 0,
+                "resolved": 0,
+                "created": 0,
+                "updated": 0,
+                "already_current": 0,
+                "failed": 0,
+                "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
+                "note": "Deriving species metadata from standardized genus metadata.",
+            }
+            set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
             return
         if step_key == "replace":
@@ -15654,6 +15736,7 @@ def expand_species_catalog_from_genus_metadata(
     limit: int | None = None,
     *,
     staging_dataset_version_id: str | None = None,
+    force_refresh_existing: bool = False,
 ) -> dict[str, int]:
     with get_sqlite_connection() as db:
         if staging_dataset_version_id:
@@ -15731,12 +15814,31 @@ def expand_species_catalog_from_genus_metadata(
                 break
             species_name = str(candidate["species_name"])
             existing = get_taxon_by_name(species_name, "species")
+            already_current = (
+                existing is not None
+                and existing.status == "ready"
+                and existing.metadata_status == "ready"
+                and existing.metadata_clean_path
+                and Path(existing.metadata_clean_path).exists()
+                and (
+                    not force_refresh_existing
+                    or (
+                        staging_dataset_version_id
+                        and existing.staging_dataset_version_id == staging_dataset_version_id
+                        and int(existing.metadata_source_taxon_id or 0) == source_taxon_id
+                    )
+                )
+            )
+            if already_current:
+                skipped += 1
+                continue
             if (
                 existing is not None
                 and existing.status == "ready"
                 and existing.metadata_status == "ready"
                 and existing.metadata_clean_path
                 and Path(existing.metadata_clean_path).exists()
+                and not force_refresh_existing
             ):
                 skipped += 1
                 continue
