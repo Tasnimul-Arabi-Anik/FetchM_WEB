@@ -6840,6 +6840,7 @@ def build_dataset_pipeline_step_cards(
                 "Species are derived after genus metadata is rebuilt.",
             ]
         elif step_key == "metadata":
+            phase = str(progress.get("phase") or "genus")
             genus_ready = counts.get("metadata_genus_ready", 0)
             genus_total = counts.get("metadata_genus_total", 0)
             genus_active = counts.get("metadata_genus_active", 0)
@@ -6850,12 +6851,20 @@ def build_dataset_pipeline_step_cards(
             species_active = counts.get("metadata_species_active", 0)
             species_failed = counts.get("metadata_species_failed", 0)
             species_finished = max(0, species_total - species_active - species_failed)
-            percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
-            detail_lines = [
-                f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
-                f"Current species metadata refresh: {species_finished}/{species_total} finished, {species_active} active/queued",
-                f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
-            ]
+            if phase == "genus":
+                percent = progress_percent(genus_finished, genus_total)
+                detail_lines = [
+                    f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
+                    "Species metadata refresh starts after genus metadata is refreshed.",
+                    f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
+                ]
+            else:
+                percent = progress_percent(genus_finished + species_finished, genus_total + species_total)
+                detail_lines = [
+                    f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
+                    f"Current species metadata refresh: {species_finished}/{species_total} finished, {species_active} active/queued",
+                    f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
+                ]
         elif step_key == "standardization":
             completed = counts.get("standardization_completed", 0)
             total = counts.get("standardization_total", 0)
@@ -14563,6 +14572,24 @@ def schedule_due_species_syncs(build_hours: int | None, refresh_hours: int | Non
 
 def schedule_due_metadata_builds(build_hours: int | None, refresh_hours: int | None) -> None:
     with get_sqlite_connection() as db:
+        active_metadata_step = db.execute(
+            """
+            SELECT progress_json
+            FROM dataset_update_pipeline_steps
+            WHERE step_key = 'metadata'
+              AND status = 'running'
+            ORDER BY started_at DESC, id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        allowed_rank: str | None = None
+        if active_metadata_step is not None:
+            try:
+                progress = json.loads(str(active_metadata_step["progress_json"] or "{}"))
+            except json.JSONDecodeError:
+                progress = {}
+            if str(progress.get("phase") or "genus") == "genus":
+                allowed_rank = "genus"
         rows = db.execute("SELECT * FROM species").fetchall()
         build_cutoff = None
         refresh_cutoff = None
@@ -14571,6 +14598,8 @@ def schedule_due_metadata_builds(build_hours: int | None, refresh_hours: int | N
         if refresh_hours is not None:
             refresh_cutoff = datetime.now(timezone.utc) - timedelta(hours=refresh_hours)
         for row in rows:
+            if allowed_rank is not None and normalize_taxon_rank(row["taxon_rank"]) != allowed_rank:
+                continue
             status = str(row["status"])
             metadata_status = str(row["metadata_status"] or "missing")
             refresh_requested = bool(row["metadata_refresh_requested"])
