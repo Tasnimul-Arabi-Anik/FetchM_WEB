@@ -7838,12 +7838,69 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
         (now, now, dataset_version_id),
     )
     inserted = int(cursor.rowcount or 0)
+    fallback_cursor = db.execute(
+        """
+        INSERT OR IGNORE INTO derived_species_metadata_tasks (
+            dataset_version_id, source_taxon_id, source_taxon_name, status, created_at, updated_at
+        )
+        SELECT ?,
+               s.id,
+               s.species_name,
+               'pending',
+               ?,
+               ?
+        FROM species s
+        WHERE s.taxon_rank = 'genus'
+          AND s.staging_dataset_version_id = ?
+          AND s.metadata_status = 'ready'
+          AND s.metadata_clean_path IS NOT NULL
+          AND EXISTS (
+              SELECT 1
+              FROM metadata_species_search m
+              WHERE m.source_taxon_id = s.id
+          )
+        """,
+        (dataset_version_id, now, now, dataset_version_id),
+    )
+    inserted += int(fallback_cursor.rowcount or 0)
     missing_rows = db.execute(
         """
         SELECT source_taxon_id, source_taxon_name, species_name
-        FROM metadata_species_search_staging
-        WHERE dataset_version_id = ?
-          AND source_taxon_id IN (
+        FROM (
+            SELECT source_taxon_id, source_taxon_name, species_name
+            FROM metadata_species_search_staging
+            WHERE dataset_version_id = ?
+            UNION ALL
+            SELECT m.source_taxon_id, m.source_taxon_name, m.species_name
+            FROM metadata_species_search m
+            JOIN species s ON s.id = m.source_taxon_id
+            WHERE s.staging_dataset_version_id = ?
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM metadata_species_search_staging ms
+                  WHERE ms.dataset_version_id = ?
+                    AND ms.source_taxon_id = m.source_taxon_id
+              )
+            UNION ALL
+            SELECT g.id AS source_taxon_id,
+                   g.species_name AS source_taxon_name,
+                   sp.species_name
+            FROM species sp
+            JOIN species g
+              ON g.taxon_rank = 'genus'
+             AND g.staging_dataset_version_id = ?
+             AND g.metadata_status = 'ready'
+             AND g.metadata_clean_path IS NOT NULL
+             AND (
+                  sp.metadata_source_taxon_id = g.id
+                  OR lower(sp.species_name) LIKE lower(g.species_name || ' %')
+             )
+            WHERE sp.taxon_rank = 'species'
+              AND sp.staging_dataset_version_id = ?
+        )
+        WHERE source_taxon_id IN (
               SELECT source_taxon_id
               FROM derived_species_metadata_tasks
               WHERE dataset_version_id = ?
@@ -7852,7 +7909,7 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
           )
         ORDER BY source_taxon_id
         """,
-        (dataset_version_id, dataset_version_id),
+        (dataset_version_id, dataset_version_id, dataset_version_id, dataset_version_id, dataset_version_id, dataset_version_id),
     ).fetchall()
     candidates_by_source: dict[int, set[str]] = defaultdict(set)
     for row in missing_rows:
@@ -16563,12 +16620,35 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
             rows = db.execute(
                 """
                 SELECT species_name, genome_count
-                FROM metadata_species_search_staging
-                WHERE dataset_version_id = ?
-                  AND source_taxon_id = ?
+                FROM (
+                    SELECT species_name, genome_count
+                    FROM metadata_species_search_staging
+                    WHERE dataset_version_id = ?
+                      AND source_taxon_id = ?
+                    UNION ALL
+                    SELECT m.species_name, m.genome_count
+                    FROM metadata_species_search m
+                    WHERE m.source_taxon_id = ?
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM metadata_species_search_staging ms
+                          WHERE ms.dataset_version_id = ?
+                            AND ms.source_taxon_id = m.source_taxon_id
+                      )
+                    UNION ALL
+                    SELECT sp.species_name, COALESCE(sp.genome_count, 0) AS genome_count
+                    FROM species sp
+                    JOIN species g ON g.id = ?
+                    WHERE sp.taxon_rank = 'species'
+                      AND sp.staging_dataset_version_id = ?
+                      AND (
+                           sp.metadata_source_taxon_id = ?
+                           OR lower(sp.species_name) LIKE lower(g.species_name || ' %')
+                      )
+                )
                 ORDER BY genome_count DESC, species_name COLLATE NOCASE ASC
                 """,
-                (dataset_version_id, source_taxon_id),
+                (dataset_version_id, source_taxon_id, source_taxon_id, dataset_version_id, source_taxon_id, dataset_version_id, source_taxon_id),
             ).fetchall()
 
         candidates: dict[str, int] = {}
