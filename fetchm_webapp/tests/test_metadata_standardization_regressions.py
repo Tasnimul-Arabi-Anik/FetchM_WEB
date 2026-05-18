@@ -128,6 +128,39 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
+    def test_species_derived_outputs_skip_updated_tsv(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    metadata_path, clean_path, clean_count = fetchm_app.write_taxon_metadata_outputs(
+                        "example-testus",
+                        [
+                            {
+                                "Assembly Accession": "GCA_000001.1",
+                                "Assembly Name": "ASM1",
+                                "Organism Name": "Example testus",
+                                "Country": "United States",
+                            }
+                        ],
+                        normalize_rows=False,
+                        dataset_version_id="staging-test",
+                        write_updated_tsv=False,
+                    )
+
+                    self.assertEqual(metadata_path, clean_path)
+                    self.assertEqual(clean_count, 1)
+                    self.assertTrue(Path(clean_path).exists())
+                    self.assertFalse((Path(clean_path).parent / "ncbi_dataset_updated.tsv").exists())
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_standardization_reuses_unchanged_rows_and_forces_when_requested(self) -> None:
         row = {
             "Assembly Accession": "GCA_000001.1",

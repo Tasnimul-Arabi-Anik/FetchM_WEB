@@ -186,7 +186,7 @@ STANDARDIZATION_PARALLEL_CHUNK_SIZE = max(
 )
 DERIVED_SPECIES_METADATA_BATCH_SIZE = max(
     1,
-    int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_BATCH_SIZE", "10")),
+    int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_BATCH_SIZE", "50")),
 )
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
@@ -7052,7 +7052,7 @@ def build_dataset_pipeline_step_cards(
                 f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
                 f"{failed} species derivations skipped or failed",
-                f"Batch size: {DERIVED_SPECIES_METADATA_BATCH_SIZE}",
+                "Processing mode: one genus group per batch",
             ]
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
@@ -8145,6 +8145,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                                 limit=DERIVED_SPECIES_METADATA_BATCH_SIZE,
                                 staging_dataset_version_id=str(step["dataset_version_id"]),
                                 force_refresh_existing=True,
+                                start_index=int(progress.get("next_candidate_index") or progress.get("resolved") or 0),
+                                process_whole_genus=True,
                             )
                         finally:
                             try:
@@ -8161,18 +8163,24 @@ def advance_dataset_update_pipeline_runs() -> None:
                     failed_count = int(summary.get("failed") or 0)
                     created = previous_created + int(summary.get("created") or 0)
                     updated = previous_updated + int(summary.get("updated") or 0)
-                    resolved = min(candidate_total, already_current + created + updated + failed_count)
+                    previous_already_current = int(progress.get("already_current") or 0)
+                    previous_failed = int(progress.get("failed") or 0)
+                    total_already_current = previous_already_current + already_current
+                    total_failed = previous_failed + failed_count
+                    next_index = int(summary.get("next_index") or 0)
+                    resolved = min(candidate_total, max(next_index, total_already_current + created + updated + total_failed))
                     progress.update(
                         {
                             "candidate_total": candidate_total,
                             "resolved": resolved,
+                            "next_candidate_index": next_index,
                             "created": created,
                             "updated": updated,
-                            "already_current": already_current,
-                            "failed": failed_count,
+                            "already_current": total_already_current,
+                            "failed": total_failed,
                             "last_batch_processed": batch_processed,
                             "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
-                            "note": "Species metadata is derived from standardized genus metadata; no BioSample re-fetch or second standardization pass is performed.",
+                            "note": "Species metadata is derived in genus-sized groups from standardized genus metadata; no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed.",
                         }
                     )
                     if candidate_total and resolved < candidate_total:
@@ -8387,7 +8395,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "already_current": 0,
                 "failed": 0,
                 "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
-                "note": "Deriving species metadata from standardized genus metadata.",
+                "note": "Deriving species metadata by genus group from standardized genus metadata.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
@@ -16130,6 +16138,7 @@ def save_species_metadata_from_genus_rows(
         filtered_rows,
         normalize_rows=False,
         dataset_version_id=species.staging_dataset_version_id,
+        write_updated_tsv=False,
     )
     latest = load_species(species.id)
     latest.tsv_path = metadata_path
@@ -16157,6 +16166,8 @@ def expand_species_catalog_from_genus_metadata(
     *,
     staging_dataset_version_id: str | None = None,
     force_refresh_existing: bool = False,
+    start_index: int = 0,
+    process_whole_genus: bool = False,
 ) -> dict[str, int]:
     with get_sqlite_connection() as db:
         if staging_dataset_version_id:
@@ -16202,10 +16213,13 @@ def expand_species_catalog_from_genus_metadata(
     skipped = 0
     failed = 0
     processed = 0
+    next_index = max(0, int(start_index or 0))
     ordered_candidates = sorted(
         candidates.values(),
         key=lambda item: (str(item["source_taxon_name"]).lower(), -int(item["genome_count"]), str(item["species_name"]).lower()),
     )
+    for candidate_index, candidate in enumerate(ordered_candidates):
+        candidate["_candidate_index"] = candidate_index
     candidates_by_genus: dict[int, list[dict[str, Any]]] = defaultdict(list)
     for candidate in ordered_candidates:
         candidates_by_genus[int(candidate["source_taxon_id"])].append(candidate)
@@ -16216,6 +16230,10 @@ def expand_species_catalog_from_genus_metadata(
     ):
         if limit is not None and processed >= limit:
             break
+        first_genus_index = int(genus_candidates[0].get("_candidate_index") or 0) if genus_candidates else 0
+        if first_genus_index + len(genus_candidates) <= start_index:
+            continue
+        genus_started = False
         try:
             genus = load_species(source_taxon_id)
             genus_rows = load_taxon_metadata_rows(genus.id)
@@ -16230,8 +16248,13 @@ def expand_species_catalog_from_genus_metadata(
             continue
 
         for candidate in genus_candidates:
-            if limit is not None and processed >= limit:
+            candidate_index = int(candidate.get("_candidate_index") or 0)
+            if candidate_index < start_index:
+                continue
+            if limit is not None and processed >= limit and not process_whole_genus:
                 break
+            genus_started = True
+            next_index = candidate_index + 1
             species_name = str(candidate["species_name"])
             existing = get_taxon_by_name(species_name, "species")
             genus_built_at = parse_optional_utc(genus.metadata_last_built_at)
@@ -16295,8 +16318,11 @@ def expand_species_catalog_from_genus_metadata(
             except Exception:
                 failed += 1
                 logging.exception("Failed to derive species catalog entry for %s.", species_name)
+        if process_whole_genus and genus_started:
+            break
     return {
         "candidate_total": len(ordered_candidates),
+        "next_index": min(next_index, len(ordered_candidates)),
         "processed": processed,
         "created": created,
         "updated": updated,
@@ -16311,6 +16337,7 @@ def write_taxon_metadata_outputs(
     *,
     normalize_rows: bool = True,
     dataset_version_id: str | None = None,
+    write_updated_tsv: bool = True,
 ) -> tuple[str, str, int]:
     if not rows:
         raise RuntimeError("No metadata rows are available to write.")
@@ -16324,7 +16351,8 @@ def write_taxon_metadata_outputs(
     output_df = df.drop(columns=list(METADATA_STANDARDIZATION_INTERNAL_COLUMNS), errors="ignore")
 
     updated_path = metadata_output_dir / "ncbi_dataset_updated.tsv"
-    save_summary(output_df, str(updated_path))
+    if write_updated_tsv:
+        save_summary(output_df, str(updated_path))
 
     if "Assembly Accession" in output_df.columns:
         df_sorted = output_df.sort_values(
@@ -16362,7 +16390,8 @@ def write_taxon_metadata_outputs(
     output_columns = comprehensive_columns + ["Country", "Continent", "Subcontinent"]
     save_clean_data(clean_df, [column for column in output_columns if column in clean_df.columns], str(clean_path))
     clean_count = len(clean_df.index)
-    return str(updated_path), str(clean_path), clean_count
+    metadata_path = updated_path if write_updated_tsv else clean_path
+    return str(metadata_path), str(clean_path), clean_count
 
 
 def load_filtered_taxon_tsv_rows(species: SpeciesRecord) -> list[dict[str, Any]]:
