@@ -188,6 +188,10 @@ DERIVED_SPECIES_METADATA_BATCH_SIZE = max(
     1,
     int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_BATCH_SIZE", "50")),
 )
+DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE = max(
+    1,
+    int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE", "10")),
+)
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_NEGATIVE_CACHE_HOURS", "168"))
@@ -7065,7 +7069,7 @@ def build_dataset_pipeline_step_cards(
                 f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
                 f"{failed} species derivations skipped or failed",
-                "Processing mode: one genus group per batch",
+                f"Processing mode: up to {DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE} genus groups per batch",
             ]
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
@@ -8160,6 +8164,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                                 force_refresh_existing=True,
                                 start_index=int(progress.get("next_candidate_index") or progress.get("resolved") or 0),
                                 process_whole_genus=True,
+                                max_genus_groups=DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE,
                             )
                         finally:
                             try:
@@ -8172,6 +8177,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     previous_updated = int(progress.get("updated") or 0)
                     candidate_total = int(summary.get("candidate_total") or 0)
                     batch_processed = int(summary.get("processed") or 0)
+                    batch_genus_groups = int(summary.get("processed_genus_groups") or 0)
                     already_current = int(summary.get("skipped") or 0)
                     failed_count = int(summary.get("failed") or 0)
                     created = previous_created + int(summary.get("created") or 0)
@@ -8192,7 +8198,9 @@ def advance_dataset_update_pipeline_runs() -> None:
                             "already_current": total_already_current,
                             "failed": total_failed,
                             "last_batch_processed": batch_processed,
+                            "last_batch_genus_groups": batch_genus_groups,
                             "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
+                            "genus_batch_size": DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE,
                             "note": "Species metadata is derived in genus-sized groups from standardized genus metadata; no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed.",
                         }
                     )
@@ -8408,6 +8416,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "already_current": 0,
                 "failed": 0,
                 "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
+                "genus_batch_size": DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE,
                 "note": "Deriving species metadata by genus group from standardized genus metadata.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
@@ -16194,6 +16203,7 @@ def expand_species_catalog_from_genus_metadata(
     force_refresh_existing: bool = False,
     start_index: int = 0,
     process_whole_genus: bool = False,
+    max_genus_groups: int = 1,
 ) -> dict[str, int]:
     with get_sqlite_connection() as db:
         if staging_dataset_version_id:
@@ -16240,6 +16250,7 @@ def expand_species_catalog_from_genus_metadata(
     failed = 0
     processed = 0
     next_index = max(0, int(start_index or 0))
+    processed_genus_groups = 0
     ordered_candidates = sorted(
         candidates.values(),
         key=lambda item: (str(item["source_taxon_name"]).lower(), -int(item["genome_count"]), str(item["species_name"]).lower()),
@@ -16345,11 +16356,14 @@ def expand_species_catalog_from_genus_metadata(
                 failed += 1
                 logging.exception("Failed to derive species catalog entry for %s.", species_name)
         if process_whole_genus and genus_started:
+            processed_genus_groups += 1
+        if process_whole_genus and genus_started and processed_genus_groups >= max(1, int(max_genus_groups or 1)):
             break
     return {
         "candidate_total": len(ordered_candidates),
         "next_index": min(next_index, len(ordered_candidates)),
         "processed": processed,
+        "processed_genus_groups": processed_genus_groups,
         "created": created,
         "updated": updated,
         "skipped": skipped,
