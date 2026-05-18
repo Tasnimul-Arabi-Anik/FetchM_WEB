@@ -7036,9 +7036,22 @@ def build_dataset_pipeline_step_cards(
             percent = progress_percent(completed, total)
             active = int(progress.get("standardization_scope_active") or counts.get("standardization_active", 0))
             updated_rows = int(progress.get("standardization_scope_updated_rows") or counts.get("standardization_updated_rows", 0))
+            unique_assemblies = int(progress.get("standardization_scope_unique_assemblies") or 0)
+            taxon_scoped_rows = int(progress.get("standardization_scope_taxon_scoped_rows") or 0)
+            if not unique_assemblies and not taxon_scoped_rows:
+                scope_progress = standardization_refresh_progress(
+                    db,
+                    requested_at=str(row.get("started_at") or ""),
+                    rank_scope="genus",
+                )
+                unique_assemblies = int(scope_progress.get("standardization_scope_unique_assemblies") or 0)
+                taxon_scoped_rows = int(scope_progress.get("standardization_scope_taxon_scoped_rows") or 0)
+                if not updated_rows:
+                    updated_rows = int(scope_progress.get("standardization_scope_updated_rows") or 0)
             detail_lines = [
                 f"{completed}/{total} genus standardization tasks complete; {active} active",
-                f"{updated_rows} genus rows standardized or confirmed reusable",
+                f"{unique_assemblies:,} unique genome assemblies covered",
+                f"{taxon_scoped_rows:,} genus-scoped metadata rows; {updated_rows:,} rows standardized or confirmed reusable",
                 "Species files are derived after this step completes.",
             ]
         elif step_key == "derive_species":
@@ -11821,6 +11834,17 @@ def standardization_refresh_progress(
         """,
         tuple(params),
     ).fetchone()
+    assembly_row = db.execute(
+        f"""
+        SELECT COUNT(am.id) AS taxon_scoped_rows,
+               COUNT(DISTINCT am.assembly_accession) AS unique_assemblies
+        FROM standardization_refresh_tasks t
+        JOIN species s ON s.id = t.species_id
+        JOIN assembly_metadata am ON am.species_id = s.id
+        {where_clause}
+        """,
+        tuple(params),
+    ).fetchone()
     task_active = int(task_row["active"] or 0) if task_row is not None else 0
     chunk_active = int(chunk_row["active"] or 0) if chunk_row is not None else 0
     task_failed = int(task_row["failed"] or 0) if task_row is not None else 0
@@ -11833,6 +11857,8 @@ def standardization_refresh_progress(
         "standardization_scope_deferred": int(task_row["deferred"] or 0) if task_row is not None else 0,
         "standardization_scope_total_rows": int(task_row["total_rows"] or 0) if task_row is not None else 0,
         "standardization_scope_updated_rows": int(task_row["updated_rows"] or 0) if task_row is not None else 0,
+        "standardization_scope_taxon_scoped_rows": int(assembly_row["taxon_scoped_rows"] or 0) if assembly_row is not None else 0,
+        "standardization_scope_unique_assemblies": int(assembly_row["unique_assemblies"] or 0) if assembly_row is not None else 0,
         "standardization_scope_first_requested_at": str(task_row["first_requested_at"] or "") if task_row is not None else "",
         "standardization_scope_last_completed_at": str(task_row["last_completed_at"] or "") if task_row is not None else "",
     }
