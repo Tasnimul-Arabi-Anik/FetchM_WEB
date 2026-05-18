@@ -51,6 +51,83 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
+    def test_standardization_progress_counts_done_tasks(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    clean_path = fetchm_app.DATA_DIR / "clean.tsv"
+                    clean_path.write_text("Assembly Accession\nGCA_000001.1\n", encoding="utf-8")
+                    genus = fetchm_app.create_species("Example", taxon_rank="genus")
+                    genus.status = "ready"
+                    genus.metadata_status = "ready"
+                    genus.metadata_clean_path = str(clean_path)
+                    genus.genome_count = 1
+                    fetchm_app.save_species(genus)
+                    requested_at = "2026-05-16T10:57:35.206585+00:00"
+                    db = fetchm_app.get_db()
+                    db.execute(
+                        """
+                        INSERT INTO standardization_refresh_tasks (
+                            species_id, status, requested_at, completed_at, total_rows, updated_rows
+                        )
+                        VALUES (?, 'done', ?, ?, 1, 1)
+                        """,
+                        (genus.id, requested_at, requested_at),
+                    )
+                    db.commit()
+
+                    progress = fetchm_app.standardization_refresh_progress(
+                        db,
+                        requested_at=requested_at,
+                        rank_scope="genus",
+                    )
+                    counts = fetchm_app.dataset_pipeline_rank_counts(db)
+
+                    self.assertEqual(progress["standardization_scope_total"], 1)
+                    self.assertEqual(progress["standardization_scope_done"], 1)
+                    self.assertEqual(progress["standardization_scope_active"], 0)
+                    self.assertEqual(counts["standardization_completed"], 1)
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_metadata_prune_removes_stale_accessions_without_rewriting_all_rows(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    species = fetchm_app.create_species("Example testus", taxon_rank="species")
+                    fetchm_app.save_taxon_metadata_rows(
+                        species.id,
+                        [
+                            {"Assembly Accession": "GCA_KEEP.1", "Organism Name": "Example testus"},
+                            {"Assembly Accession": "GCA_DROP.1", "Organism Name": "Example testus"},
+                        ],
+                        refreshed_at=fetchm_app.utc_now(),
+                    )
+
+                    removed = fetchm_app.prune_taxon_metadata_rows_to_accessions(species.id, {"GCA_KEEP.1"})
+                    rows = fetchm_app.load_taxon_metadata_rows(species.id)
+
+                    self.assertEqual(removed, 1)
+                    self.assertEqual(set(rows), {"GCA_KEEP.1"})
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_standardization_reuses_unchanged_rows_and_forces_when_requested(self) -> None:
         row = {
             "Assembly Accession": "GCA_000001.1",
