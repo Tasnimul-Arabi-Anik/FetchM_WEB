@@ -1036,6 +1036,7 @@ def init_db() -> None:
             updated_count INTEGER NOT NULL DEFAULT 0,
             skipped_count INTEGER NOT NULL DEFAULT 0,
             failed_count INTEGER NOT NULL DEFAULT 0,
+            failed_candidates_json TEXT NOT NULL DEFAULT '[]',
             error TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -6047,6 +6048,12 @@ def ensure_species_columns(db: sqlite3.Connection) -> None:
           )
         """
     )
+    table_exists = db.execute(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'derived_species_metadata_tasks'"
+    ).fetchone()
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(derived_species_metadata_tasks)").fetchall()} if table_exists else set()
+    if table_exists and "failed_candidates_json" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN failed_candidates_json TEXT NOT NULL DEFAULT '[]'")
     db.commit()
 
 
@@ -6148,6 +6155,7 @@ def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
             updated_count INTEGER NOT NULL DEFAULT 0,
             skipped_count INTEGER NOT NULL DEFAULT 0,
             failed_count INTEGER NOT NULL DEFAULT 0,
+            failed_candidates_json TEXT NOT NULL DEFAULT '[]',
             error TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -6158,6 +6166,9 @@ def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
         ON derived_species_metadata_tasks (dataset_version_id, status, source_taxon_name);
         """
     )
+    columns = {row["name"] for row in db.execute("PRAGMA table_info(derived_species_metadata_tasks)").fetchall()}
+    if "failed_candidates_json" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN failed_candidates_json TEXT NOT NULL DEFAULT '[]'")
     db.commit()
 
 
@@ -7125,13 +7136,74 @@ def build_dataset_pipeline_step_cards(
             task_done = int(progress.get("derive_task_done") or 0)
             task_running = int(progress.get("derive_task_running") or 0)
             task_pending = int(progress.get("derive_task_pending") or 0)
+            failed_source_genera = int(progress.get("failed_source_genera") or 0)
+            failed_examples = list(progress.get("failed_candidate_examples") or [])
+            run = None
+            if row:
+                run = db.execute(
+                    "SELECT dataset_version_id FROM dataset_update_pipeline_runs WHERE run_id = ? LIMIT 1",
+                    (row.get("run_id"),),
+                ).fetchone()
+            if failed and run is not None and not failed_source_genera:
+                failed_row = db.execute(
+                    """
+                    SELECT COUNT(*) AS source_genera
+                    FROM derived_species_metadata_tasks
+                    WHERE dataset_version_id = ?
+                      AND failed_count > 0
+                    """,
+                    (run["dataset_version_id"],),
+                ).fetchone()
+                failed_source_genera = int(failed_row["source_genera"] or 0) if failed_row is not None else 0
+            if failed and run is not None and not failed_examples:
+                for failed_row in db.execute(
+                    """
+                    SELECT source_taxon_name, failed_count, failed_candidates_json
+                    FROM derived_species_metadata_tasks
+                    WHERE dataset_version_id = ?
+                      AND failed_count > 0
+                    ORDER BY failed_count DESC, source_taxon_name COLLATE NOCASE ASC
+                    LIMIT 5
+                    """,
+                    (run["dataset_version_id"],),
+                ).fetchall():
+                    try:
+                        entries = json.loads(str(failed_row["failed_candidates_json"] or "[]"))
+                    except json.JSONDecodeError:
+                        entries = []
+                    if entries:
+                        for entry in entries[:2]:
+                            species_name = str(entry.get("species_name") or "").strip() if isinstance(entry, dict) else str(entry).strip()
+                            if species_name:
+                                failed_examples.append(f"{failed_row['source_taxon_name']}: {species_name}")
+                    else:
+                        failed_examples.append(
+                            f"{failed_row['source_taxon_name']}: {int(failed_row['failed_count'] or 0)} unresolved candidates"
+                        )
+                    if len(failed_examples) >= 3:
+                        break
             detail_lines = [
                 f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
                 f"{task_done}/{task_total} source genera complete; {task_running} running, {task_pending} queued",
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
-                f"{failed} species derivations skipped or failed",
+                f"{failed} species candidates unresolved across {failed_source_genera} source genera",
                 "Processing mode: parallel source-genus claims",
             ]
+            if row and status == "completed" and run is not None:
+                    summary = dataset_version_metadata_summary(db, str(run["dataset_version_id"]))
+                    genus_unique = int(summary.get("staged_genus_unique_assemblies") or 0)
+                    species_unique = int(summary.get("staged_species_unique_assemblies") or 0)
+                    genus_only = int(summary.get("staged_genus_only_unique_assemblies") or 0)
+                    detail_lines.insert(
+                        1,
+                        f"Coverage: {genus_unique:,} genus-level unique assemblies; {species_unique:,} species-level unique assemblies",
+                    )
+                    detail_lines.insert(
+                        2,
+                        f"{genus_only:,} assemblies remain genus-only/unmapped to confident species datasets",
+                    )
+            for example in list(failed_examples)[:3]:
+                detail_lines.append(f"Unresolved example: {example}")
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
             metadata_failed = counts.get("metadata_genus_failed", 0) + counts.get("metadata_species_failed", 0)
@@ -7216,6 +7288,23 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     ).fetchone()
     latest_run = latest_dataset_update_run(connection)
     active_run = active_dataset_update_run(connection)
+    retryable_derived_failures = {"source_genera": 0, "species_candidates": 0}
+    if latest_run is not None:
+        retry_row = connection.execute(
+            """
+            SELECT COUNT(*) AS source_genera,
+                   COALESCE(SUM(failed_count), 0) AS species_candidates
+            FROM derived_species_metadata_tasks
+            WHERE dataset_version_id = ?
+              AND failed_count > 0
+            """,
+            (latest_run["dataset_version_id"],),
+        ).fetchone()
+        if retry_row is not None:
+            retryable_derived_failures = {
+                "source_genera": int(retry_row["source_genera"] or 0),
+                "species_candidates": int(retry_row["species_candidates"] or 0),
+            }
     run_for_steps = active_run or latest_run
     steps = dataset_update_steps(str(run_for_steps["run_id"]), connection) if run_for_steps else []
     step_rows_by_key = {str(step["step_key"]): step for step in steps}
@@ -7243,6 +7332,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "can_run_now": active_run is None,
         "can_promote": bool(staging is not None and str(staging["status"]) == "verified"),
         "can_rollback": bool(get_setting("previous_dataset_version_id", "", connection)),
+        "retryable_derived_failures": retryable_derived_failures,
     }
 
 
@@ -7795,6 +7885,50 @@ def dataset_version_metadata_summary(db: sqlite3.Connection, dataset_version_id:
         (dataset_version_id,),
     ).fetchone()
     summary["staged_unique_assemblies"] = int(unique_row["total"] or 0) if unique_row is not None else 0
+    for rank in ("genus", "species"):
+        rank_unique_row = db.execute(
+            """
+            SELECT COUNT(DISTINCT am.assembly_accession) AS total
+            FROM assembly_metadata am
+            JOIN species s ON s.id = am.species_id
+            WHERE s.staging_dataset_version_id = ?
+              AND s.taxon_rank = ?
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+            """,
+            (dataset_version_id, rank),
+        ).fetchone()
+        summary[f"staged_{rank}_unique_assemblies"] = (
+            int(rank_unique_row["total"] or 0) if rank_unique_row is not None else 0
+        )
+    genus_only_row = db.execute(
+        """
+        WITH genus_accessions AS (
+            SELECT DISTINCT am.assembly_accession
+            FROM assembly_metadata am
+            JOIN species s ON s.id = am.species_id
+            WHERE s.staging_dataset_version_id = ?
+              AND s.taxon_rank = 'genus'
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+        ),
+        species_accessions AS (
+            SELECT DISTINCT am.assembly_accession
+            FROM assembly_metadata am
+            JOIN species s ON s.id = am.species_id
+            WHERE s.staging_dataset_version_id = ?
+              AND s.taxon_rank = 'species'
+              AND s.metadata_status = 'ready'
+              AND s.metadata_clean_path IS NOT NULL
+        )
+        SELECT COUNT(*) AS total
+        FROM genus_accessions g
+        LEFT JOIN species_accessions sp ON sp.assembly_accession = g.assembly_accession
+        WHERE sp.assembly_accession IS NULL
+        """,
+        (dataset_version_id, dataset_version_id),
+    ).fetchone()
+    summary["staged_genus_only_unique_assemblies"] = int(genus_only_row["total"] or 0) if genus_only_row is not None else 0
     return summary
 
 
@@ -7945,7 +8079,8 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
                COALESCE(SUM(created_count), 0) AS created,
                COALESCE(SUM(updated_count), 0) AS updated,
                COALESCE(SUM(skipped_count), 0) AS skipped,
-               COALESCE(SUM(failed_count), 0) AS failed_candidates
+               COALESCE(SUM(failed_count), 0) AS failed_candidates,
+               COALESCE(SUM(CASE WHEN failed_count > 0 THEN 1 ELSE 0 END), 0) AS failed_source_genera
         FROM derived_species_metadata_tasks
         WHERE dataset_version_id = ?
         """,
@@ -7964,10 +8099,41 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
             "updated": 0,
             "already_current": 0,
             "failed": 0,
+            "failed_source_genera": 0,
+            "failed_candidate_examples": [],
         }
     processed = int(row["processed"] or 0)
     skipped = int(row["skipped"] or 0)
     failed_candidates = int(row["failed_candidates"] or 0)
+    failed_examples: list[str] = []
+    if failed_candidates:
+        for failed_row in db.execute(
+            """
+            SELECT source_taxon_name, failed_candidates_json
+            FROM derived_species_metadata_tasks
+            WHERE dataset_version_id = ?
+              AND failed_count > 0
+            ORDER BY failed_count DESC, source_taxon_name COLLATE NOCASE ASC
+            LIMIT 10
+            """,
+            (dataset_version_id,),
+        ).fetchall():
+            try:
+                entries = json.loads(str(failed_row["failed_candidates_json"] or "[]"))
+            except json.JSONDecodeError:
+                entries = []
+            if entries:
+                for entry in entries[:3]:
+                    species_name = str(entry.get("species_name") or "").strip() if isinstance(entry, dict) else str(entry).strip()
+                    reason = str(entry.get("reason") or "").strip() if isinstance(entry, dict) else ""
+                    if species_name:
+                        failed_examples.append(
+                            f"{failed_row['source_taxon_name']}: {species_name}" + (f" ({reason})" if reason else "")
+                        )
+            else:
+                failed_examples.append(f"{failed_row['source_taxon_name']}: {int(failed_row['failed_count'] or 0)} unresolved candidates")
+            if len(failed_examples) >= 5:
+                break
     return {
         "derive_task_total": int(row["total"] or 0),
         "derive_task_pending": int(row["pending"] or 0),
@@ -7980,6 +8146,8 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
         "updated": int(row["updated"] or 0),
         "already_current": skipped,
         "failed": failed_candidates,
+        "failed_source_genera": int(row["failed_source_genera"] or 0),
+        "failed_candidate_examples": failed_examples,
     }
 
 
@@ -16614,6 +16782,7 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
     failed = 0
     processed = 0
     candidate_count = 0
+    failed_candidates: list[dict[str, str]] = []
 
     try:
         with get_sqlite_connection() as db:
@@ -16691,6 +16860,12 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
             filtered_rows = rows_by_canonical.get(species_name, [])
             if not filtered_rows:
                 failed += 1
+                failed_candidates.append(
+                    {
+                        "species_name": species_name,
+                        "reason": "no matching standardized genus metadata rows",
+                    }
+                )
                 continue
             try:
                 was_existing = existing is not None
@@ -16711,8 +16886,14 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 else:
                     created += 1
                 processed += 1
-            except Exception:
+            except Exception as exc:
                 failed += 1
+                failed_candidates.append(
+                    {
+                        "species_name": species_name,
+                        "reason": str(exc)[:240] or "metadata write failed",
+                    }
+                )
                 logging.exception("Failed to derive species metadata for %s from %s.", species_name, source_taxon_name)
 
         status = "done"
@@ -16735,6 +16916,7 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 updated_count = ?,
                 skipped_count = ?,
                 failed_count = ?,
+                failed_candidates_json = ?,
                 error = ?,
                 updated_at = ?,
                 claimed_by = NULL,
@@ -16751,6 +16933,7 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 updated,
                 skipped,
                 failed,
+                json.dumps(failed_candidates[:100], sort_keys=True),
                 error,
                 now,
                 int(task["id"]),
@@ -21229,6 +21412,121 @@ def admin_restart_dataset_standardization() -> Any:
     flash(
         f"Restarted metadata standardization ({summary['rank_scope']}): "
         f"{summary['queued']} queued, {summary['running']} already running, {summary['skipped']} skipped.",
+        "success",
+    )
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/retry-derived-species-failures", methods=["POST"])
+def admin_retry_derived_species_failures() -> Any:
+    require_admin()
+    with get_sqlite_connection() as db:
+        latest = db.execute(
+            """
+            SELECT *
+            FROM dataset_update_pipeline_runs
+            ORDER BY requested_at DESC, id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+        if latest is None:
+            flash("No dataset pipeline run is available.", "error")
+            return redirect(url_for("admin_dashboard"))
+        active = active_dataset_update_run(db)
+        if active is not None:
+            flash(f"Pipeline run {active['run_id']} is already active. Retry after it finishes.", "error")
+            return redirect(url_for("admin_dashboard"))
+        dataset_version_id = str(latest["dataset_version_id"])
+        retry_row = db.execute(
+            """
+            SELECT COUNT(*) AS source_genera,
+                   COALESCE(SUM(failed_count), 0) AS species_candidates
+            FROM derived_species_metadata_tasks
+            WHERE dataset_version_id = ?
+              AND failed_count > 0
+            """,
+            (dataset_version_id,),
+        ).fetchone()
+        source_genera = int(retry_row["source_genera"] or 0) if retry_row is not None else 0
+        species_candidates = int(retry_row["species_candidates"] or 0) if retry_row is not None else 0
+        if source_genera <= 0:
+            flash("No unresolved species derivation candidates are available to retry.", "info")
+            return redirect(url_for("admin_dashboard"))
+        now = utc_now()
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = 'pending',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                completed_at = NULL,
+                processed_count = 0,
+                created_count = 0,
+                updated_count = 0,
+                skipped_count = 0,
+                failed_count = 0,
+                failed_candidates_json = '[]',
+                error = NULL,
+                updated_at = ?
+            WHERE dataset_version_id = ?
+              AND failed_count > 0
+            """,
+            (now, dataset_version_id),
+        )
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_steps
+            SET status = 'running',
+                completed_at = NULL,
+                blockers_json = '[]',
+                error = NULL
+            WHERE run_id = ?
+              AND step_key = 'derive_species'
+            """,
+            (latest["run_id"],),
+        )
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_steps
+            SET status = 'waiting',
+                completed_at = NULL,
+                blockers_json = '[]',
+                error = NULL
+            WHERE run_id = ?
+              AND step_key = 'verify'
+            """,
+            (latest["run_id"],),
+        )
+        db.execute(
+            """
+            UPDATE dataset_update_pipeline_runs
+            SET status = 'running',
+                completed_at = NULL,
+                error = NULL
+            WHERE run_id = ?
+            """,
+            (latest["run_id"],),
+        )
+        db.execute(
+            """
+            UPDATE dataset_versions
+            SET status = 'staging',
+                verified_at = NULL,
+                error = NULL
+            WHERE version_id = ?
+              AND status = 'verified'
+            """,
+            (dataset_version_id,),
+        )
+        db.commit()
+    record_audit_event(
+        "admin.dataset_pipeline_retry_derived_species_failures",
+        target_type="dataset_version",
+        target_id=dataset_version_id,
+        metadata={"source_genera": source_genera, "species_candidates": species_candidates},
+    )
+    flash(
+        f"Retry queued for {species_candidates} unresolved species candidates across {source_genera} source genera.",
         "success",
     )
     return redirect(url_for("admin_dashboard"))
