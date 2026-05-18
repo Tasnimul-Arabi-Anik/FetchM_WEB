@@ -1021,6 +1021,30 @@ def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_metadata_species_search_staging_name
         ON metadata_species_search_staging (dataset_version_id, search_name);
 
+        CREATE TABLE IF NOT EXISTS derived_species_metadata_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            candidate_count INTEGER NOT NULL DEFAULT 0,
+            processed_count INTEGER NOT NULL DEFAULT 0,
+            created_count INTEGER NOT NULL DEFAULT 0,
+            updated_count INTEGER NOT NULL DEFAULT 0,
+            skipped_count INTEGER NOT NULL DEFAULT 0,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(dataset_version_id, source_taxon_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_derived_species_metadata_tasks_status
+        ON derived_species_metadata_tasks (dataset_version_id, status, source_taxon_name);
+
         CREATE TABLE IF NOT EXISTS metadata_chunks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             species_id INTEGER NOT NULL,
@@ -1135,6 +1159,7 @@ def init_db() -> None:
     ensure_species_columns(db)
     ensure_metadata_chunk_table(db)
     ensure_standardization_refresh_table(db)
+    ensure_derived_species_metadata_task_table(db)
     ensure_discovery_scope_columns(db)
     load_approved_standardization_rules_into_memory(db)
     migrate_legacy_jobs(db)
@@ -6105,6 +6130,37 @@ def ensure_standardization_refresh_table(db: sqlite3.Connection) -> None:
     db.commit()
 
 
+def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
+    db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS derived_species_metadata_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            candidate_count INTEGER NOT NULL DEFAULT 0,
+            processed_count INTEGER NOT NULL DEFAULT 0,
+            created_count INTEGER NOT NULL DEFAULT 0,
+            updated_count INTEGER NOT NULL DEFAULT 0,
+            skipped_count INTEGER NOT NULL DEFAULT 0,
+            failed_count INTEGER NOT NULL DEFAULT 0,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(dataset_version_id, source_taxon_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_derived_species_metadata_tasks_status
+        ON derived_species_metadata_tasks (dataset_version_id, status, source_taxon_name);
+        """
+    )
+    db.commit()
+
+
 def ensure_discovery_scope_columns(db: sqlite3.Connection) -> None:
     columns = {row["name"] for row in db.execute("PRAGMA table_info(discovery_scopes)").fetchall()}
     additions = {
@@ -7065,11 +7121,16 @@ def build_dataset_pipeline_step_cards(
             failed = int(progress.get("failed") or 0)
             completed_candidates = min(candidate_total, resolved)
             percent = progress_percent(completed_candidates, candidate_total)
+            task_total = int(progress.get("derive_task_total") or 0)
+            task_done = int(progress.get("derive_task_done") or 0)
+            task_running = int(progress.get("derive_task_running") or 0)
+            task_pending = int(progress.get("derive_task_pending") or 0)
             detail_lines = [
                 f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
+                f"{task_done}/{task_total} source genera complete; {task_running} running, {task_pending} queued",
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
                 f"{failed} species derivations skipped or failed",
-                f"Processing mode: up to {DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE} genus groups per batch",
+                "Processing mode: parallel source-genus claims",
             ]
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
@@ -7757,6 +7818,165 @@ def staged_species_search_summary(db: sqlite3.Connection, dataset_version_id: st
     }
 
 
+def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    now = utc_now()
+    cursor = db.execute(
+        """
+        INSERT OR IGNORE INTO derived_species_metadata_tasks (
+            dataset_version_id, source_taxon_id, source_taxon_name, status, created_at, updated_at
+        )
+        SELECT dataset_version_id,
+               source_taxon_id,
+               MIN(source_taxon_name) AS source_taxon_name,
+               'pending',
+               ?,
+               ?
+        FROM metadata_species_search_staging
+        WHERE dataset_version_id = ?
+        GROUP BY dataset_version_id, source_taxon_id
+        """,
+        (now, now, dataset_version_id),
+    )
+    inserted = int(cursor.rowcount or 0)
+    missing_rows = db.execute(
+        """
+        SELECT source_taxon_id, source_taxon_name, species_name
+        FROM metadata_species_search_staging
+        WHERE dataset_version_id = ?
+          AND source_taxon_id IN (
+              SELECT source_taxon_id
+              FROM derived_species_metadata_tasks
+              WHERE dataset_version_id = ?
+                AND candidate_count = 0
+                AND status IN ('pending', 'running')
+          )
+        ORDER BY source_taxon_id
+        """,
+        (dataset_version_id, dataset_version_id),
+    ).fetchall()
+    candidates_by_source: dict[int, set[str]] = defaultdict(set)
+    for row in missing_rows:
+        source_taxon_id = int(row["source_taxon_id"])
+        canonical_name = canonical_species_from_organism_name(str(row["species_name"]), str(row["source_taxon_name"]))
+        if canonical_name:
+            candidates_by_source[source_taxon_id].add(canonical_name)
+    for source_taxon_id, candidates in candidates_by_source.items():
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET candidate_count = ?,
+                updated_at = ?
+            WHERE dataset_version_id = ?
+              AND source_taxon_id = ?
+              AND candidate_count = 0
+            """,
+            (len(candidates), now, dataset_version_id, source_taxon_id),
+        )
+    return inserted
+
+
+def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_version_id: str) -> dict[str, int]:
+    row = db.execute(
+        """
+        SELECT COUNT(*) AS total,
+               COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+               COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0) AS running,
+               COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0) AS done,
+               COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0) AS failed,
+               COALESCE(SUM(candidate_count), 0) AS candidate_total,
+               COALESCE(SUM(processed_count), 0) AS processed,
+               COALESCE(SUM(created_count), 0) AS created,
+               COALESCE(SUM(updated_count), 0) AS updated,
+               COALESCE(SUM(skipped_count), 0) AS skipped,
+               COALESCE(SUM(failed_count), 0) AS failed_candidates
+        FROM derived_species_metadata_tasks
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    if row is None:
+        return {
+            "derive_task_total": 0,
+            "derive_task_pending": 0,
+            "derive_task_running": 0,
+            "derive_task_done": 0,
+            "derive_task_failed": 0,
+            "candidate_total": 0,
+            "resolved": 0,
+            "created": 0,
+            "updated": 0,
+            "already_current": 0,
+            "failed": 0,
+        }
+    processed = int(row["processed"] or 0)
+    skipped = int(row["skipped"] or 0)
+    failed_candidates = int(row["failed_candidates"] or 0)
+    return {
+        "derive_task_total": int(row["total"] or 0),
+        "derive_task_pending": int(row["pending"] or 0),
+        "derive_task_running": int(row["running"] or 0),
+        "derive_task_done": int(row["done"] or 0),
+        "derive_task_failed": int(row["failed"] or 0),
+        "candidate_total": int(row["candidate_total"] or 0),
+        "resolved": processed + skipped + failed_candidates,
+        "created": int(row["created"] or 0),
+        "updated": int(row["updated"] or 0),
+        "already_current": skipped,
+        "failed": failed_candidates,
+    }
+
+
+def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | None:
+    now = utc_now()
+    stale_cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = 'pending',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                updated_at = ?
+            WHERE status = 'running'
+              AND claimed_at < ?
+            """,
+            (now, stale_cutoff),
+        )
+        row = db.execute(
+            """
+            SELECT t.id
+            FROM derived_species_metadata_tasks t
+            JOIN dataset_update_pipeline_runs r
+              ON r.dataset_version_id = t.dataset_version_id
+            JOIN dataset_update_pipeline_steps s
+              ON s.run_id = r.run_id
+            WHERE t.status = 'pending'
+              AND s.step_key = 'derive_species'
+              AND s.status = 'running'
+            ORDER BY t.source_taxon_name COLLATE NOCASE ASC, t.id ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = 'running',
+                claimed_by = ?,
+                claimed_at = ?,
+                updated_at = ?
+            WHERE id = ?
+              AND status = 'pending'
+            """,
+            (worker_name, now, now, int(row["id"])),
+        )
+        task = db.execute("SELECT * FROM derived_species_metadata_tasks WHERE id = ?", (int(row["id"]),)).fetchone()
+        db.commit()
+        return task
+
+
 def set_pipeline_step_status(
     db: sqlite3.Connection,
     step_id: int,
@@ -8144,75 +8364,31 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if total and done < total and not active and not failed_count:
                     blockers.append(f"standardization completion is not confirmed yet: {done}/{total} tasks done")
             elif step_key == "derive_species":
-                summary: dict[str, int] | None = None
                 if counts["standardization_active"]:
                     blockers.append(f"{counts['standardization_active']} genus standardization tasks/chunks still active")
                 if counts["standardization_failed"]:
                     failed = True
                     blockers.append(f"{counts['standardization_failed']} genus standardization tasks/chunks failed")
                 if not blockers:
-                    lock_handle = acquire_dataset_pipeline_step_lock("derive_species", str(step["dataset_version_id"]))
-                    if lock_handle is None:
-                        blockers.append("Another species derivation batch is already running")
-                    else:
-                        try:
-                            progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
-                            db.commit()
-                            summary = expand_species_catalog_from_genus_metadata(
-                                limit=DERIVED_SPECIES_METADATA_BATCH_SIZE,
-                                staging_dataset_version_id=str(step["dataset_version_id"]),
-                                force_refresh_existing=True,
-                                start_index=int(progress.get("next_candidate_index") or progress.get("resolved") or 0),
-                                process_whole_genus=True,
-                                max_genus_groups=DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE,
-                            )
-                        finally:
-                            try:
-                                fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
-                            finally:
-                                lock_handle.close()
-                if not blockers and summary is not None:
-                    db.execute("BEGIN IMMEDIATE")
-                    previous_created = int(progress.get("created") or 0)
-                    previous_updated = int(progress.get("updated") or 0)
-                    candidate_total = int(summary.get("candidate_total") or 0)
-                    batch_processed = int(summary.get("processed") or 0)
-                    batch_genus_groups = int(summary.get("processed_genus_groups") or 0)
-                    already_current = int(summary.get("skipped") or 0)
-                    failed_count = int(summary.get("failed") or 0)
-                    created = previous_created + int(summary.get("created") or 0)
-                    updated = previous_updated + int(summary.get("updated") or 0)
-                    previous_already_current = int(progress.get("already_current") or 0)
-                    previous_failed = int(progress.get("failed") or 0)
-                    total_already_current = previous_already_current + already_current
-                    total_failed = previous_failed + failed_count
-                    next_index = int(summary.get("next_index") or 0)
-                    resolved = min(candidate_total, max(next_index, total_already_current + created + updated + total_failed))
-                    progress.update(
-                        {
-                            "candidate_total": candidate_total,
-                            "resolved": resolved,
-                            "next_candidate_index": next_index,
-                            "created": created,
-                            "updated": updated,
-                            "already_current": total_already_current,
-                            "failed": total_failed,
-                            "last_batch_processed": batch_processed,
-                            "last_batch_genus_groups": batch_genus_groups,
-                            "batch_size": DERIVED_SPECIES_METADATA_BATCH_SIZE,
-                            "genus_batch_size": DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE,
-                            "note": "Species metadata is derived in genus-sized groups from standardized genus metadata; no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed.",
-                        }
-                    )
-                    if candidate_total and resolved < candidate_total:
-                        if batch_processed <= 0 and resolved <= int(progress.get("previous_resolved") or -1):
-                            failed = True
-                            blockers.append(
-                                f"Species derivation made no progress: {resolved}/{candidate_total} candidates resolved"
-                            )
-                        progress["previous_resolved"] = resolved
-                        blockers.append(f"Deriving species metadata: {resolved}/{candidate_total} species candidates resolved")
-                    elif candidate_total == 0:
+                    ensure_derived_species_metadata_tasks_for_version(db, str(step["dataset_version_id"]))
+                    progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
+                    progress.update(derived_species_metadata_task_progress(db, str(step["dataset_version_id"])))
+                    progress["note"] = "Species metadata is derived in parallel by source genus from standardized genus metadata; no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed."
+                    task_total = int(progress.get("derive_task_total") or 0)
+                    task_pending = int(progress.get("derive_task_pending") or 0)
+                    task_running = int(progress.get("derive_task_running") or 0)
+                    task_failed = int(progress.get("derive_task_failed") or 0)
+                    candidate_total = int(progress.get("candidate_total") or 0)
+                    resolved = int(progress.get("resolved") or 0)
+                    if task_failed:
+                        failed = True
+                        blockers.append(f"{task_failed} source-genus species derivation tasks failed")
+                    elif task_total and (task_pending or task_running):
+                        blockers.append(
+                            f"Deriving species metadata: {resolved}/{candidate_total} candidates resolved across "
+                            f"{task_total - task_pending - task_running}/{task_total} source genera"
+                        )
+                    elif task_total == 0:
                         failed = True
                         progress["note"] = "No species candidates were found in standardized genus metadata."
                         blockers.append("No species candidates were found in standardized genus metadata.")
@@ -16371,6 +16547,146 @@ def expand_species_catalog_from_genus_metadata(
     }
 
 
+def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -> dict[str, int]:
+    dataset_version_id = str(task["dataset_version_id"])
+    source_taxon_id = int(task["source_taxon_id"])
+    source_taxon_name = str(task["source_taxon_name"])
+    created = 0
+    updated = 0
+    skipped = 0
+    failed = 0
+    processed = 0
+    candidate_count = 0
+
+    try:
+        with get_sqlite_connection() as db:
+            rows = db.execute(
+                """
+                SELECT species_name, genome_count
+                FROM metadata_species_search_staging
+                WHERE dataset_version_id = ?
+                  AND source_taxon_id = ?
+                ORDER BY genome_count DESC, species_name COLLATE NOCASE ASC
+                """,
+                (dataset_version_id, source_taxon_id),
+            ).fetchall()
+
+        candidates: dict[str, int] = {}
+        for row in rows:
+            canonical_name = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
+            if canonical_name:
+                candidates[canonical_name] = candidates.get(canonical_name, 0) + int(row["genome_count"] or 0)
+        ordered_candidates = sorted(candidates.items(), key=lambda item: (-item[1], item[0].lower()))
+        candidate_count = len(ordered_candidates)
+
+        genus = load_species(source_taxon_id)
+        genus_rows = load_taxon_metadata_rows(genus.id)
+        rows_by_canonical: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in genus_rows.values():
+            canonical_name = canonical_species_from_organism_name(str(row.get("Organism Name") or ""), genus.species_name)
+            if canonical_name:
+                rows_by_canonical[canonical_name].append(row)
+
+        for species_name, _genome_count in ordered_candidates:
+            existing = get_taxon_by_name(species_name, "species")
+            genus_built_at = parse_optional_utc(genus.metadata_last_built_at)
+            existing_built_at = parse_optional_utc(existing.metadata_last_built_at) if existing is not None else None
+            existing_is_at_least_as_new = (
+                genus_built_at is None
+                or (existing_built_at is not None and existing_built_at >= genus_built_at)
+            )
+            already_current = (
+                existing is not None
+                and existing.status == "ready"
+                and existing.metadata_status == "ready"
+                and existing.metadata_clean_path
+                and Path(existing.metadata_clean_path).exists()
+                and existing.staging_dataset_version_id == dataset_version_id
+                and int(existing.metadata_source_taxon_id or 0) == source_taxon_id
+                and existing_is_at_least_as_new
+            )
+            if already_current:
+                skipped += 1
+                continue
+            filtered_rows = rows_by_canonical.get(species_name, [])
+            if not filtered_rows:
+                failed += 1
+                continue
+            try:
+                was_existing = existing is not None
+                species = create_species(
+                    species_name,
+                    taxon_rank="species",
+                    assembly_source=genus.assembly_source,
+                    staging_dataset_version_id=dataset_version_id,
+                )
+                if dataset_version_id:
+                    species.staging_dataset_version_id = dataset_version_id
+                    if not species.live_tsv_path:
+                        species.is_live = False
+                    species = save_species(species)
+                save_species_metadata_from_genus_rows(species, genus, filtered_rows)
+                if was_existing:
+                    updated += 1
+                else:
+                    created += 1
+                processed += 1
+            except Exception:
+                failed += 1
+                logging.exception("Failed to derive species metadata for %s from %s.", species_name, source_taxon_name)
+
+        status = "done"
+        error = None
+    except Exception as exc:
+        status = "failed"
+        error = str(exc)
+        logging.exception("Failed to process derived species metadata task for source taxon %s.", source_taxon_id)
+
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = ?,
+                completed_at = CASE WHEN ? = 'done' THEN ? ELSE completed_at END,
+                candidate_count = ?,
+                processed_count = ?,
+                created_count = ?,
+                updated_count = ?,
+                skipped_count = ?,
+                failed_count = ?,
+                error = ?,
+                updated_at = ?,
+                claimed_by = NULL,
+                claimed_at = NULL
+            WHERE id = ?
+            """,
+            (
+                status,
+                status,
+                now,
+                candidate_count,
+                processed,
+                created,
+                updated,
+                skipped,
+                failed,
+                error,
+                now,
+                int(task["id"]),
+            ),
+        )
+        db.commit()
+    return {
+        "candidate_count": candidate_count,
+        "processed": processed,
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "failed": failed,
+    }
+
+
 def write_taxon_metadata_outputs(
     slug: str,
     rows: list[dict[str, Any]],
@@ -18243,6 +18559,11 @@ def run_worker_loop() -> None:
                         process_dataset_pipeline_step(pipeline_step)
                     continue
             if WORKER_MODE in {"all", "sync"}:
+                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
+                if derived_species_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_derived_species_metadata_task(derived_species_task, worker_name)
+                    continue
                 try:
                     species = claim_next_species_sync(worker_name)
                 except sqlite3.OperationalError as exc:
@@ -18276,6 +18597,11 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "metadata"}:
+                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
+                if derived_species_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_derived_species_metadata_task(derived_species_task, worker_name)
+                    continue
                 ensure_metadata_chunks_for_active_builds()
                 metadata_species = claim_next_species_metadata_build(worker_name)
                 if metadata_species is not None:
