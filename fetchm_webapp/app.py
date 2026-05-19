@@ -6350,7 +6350,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_metadata_sequential", "1"),
         ("dataset_pipeline_standardization_sequential", "1"),
         ("dataset_pipeline_derive_species_sequential", "1"),
-        ("dataset_pipeline_replace_sequential", "0"),
+        ("dataset_pipeline_replace_sequential", "1"),
         ("dataset_pipeline_global_insights_sequential", "1"),
         ("active_dataset_version_id", "legacy-live"),
         ("previous_dataset_version_id", ""),
@@ -6613,46 +6613,49 @@ DATASET_PIPELINE_STEPS = [
     ("replace", "Replace existing data"),
     ("global_insights", "Generate Global Insights"),
 ]
+DATASET_PIPELINE_STEP_INDEX = {
+    step_key: index for index, (step_key, _label) in enumerate(DATASET_PIPELINE_STEPS)
+}
 
 DATASET_PIPELINE_STEP_COPY = {
     "discovery": {
-        "short": "Find bacterial genera first; species are expanded later from genus catalogs and metadata.",
-        "run_label": "Run discovery now",
-        "metric_label": "Discovery scopes",
+        "short": "Genus discovery check.",
+        "run_label": "Run from here",
+        "metric_label": "Genus discovery check",
     },
     "catalog": {
-        "short": "Run a full genus TSV refresh. Species are derived later from refreshed genus metadata.",
-        "run_label": "Run catalog now",
+        "short": "Refresh genus TSV catalogs.",
+        "run_label": "Run from here",
         "metric_label": "Genus catalog refresh",
     },
     "metadata": {
-        "short": "Build or refresh genus metadata only. Species metadata is derived after genus standardization.",
-        "run_label": "Run metadata now",
+        "short": "Refresh genus metadata.",
+        "run_label": "Run from here",
         "metric_label": "Genus metadata refresh",
     },
     "standardization": {
-        "short": "Standardize refreshed genus metadata once before partitioning it into species datasets.",
-        "run_label": "Run standardization now",
+        "short": "Standardize genus metadata.",
+        "run_label": "Run from here",
         "metric_label": "Genus standardization",
     },
     "derive_species": {
-        "short": "Create species metadata files from standardized genus metadata, without re-fetching or re-standardizing the same assemblies.",
-        "run_label": "Derive species now",
+        "short": "Derive species files from genus metadata.",
+        "run_label": "Run from here",
         "metric_label": "Species derivation",
     },
     "verify": {
-        "short": "Confirm no update work is active or failed before any live dataset switch is allowed.",
-        "run_label": "Verify staged update",
+        "short": "Validate staged outputs.",
+        "run_label": "Run from here",
         "metric_label": "Verification",
     },
     "replace": {
-        "short": "Switch live pointers only after the upstream update pipeline has completed successfully.",
-        "run_label": "Replace after verified run",
+        "short": "Publish verified staged data.",
+        "run_label": "Run from here",
         "metric_label": "Live version",
     },
     "global_insights": {
-        "short": "Regenerate the Global Insights snapshot from the active metadata.",
-        "run_label": "Generate insights now",
+        "short": "Rebuild Global Insights.",
+        "run_label": "Run from here",
         "metric_label": "Insights snapshot",
     },
 }
@@ -6773,8 +6776,11 @@ def dataset_pipeline_sequential_enabled(step_key: str, db: sqlite3.Connection | 
     setting_key = DATASET_PIPELINE_SEQUENTIAL_KEYS.get(step_key)
     if setting_key is None:
         return True
-    default = "0" if step_key == "replace" else "1"
-    return get_setting(setting_key, default, db) == "1"
+    if step_key in {"replace", "global_insights"} and get_setting("dataset_pipeline_auto_publish_insights", "1", db) == "1":
+        return True
+    if step_key == "replace" and get_setting("dataset_pipeline_auto_publish_insights", "1", db) != "1":
+        return False
+    return get_setting(setting_key, "1", db) == "1"
 
 
 def dataset_pipeline_steps_for_start(start_step: str, db: sqlite3.Connection | None = None) -> list[str]:
@@ -6992,6 +6998,7 @@ def pipeline_step_time_label(row: Mapping[str, Any] | None, status: str) -> str:
 def build_dataset_pipeline_step_cards(
     db: sqlite3.Connection,
     step_rows_by_key: dict[str, dict[str, Any]],
+    verification_summary: Mapping[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     counts = dataset_pipeline_rank_counts(db)
     active_version = get_active_dataset_version_id(db)
@@ -7045,10 +7052,15 @@ def build_dataset_pipeline_step_cards(
             species_now = counts.get("catalog_species_total", 0)
             new_species = max(0, species_now - species_before)
             detail_lines = [
-                f"{ready}/{total} scopes completed; {discovering} running, {pending} queued",
+                f"{ready}/{total} discovery scopes ready; {discovering} running, {pending} queued",
                 f"Genera: {genus_before} before, {counts.get('catalog_genus_total', 0)} now, +{new_genera} this run",
                 f"Species: {species_before} before, {species_now} now, +{new_species} this run",
             ]
+            if status == "completed":
+                detail_lines.insert(
+                    0,
+                    "Discovery check finished; downstream catalog refresh is the long-running step.",
+                )
             if active_discovery_scope is not None:
                 active_label = str(active_discovery_scope["scope_label"] or active_discovery_scope["scope_value"])
                 detail_lines.append(
@@ -7065,14 +7077,15 @@ def build_dataset_pipeline_step_cards(
         elif step_key == "catalog":
             genus_ready = counts.get("catalog_genus_ready", 0)
             genus_no_data = counts.get("catalog_genus_no_data", 0)
-            genus_total = counts.get("catalog_genus_total", 0)
-            genus_remaining = counts.get("catalog_genus_active", 0)
+            progress_queue = progress.get("genus_queue") if isinstance(progress.get("genus_queue"), dict) else {}
+            genus_total = int(progress_queue.get("queued") or progress_queue.get("total") or counts.get("catalog_genus_total", 0))
+            genus_remaining = int(progress.get("catalog_active") or progress_queue.get("active") or counts.get("catalog_genus_active", 0))
             genus_failed = counts.get("catalog_genus_failed", 0)
             genus_finished = max(0, genus_total - genus_remaining - genus_failed)
             percent = progress_percent(genus_finished, genus_total)
             detail_lines = [
-                f"Full genus refresh: {genus_finished}/{genus_total} finished, {genus_remaining} remaining",
-                f"Current genus coverage: {genus_ready} ready, {genus_no_data} no genome data",
+                f"Current run: {genus_finished}/{genus_total} genus catalogs resolved, {genus_remaining} remaining",
+                f"Previously/currently usable coverage: {genus_ready} ready, {genus_no_data} no genome data",
                 "Species are derived after genus metadata is rebuilt.",
             ]
         elif step_key == "metadata":
@@ -7088,9 +7101,11 @@ def build_dataset_pipeline_step_cards(
             species_failed = counts.get("metadata_species_failed", 0)
             species_finished = max(0, species_total - species_active - species_failed)
             if phase == "genus":
+                reused = int(progress.get("genus_queue", {}).get("reused") or 0) if isinstance(progress.get("genus_queue"), dict) else 0
                 percent = progress_percent(genus_finished, genus_total)
                 detail_lines = [
                     f"Current genus metadata refresh: {genus_finished}/{genus_total} finished, {genus_active} active/queued",
+                    f"{reused} genus metadata files reused because no new accessions were detected",
                     "Species metadata is derived after genus standardization.",
                     f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
                 ]
@@ -7190,7 +7205,11 @@ def build_dataset_pipeline_step_cards(
                 "Processing mode: parallel source-genus claims",
             ]
             if row and status == "completed" and run is not None:
-                    summary = dataset_version_metadata_summary(db, str(run["dataset_version_id"]))
+                    summary = verification_summary or cached_dataset_version_verification_summary(
+                        db,
+                        str(run["dataset_version_id"]),
+                        str(row.get("run_id") or ""),
+                    )
                     genus_unique = int(summary.get("staged_genus_unique_assemblies") or 0)
                     species_unique = int(summary.get("staged_species_unique_assemblies") or 0)
                     genus_only = int(summary.get("staged_genus_only_unique_assemblies") or 0)
@@ -7308,7 +7327,12 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     run_for_steps = active_run or latest_run
     steps = dataset_update_steps(str(run_for_steps["run_id"]), connection) if run_for_steps else []
     step_rows_by_key = {str(step["step_key"]): step for step in steps}
-    step_cards = build_dataset_pipeline_step_cards(connection, step_rows_by_key)
+    verification_summary = cached_dataset_version_verification_summary(
+        connection,
+        str(run_for_steps["dataset_version_id"]) if run_for_steps else None,
+        str(run_for_steps["run_id"]) if run_for_steps else None,
+    )
+    step_cards = build_dataset_pipeline_step_cards(connection, step_rows_by_key, verification_summary)
     discovery_schedule_enabled = get_setting("dataset_pipeline_discovery_schedule_enabled", "0", connection) == "1"
     discovery_interval_days = get_setting("dataset_pipeline_discovery_interval_days", "7", connection)
     schedule_hour_utc = get_setting("dataset_pipeline_schedule_hour_utc", "18", connection)
@@ -7333,6 +7357,61 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "can_promote": bool(staging is not None and str(staging["status"]) == "verified"),
         "can_rollback": bool(get_setting("previous_dataset_version_id", "", connection)),
         "retryable_derived_failures": retryable_derived_failures,
+        "verification_summary": verification_summary,
+    }
+
+
+def build_admin_summary_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
+    connection = db or get_db()
+    active_version_id = get_active_dataset_version_id(connection)
+    latest_run = latest_dataset_update_run(connection)
+    latest_insight = latest_global_insight_task(connection)
+    live_counts = connection.execute(
+        """
+        SELECT
+            COUNT(*) AS taxa_total,
+            SUM(CASE WHEN taxon_rank = 'genus' THEN 1 ELSE 0 END) AS genus_total,
+            SUM(CASE WHEN taxon_rank = 'species' THEN 1 ELSE 0 END) AS species_total,
+            SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_ready_total,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'genus' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_metadata_ready,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'species' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS species_metadata_ready,
+            COALESCE(SUM(CASE WHEN is_live = 1 AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END), 0) AS taxon_scoped_genomes
+        FROM species
+        """
+    ).fetchone()
+    verification_summary: dict[str, Any] = {}
+    if latest_run is not None:
+        verification_summary = cached_dataset_version_verification_summary(
+            connection,
+            str(latest_run["dataset_version_id"]),
+            str(latest_run["run_id"]),
+        )
+    previous_version = get_setting("previous_dataset_version_id", "", connection) or ""
+    previous_counts = archived_dataset_version_counts(connection, previous_version)
+    return {
+        "active_version_id": active_version_id,
+        "previous_version_id": previous_version,
+        "latest_run": latest_run,
+        "latest_insight": latest_insight,
+        "live": dict(live_counts) if live_counts is not None else {},
+        "staged": verification_summary,
+        "previous": previous_counts,
+    }
+
+
+def build_admin_storage_summary() -> dict[str, Any]:
+    disk_total, disk_used, disk_free = shutil.disk_usage(DATA_DIR)
+    db_bytes = DB_PATH.stat().st_size if DB_PATH.exists() else 0
+    return {
+        "disk_total_bytes": disk_total,
+        "disk_used_bytes": disk_used,
+        "disk_free_bytes": disk_free,
+        "disk_used_percent": round((disk_used / disk_total) * 100, 1) if disk_total else 0.0,
+        "disk_total_label": format_bytes(disk_total),
+        "disk_used_label": format_bytes(disk_used),
+        "disk_free_label": format_bytes(disk_free),
+        "db_bytes": db_bytes,
+        "db_label": format_bytes(db_bytes),
     }
 
 
@@ -7813,6 +7892,26 @@ def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str, dataset_ve
 def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_version_id: str | None = None) -> dict[str, Any]:
     rank = normalize_taxon_rank(rank)
     now = utc_now()
+    if dataset_version_id:
+        db.execute(
+            """
+            UPDATE species
+            SET staging_dataset_version_id = ?,
+                updated_at = ?
+            WHERE taxon_rank = ?
+              AND status = 'ready'
+              AND tsv_path IS NOT NULL
+              AND metadata_status = 'ready'
+              AND metadata_path IS NOT NULL
+              AND metadata_clean_path IS NOT NULL
+              AND COALESCE(genome_count, 0) <= (
+                    SELECT COUNT(DISTINCT am.assembly_accession)
+                    FROM assembly_metadata am
+                    WHERE am.species_id = species.id
+              )
+            """,
+            (dataset_version_id, now, rank),
+        )
     cursor = db.execute(
         """
         UPDATE species
@@ -7830,16 +7929,47 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_
           AND tsv_path IS NOT NULL
           AND metadata_status != 'building'
           AND metadata_claimed_at IS NULL
+          AND (
+                metadata_status != 'ready'
+                OR metadata_path IS NULL
+                OR metadata_clean_path IS NULL
+                OR genome_count IS NULL
+                OR COALESCE(genome_count, 0) > (
+                    SELECT COUNT(DISTINCT am.assembly_accession)
+                    FROM assembly_metadata am
+                    WHERE am.species_id = species.id
+                )
+              )
         """,
         (dataset_version_id, now, rank),
     )
     counts = dataset_pipeline_rank_counts(db)
+    reusable_row = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE taxon_rank = ?
+          AND status = 'ready'
+          AND tsv_path IS NOT NULL
+          AND metadata_status = 'ready'
+          AND metadata_clean_path IS NOT NULL
+          AND staging_dataset_version_id = ?
+          AND COALESCE(genome_count, 0) <= (
+                SELECT COUNT(DISTINCT am.assembly_accession)
+                FROM assembly_metadata am
+                WHERE am.species_id = species.id
+          )
+        """,
+        (rank, dataset_version_id or ""),
+    ).fetchone()
     return {
         "queued": int(cursor.rowcount or 0),
         "rank": rank,
         "active": counts.get(f"metadata_{rank}_active", 0),
         "ready": counts.get(f"metadata_{rank}_ready", 0),
         "total": counts.get(f"metadata_{rank}_total", 0),
+        "reused": int(reusable_row["total"] or 0) if reusable_row is not None else 0,
+        "mode": "incremental_new_accessions",
     }
 
 
@@ -7930,6 +8060,94 @@ def dataset_version_metadata_summary(db: sqlite3.Connection, dataset_version_id:
     ).fetchone()
     summary["staged_genus_only_unique_assemblies"] = int(genus_only_row["total"] or 0) if genus_only_row is not None else 0
     return summary
+
+
+def parse_dataset_version_summary(row: Mapping[str, Any] | None) -> dict[str, Any]:
+    if row is None:
+        return {}
+    if hasattr(row, "get"):
+        raw = row.get("summary_json")  # type: ignore[union-attr]
+    else:
+        raw = row["summary_json"] if "summary_json" in row.keys() else "{}"  # type: ignore[index,union-attr]
+    try:
+        return json.loads(str(raw or "{}"))
+    except json.JSONDecodeError:
+        return {}
+
+
+def merge_dataset_version_summary(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+    updates: Mapping[str, Any],
+) -> dict[str, Any]:
+    row = db.execute(
+        "SELECT summary_json FROM dataset_versions WHERE version_id = ?",
+        (dataset_version_id,),
+    ).fetchone()
+    summary = parse_dataset_version_summary(row)
+    summary.update(dict(updates))
+    db.execute(
+        "UPDATE dataset_versions SET summary_json = ? WHERE version_id = ?",
+        (json.dumps(summary, sort_keys=True), dataset_version_id),
+    )
+    return summary
+
+
+def cached_dataset_version_verification_summary(
+    db: sqlite3.Connection,
+    dataset_version_id: str | None,
+    run_id: str | None = None,
+) -> dict[str, Any]:
+    if not dataset_version_id:
+        return {}
+    row = db.execute(
+        "SELECT summary_json FROM dataset_versions WHERE version_id = ?",
+        (dataset_version_id,),
+    ).fetchone()
+    version_summary = parse_dataset_version_summary(row)
+    cached = version_summary.get("verification_summary")
+    if isinstance(cached, dict):
+        return cached
+    if run_id:
+        step_row = db.execute(
+            """
+            SELECT progress_json
+            FROM dataset_update_pipeline_steps
+            WHERE run_id = ?
+              AND step_key = 'verify'
+            LIMIT 1
+            """,
+            (run_id,),
+        ).fetchone()
+        if step_row is not None:
+            try:
+                progress = json.loads(str(step_row["progress_json"] or "{}"))
+            except json.JSONDecodeError:
+                progress = {}
+            summary = {
+                key: progress[key]
+                for key in (
+                    "staged_taxa",
+                    "staged_metadata_ready_taxa",
+                    "staged_taxon_scoped_genomes",
+                    "staged_unique_assemblies",
+                    "staged_genus_taxa",
+                    "staged_genus_metadata_ready",
+                    "staged_genus_taxon_scoped_genomes",
+                    "staged_species_taxa",
+                    "staged_species_metadata_ready",
+                    "staged_species_taxon_scoped_genomes",
+                    "staged_genus_unique_assemblies",
+                    "staged_species_unique_assemblies",
+                    "staged_genus_only_unique_assemblies",
+                    "species_derivation_candidate_total",
+                    "species_derivation_resolved",
+                )
+                if key in progress
+            }
+            if summary:
+                return summary
+    return {}
 
 
 def staged_species_search_summary(db: sqlite3.Connection, dataset_version_id: str) -> dict[str, int]:
@@ -8063,6 +8281,18 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
             """,
             (len(candidates), now, dataset_version_id, source_taxon_id),
         )
+    db.execute(
+        """
+        UPDATE derived_species_metadata_tasks
+        SET status = 'done',
+            completed_at = COALESCE(completed_at, ?),
+            updated_at = ?
+        WHERE dataset_version_id = ?
+          AND status = 'pending'
+          AND candidate_count = 0
+        """,
+        (now, now, dataset_version_id),
+    )
     return inserted
 
 
@@ -8109,7 +8339,7 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
     if failed_candidates:
         for failed_row in db.execute(
             """
-            SELECT source_taxon_name, failed_candidates_json
+            SELECT source_taxon_name, failed_count, failed_candidates_json
             FROM derived_species_metadata_tasks
             WHERE dataset_version_id = ?
               AND failed_count > 0
@@ -8151,6 +8381,48 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
     }
 
 
+def refresh_derive_species_pipeline_progress(db: sqlite3.Connection, dataset_version_id: str) -> None:
+    step = db.execute(
+        """
+        SELECT s.*
+        FROM dataset_update_pipeline_steps s
+        JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
+        WHERE r.dataset_version_id = ?
+          AND s.step_key = 'derive_species'
+          AND s.status = 'running'
+        ORDER BY s.started_at DESC, s.id DESC
+        LIMIT 1
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    if step is None:
+        return
+    progress = dataset_update_active_counts(db)
+    progress.update(staged_species_search_summary(db, dataset_version_id))
+    progress.update(derived_species_metadata_task_progress(db, dataset_version_id))
+    progress["batch_size"] = DERIVED_SPECIES_METADATA_BATCH_SIZE
+    progress["genus_batch_size"] = DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE
+    progress["note"] = (
+        "Species metadata is derived in parallel by source genus from standardized genus metadata; "
+        "no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed."
+    )
+    task_total = int(progress.get("derive_task_total") or 0)
+    task_pending = int(progress.get("derive_task_pending") or 0)
+    task_running = int(progress.get("derive_task_running") or 0)
+    task_failed = int(progress.get("derive_task_failed") or 0)
+    candidate_total = int(progress.get("candidate_total") or 0)
+    resolved = int(progress.get("resolved") or 0)
+    blockers: list[str] = []
+    if task_failed:
+        blockers.append(f"{task_failed} source-genus species derivation tasks failed")
+    elif task_total and (task_pending or task_running):
+        blockers.append(
+            f"Deriving species metadata: {resolved}/{candidate_total} candidates resolved across "
+            f"{task_total - task_pending - task_running}/{task_total} source genera"
+        )
+    set_pipeline_step_status(db, int(step["id"]), "running", progress=progress, blockers=blockers)
+
+
 def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | None:
     now = utc_now()
     stale_cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
@@ -8178,7 +8450,10 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
             WHERE t.status = 'pending'
               AND s.step_key = 'derive_species'
               AND s.status = 'running'
-            ORDER BY t.source_taxon_name COLLATE NOCASE ASC, t.id ASC
+            ORDER BY CASE WHEN t.candidate_count > 0 THEN 0 ELSE 1 END,
+                     t.candidate_count DESC,
+                     t.source_taxon_name COLLATE NOCASE ASC,
+                     t.id ASC
             LIMIT 1
             """
         ).fetchone()
@@ -8270,9 +8545,173 @@ def mark_pipeline_step_completed(db: sqlite3.Connection, step: sqlite3.Row, prog
     queue_next_pipeline_step(db, str(step["run_id"]), int(step["step_order"]))
 
 
+def prior_pipeline_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list[str]:
+    prior_rows = db.execute(
+        """
+        SELECT step_key, status
+        FROM dataset_update_pipeline_steps
+        WHERE run_id = ?
+          AND step_order < ?
+        ORDER BY step_order ASC
+        """,
+        (step["run_id"], step["step_order"]),
+    ).fetchall()
+    incomplete = [
+        f"{dataset_pipeline_step_label(str(row['step_key']))} ({row['status']})"
+        for row in prior_rows
+        if str(row["status"]) != "completed"
+    ]
+    if not incomplete:
+        return []
+    return ["Previous steps are not complete: " + ", ".join(incomplete)]
+
+
+def block_downstream_pipeline_steps(
+    db: sqlite3.Connection,
+    step: sqlite3.Row,
+    blockers: list[str],
+    *,
+    fail_version: bool = False,
+) -> None:
+    error = "; ".join(blockers) if blockers else "Pipeline step failed."
+    now = utc_now()
+    db.execute(
+        """
+        UPDATE dataset_update_pipeline_steps
+        SET status = 'skipped',
+            completed_at = COALESCE(completed_at, ?),
+            blockers_json = ?,
+            error = ?
+        WHERE run_id = ?
+          AND step_order > ?
+          AND status IN ('waiting', 'pending', 'running')
+        """,
+        (now, json.dumps(blockers or [error]), error, step["run_id"], step["step_order"]),
+    )
+    db.execute(
+        "UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?",
+        (error, step["run_id"]),
+    )
+    if fail_version:
+        db.execute(
+            "UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?",
+            (error, step["dataset_version_id"]),
+        )
+
+
+def live_dataset_version_verification_summary(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+) -> tuple[dict[str, Any], list[str]]:
+    """Verify that the public pointers are usable after a replacement."""
+    row = db.execute(
+        """
+        SELECT
+            COUNT(*) AS live_taxa,
+            SUM(CASE WHEN taxon_rank = 'genus' THEN 1 ELSE 0 END) AS live_genera,
+            SUM(CASE WHEN taxon_rank = 'species' THEN 1 ELSE 0 END) AS live_species,
+            SUM(CASE WHEN live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS live_metadata_ready,
+            SUM(CASE WHEN taxon_rank = 'genus' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS live_genus_metadata_ready,
+            SUM(CASE WHEN taxon_rank = 'species' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS live_species_metadata_ready,
+            COALESCE(SUM(CASE WHEN live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END), 0) AS live_taxon_scoped_genomes
+        FROM species
+        WHERE is_live = 1
+        """
+    ).fetchone()
+    unique_row = db.execute(
+        """
+        SELECT COUNT(DISTINCT am.assembly_accession) AS unique_assemblies
+        FROM assembly_metadata am
+        JOIN species s ON s.id = am.species_id
+        WHERE s.is_live = 1
+          AND s.live_metadata_status = 'ready'
+          AND s.live_metadata_clean_path IS NOT NULL
+        """
+    ).fetchone()
+    search_row = db.execute("SELECT COUNT(*) AS total FROM metadata_species_search").fetchone()
+    sample_rows = db.execute(
+        """
+        SELECT live_metadata_clean_path
+        FROM species
+        WHERE is_live = 1
+          AND live_metadata_status = 'ready'
+          AND live_metadata_clean_path IS NOT NULL
+        ORDER BY taxon_rank ASC, id ASC
+        LIMIT 25
+        """
+    ).fetchall()
+    missing_sample_files = [
+        str(sample["live_metadata_clean_path"])
+        for sample in sample_rows
+        if sample["live_metadata_clean_path"] and not Path(str(sample["live_metadata_clean_path"])).exists()
+    ]
+    summary = {
+        "active_version": get_active_dataset_version_id(db),
+        "verified_version": dataset_version_id,
+        "live_taxa": int(row["live_taxa"] or 0) if row is not None else 0,
+        "live_genera": int(row["live_genera"] or 0) if row is not None else 0,
+        "live_species": int(row["live_species"] or 0) if row is not None else 0,
+        "live_metadata_ready": int(row["live_metadata_ready"] or 0) if row is not None else 0,
+        "live_genus_metadata_ready": int(row["live_genus_metadata_ready"] or 0) if row is not None else 0,
+        "live_species_metadata_ready": int(row["live_species_metadata_ready"] or 0) if row is not None else 0,
+        "live_taxon_scoped_genomes": int(row["live_taxon_scoped_genomes"] or 0) if row is not None else 0,
+        "live_unique_assemblies": int(unique_row["unique_assemblies"] or 0) if unique_row is not None else 0,
+        "metadata_species_search_rows": int(search_row["total"] or 0) if search_row is not None else 0,
+        "sample_metadata_files_checked": len(sample_rows),
+        "missing_sample_metadata_files": missing_sample_files[:5],
+        "verified_at": utc_now(),
+    }
+    min_genus = max(0, int(os.environ.get("FETCHM_WEBAPP_MIN_LIVE_GENUS_METADATA_READY", "5000")))
+    min_species = max(0, int(os.environ.get("FETCHM_WEBAPP_MIN_LIVE_SPECIES_METADATA_READY", "30000")))
+    min_unique = max(0, int(os.environ.get("FETCHM_WEBAPP_MIN_LIVE_UNIQUE_ASSEMBLIES", "2000000")))
+    blockers: list[str] = []
+    if summary["active_version"] != dataset_version_id:
+        blockers.append(f"Active version is {summary['active_version']}, expected {dataset_version_id}.")
+    if summary["live_genus_metadata_ready"] < min_genus:
+        blockers.append(
+            f"Live genus metadata coverage is too low: {summary['live_genus_metadata_ready']:,} < {min_genus:,}."
+        )
+    if summary["live_species_metadata_ready"] < min_species:
+        blockers.append(
+            f"Live species metadata coverage is too low: {summary['live_species_metadata_ready']:,} < {min_species:,}."
+        )
+    if summary["live_unique_assemblies"] < min_unique:
+        blockers.append(
+            f"Live unique assembly coverage is too low: {summary['live_unique_assemblies']:,} < {min_unique:,}."
+        )
+    if summary["metadata_species_search_rows"] <= 0:
+        blockers.append("Species search index is empty.")
+    if missing_sample_files:
+        blockers.append("One or more sampled live metadata files are missing.")
+    return summary, blockers
+
+
+def mark_active_dataset_version_live_if_valid(db: sqlite3.Connection) -> tuple[dict[str, Any], list[str]]:
+    version_id = get_active_dataset_version_id(db)
+    summary, blockers = live_dataset_version_verification_summary(db, version_id)
+    merge_dataset_version_summary(db, version_id, {"post_publish_verification": summary})
+    if blockers:
+        db.execute(
+            "UPDATE dataset_versions SET error = ? WHERE version_id = ?",
+            ("; ".join(blockers), version_id),
+        )
+        return summary, blockers
+    db.execute(
+        """
+        UPDATE dataset_versions
+        SET status = 'live',
+            promoted_at = COALESCE(promoted_at, ?),
+            error = NULL
+        WHERE version_id = ?
+        """,
+        (utc_now(), version_id),
+    )
+    return summary, []
+
+
 def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list[str]:
     """Keep live data swaps gated behind a completed upstream pipeline."""
-    blockers: list[str] = []
+    blockers: list[str] = prior_pipeline_step_blockers(db, step)
     run_id = str(step["run_id"])
     upstream = db.execute(
         """
@@ -8320,6 +8759,31 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
     failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
     if failures:
         blockers.append("Resolve failed update tasks before replacement: " + ", ".join(failures))
+    version = db.execute(
+        "SELECT status FROM dataset_versions WHERE version_id = ?",
+        (step["dataset_version_id"],),
+    ).fetchone()
+    if version is None:
+        blockers.append("Staged dataset version record is missing.")
+    elif str(version["status"]) != "verified":
+        blockers.append(f"Staged dataset version is {version['status']}; replacement requires verified.")
+    return blockers
+
+
+def global_insights_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list[str]:
+    blockers = prior_pipeline_step_blockers(db, step)
+    version_id = str(step["dataset_version_id"])
+    version = db.execute(
+        "SELECT status FROM dataset_versions WHERE version_id = ?",
+        (version_id,),
+    ).fetchone()
+    if version is None:
+        blockers.append("Dataset version record is missing.")
+    elif str(version["status"]) != "live":
+        blockers.append(f"Global Insights requires a live dataset version; current version status is {version['status']}.")
+    active_version = get_active_dataset_version_id(db)
+    if active_version != version_id:
+        blockers.append(f"Active dataset version is {active_version}; expected {version_id}.")
     return blockers
 
 
@@ -8512,6 +8976,57 @@ def restore_live_metadata_species_search_snapshot(db: sqlite3.Connection, datase
     return int(cursor.rowcount or 0)
 
 
+def archived_dataset_version_counts(db: sqlite3.Connection, dataset_version_id: str | None) -> dict[str, int]:
+    if not dataset_version_id:
+        return {}
+    row = db.execute(
+        """
+        SELECT
+            COUNT(*) AS taxa_total,
+            SUM(CASE WHEN taxon_rank = 'genus' THEN 1 ELSE 0 END) AS genus_total,
+            SUM(CASE WHEN taxon_rank = 'species' THEN 1 ELSE 0 END) AS species_total,
+            SUM(CASE WHEN live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_ready_total,
+            SUM(CASE WHEN taxon_rank = 'genus' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_metadata_ready,
+            SUM(CASE WHEN taxon_rank = 'species' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS species_metadata_ready,
+            COALESCE(SUM(CASE WHEN live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END), 0) AS taxon_scoped_genomes
+        FROM dataset_species_live_snapshots
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    return dict(row) if row is not None else {}
+
+
+def prune_archived_dataset_versions(db: sqlite3.Connection, keep_version_id: str | None) -> list[str]:
+    """Keep exactly one archived rollback version; remove older archived version metadata and staging files."""
+    rows = db.execute(
+        """
+        SELECT version_id, root_path
+        FROM dataset_versions
+        WHERE status = 'archived'
+          AND version_id != ?
+        ORDER BY archived_at ASC, id ASC
+        """,
+        (keep_version_id or "",),
+    ).fetchall()
+    removed: list[str] = []
+    versions_root = dataset_versions_root().resolve()
+    for row in rows:
+        version_id = str(row["version_id"])
+        root_path_raw = str(row["root_path"] or "").strip()
+        db.execute("DELETE FROM dataset_species_live_snapshots WHERE dataset_version_id = ?", (version_id,))
+        db.execute("DELETE FROM dataset_metadata_species_search_snapshots WHERE dataset_version_id = ?", (version_id,))
+        db.execute("DELETE FROM metadata_species_search_staging WHERE dataset_version_id = ?", (version_id,))
+        db.execute("DELETE FROM derived_species_metadata_tasks WHERE dataset_version_id = ?", (version_id,))
+        db.execute("DELETE FROM dataset_versions WHERE version_id = ?", (version_id,))
+        if root_path_raw:
+            root_path = Path(root_path_raw).resolve()
+            if root_path.exists() and versions_root in root_path.parents:
+                shutil.rmtree(root_path, ignore_errors=True)
+        removed.append(version_id)
+    return removed
+
+
 def advance_dataset_update_pipeline_runs() -> None:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
@@ -8675,18 +9190,22 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if failures:
                     failed = True
                     blockers.append("Failed update tasks require review: " + ", ".join(failures))
+                progress["verified_at"] = utc_now()
             if step_key in {"discovery", "catalog", "metadata", "standardization", "derive_species", "verify"}:
                 if failed:
                     set_pipeline_step_status(db, int(step["id"]), "failed", progress=progress, blockers=blockers, error="; ".join(blockers))
-                    db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", ("; ".join(blockers), step["run_id"]))
-                    if step_key == "verify":
-                        db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", ("; ".join(blockers), step["dataset_version_id"]))
+                    block_downstream_pipeline_steps(db, step, blockers, fail_version=step_key == "verify")
                     continue
                 if blockers:
                     set_pipeline_step_status(db, int(step["id"]), "running", progress=progress, blockers=blockers)
                     db.execute("UPDATE dataset_update_pipeline_runs SET status = 'running' WHERE run_id = ?", (step["run_id"],))
                     continue
                 if step_key == "verify":
+                    merge_dataset_version_summary(
+                        db,
+                        str(step["dataset_version_id"]),
+                        {"verification_summary": progress},
+                    )
                     db.execute(
                         "UPDATE dataset_versions SET status = 'verified', verified_at = ?, error = NULL WHERE version_id = ?",
                         (utc_now(), step["dataset_version_id"]),
@@ -8710,6 +9229,24 @@ def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
             """
         ).fetchone()
         if row is None:
+            db.commit()
+            return None
+        step_key = str(row["step_key"])
+        blockers = prior_pipeline_step_blockers(db, row)
+        if step_key == "replace":
+            blockers = replacement_step_blockers(db, row)
+        elif step_key == "global_insights":
+            blockers = global_insights_step_blockers(db, row)
+        if blockers:
+            set_pipeline_step_status(
+                db,
+                int(row["id"]),
+                "failed",
+                progress=dataset_update_active_counts(db),
+                blockers=blockers,
+                error="; ".join(blockers),
+            )
+            block_downstream_pipeline_steps(db, row, blockers, fail_version=step_key == "replace")
             db.commit()
             return None
         now = utc_now()
@@ -8821,6 +9358,8 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "note": "Deriving species metadata by genus group from standardized genus metadata.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
+            ensure_derived_species_metadata_tasks_for_version(db, version_id)
+            refresh_derive_species_pipeline_progress(db, version_id)
             db.commit()
             return
         if step_key == "replace":
@@ -8838,6 +9377,16 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             metadata_search_snapshot_count = snapshot_live_metadata_species_search(db, previous)
             promoted_taxa = promote_staged_species_state(db, version_id)
             promoted_metadata_search_entries = promote_staged_metadata_species_search(db, version_id)
+            promotion_summary = {
+                "previous_version": previous,
+                "active_version": version_id,
+                "snapshot_taxa": snapshot_count,
+                "promoted_taxa": promoted_taxa,
+                "metadata_search_snapshot_entries": metadata_search_snapshot_count,
+                "promoted_metadata_search_entries": promoted_metadata_search_entries,
+                "promoted_at": now,
+                "note": "Live species pointers were replaced after upstream steps completed and verification passed.",
+            }
             db.execute(
                 "UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'",
                 (now, previous),
@@ -8852,22 +9401,57 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             )
             set_setting("previous_dataset_version_id", previous, db)
             set_setting("active_dataset_version_id", version_id, db)
+            post_summary, post_blockers = live_dataset_version_verification_summary(db, version_id)
+            promotion_summary["post_publish_verification"] = post_summary
+            if post_blockers:
+                restore_live_species_snapshot(db, previous)
+                restore_live_metadata_species_search_snapshot(db, previous)
+                db.execute(
+                    "UPDATE dataset_versions SET status = 'live', error = NULL WHERE version_id = ?",
+                    (previous,),
+                )
+                db.execute(
+                    "UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?",
+                    ("; ".join(post_blockers), version_id),
+                )
+                set_setting("active_dataset_version_id", previous, db)
+                set_setting("previous_dataset_version_id", version_id, db)
+                merge_dataset_version_summary(db, version_id, {"promotion_summary": promotion_summary})
+                set_pipeline_step_status(
+                    db,
+                    int(step["id"]),
+                    "failed",
+                    progress=promotion_summary,
+                    blockers=post_blockers,
+                    error="; ".join(post_blockers),
+                )
+                block_downstream_pipeline_steps(db, step, post_blockers, fail_version=True)
+                db.commit()
+                return
+            pruned_archives = prune_archived_dataset_versions(db, previous)
+            promotion_summary["pruned_archived_versions"] = pruned_archives
+            merge_dataset_version_summary(db, version_id, {"promotion_summary": promotion_summary})
             mark_pipeline_step_completed(
                 db,
                 step,
-                {
-                    "previous_version": previous,
-                    "active_version": version_id,
-                    "snapshot_taxa": snapshot_count,
-                    "promoted_taxa": promoted_taxa,
-                    "metadata_search_snapshot_entries": metadata_search_snapshot_count,
-                    "promoted_metadata_search_entries": promoted_metadata_search_entries,
-                    "note": "Live species pointers were replaced after upstream steps completed and verification passed.",
-                },
+                promotion_summary,
             )
             db.commit()
             return
         if step_key == "global_insights":
+            blockers = global_insights_step_blockers(db, step)
+            if blockers:
+                set_pipeline_step_status(
+                    db,
+                    int(step["id"]),
+                    "failed",
+                    progress=dataset_update_active_counts(db),
+                    blockers=blockers,
+                    error="; ".join(blockers),
+                )
+                block_downstream_pipeline_steps(db, step, blockers, fail_version=False)
+                db.commit()
+                return
             rows = db.execute(
                 """
                 SELECT id, species_name, taxon_rank,
@@ -8903,14 +9487,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 snapshot_id=snapshot_id,
             )
             with get_sqlite_connection() as update_db:
-                update_db.execute(
-                    """
-                    UPDATE dataset_versions
-                    SET summary_json = ?
-                    WHERE version_id = ?
-                    """,
-                    (json.dumps({"global_insights": summary}, sort_keys=True), version_id),
-                )
+                merge_dataset_version_summary(update_db, version_id, {"global_insights": summary})
                 mark_pipeline_step_completed(
                     update_db,
                     step,
@@ -16827,6 +17404,41 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 candidates[canonical_name] = candidates.get(canonical_name, 0) + int(row["genome_count"] or 0)
         ordered_candidates = sorted(candidates.items(), key=lambda item: (-item[1], item[0].lower()))
         candidate_count = len(ordered_candidates)
+        if candidate_count == 0:
+            status = "done"
+            error = None
+            now = utc_now()
+            with get_sqlite_connection() as db:
+                db.execute(
+                    """
+                    UPDATE derived_species_metadata_tasks
+                    SET status = ?,
+                        completed_at = ?,
+                        candidate_count = 0,
+                        processed_count = 0,
+                        created_count = 0,
+                        updated_count = 0,
+                        skipped_count = 0,
+                        failed_count = 0,
+                        failed_candidates_json = '[]',
+                        error = ?,
+                        updated_at = ?,
+                        claimed_by = NULL,
+                        claimed_at = NULL
+                    WHERE id = ?
+                    """,
+                    (status, now, error, now, int(task["id"])),
+                )
+                refresh_derive_species_pipeline_progress(db, dataset_version_id)
+                db.commit()
+            return {
+                "candidate_count": 0,
+                "processed": 0,
+                "created": 0,
+                "updated": 0,
+                "skipped": 0,
+                "failed": 0,
+            }
 
         genus = load_species(source_taxon_id)
         genus_rows = load_taxon_metadata_rows(genus.id)
@@ -16899,7 +17511,9 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
         status = "done"
         error = None
     except Exception as exc:
-        status = "failed"
+        error_text = str(exc)
+        is_transient_lock = isinstance(exc, sqlite3.OperationalError) and "database is locked" in error_text.lower()
+        status = "pending" if is_transient_lock else "failed"
         error = str(exc)
         logging.exception("Failed to process derived species metadata task for source taxon %s.", source_taxon_id)
 
@@ -16939,6 +17553,7 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 int(task["id"]),
             ),
         )
+        refresh_derive_species_pipeline_progress(db, dataset_version_id)
         db.commit()
     return {
         "candidate_count": candidate_count,
@@ -20707,13 +21322,14 @@ def report_problem() -> Any:
 @app.route("/admin")
 def admin_dashboard() -> str:
     require_admin()
-    backfill = build_backfill_dashboard()
+    db = get_db()
     return render_template(
-        "admin_overview.html",
-        backfill=backfill,
-        metadata_dashboard=build_metadata_dashboard(),
+        "admin_overview_v2.html",
+        admin_summary=build_admin_summary_dashboard(db),
         dataset_pipeline=build_dataset_pipeline_dashboard(),
         observability=build_observability_dashboard(),
+        storage=build_admin_storage_summary(),
+        system_monitor=build_system_monitor(db),
         security_posture=build_security_posture(),
         **admin_common_context("overview"),
     )
@@ -21352,6 +21968,11 @@ def admin_set_dataset_pipeline_settings() -> Any:
     set_setting("dataset_pipeline_scope", scope)
     for step_key, setting_key in DATASET_PIPELINE_SEQUENTIAL_KEYS.items():
         set_setting(setting_key, "1" if request.form.get(setting_key) == "1" else "0")
+    if auto_publish == "1":
+        set_setting("dataset_pipeline_replace_sequential", "1")
+        set_setting("dataset_pipeline_global_insights_sequential", "1")
+    else:
+        set_setting("dataset_pipeline_replace_sequential", "0")
     record_audit_event(
         "admin.dataset_pipeline_settings",
         target_type="dataset_pipeline",
@@ -21573,6 +22194,32 @@ def admin_promote_dataset_pipeline() -> Any:
         db.execute("UPDATE dataset_versions SET status = 'live', promoted_at = ?, promoted_by = ? WHERE version_id = ?", (now, user_id, version_id))
         set_setting("previous_dataset_version_id", previous, db)
         set_setting("active_dataset_version_id", version_id, db)
+        post_summary, post_blockers = live_dataset_version_verification_summary(db, version_id)
+        if post_blockers:
+            restore_live_species_snapshot(db, previous)
+            restore_live_metadata_species_search_snapshot(db, previous)
+            db.execute("UPDATE dataset_versions SET status = 'live', error = NULL WHERE version_id = ?", (previous,))
+            db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", ("; ".join(post_blockers), version_id))
+            set_setting("active_dataset_version_id", previous, db)
+            set_setting("previous_dataset_version_id", version_id, db)
+            merge_dataset_version_summary(db, version_id, {"post_publish_verification": post_summary})
+            db.commit()
+            flash("Promotion failed post-publish verification and was rolled back: " + "; ".join(post_blockers), "error")
+            return redirect(url_for("admin_dashboard"))
+        pruned_archives = prune_archived_dataset_versions(db, previous)
+        merge_dataset_version_summary(
+            db,
+            version_id,
+            {
+                "promotion_summary": {
+                    "previous_version": previous,
+                    "active_version": version_id,
+                    "promoted_at": now,
+                    "pruned_archived_versions": pruned_archives,
+                    "post_publish_verification": post_summary,
+                }
+            },
+        )
         if get_setting("dataset_pipeline_auto_publish_insights", "1", db) == "1":
             staging_latest_path = dataset_version_root(version_id) / "global_insights" / "latest.json"
             if staging_latest_path.exists():
