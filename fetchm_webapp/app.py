@@ -8704,6 +8704,13 @@ def claim_next_species_reconciliation_task(worker_name: str) -> sqlite3.Row | No
             WHERE t.status = 'pending'
               AND s.step_key = 'reconcile_species'
               AND s.status = 'running'
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM dataset_update_pipeline_steps ps
+                    WHERE ps.run_id = s.run_id
+                      AND ps.step_order < s.step_order
+                      AND ps.status != 'completed'
+              )
             ORDER BY t.candidate_genome_count DESC, t.source_taxon_name COLLATE NOCASE ASC, t.species_name COLLATE NOCASE ASC
             LIMIT 1
             """
@@ -8799,6 +8806,13 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
             WHERE t.status = 'pending'
               AND s.step_key = 'derive_species'
               AND s.status = 'running'
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM dataset_update_pipeline_steps ps
+                    WHERE ps.run_id = s.run_id
+                      AND ps.step_order < s.step_order
+                      AND ps.status != 'completed'
+              )
             ORDER BY CASE WHEN t.candidate_count > 0 THEN 0 ELSE 1 END,
                      t.candidate_count DESC,
                      t.source_taxon_name COLLATE NOCASE ASC,
@@ -9411,6 +9425,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                         failed = True
             elif step_key == "catalog":
                 phase = str(progress.get("phase") or "genus")
+                if "genus_queue" not in progress:
+                    blockers.append("Catalog refresh queue is still initializing.")
                 if phase != "genus":
                     progress["phase"] = "genus"
                     phase = "genus"
@@ -9425,6 +9441,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                         failed = True
                         blockers.append(f"{relevant_catalog_failures} genus catalog scopes failed")
             elif step_key == "metadata":
+                if "genus_queue" not in progress:
+                    blockers.append("Genus metadata refresh queue is still initializing.")
                 progress["phase"] = "genus"
                 if rank_counts.get("metadata_genus_active", 0):
                     blockers.append(f"{rank_counts.get('metadata_genus_active', 0)} genus metadata builds still active")
@@ -9434,6 +9452,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                         f"{rank_counts.get('metadata_genus_failed', 0)} genus metadata builds failed"
                     )
             elif step_key == "standardization":
+                if "mode" not in progress and "requested_at" not in progress:
+                    blockers.append("Genus standardization queue is still initializing.")
                 requested_at = str(progress.get("requested_at") or progress.get("standardization_requested_at") or "")
                 scoped = standardization_refresh_progress(
                     db,
@@ -9456,6 +9476,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if total and done < total and not active and not failed_count:
                     blockers.append(f"standardization completion is not confirmed yet: {done}/{total} tasks done")
             elif step_key == "derive_species":
+                if "batch_size" not in progress:
+                    blockers.append("Species derivation queue is still initializing.")
                 if counts["standardization_active"]:
                     blockers.append(f"{counts['standardization_active']} genus standardization tasks/chunks still active")
                 if counts["standardization_failed"]:
@@ -9485,6 +9507,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                         progress["note"] = "No species candidates were found in standardized genus metadata."
                         blockers.append("No species candidates were found in standardized genus metadata.")
             elif step_key == "reconcile_species":
+                if "note" not in progress and "reconcile_task_total" not in progress:
+                    blockers.append("Species reconciliation queue is still initializing.")
                 derive_row = db.execute(
                     """
                     SELECT status
@@ -19986,16 +20010,6 @@ def run_worker_loop() -> None:
                         process_dataset_pipeline_step(pipeline_step)
                     continue
             if WORKER_MODE in {"all", "sync"}:
-                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
-                if derived_species_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_derived_species_metadata_task(derived_species_task, worker_name)
-                    continue
-                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
-                if reconciliation_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_species_reconciliation_task(reconciliation_task, worker_name)
-                    continue
                 try:
                     species = claim_next_species_sync(worker_name)
                 except sqlite3.OperationalError as exc:
@@ -20028,7 +20042,6 @@ def run_worker_loop() -> None:
                         time.sleep(WORKER_POLL_INTERVAL)
                     continue
 
-            if WORKER_MODE in {"all", "metadata"}:
                 derived_species_task = claim_next_derived_species_metadata_task(worker_name)
                 if derived_species_task is not None:
                     with maintain_worker_heartbeat(worker_name):
@@ -20039,6 +20052,8 @@ def run_worker_loop() -> None:
                     with maintain_worker_heartbeat(worker_name):
                         process_species_reconciliation_task(reconciliation_task, worker_name)
                     continue
+
+            if WORKER_MODE in {"all", "metadata"}:
                 ensure_metadata_chunks_for_active_builds()
                 metadata_species = claim_next_species_metadata_build(worker_name)
                 if metadata_species is not None:
@@ -20066,6 +20081,17 @@ def run_worker_loop() -> None:
                         with maintain_worker_heartbeat(worker_name):
                             process_metadata_chunk(metadata_chunk)
                         continue
+
+                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
+                if derived_species_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_derived_species_metadata_task(derived_species_task, worker_name)
+                    continue
+                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
+                if reconciliation_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_species_reconciliation_task(reconciliation_task, worker_name)
+                    continue
 
             if WORKER_MODE == "assembly-backfill":
                 backfill_species = claim_next_assembly_feature_backfill(worker_name)
