@@ -7401,6 +7401,11 @@ def build_dataset_pipeline_step_cards(
                 ]
             else:
                 detail_lines = ["No Global Insights snapshot task has run yet."]
+        if status == "skipped" and row:
+            blockers = list(row.get("blockers") or []) if isinstance(row, dict) else []
+            if blockers:
+                detail_lines = blockers
+            percent = 0
         if status == "completed":
             percent = 100
         elif status in {"running", "pending"} and progress:
@@ -8083,6 +8088,30 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_
         """,
         (dataset_version_id, now, rank),
     )
+    if dataset_version_id:
+        db.execute(
+            """
+            UPDATE species
+            SET metadata_refresh_requested = 0,
+                metadata_claimed_by = NULL,
+                metadata_claimed_at = NULL,
+                metadata_error = NULL,
+                updated_at = ?
+            WHERE taxon_rank = ?
+              AND status = 'ready'
+              AND tsv_path IS NOT NULL
+              AND metadata_status = 'ready'
+              AND metadata_path IS NOT NULL
+              AND metadata_clean_path IS NOT NULL
+              AND staging_dataset_version_id = ?
+              AND COALESCE(genome_count, 0) <= (
+                    SELECT COUNT(DISTINCT am.assembly_accession)
+                    FROM assembly_metadata am
+                    WHERE am.species_id = species.id
+              )
+            """,
+            (now, rank, dataset_version_id),
+        )
     counts = dataset_pipeline_rank_counts(db)
     reusable_row = db.execute(
         """
@@ -8092,6 +8121,7 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_
           AND status = 'ready'
           AND tsv_path IS NOT NULL
           AND metadata_status = 'ready'
+          AND metadata_path IS NOT NULL
           AND metadata_clean_path IS NOT NULL
           AND staging_dataset_version_id = ?
           AND COALESCE(genome_count, 0) <= (
@@ -8948,6 +8978,43 @@ def queue_next_pipeline_step(db: sqlite3.Connection, run_id: str, completed_orde
 def mark_pipeline_step_completed(db: sqlite3.Connection, step: sqlite3.Row, progress: dict[str, Any] | None = None) -> None:
     set_pipeline_step_status(db, int(step["id"]), "completed", progress=progress)
     queue_next_pipeline_step(db, str(step["run_id"]), int(step["step_order"]))
+
+
+def complete_pipeline_run_no_changes(
+    db: sqlite3.Connection,
+    step: sqlite3.Row,
+    progress: dict[str, Any] | None = None,
+    *,
+    reason: str = "No dataset changes were detected.",
+) -> None:
+    payload = dict(progress or {})
+    payload["no_dataset_changes"] = True
+    payload["note"] = reason
+    set_pipeline_step_status(db, int(step["id"]), "completed", progress=payload)
+    now = utc_now()
+    db.execute(
+        """
+        UPDATE dataset_update_pipeline_steps
+        SET status = 'skipped',
+            completed_at = COALESCE(completed_at, ?),
+            blockers_json = ?,
+            error = NULL
+        WHERE run_id = ?
+          AND step_order > ?
+          AND status IN ('waiting', 'pending', 'running')
+        """,
+        (now, json.dumps([reason]), step["run_id"], step["step_order"]),
+    )
+    db.execute(
+        """
+        UPDATE dataset_update_pipeline_runs
+        SET status = 'completed',
+            completed_at = COALESCE(completed_at, ?),
+            error = NULL
+        WHERE run_id = ?
+        """,
+        (now, step["run_id"]),
+    )
 
 
 def prior_pipeline_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list[str]:
@@ -9819,7 +9886,15 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                     blockers=[f"Queued genus standardization tasks: {queued_or_running}"],
                 )
             else:
-                mark_pipeline_step_completed(db, step, summary)
+                if changed_since and int(summary.get("eligible") or 0) == 0:
+                    complete_pipeline_run_no_changes(
+                        db,
+                        step,
+                        summary,
+                        reason="No genus taxa gained new assemblies; live dataset and Global Insights remain unchanged.",
+                    )
+                else:
+                    mark_pipeline_step_completed(db, step, summary)
             db.commit()
             return
         if step_key == "derive_species":
@@ -13171,6 +13246,18 @@ def queue_standardization_refresh_for_ready_taxa(
     if changed_since:
         changed_clause = "AND metadata_last_built_at IS NOT NULL AND metadata_last_built_at >= ?"
         params.append(changed_since)
+    change_event_clause = ""
+    if changed_since and not force_standardization:
+        change_event_clause = """
+          AND EXISTS (
+                SELECT 1
+                FROM taxon_sync_events tse
+                WHERE tse.species_id = species.id
+                  AND tse.synced_at >= ?
+                  AND COALESCE(tse.delta_genome_count, 0) > 0
+          )
+        """
+        params.append(changed_since)
     rows = get_db().execute(
         f"""
         SELECT id, species_name, taxon_rank, genome_count, metadata_clean_path, metadata_last_built_at
@@ -13180,6 +13267,7 @@ def queue_standardization_refresh_for_ready_taxa(
           AND metadata_clean_path IS NOT NULL
           {rank_clause}
           {changed_clause}
+          {change_event_clause}
         ORDER BY
           CASE WHEN taxon_rank = 'genus' THEN 0 ELSE 1 END,
           COALESCE(genome_count, 0) DESC,
