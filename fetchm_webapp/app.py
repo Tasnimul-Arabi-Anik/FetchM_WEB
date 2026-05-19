@@ -6829,6 +6829,33 @@ def active_pipeline_dataset_version(db: sqlite3.Connection | None = None) -> str
     return str(run["dataset_version_id"]) if run is not None and run.get("dataset_version_id") else None
 
 
+def dataset_pipeline_worker_stage_open(step_key: str, db: sqlite3.Connection | None = None) -> bool:
+    """Return False when a dataset update is active but this worker stage is not active yet."""
+    connection = db or get_db()
+    active = connection.execute(
+        """
+        SELECT run_id
+        FROM dataset_update_pipeline_runs
+        WHERE status IN ('pending', 'running')
+        ORDER BY requested_at ASC, id ASC
+        LIMIT 1
+        """
+    ).fetchone()
+    if active is None:
+        return True
+    row = connection.execute(
+        """
+        SELECT status
+        FROM dataset_update_pipeline_steps
+        WHERE run_id = ?
+          AND step_key = ?
+        LIMIT 1
+        """,
+        (active["run_id"], step_key),
+    ).fetchone()
+    return row is not None and str(row["status"]) == "running"
+
+
 def dataset_pipeline_step_keys() -> list[str]:
     return [step_key for step_key, _label in DATASET_PIPELINE_STEPS]
 
@@ -20054,22 +20081,9 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "metadata"}:
-                ensure_metadata_chunks_for_active_builds()
-                metadata_species = claim_next_species_metadata_build(worker_name)
-                if metadata_species is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        build_species_metadata_record(metadata_species)
-                    continue
-                metadata_chunk = claim_next_metadata_chunk(worker_name)
-                if metadata_chunk is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_metadata_chunk(metadata_chunk)
-                    continue
-                if metadata_species is None:
-                    with get_sqlite_connection() as db:
-                        metadata_build_schedule_hours = metadata_build_hours(db)
-                        metadata_refresh_schedule_hours = metadata_refresh_hours(db)
-                    schedule_due_metadata_builds(metadata_build_schedule_hours, metadata_refresh_schedule_hours)
+                with get_sqlite_connection() as db:
+                    metadata_stage_open = dataset_pipeline_worker_stage_open("metadata", db)
+                if metadata_stage_open:
                     ensure_metadata_chunks_for_active_builds()
                     metadata_species = claim_next_species_metadata_build(worker_name)
                     if metadata_species is not None:
@@ -20081,6 +20095,22 @@ def run_worker_loop() -> None:
                         with maintain_worker_heartbeat(worker_name):
                             process_metadata_chunk(metadata_chunk)
                         continue
+                    if metadata_species is None:
+                        with get_sqlite_connection() as db:
+                            metadata_build_schedule_hours = metadata_build_hours(db)
+                            metadata_refresh_schedule_hours = metadata_refresh_hours(db)
+                        schedule_due_metadata_builds(metadata_build_schedule_hours, metadata_refresh_schedule_hours)
+                        ensure_metadata_chunks_for_active_builds()
+                        metadata_species = claim_next_species_metadata_build(worker_name)
+                        if metadata_species is not None:
+                            with maintain_worker_heartbeat(worker_name):
+                                build_species_metadata_record(metadata_species)
+                            continue
+                        metadata_chunk = claim_next_metadata_chunk(worker_name)
+                        if metadata_chunk is not None:
+                            with maintain_worker_heartbeat(worker_name):
+                                process_metadata_chunk(metadata_chunk)
+                            continue
 
                 derived_species_task = claim_next_derived_species_metadata_task(worker_name)
                 if derived_species_task is not None:
