@@ -1046,6 +1046,33 @@ def init_db() -> None:
         CREATE INDEX IF NOT EXISTS idx_derived_species_metadata_tasks_status
         ON derived_species_metadata_tasks (dataset_version_id, status, source_taxon_name);
 
+        CREATE TABLE IF NOT EXISTS species_reconciliation_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            species_name TEXT NOT NULL,
+            search_name TEXT NOT NULL,
+            candidate_genome_count INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'pending',
+            result TEXT,
+            species_id INTEGER,
+            resolved_genome_count INTEGER NOT NULL DEFAULT 0,
+            reason TEXT,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(dataset_version_id, source_taxon_id, species_name),
+            FOREIGN KEY (source_taxon_id) REFERENCES species (id),
+            FOREIGN KEY (species_id) REFERENCES species (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_species_reconciliation_tasks_status
+        ON species_reconciliation_tasks (dataset_version_id, status, source_taxon_name);
+
         CREATE TABLE IF NOT EXISTS metadata_chunks (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             species_id INTEGER NOT NULL,
@@ -1161,6 +1188,7 @@ def init_db() -> None:
     ensure_metadata_chunk_table(db)
     ensure_standardization_refresh_table(db)
     ensure_derived_species_metadata_task_table(db)
+    ensure_species_reconciliation_task_table(db)
     ensure_discovery_scope_columns(db)
     load_approved_standardization_rules_into_memory(db)
     migrate_legacy_jobs(db)
@@ -6172,6 +6200,40 @@ def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
     db.commit()
 
 
+def ensure_species_reconciliation_task_table(db: sqlite3.Connection) -> None:
+    db.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS species_reconciliation_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dataset_version_id TEXT NOT NULL,
+            source_taxon_id INTEGER NOT NULL,
+            source_taxon_name TEXT NOT NULL,
+            species_name TEXT NOT NULL,
+            search_name TEXT NOT NULL,
+            candidate_genome_count INTEGER NOT NULL DEFAULT 0,
+            status TEXT NOT NULL DEFAULT 'pending',
+            result TEXT,
+            species_id INTEGER,
+            resolved_genome_count INTEGER NOT NULL DEFAULT 0,
+            reason TEXT,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            error TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            UNIQUE(dataset_version_id, source_taxon_id, species_name),
+            FOREIGN KEY (source_taxon_id) REFERENCES species (id),
+            FOREIGN KEY (species_id) REFERENCES species (id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_species_reconciliation_tasks_status
+        ON species_reconciliation_tasks (dataset_version_id, status, source_taxon_name);
+        """
+    )
+    db.commit()
+
+
 def ensure_discovery_scope_columns(db: sqlite3.Connection) -> None:
     columns = {row["name"] for row in db.execute("PRAGMA table_info(discovery_scopes)").fetchall()}
     additions = {
@@ -6350,6 +6412,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_metadata_sequential", "1"),
         ("dataset_pipeline_standardization_sequential", "1"),
         ("dataset_pipeline_derive_species_sequential", "1"),
+        ("dataset_pipeline_reconcile_species_sequential", "1"),
         ("dataset_pipeline_replace_sequential", "1"),
         ("dataset_pipeline_global_insights_sequential", "1"),
         ("active_dataset_version_id", "legacy-live"),
@@ -6609,6 +6672,7 @@ DATASET_PIPELINE_STEPS = [
     ("metadata", "Build genus metadata"),
     ("standardization", "Standardize genus metadata"),
     ("derive_species", "Derive species metadata"),
+    ("reconcile_species", "Resolve species gaps"),
     ("verify", "Verify staged update"),
     ("replace", "Replace existing data"),
     ("global_insights", "Generate Global Insights"),
@@ -6643,6 +6707,11 @@ DATASET_PIPELINE_STEP_COPY = {
         "run_label": "Run from here",
         "metric_label": "Species derivation",
     },
+    "reconcile_species": {
+        "short": "Directly check unresolved species.",
+        "run_label": "Run from here",
+        "metric_label": "Species reconciliation",
+    },
     "verify": {
         "short": "Validate staged outputs.",
         "run_label": "Run from here",
@@ -6665,6 +6734,7 @@ DATASET_PIPELINE_SEQUENTIAL_KEYS = {
     "metadata": "dataset_pipeline_metadata_sequential",
     "standardization": "dataset_pipeline_standardization_sequential",
     "derive_species": "dataset_pipeline_derive_species_sequential",
+    "reconcile_species": "dataset_pipeline_reconcile_species_sequential",
     "replace": "dataset_pipeline_replace_sequential",
     "global_insights": "dataset_pipeline_global_insights_sequential",
 }
@@ -6969,6 +7039,15 @@ def dataset_pipeline_rank_counts(db: sqlite3.Connection) -> dict[str, int]:
             "standardization_updated_rows": int(standardization["updated_rows"] or 0),
         }
     )
+    reconciliation = db.execute(
+        """
+        SELECT SUM(CASE WHEN status IN ('pending', 'running') THEN 1 ELSE 0 END) AS active,
+               SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+        FROM species_reconciliation_tasks
+        """
+    ).fetchone()
+    counts["reconcile_species_active"] = int(reconciliation["active"] or 0) if reconciliation is not None else 0
+    counts["reconcile_species_failed"] = int(reconciliation["failed"] or 0) if reconciliation is not None else 0
     insights = latest_global_insight_task(db)
     counts["global_insights_active"] = 1 if insights and str(insights.get("status")) in {"pending", "running"} else 0
     counts["global_insights_completed"] = 1 if insights and str(insights.get("status")) == "completed" else 0
@@ -7223,6 +7302,23 @@ def build_dataset_pipeline_step_cards(
                     )
             for example in list(failed_examples)[:3]:
                 detail_lines.append(f"Unresolved example: {example}")
+        elif step_key == "reconcile_species":
+            total = int(progress.get("reconcile_task_total") or 0)
+            done = int(progress.get("reconcile_task_done") or 0)
+            pending = int(progress.get("reconcile_task_pending") or 0)
+            running = int(progress.get("reconcile_task_running") or 0)
+            failed = int(progress.get("reconcile_task_failed") or 0)
+            percent = 100 if total == 0 and status == "completed" else progress_percent(done, total)
+            detail_lines = [
+                f"{done}/{total} unresolved species candidates checked; {running} running, {pending} queued",
+                f"{int(progress.get('reconcile_direct_fetch') or 0)} resolved by direct species fetch; {int(progress.get('reconcile_already_ready') or 0)} already ready",
+                f"{int(progress.get('reconcile_genus_only') or 0)} kept genus-only, {int(progress.get('reconcile_no_data') or 0)} no-data, {int(progress.get('reconcile_ambiguous') or 0)} ambiguous",
+                f"{int(progress.get('reconcile_resolved_genomes') or 0):,} species-level genomes recovered by reconciliation",
+            ]
+            if failed:
+                detail_lines.append(f"{failed} reconciliation tasks failed and need retry")
+            for example in list(progress.get("reconcile_examples") or [])[:3]:
+                detail_lines.append(f"Example: {example}")
         elif step_key == "verify":
             metadata_active = counts.get("metadata_genus_active", 0) + counts.get("metadata_species_active", 0)
             metadata_failed = counts.get("metadata_genus_failed", 0) + counts.get("metadata_species_failed", 0)
@@ -7231,12 +7327,14 @@ def build_dataset_pipeline_step_cards(
                 + counts.get("catalog_genus_active", 0)
                 + metadata_active
                 + counts.get("standardization_active", 0)
+                + counts.get("reconcile_species_active", 0)
             )
             failed_total = (
                 counts.get("discovery_failed", 0)
                 + counts.get("catalog_genus_failed", 0)
                 + metadata_failed
                 + counts.get("standardization_failed", 0)
+                + counts.get("reconcile_species_failed", 0)
             )
             percent = 100 if status == "completed" else 0
             detail_lines = [
@@ -8381,6 +8479,257 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
     }
 
 
+def species_reconciliation_task_progress(db: sqlite3.Connection, dataset_version_id: str) -> dict[str, Any]:
+    row = db.execute(
+        """
+        SELECT COUNT(*) AS total,
+               COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) AS pending,
+               COALESCE(SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END), 0) AS running,
+               COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0) AS done,
+               COALESCE(SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END), 0) AS failed,
+               COALESCE(SUM(CASE WHEN result = 'direct_fetch' THEN 1 ELSE 0 END), 0) AS direct_fetch,
+               COALESCE(SUM(CASE WHEN result = 'already_ready' THEN 1 ELSE 0 END), 0) AS already_ready,
+               COALESCE(SUM(CASE WHEN result = 'genus_only' THEN 1 ELSE 0 END), 0) AS genus_only,
+               COALESCE(SUM(CASE WHEN result = 'no_data' THEN 1 ELSE 0 END), 0) AS no_data,
+               COALESCE(SUM(CASE WHEN result = 'ambiguous' THEN 1 ELSE 0 END), 0) AS ambiguous,
+               COALESCE(SUM(resolved_genome_count), 0) AS resolved_genomes
+        FROM species_reconciliation_tasks
+        WHERE dataset_version_id = ?
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    examples = [
+        f"{row['source_taxon_name']}: {row['species_name']} ({row['result'] or row['status']})"
+        for row in db.execute(
+            """
+            SELECT source_taxon_name, species_name, result, status
+            FROM species_reconciliation_tasks
+            WHERE dataset_version_id = ?
+              AND status = 'done'
+              AND result IN ('direct_fetch', 'genus_only', 'no_data', 'ambiguous')
+            ORDER BY CASE result WHEN 'direct_fetch' THEN 0 ELSE 1 END, source_taxon_name, species_name
+            LIMIT 5
+            """,
+            (dataset_version_id,),
+        ).fetchall()
+    ]
+    if row is None:
+        return {
+            "reconcile_task_total": 0,
+            "reconcile_task_pending": 0,
+            "reconcile_task_running": 0,
+            "reconcile_task_done": 0,
+            "reconcile_task_failed": 0,
+            "reconcile_direct_fetch": 0,
+            "reconcile_already_ready": 0,
+            "reconcile_genus_only": 0,
+            "reconcile_no_data": 0,
+            "reconcile_ambiguous": 0,
+            "reconcile_resolved_genomes": 0,
+            "reconcile_examples": [],
+        }
+    return {
+        "reconcile_task_total": int(row["total"] or 0),
+        "reconcile_task_pending": int(row["pending"] or 0),
+        "reconcile_task_running": int(row["running"] or 0),
+        "reconcile_task_done": int(row["done"] or 0),
+        "reconcile_task_failed": int(row["failed"] or 0),
+        "reconcile_direct_fetch": int(row["direct_fetch"] or 0),
+        "reconcile_already_ready": int(row["already_ready"] or 0),
+        "reconcile_genus_only": int(row["genus_only"] or 0),
+        "reconcile_no_data": int(row["no_data"] or 0),
+        "reconcile_ambiguous": int(row["ambiguous"] or 0),
+        "reconcile_resolved_genomes": int(row["resolved_genomes"] or 0),
+        "reconcile_examples": examples,
+    }
+
+
+def reconciliation_candidate_rows_for_source(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+    source_taxon_id: int,
+    source_taxon_name: str,
+) -> list[tuple[str, int]]:
+    rows = db.execute(
+        """
+        SELECT species_name, genome_count
+        FROM (
+            SELECT species_name, genome_count
+            FROM metadata_species_search_staging
+            WHERE dataset_version_id = ?
+              AND source_taxon_id = ?
+            UNION ALL
+            SELECT m.species_name, m.genome_count
+            FROM metadata_species_search m
+            WHERE m.source_taxon_id = ?
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM metadata_species_search_staging ms
+                  WHERE ms.dataset_version_id = ?
+                    AND ms.source_taxon_id = m.source_taxon_id
+              )
+        )
+        """,
+        (dataset_version_id, source_taxon_id, source_taxon_id, dataset_version_id),
+    ).fetchall()
+    candidates: dict[str, int] = {}
+    for row in rows:
+        canonical = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
+        if not canonical:
+            continue
+        candidates[canonical] = candidates.get(canonical, 0) + int(row["genome_count"] or 0)
+    return sorted(candidates.items(), key=lambda item: (-item[1], item[0].lower()))
+
+
+def ensure_species_reconciliation_tasks_for_version(db: sqlite3.Connection, dataset_version_id: str) -> int:
+    now = utc_now()
+    inserted = 0
+    source_rows = db.execute(
+        """
+        SELECT source_taxon_id, source_taxon_name
+        FROM derived_species_metadata_tasks
+        WHERE dataset_version_id = ?
+          AND failed_count > 0
+        ORDER BY failed_count DESC, source_taxon_name COLLATE NOCASE ASC
+        """,
+        (dataset_version_id,),
+    ).fetchall()
+    for source in source_rows:
+        source_taxon_id = int(source["source_taxon_id"])
+        source_taxon_name = str(source["source_taxon_name"])
+        try:
+            genus = load_species(source_taxon_id)
+            genus_rows = load_taxon_metadata_rows(genus.id)
+        except Exception:
+            genus_rows = {}
+        rows_by_canonical: set[str] = set()
+        for row in genus_rows.values():
+            canonical = canonical_species_from_organism_name(str(row.get("Organism Name") or ""), source_taxon_name)
+            if canonical:
+                rows_by_canonical.add(canonical)
+        for species_name, genome_count in reconciliation_candidate_rows_for_source(
+            db,
+            dataset_version_id,
+            source_taxon_id,
+            source_taxon_name,
+        ):
+            if species_name in rows_by_canonical:
+                continue
+            existing = get_taxon_by_name(species_name, "species", db)
+            if (
+                existing is not None
+                and existing.staging_dataset_version_id == dataset_version_id
+                and existing.metadata_status == "ready"
+                and existing.metadata_clean_path
+                and Path(existing.metadata_clean_path).exists()
+            ):
+                continue
+            cursor = db.execute(
+                """
+                INSERT OR IGNORE INTO species_reconciliation_tasks (
+                    dataset_version_id, source_taxon_id, source_taxon_name, species_name,
+                    search_name, candidate_genome_count, status, reason, created_at, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, 'pending', 'no matching standardized genus metadata rows', ?, ?)
+                """,
+                (
+                    dataset_version_id,
+                    source_taxon_id,
+                    source_taxon_name,
+                    species_name,
+                    species_search_name(species_name),
+                    int(genome_count or 0),
+                    now,
+                    now,
+                ),
+            )
+            inserted += int(cursor.rowcount or 0)
+    return inserted
+
+
+def refresh_reconcile_species_pipeline_progress(db: sqlite3.Connection, dataset_version_id: str) -> None:
+    step = db.execute(
+        """
+        SELECT s.*
+        FROM dataset_update_pipeline_steps s
+        JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
+        WHERE r.dataset_version_id = ?
+          AND s.step_key = 'reconcile_species'
+          AND s.status = 'running'
+        ORDER BY s.started_at DESC, s.id DESC
+        LIMIT 1
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    if step is None:
+        return
+    progress = dataset_update_active_counts(db)
+    progress.update(species_reconciliation_task_progress(db, dataset_version_id))
+    progress["note"] = "Unresolved species are checked by direct species fetch; valid results are standardized and staged, ambiguous/no-data records remain genus-only."
+    pending = int(progress.get("reconcile_task_pending") or 0)
+    running = int(progress.get("reconcile_task_running") or 0)
+    failed = int(progress.get("reconcile_task_failed") or 0)
+    total = int(progress.get("reconcile_task_total") or 0)
+    done = int(progress.get("reconcile_task_done") or 0)
+    blockers: list[str] = []
+    if failed:
+        blockers.append(f"{failed} species reconciliation tasks failed")
+    elif pending or running:
+        blockers.append(f"Resolving species gaps: {done}/{total} checked, {running} running, {pending} queued")
+    set_pipeline_step_status(db, int(step["id"]), "running", progress=progress, blockers=blockers)
+
+
+def claim_next_species_reconciliation_task(worker_name: str) -> sqlite3.Row | None:
+    now = utc_now()
+    stale_cutoff = (datetime.now(timezone.utc) - timedelta(minutes=30)).isoformat()
+    with get_sqlite_connection() as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute(
+            """
+            UPDATE species_reconciliation_tasks
+            SET status = 'pending', claimed_by = NULL, claimed_at = NULL, updated_at = ?
+            WHERE status = 'running'
+              AND claimed_at < ?
+            """,
+            (now, stale_cutoff),
+        )
+        row = db.execute(
+            """
+            SELECT t.*
+            FROM species_reconciliation_tasks t
+            JOIN dataset_update_pipeline_runs r
+              ON r.dataset_version_id = t.dataset_version_id
+            JOIN dataset_update_pipeline_steps s
+              ON s.run_id = r.run_id
+            WHERE t.status = 'pending'
+              AND s.step_key = 'reconcile_species'
+              AND s.status = 'running'
+            ORDER BY t.candidate_genome_count DESC, t.source_taxon_name COLLATE NOCASE ASC, t.species_name COLLATE NOCASE ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            db.commit()
+            return None
+        cursor = db.execute(
+            """
+            UPDATE species_reconciliation_tasks
+            SET status = 'running', claimed_by = ?, claimed_at = ?, updated_at = ?, error = NULL
+            WHERE id = ?
+              AND status = 'pending'
+              AND claimed_by IS NULL
+            """,
+            (worker_name, now, now, int(row["id"])),
+        )
+        if int(cursor.rowcount or 0) != 1:
+            db.commit()
+            return None
+        claimed = db.execute("SELECT * FROM species_reconciliation_tasks WHERE id = ?", (int(row["id"]),)).fetchone()
+        db.commit()
+        return claimed
+
+
+
 def refresh_derive_species_pipeline_progress(db: sqlite3.Connection, dataset_version_id: str) -> None:
     step = db.execute(
         """
@@ -8723,7 +9072,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         """,
         (run_id, step["step_order"]),
     ).fetchall()
-    required = {"discovery", "catalog", "metadata", "standardization", "derive_species", "verify"}
+    required = {"discovery", "catalog", "metadata", "standardization", "derive_species", "reconcile_species", "verify"}
     upstream_by_key = {str(row["step_key"]): str(row["status"]) for row in upstream}
     missing = sorted(required.difference(upstream_by_key))
     incomplete = [
@@ -8745,6 +9094,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         "metadata": counts.get("metadata_active", 0),
         "standardization": counts.get("standardization_active", 0),
         "derive species": counts.get("derive_species_active", 0),
+        "species reconciliation": counts.get("reconcile_species_active", 0),
     }
     still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
     if still_active:
@@ -8755,6 +9105,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         "metadata": counts.get("metadata_failed", 0),
         "standardization": counts.get("standardization_failed", 0),
         "derive species": counts.get("derive_species_failed", 0),
+        "species reconciliation": counts.get("reconcile_species_failed", 0),
     }
     failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
     if failures:
@@ -9018,6 +9369,7 @@ def prune_archived_dataset_versions(db: sqlite3.Connection, keep_version_id: str
         db.execute("DELETE FROM dataset_metadata_species_search_snapshots WHERE dataset_version_id = ?", (version_id,))
         db.execute("DELETE FROM metadata_species_search_staging WHERE dataset_version_id = ?", (version_id,))
         db.execute("DELETE FROM derived_species_metadata_tasks WHERE dataset_version_id = ?", (version_id,))
+        db.execute("DELETE FROM species_reconciliation_tasks WHERE dataset_version_id = ?", (version_id,))
         db.execute("DELETE FROM dataset_versions WHERE version_id = ?", (version_id,))
         if root_path_raw:
             root_path = Path(root_path_raw).resolve()
@@ -9132,6 +9484,34 @@ def advance_dataset_update_pipeline_runs() -> None:
                         failed = True
                         progress["note"] = "No species candidates were found in standardized genus metadata."
                         blockers.append("No species candidates were found in standardized genus metadata.")
+            elif step_key == "reconcile_species":
+                derive_row = db.execute(
+                    """
+                    SELECT status
+                    FROM dataset_update_pipeline_steps
+                    WHERE run_id = ?
+                      AND step_key = 'derive_species'
+                    LIMIT 1
+                    """,
+                    (step["run_id"],),
+                ).fetchone()
+                if derive_row is None or str(derive_row["status"]) != "completed":
+                    failed = True
+                    blockers.append("Species derivation must complete before reconciliation.")
+                else:
+                    ensure_species_reconciliation_tasks_for_version(db, str(step["dataset_version_id"]))
+                    progress.update(species_reconciliation_task_progress(db, str(step["dataset_version_id"])))
+                    progress["note"] = "Unresolved species are checked by direct species fetch; valid results are standardized and staged, ambiguous/no-data records remain genus-only."
+                    total = int(progress.get("reconcile_task_total") or 0)
+                    pending = int(progress.get("reconcile_task_pending") or 0)
+                    running = int(progress.get("reconcile_task_running") or 0)
+                    task_failed = int(progress.get("reconcile_task_failed") or 0)
+                    done = int(progress.get("reconcile_task_done") or 0)
+                    if task_failed:
+                        failed = True
+                        blockers.append(f"{task_failed} species reconciliation tasks failed")
+                    elif pending or running:
+                        blockers.append(f"Resolving species gaps: {done}/{total} checked, {running} running, {pending} queued")
             elif step_key == "verify":
                 progress.update(dataset_version_metadata_summary(db, str(step["dataset_version_id"])))
                 progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
@@ -9163,6 +9543,35 @@ def advance_dataset_update_pipeline_runs() -> None:
                     elif resolved < candidate_total:
                         failed = True
                         blockers.append(f"Species derivation is incomplete: {resolved}/{candidate_total} candidates resolved.")
+                reconcile_row = db.execute(
+                    """
+                    SELECT status, progress_json
+                    FROM dataset_update_pipeline_steps
+                    WHERE run_id = ?
+                      AND step_key = 'reconcile_species'
+                    LIMIT 1
+                    """,
+                    (step["run_id"],),
+                ).fetchone()
+                if reconcile_row is None or str(reconcile_row["status"]) != "completed":
+                    failed = True
+                    blockers.append("Species reconciliation did not complete.")
+                else:
+                    try:
+                        reconcile_progress = json.loads(str(reconcile_row["progress_json"] or "{}"))
+                    except json.JSONDecodeError:
+                        reconcile_progress = {}
+                    for key in (
+                        "reconcile_task_total",
+                        "reconcile_direct_fetch",
+                        "reconcile_already_ready",
+                        "reconcile_genus_only",
+                        "reconcile_no_data",
+                        "reconcile_ambiguous",
+                        "reconcile_resolved_genomes",
+                    ):
+                        if key in reconcile_progress:
+                            progress[key] = reconcile_progress[key]
                 if int(progress.get("staged_species_metadata_ready") or 0) <= 0:
                     failed = True
                     blockers.append("No staged species metadata files are ready.")
@@ -9175,6 +9584,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     "metadata": counts.get("metadata_active", 0),
                     "standardization": counts.get("standardization_active", 0),
                     "derive species": counts.get("derive_species_active", 0),
+                    "species reconciliation": counts.get("reconcile_species_active", 0),
                 }
                 failed_parts = {
                     "discovery": counts.get("discovery_failed", 0),
@@ -9182,6 +9592,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     "metadata": counts.get("metadata_failed", 0),
                     "standardization": counts.get("standardization_failed", 0),
                     "derive species": counts.get("derive_species_failed", 0),
+                    "species reconciliation": counts.get("reconcile_species_failed", 0),
                 }
                 still_active = [f"{count} {label}" for label, count in active_parts.items() if int(count or 0)]
                 failures = [f"{count} {label}" for label, count in failed_parts.items() if int(count or 0)]
@@ -9191,7 +9602,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     failed = True
                     blockers.append("Failed update tasks require review: " + ", ".join(failures))
                 progress["verified_at"] = utc_now()
-            if step_key in {"discovery", "catalog", "metadata", "standardization", "derive_species", "verify"}:
+            if step_key in {"discovery", "catalog", "metadata", "standardization", "derive_species", "reconcile_species", "verify"}:
                 if failed:
                     set_pipeline_step_status(db, int(step["id"]), "failed", progress=progress, blockers=blockers, error="; ".join(blockers))
                     block_downstream_pipeline_steps(db, step, blockers, fail_version=step_key == "verify")
@@ -9360,6 +9771,18 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             ensure_derived_species_metadata_tasks_for_version(db, version_id)
             refresh_derive_species_pipeline_progress(db, version_id)
+            db.commit()
+            return
+        if step_key == "reconcile_species":
+            inserted = ensure_species_reconciliation_tasks_for_version(db, version_id)
+            progress = species_reconciliation_task_progress(db, version_id)
+            progress["queued"] = inserted
+            progress["note"] = "Unresolved species are checked by direct species fetch; valid results are standardized and staged, ambiguous/no-data records remain genus-only."
+            if int(progress.get("reconcile_task_total") or 0) <= 0:
+                mark_pipeline_step_completed(db, step, progress)
+            else:
+                set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
+                refresh_reconcile_species_pipeline_progress(db, version_id)
             db.commit()
             return
         if step_key == "replace":
@@ -17565,6 +17988,132 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
     }
 
 
+def process_species_reconciliation_task(task: sqlite3.Row, worker_name: str) -> dict[str, Any]:
+    dataset_version_id = str(task["dataset_version_id"])
+    species_name = str(task["species_name"])
+    source_taxon_id = int(task["source_taxon_id"])
+    result = "failed"
+    species_id: int | None = None
+    resolved_genome_count = 0
+    error: str | None = None
+    status = "done"
+    try:
+        genus = load_species(source_taxon_id)
+        existing = get_taxon_by_name(species_name, "species")
+        if (
+            existing is not None
+            and existing.staging_dataset_version_id == dataset_version_id
+            and existing.metadata_status == "ready"
+            and existing.metadata_clean_path
+            and Path(existing.metadata_clean_path).exists()
+        ):
+            result = "already_ready"
+            species_id = existing.id
+            resolved_genome_count = int(existing.genome_count or 0)
+        else:
+            species = create_species(
+                species_name,
+                taxon_rank="species",
+                assembly_source=genus.assembly_source,
+                staging_dataset_version_id=dataset_version_id,
+                query_name=species_name,
+                queue_catalog=False,
+            )
+            species.staging_dataset_version_id = dataset_version_id
+            species.is_live = False if not species.live_tsv_path else species.is_live
+            rows, taxon_id = fetch_species_dataset_rows(species)
+            filtered_rows = [
+                row
+                for row in rows
+                if canonical_species_from_organism_name(str(row.get("Organism Name") or ""), genus.species_name) == species_name
+            ]
+            if not filtered_rows:
+                result = "genus_only"
+                error = "Direct species fetch returned no rows matching the expected genus/species name; candidate remains available at genus level."
+            else:
+                output_path = species_tsv_path(species.slug, dataset_version_id)
+                write_species_tsv(filtered_rows, output_path)
+                species.tsv_path = str(output_path)
+                species.taxon_id = taxon_id or species.taxon_id
+                species.genome_count = len(filtered_rows)
+                species.status = "ready"
+                species.last_synced_at = utc_now()
+                species.updated_at = species.last_synced_at
+                species.sync_error = None
+                species.refresh_requested = False
+                species.metadata_status = "pending"
+                species.metadata_refresh_requested = True
+                species.metadata_source_taxon_id = source_taxon_id
+                species = save_species(species)
+                metadata_path, clean_path, _source_taxon_id, clean_count = run_taxon_metadata_pipeline(species)
+                latest = load_species(species.id)
+                latest.metadata_status = "ready"
+                latest.metadata_path = metadata_path
+                latest.metadata_clean_path = clean_path
+                latest.metadata_last_built_at = utc_now()
+                latest.metadata_error = None
+                latest.metadata_refresh_requested = False
+                latest.metadata_source_taxon_id = source_taxon_id
+                latest.genome_count = clean_count
+                latest.updated_at = latest.metadata_last_built_at
+                latest = save_species(latest)
+                result = "direct_fetch"
+                species_id = latest.id
+                resolved_genome_count = int(clean_count or 0)
+    except Exception as exc:
+        message = str(exc)
+        if is_no_catalog_data_error(exc):
+            status = "done"
+            result = "no_data"
+            error = message[:4000]
+        elif isinstance(exc, sqlite3.OperationalError) and "database is locked" in message.lower():
+            status = "pending"
+            result = "retry"
+            error = message[:4000]
+        else:
+            status = "failed"
+            result = "failed"
+            error = message[:4000]
+            logging.exception("Failed to reconcile species candidate %s.", species_name)
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE species_reconciliation_tasks
+            SET status = ?,
+                result = ?,
+                species_id = ?,
+                resolved_genome_count = ?,
+                completed_at = CASE WHEN ? = 'done' THEN ? ELSE completed_at END,
+                error = ?,
+                updated_at = ?,
+                claimed_by = NULL,
+                claimed_at = NULL
+            WHERE id = ?
+            """,
+            (
+                status,
+                result,
+                species_id,
+                resolved_genome_count,
+                status,
+                now,
+                error,
+                now,
+                int(task["id"]),
+            ),
+        )
+        refresh_reconcile_species_pipeline_progress(db, dataset_version_id)
+        db.commit()
+    return {
+        "status": status,
+        "result": result,
+        "species_id": species_id,
+        "resolved_genome_count": resolved_genome_count,
+    }
+
+
+
 def write_taxon_metadata_outputs(
     slug: str,
     rows: list[dict[str, Any]],
@@ -19442,6 +19991,11 @@ def run_worker_loop() -> None:
                     with maintain_worker_heartbeat(worker_name):
                         process_derived_species_metadata_task(derived_species_task, worker_name)
                     continue
+                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
+                if reconciliation_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_species_reconciliation_task(reconciliation_task, worker_name)
+                    continue
                 try:
                     species = claim_next_species_sync(worker_name)
                 except sqlite3.OperationalError as exc:
@@ -19479,6 +20033,11 @@ def run_worker_loop() -> None:
                 if derived_species_task is not None:
                     with maintain_worker_heartbeat(worker_name):
                         process_derived_species_metadata_task(derived_species_task, worker_name)
+                    continue
+                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
+                if reconciliation_task is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_species_reconciliation_task(reconciliation_task, worker_name)
                     continue
                 ensure_metadata_chunks_for_active_builds()
                 metadata_species = claim_next_species_metadata_build(worker_name)
