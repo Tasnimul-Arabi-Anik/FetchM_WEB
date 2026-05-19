@@ -302,7 +302,16 @@
         <button type="submit" class="ghost">Restart standardization</button>
       </form>
       <div class="top-gap">
-        <p class="section-note">Species derivation retries only rerun source genera with unresolved species candidates.</p>
+        <p class="section-note">Use staged species gap resolution when public species exist but are not represented in the current genus-derived metadata.</p>
+        <form action="{{ url_for('admin_resolve_live_species_gaps') }}" method="post">
+          <button type="submit" class="ghost" {% if dataset_pipeline.active_run %}disabled{% endif %}>
+            Resolve species gaps from live data
+          </button>
+          <span class="job-meta">Checks public species records, builds missing species metadata, and stages results without replacing live data.</span>
+        </form>
+      </div>
+      <div class="top-gap">
+        <p class="section-note">Species derivation retries only rerun source genera with unresolved species candidates from the latest derivation run.</p>
         <form action="{{ url_for('admin_retry_derived_species_failures') }}" method="post">
           <button type="submit" class="ghost" {% if dataset_pipeline.active_run or not dataset_pipeline.retryable_derived_failures.species_candidates %}disabled{% endif %}>
             Retry unresolved species derivations
