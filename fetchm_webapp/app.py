@@ -7184,7 +7184,8 @@ def build_dataset_pipeline_step_cards(
             genus_ready = counts.get("catalog_genus_ready", 0)
             genus_no_data = counts.get("catalog_genus_no_data", 0)
             progress_queue = progress.get("genus_queue") if isinstance(progress.get("genus_queue"), dict) else {}
-            genus_total = int(progress_queue.get("queued") or progress_queue.get("total") or counts.get("catalog_genus_total", 0))
+            genus_total = int(progress_queue.get("total") or counts.get("catalog_genus_total", 0))
+            queued_this_run = int(progress_queue.get("queued") or 0)
             genus_remaining = int(progress.get("catalog_active") or progress_queue.get("active") or counts.get("catalog_genus_active", 0))
             genus_failed = counts.get("catalog_genus_failed", 0)
             genus_finished = max(0, genus_total - genus_remaining - genus_failed)
@@ -7194,6 +7195,8 @@ def build_dataset_pipeline_step_cards(
                 f"Previously/currently usable coverage: {genus_ready} ready, {genus_no_data} no genome data",
                 "Species are derived after genus metadata is rebuilt.",
             ]
+            if queued_this_run and queued_this_run != genus_total:
+                detail_lines.append(f"Queued/refreshed this run: {queued_this_run} genus catalog records")
         elif step_key == "metadata":
             phase = str(progress.get("phase") or "genus")
             genus_ready = counts.get("metadata_genus_ready", 0)
@@ -7223,29 +7226,41 @@ def build_dataset_pipeline_step_cards(
                     f"Previously usable metadata files: {genus_ready} genus, {species_ready} species",
                 ]
         elif step_key == "standardization":
-            completed = int(progress.get("standardization_scope_done") or counts.get("standardization_completed", 0))
-            total = int(progress.get("standardization_scope_total") or progress.get("eligible") or counts.get("standardization_total", 0))
-            percent = progress_percent(completed, total)
-            active = int(progress.get("standardization_scope_active") or counts.get("standardization_active", 0))
-            updated_rows = int(progress.get("standardization_scope_updated_rows") or counts.get("standardization_updated_rows", 0))
-            unique_assemblies = int(progress.get("standardization_scope_unique_assemblies") or 0)
-            taxon_scoped_rows = int(progress.get("standardization_scope_taxon_scoped_rows") or 0)
-            if not unique_assemblies and not taxon_scoped_rows:
-                scope_progress = standardization_refresh_progress(
-                    db,
-                    requested_at=str(row.get("started_at") or ""),
-                    rank_scope="genus",
-                )
-                unique_assemblies = int(scope_progress.get("standardization_scope_unique_assemblies") or 0)
-                taxon_scoped_rows = int(scope_progress.get("standardization_scope_taxon_scoped_rows") or 0)
-                if not updated_rows:
-                    updated_rows = int(scope_progress.get("standardization_scope_updated_rows") or 0)
-            detail_lines = [
-                f"{completed}/{total} genus standardization tasks complete; {active} active",
-                f"{unique_assemblies:,} unique genome assemblies covered",
-                f"{taxon_scoped_rows:,} genus-scoped metadata rows; {updated_rows:,} rows standardized or confirmed reusable",
-                "Species files are derived after this step completes.",
-            ]
+            if status in {"waiting", "pending", "idle", "skipped"} and not progress:
+                percent = 0
+                detail_lines = [
+                    "Waiting for genus metadata refresh to finish.",
+                    "No genus standardization tasks have been queued for this pipeline step yet.",
+                    "Species files are derived after this step completes.",
+                ]
+            else:
+                completed = int(progress.get("standardization_scope_done") or 0)
+                total = int(progress.get("standardization_scope_total") or progress.get("eligible") or 0)
+                percent = progress_percent(completed, total)
+                active = int(progress.get("standardization_scope_active") or 0)
+                updated_rows = int(progress.get("standardization_scope_updated_rows") or 0)
+                unique_assemblies = int(progress.get("standardization_scope_unique_assemblies") or 0)
+                taxon_scoped_rows = int(progress.get("standardization_scope_taxon_scoped_rows") or 0)
+                if row and str(row.get("started_at") or "") and (not unique_assemblies and not taxon_scoped_rows):
+                    scope_progress = standardization_refresh_progress(
+                        db,
+                        requested_at=str(progress.get("requested_at") or row.get("started_at") or ""),
+                        rank_scope="genus",
+                    )
+                    completed = int(scope_progress.get("standardization_scope_done") or completed)
+                    total = int(scope_progress.get("standardization_scope_total") or total)
+                    active = int(scope_progress.get("standardization_scope_active") or active)
+                    unique_assemblies = int(scope_progress.get("standardization_scope_unique_assemblies") or 0)
+                    taxon_scoped_rows = int(scope_progress.get("standardization_scope_taxon_scoped_rows") or 0)
+                    if not updated_rows:
+                        updated_rows = int(scope_progress.get("standardization_scope_updated_rows") or 0)
+                    percent = progress_percent(completed, total)
+                detail_lines = [
+                    f"{completed}/{total} genus standardization tasks complete; {active} active",
+                    f"{unique_assemblies:,} unique genome assemblies covered",
+                    f"{taxon_scoped_rows:,} genus-scoped metadata rows; {updated_rows:,} rows standardized or confirmed reusable",
+                    "Species files are derived after this step completes.",
+                ]
         elif step_key == "derive_species":
             candidate_total = int(progress.get("candidate_total") or 0)
             resolved = int(progress.get("resolved") or progress.get("processed") or 0)
