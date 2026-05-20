@@ -90,6 +90,7 @@ class TaxonStats:
     bioprojects: Counter[str] = field(default_factory=Counter)
     countries: Counter[str] = field(default_factory=Counter)
     hosts: Counter[str] = field(default_factory=Counter)
+    sources: Counter[str] = field(default_factory=Counter)
     years: Counter[str] = field(default_factory=Counter)
 
 
@@ -165,6 +166,62 @@ def correction_evidence(row: dict[str, Any], field_name: str, raw_value: str, st
     return raw_display[:180], evidence[:180], confidence[:120]
 
 
+def correction_type(field_name: str, raw_value: str, standardized_value: str, evidence: str = "") -> str:
+    raw_ok = is_usable(raw_value)
+    std_ok = is_usable(standardized_value)
+    evidence_key = normalized_key(evidence)
+    if not std_ok:
+        return "unresolved_or_not_standardized"
+    if not raw_ok:
+        return "secondary_evidence_recovery"
+    if "block" in evidence_key or "non-source" in evidence_key:
+        return "blocked_or_non_source_descriptor"
+    if field_name in {"Environment", "Sample type"}:
+        return "derived_context_assignment"
+    compact_raw = re.sub(r"[^a-z0-9]+", "", normalized_key(raw_value))
+    compact_std = re.sub(r"[^a-z0-9]+", "", normalized_key(standardized_value))
+    if compact_raw == compact_std and normalized_key(raw_value) != normalized_key(standardized_value):
+        return "spelling_or_format_normalization"
+    if field_name in {"Country", "Host"}:
+        return "synonym_normalization"
+    return "controlled_category_mapping"
+
+
+def confidence_bucket(raw_value: str, standardized_value: str, confidence: str = "", evidence: str = "") -> str:
+    if not is_usable(standardized_value):
+        return "unresolved"
+    if not is_usable(raw_value):
+        return "secondary-evidence-recovered"
+    text = normalized_key(f"{confidence} {evidence}")
+    if any(token in text for token in ("needs review", "review-needed", "ambiguous")):
+        return "review-needed"
+    if any(token in text for token in ("manual", "approved", "exact", "high", "taxonomy")):
+        return "high"
+    if any(token in text for token in ("synonym", "dictionary", "rule", "medium", "controlled")):
+        return "medium"
+    if any(token in text for token in ("fuzzy", "low", "suggest", "candidate")):
+        return "low"
+    return "confidence-not-recorded"
+
+
+def readiness_tier(row: dict[str, Any]) -> tuple[str, str]:
+    assemblies = int(row.get("assemblies") or 0)
+    country = float(row.get("country_completeness_percent") or 0)
+    host_source = float(row.get("host_or_source_completeness_percent") or 0)
+    year = float(row.get("collection_year_completeness_percent") or 0)
+    if assemblies >= 1000 and country >= 80 and host_source >= 80 and year >= 70:
+        return "strict", ">=1,000 assemblies, >=80% country, >=80% host/source, >=70% collection year"
+    if assemblies >= 100 and country >= 70 and host_source >= 70 and year >= 50:
+        return "standard", ">=100 assemblies, >=70% country, >=70% host/source, >=50% collection year"
+    if assemblies >= 50 and country >= 50 and host_source >= 50:
+        return "exploratory", ">=50 assemblies, >=50% country and host/source"
+    return "not-ready", "Below exploratory metadata-readiness thresholds"
+
+
+def denominator_note(total: int | float, scope: str = "all non-redundant assemblies") -> str:
+    return f"Denominator: {int(total or 0):,} {scope}."
+
+
 def row_value(row: dict[str, Any], fields: Iterable[str]) -> str:
     for field_name in fields:
         value = row.get(field_name)
@@ -227,6 +284,8 @@ def top_rows(counter: Counter[str], total: int, limit: int = 20) -> list[dict[st
                 "label": value,
                 "count": int(count),
                 "percent": percent(count, total),
+                "denominator": int(total),
+                "denominator_note": denominator_note(total),
             }
         )
     return rows
@@ -336,6 +395,232 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> 
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
+
+
+
+
+def load_validation_accuracy(path: Path | None = None) -> tuple[list[dict[str, Any]], bool]:
+    """Summarize optional manually reviewed validation records when available."""
+    source = path or Path(__file__).with_name("validation_records.csv")
+    fields = ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year"]
+    if not source.exists():
+        return [
+            {
+                "field": field,
+                "validation_records": 0,
+                "precision_percent": "not available",
+                "false_positive_rate_percent": "not available",
+                "unresolved_rate_percent": "not available",
+                "common_error_types": "not available",
+                "validation_source": str(source),
+                "status": "manual validation CSV not available",
+            }
+            for field in fields
+        ], False
+
+    counters: dict[str, Counter[str]] = defaultdict(Counter)
+    errors: dict[str, Counter[str]] = defaultdict(Counter)
+    with source.open(newline="", encoding="utf-8", errors="replace") as handle:
+        for row in csv.DictReader(handle):
+            field = normalize(row.get("field")) or "Unknown"
+            decision = normalized_key(row.get("reviewer_decision") or row.get("decision") or row.get("reviewer_label"))
+            error_type = normalize(row.get("error_type"))
+            counters[field]["total"] += 1
+            if decision in {"correct", "accept", "accepted", "true_positive", "tp", "pass"}:
+                counters[field]["correct"] += 1
+            elif decision in {"false_positive", "incorrect", "wrong", "reject", "rejected", "fp", "fail"}:
+                counters[field]["false_positive"] += 1
+            elif decision in {"unresolved", "ambiguous", "unknown", "review"}:
+                counters[field]["unresolved"] += 1
+            else:
+                counters[field]["unclassified"] += 1
+            if error_type:
+                errors[field][error_type] += 1
+
+    rows: list[dict[str, Any]] = []
+    for field, counter in sorted(counters.items()):
+        total = int(counter.get("total", 0))
+        rows.append(
+            {
+                "field": field,
+                "validation_records": total,
+                "precision_percent": percent(counter.get("correct", 0), max(counter.get("correct", 0) + counter.get("false_positive", 0), 1)),
+                "false_positive_rate_percent": percent(counter.get("false_positive", 0), total),
+                "unresolved_rate_percent": percent(counter.get("unresolved", 0), total),
+                "common_error_types": "; ".join(f"{label}:{count}" for label, count in errors[field].most_common(5)) or "none recorded",
+                "validation_source": str(source),
+                "status": "available",
+            }
+        )
+    return rows, bool(rows)
+
+
+def build_field_confidence_summary(counters: dict[str, Counter[str]], denominator: int) -> list[dict[str, Any]]:
+    statuses = ["high", "medium", "low", "review-needed", "unresolved", "secondary-evidence-recovered", "confidence-not-recorded"]
+    rows: list[dict[str, Any]] = []
+    for field in ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year"]:
+        counter = counters.get(field, Counter())
+        total = sum(counter.values()) or denominator
+        for status in statuses:
+            count = int(counter.get(status, 0))
+            rows.append(
+                {
+                    "field": field,
+                    "confidence_status": status,
+                    "count": count,
+                    "percent": percent(count, total),
+                    "denominator": int(total),
+                    "denominator_note": denominator_note(total, f"records evaluated for {field}"),
+                }
+            )
+    return rows
+
+
+def build_case_studies(taxon_stats: dict[str, TaxonStats], taxon_quality: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    quality_by_name = {normalized_key(row.get("taxon")): row for row in taxon_quality}
+    stats_by_name = {normalized_key(stat.name): stat for stat in taxon_stats.values()}
+    selected = [
+        "Salmonella enterica",
+        "Escherichia coli",
+        "Klebsiella pneumoniae",
+        "Staphylococcus aureus",
+        "Campylobacter jejuni",
+        "Pseudomonas fluorescens",
+    ]
+    rows: list[dict[str, Any]] = []
+    for name in selected:
+        stat = stats_by_name.get(normalized_key(name))
+        quality = quality_by_name.get(normalized_key(name), {})
+        if not stat:
+            rows.append({"taxon": name, "status": "not available in current snapshot", "assemblies": 0})
+            continue
+        top_project, top_project_count = stat.bioprojects.most_common(1)[0] if stat.bioprojects else ("not recorded", 0)
+        rows.append(
+            {
+                "taxon": stat.name,
+                "rank": stat.rank,
+                "status": "available",
+                "assemblies": stat.rows,
+                "metadata_quality_score": quality.get("metadata_quality_score", ""),
+                "metadata_quality_grade": quality.get("metadata_quality_grade", ""),
+                "metadata_readiness_tier": quality.get("metadata_readiness_tier", ""),
+                "country_completeness_percent": quality.get("country_completeness_percent", ""),
+                "host_or_source_completeness_percent": quality.get("host_or_source_completeness_percent", ""),
+                "collection_year_completeness_percent": quality.get("collection_year_completeness_percent", ""),
+                "top_countries": "; ".join(f"{label}:{count}" for label, count in stat.countries.most_common(5)),
+                "top_hosts": "; ".join(f"{label}:{count}" for label, count in stat.hosts.most_common(5)),
+                "top_sources": "; ".join(f"{label}:{count}" for label, count in stat.sources.most_common(5)),
+                "top_bioproject": top_project,
+                "top_bioproject_share_percent": percent(top_project_count, stat.rows),
+                "sampling_caution": "Consider BioProject-aware or country/host-balanced subsampling before comparative analysis." if percent(top_project_count, stat.rows) >= 25 else "No severe single-project dominance detected by the default threshold.",
+                "denominator": stat.rows,
+                "denominator_note": denominator_note(stat.rows, f"assemblies assigned to {stat.name}"),
+            }
+        )
+    return rows
+
+
+def write_json(path: Path, payload: dict[str, Any] | list[Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_checksums(base_dir: Path) -> str:
+    rows: list[str] = []
+    for path in sorted(base_dir.rglob("*")):
+        if not path.is_file() or path.name == "checksums.sha256":
+            continue
+        relative = path.relative_to(base_dir).as_posix()
+        rows.append(f"{sha256_file(path)}  {relative}")
+    checksum_path = base_dir / "checksums.sha256"
+    checksum_path.write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")
+    return "checksums.sha256"
+
+
+
+
+def write_publication_export_audit(summary: dict[str, Any], snapshot_dir: Path) -> dict[str, Any]:
+    checks: list[dict[str, Any]] = []
+    for figure in summary.get("figure_exports") or []:
+        figure_id = figure.get("figure_id", "unknown")
+        files = figure.get("files") or {}
+        expected = {
+            "svg": files.get("svg"),
+            "pdf": files.get("pdf"),
+            "png": files.get("png"),
+            "source_csv": figure.get("source_data"),
+            "legend_txt": figure.get("legend_file"),
+        }
+        for kind, relative in expected.items():
+            file_path = snapshot_dir / str(relative or "")
+            checks.append(
+                {
+                    "figure_id": figure_id,
+                    "artifact": kind,
+                    "path": relative or "",
+                    "exists": bool(relative) and file_path.exists() and file_path.is_file(),
+                    "nonzero_size": bool(relative) and file_path.exists() and file_path.stat().st_size > 0,
+                    "denominator_recorded": bool(figure.get("denominator")),
+                    "png_expected_dpi": 600 if kind == "png" else "not applicable",
+                }
+            )
+    passed = all(row["exists"] and row["nonzero_size"] and row["denominator_recorded"] for row in checks) and len(checks) >= 45
+    audit = {
+        "status": "pass" if passed else "warning",
+        "snapshot_id": summary.get("snapshot_id"),
+        "generated_at": utc_now(),
+        "figure_count": len(summary.get("figure_exports") or []),
+        "checks": checks,
+    }
+    write_json(snapshot_dir / "provenance" / "publication_export_audit.json", audit)
+    return audit
+
+def write_snapshot_manifest(summary: dict[str, Any], snapshot_dir: Path) -> None:
+    methods = summary.get("methods") or {}
+    provenance_dir = snapshot_dir / "provenance"
+    manifest = {
+        "snapshot_id": summary.get("snapshot_id"),
+        "generated_at": summary.get("generated_at"),
+        "summary_json": "summary.json",
+        "reports_dir": "reports",
+        "figures_dir": "figures",
+        "source_data_dir": "source_data",
+        "tables_dir": "tables",
+        "provenance_dir": "provenance",
+        "unique_assemblies": (summary.get("overview") or {}).get("unique_assemblies"),
+        "metadata_rows_scanned": methods.get("metadata_rows_scanned"),
+        "duplicate_rows_skipped": methods.get("duplicate_rows_skipped"),
+        "app_version": methods.get("app_version"),
+        "app_commit": methods.get("app_commit"),
+        "standardization_rule_version": methods.get("standardization_rule_version"),
+        "interpretation_caution": methods.get("caution"),
+    }
+    write_json(snapshot_dir / "manifest.json", manifest)
+    write_json(provenance_dir / "manifest.json", manifest)
+    write_json(provenance_dir / "software_versions.json", {
+        "app_version": methods.get("app_version"),
+        "app_commit": methods.get("app_commit"),
+        "ncbi_datasets_version": methods.get("ncbi_datasets_version"),
+        "taxonkit_version": methods.get("taxonkit_version"),
+    })
+    write_json(provenance_dir / "rule_fingerprint.json", {
+        "standardization_rule_version": methods.get("standardization_rule_version"),
+        "standardization_rule_rows": methods.get("standardization_rule_rows"),
+        "standardization_approved_rule_rows": methods.get("standardization_approved_rule_rows"),
+        "standardization_rule_files": methods.get("standardization_rule_files"),
+        "latest_standardization_audit_timestamp": methods.get("latest_standardization_audit_timestamp"),
+        "latest_standardization_audit_git_commit": methods.get("latest_standardization_audit_git_commit"),
+        "latest_standardization_audit_code_version": methods.get("latest_standardization_audit_code_version"),
+    })
+    write_json(provenance_dir / "qa_report.json", summary.get("qa") or {})
 
 
 def command_version(command: list[str]) -> str:
@@ -496,6 +781,8 @@ def calculate_taxon_quality(row: TaxonStats) -> dict[str, Any]:
         "bioproject_diversity_percent": round(diversity, 2),
         "isolation_source_completeness_percent": isolation,
         "standardization_confidence_percent": confidence,
+        "denominator": row.rows,
+        "denominator_note": denominator_note(row.rows, f"assemblies assigned to {row.name}"),
     }
 
 
@@ -544,7 +831,10 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         f"standardized isolation-source assignments for {source.get('standardized_usable', 0):,} ({source.get('standardized_usable_percent', 0)}%), "
         f"sample-type assignments for {sample.get('standardized_usable', 0):,} ({sample.get('standardized_usable_percent', 0)}%), "
         f"environment assignments for {env.get('standardized_usable', 0):,} ({env.get('standardized_usable_percent', 0)}%), and usable "
-        f"collection years for {year.get('standardized_usable', 0):,} ({year.get('standardized_usable_percent', 0)}%). Raw-field presence and "
+        f"collection years for {year.get('standardized_usable', 0):,} ({year.get('standardized_usable_percent', 0)}%). Standardized-only recovered records included "
+        f"{country.get('standardized_only_rescued', country.get('rescued_records', 0)):,} country assignments, "
+        f"{host.get('standardized_only_rescued', host.get('rescued_records', 0)):,} host assignments, and "
+        f"{source.get('standardized_only_rescued', source.get('rescued_records', 0)):,} isolation-source assignments. Raw-field presence and "
         "standardized-field availability are intentionally reported separately because present free text may remain too vague, inconsistent, "
         "or unmapped for reliable filtering."
     )
@@ -781,9 +1071,6 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
         plt.close(fig)
         source_relative = f"source_data/{source_name}.csv"
         source_table_name = source_relative
-        _write_source_data(snapshot_dir / source_relative, rows)
-        all_figure_files.extend(files.values())
-        source_files.append(source_relative)
         figure_number = len(figure_exports) + 1
         interpretation_note = interpretation or "This figure summarizes repository representation and should not be interpreted as true biological prevalence."
         legend = (
@@ -791,14 +1078,29 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
             f"generated at {generated_at}. The exact denominator is {denominator:,} non-redundant public bacterial assemblies unless the panel label states otherwise. "
             f"Source table: {source_table_name}. {interpretation_note}"
         )
+        legend_relative = f"figures/{stem}_legend.txt"
+        (snapshot_dir / legend_relative).write_text(legend + "\n", encoding="utf-8")
+        source_rows = []
+        for row in rows:
+            enriched = dict(row)
+            enriched.setdefault("snapshot_id", snapshot_id)
+            enriched.setdefault("figure_id", stem)
+            enriched.setdefault("denominator", denominator)
+            enriched.setdefault("denominator_note", denominator_note(denominator))
+            source_rows.append(enriched)
+        _write_source_data(snapshot_dir / source_relative, source_rows)
+        all_figure_files.extend([*files.values(), legend_relative])
+        source_files.append(source_relative)
         figure_exports.append(
             {
                 "figure_id": stem,
                 "title": title,
                 "files": files,
+                "legend_file": legend_relative,
                 "source_data": source_relative,
                 "source_table_name": source_table_name,
                 "denominator": denominator,
+                "denominator_note": denominator_note(denominator),
                 "snapshot_id": snapshot_id,
                 "generated_at": generated_at,
                 "interpretation_note": interpretation_note,
@@ -985,19 +1287,47 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
             {"check": "pdf_report_generated", "status": "warning", "detail": f"PDF report export unavailable: {exc}"}
         )
 
+    case_files: list[str] = []
+    case_dir = report_dir / "case_studies"
+    case_dir.mkdir(parents=True, exist_ok=True)
+    for case in summary.get("case_studies") or []:
+        slug = safe_slug(str(case.get("taxon") or "case-study"))
+        relative = f"reports/case_studies/{slug}.md"
+        lines = [
+            f"# {case.get('taxon', 'Case study')}",
+            "",
+            f"Status: {case.get('status', 'available')}",
+            f"Assemblies: {case.get('assemblies', 0)}",
+            f"Metadata quality: {case.get('metadata_quality_score', 'not available')} ({case.get('metadata_quality_grade', 'not available')})",
+            f"Readiness tier: {case.get('metadata_readiness_tier', 'not available')}",
+            f"Top countries: {case.get('top_countries', 'not available')}",
+            f"Top hosts: {case.get('top_hosts', 'not available')}",
+            f"Top sources: {case.get('top_sources', 'not available')}",
+            f"Top BioProject: {case.get('top_bioproject', 'not recorded')} ({case.get('top_bioproject_share_percent', 0)}%)",
+            "",
+            f"Sampling caution: {case.get('sampling_caution', 'not available')}",
+            "",
+            str(case.get("denominator_note", "")),
+        ]
+        (snapshot_dir / relative).write_text("\n".join(lines) + "\n", encoding="utf-8")
+        case_files.append(relative)
+
     table_files = [f"tables/{path.name}" for path in table_dir.glob("*.csv")]
     figure_zip = snapshot_dir / "global_insights_figures.zip"
     table_zip = snapshot_dir / "global_insights_tables.zip"
     source_zip = snapshot_dir / "source_data_for_figures.zip"
+    case_zip = snapshot_dir / "global_insights_case_studies.zip"
     _zip_relative_files(snapshot_dir, figure_zip, all_figure_files)
     _zip_relative_files(snapshot_dir, table_zip, table_files)
     _zip_relative_files(snapshot_dir, source_zip, source_files)
+    _zip_relative_files(snapshot_dir, case_zip, case_files)
 
     report_downloads = {
         "global_insights_report_md": "reports/global_insights_report.md",
         "global_insights_figures_zip": "global_insights_figures.zip",
         "global_insights_tables_zip": "global_insights_tables.zip",
         "source_data_for_figures_zip": "source_data_for_figures.zip",
+        "global_insights_case_studies_zip": "global_insights_case_studies.zip",
     }
     if report_docx:
         report_downloads["global_insights_report_docx"] = "reports/global_insights_report.docx"
@@ -1005,10 +1335,15 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
         report_downloads["global_insights_report_pdf"] = "reports/global_insights_report.pdf"
     summary.setdefault("downloads", {}).update(report_downloads)
     summary["figure_exports"] = figure_exports
+    audit = write_publication_export_audit(summary, snapshot_dir)
     summary.setdefault("qa", {}).setdefault("checks", []).append(
         {"check": "publication_exports_generated", "status": "pass", "detail": f"{len(figure_exports)} figures exported as SVG, PDF, and 600-dpi PNG with source data."}
     )
+    summary.setdefault("qa", {}).setdefault("checks", []).append(
+        {"check": "publication_export_audit", "status": audit.get("status", "warning"), "detail": f"{audit.get('figure_count', 0)} figures audited for SVG/PDF/PNG/source CSV/legend TXT/denominator artifacts."}
+    )
     summary.setdefault("qa", {}).setdefault("manuscript_readiness", {})["all_figures_exported"] = len(figure_exports) >= 9
+    summary.setdefault("qa", {}).setdefault("manuscript_readiness", {})["publication_export_audit_passed"] = audit.get("status") == "pass"
 
 def generate_global_insights_snapshot(
     taxa: Iterable[dict[str, Any] | TaxonInput],
@@ -1055,8 +1390,10 @@ def generate_global_insights_snapshot(
     year_counter: Counter[str] = Counter()
     cumulative_year_counter: Counter[str] = Counter()
     bioproject_counter: Counter[str] = Counter()
+    bioproject_taxon_counter: dict[str, Counter[str]] = defaultdict(Counter)
     confidence_counter: Counter[str] = Counter()
-    correction_counter: Counter[tuple[str, str, str, str, str]] = Counter()
+    field_confidence_counters: dict[str, Counter[str]] = defaultdict(Counter)
+    correction_counter: Counter[tuple[str, str, str, str, str, str]] = Counter()
     taxon_stats: dict[str, TaxonStats] = {}
     completeness_fields = {
         "Country": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
@@ -1153,6 +1490,7 @@ def generate_global_insights_snapshot(
                     if is_usable(std_source):
                         source_counter[std_source] += 1
                         stat.isolation_usable += 1
+                        stat.sources[std_source] += 1
                     update_field_pair_stats(completeness_fields["Sample type"], raw_sample, std_sample)
                     update_field_pair_stats(completeness_fields["Environment"], raw_env, std_env)
                     if collection_year:
@@ -1168,6 +1506,7 @@ def generate_global_insights_snapshot(
                     if is_usable(bioproject):
                         bioproject_counter[bioproject] += 1
                         stat.bioprojects[bioproject] += 1
+                        bioproject_taxon_counter[bioproject][taxon.name] += 1
                     if quality_available(row):
                         stat.quality_available += 1
                     if is_usable(std_host) or is_usable(std_source):
@@ -1185,10 +1524,13 @@ def generate_global_insights_snapshot(
                         ("Isolation source", raw_source, std_source),
                         ("Sample type", raw_sample, std_sample),
                         ("Environment", raw_env, std_env),
+                        ("Collection year", collection_year, collection_year),
                     ):
-                        if is_usable(std_value) and (not is_usable(raw_value) or normalized_key(raw_value) != normalized_key(std_value)):
-                            raw_display, evidence, confidence = correction_evidence(row, label, raw_value, std_value)
-                            correction_counter[(label, raw_display, std_value[:120], evidence, confidence)] += 1
+                        raw_display, evidence, confidence = correction_evidence(row, label, raw_value, std_value)
+                        field_confidence_counters[label][confidence_bucket(raw_value, std_value, confidence, evidence)] += 1
+                        if label != "Collection year" and is_usable(std_value) and (not is_usable(raw_value) or normalized_key(raw_value) != normalized_key(std_value)):
+                            ctype = correction_type(label, raw_value, std_value, evidence)
+                            correction_counter[(label, raw_display, std_value[:120], evidence, confidence, ctype)] += 1
 
                     simulator_writer.writerow(
                         {
@@ -1228,22 +1570,43 @@ def generate_global_insights_snapshot(
                 "standardized_only_records": int(counts["standardized_only"]),
                 "raw_only_records": int(counts["raw_only"]),
                 "raw_not_standardized_records": int(counts["raw_only"]),
+                "both_raw_and_standardized_usable": int(counts["both_usable"]),
+                "standardized_only_rescued": int(counts["standardized_only"]),
+                "raw_only_unresolved": int(counts["raw_only"]),
+                "neither_usable": max(0, unique_total - int(counts["both_usable"]) - int(counts["standardized_only"]) - int(counts["raw_only"])),
                 "changed_mappings": int(counts["changed_mappings"]),
+                "changed_mapping_count": int(counts["changed_mappings"]),
                 "raw_values_remapped": int(counts["changed_mappings"]),
                 "rescued_records": int(counts["standardized_only"]),
                 "gain_percentage_points": delta_points,
+                "standardized_gain_percentage_points": delta_points,
+                "denominator": unique_total,
+                "denominator_note": denominator_note(unique_total),
             }
         )
 
     taxon_quality = [calculate_taxon_quality(stat) for stat in taxon_stats.values()]
+    for quality_row in taxon_quality:
+        tier, tier_definition = readiness_tier(quality_row)
+        quality_row["metadata_readiness_tier"] = tier
+        quality_row["metadata_readiness_definition"] = tier_definition
     taxon_quality.sort(key=lambda row: (-int(row["assemblies"]), -float(row["metadata_quality_score"]), row["taxon"]))
-    qc_ready_taxa = [
-        row
-        for row in taxon_quality
-        if int(row["assemblies"]) >= 100
-        and float(row["country_completeness_percent"]) >= 70
-        and float(row["host_or_source_completeness_percent"]) >= 70
-        and float(row["collection_year_completeness_percent"]) >= 50
+    qc_ready_taxa = [row for row in taxon_quality if row.get("metadata_readiness_tier") in {"strict", "standard"}]
+    readiness_counter = Counter(row.get("metadata_readiness_tier", "not-ready") for row in taxon_quality)
+    readiness_tiers = [
+        {
+            "tier": tier,
+            "taxa": int(readiness_counter.get(tier, 0)),
+            "definition": definition,
+            "denominator": len(taxon_quality),
+            "denominator_note": denominator_note(len(taxon_quality), "taxa with metadata quality scores"),
+        }
+        for tier, definition in (
+            ("strict", ">=1,000 assemblies, >=80% country, >=80% host/source, >=70% collection year"),
+            ("standard", ">=100 assemblies, >=70% country, >=70% host/source, >=50% collection year"),
+            ("exploratory", ">=50 assemblies, >=50% country and host/source"),
+            ("not-ready", "Below exploratory metadata-readiness thresholds"),
+        )
     ]
 
     bias_warnings: list[dict[str, Any]] = []
@@ -1263,6 +1626,8 @@ def generate_global_insights_snapshot(
             "top_5_bioproject_share_percent": percent(top5, stat.rows),
             "top_10_bioproject_share_percent": percent(top10, stat.rows),
             "top_bioproject": top_projects[0][0] if top_projects else "",
+            "denominator": stat.rows,
+            "denominator_note": denominator_note(stat.rows, f"assemblies assigned to {stat.name}"),
         }
         bioproject_dominance.append(dominance)
         if stat.rows >= 100 and dominance["top_5_bioproject_share_percent"] >= 30:
@@ -1274,6 +1639,8 @@ def generate_global_insights_snapshot(
                     "bias_type": "BioProject dominance",
                     "severity": severity_from_share(dominance["top_5_bioproject_share_percent"]),
                     "metric_percent": dominance["top_5_bioproject_share_percent"],
+                    "denominator": stat.rows,
+                    "denominator_note": denominator_note(stat.rows, f"assemblies assigned to {stat.name}"),
                     "warning": (
                         f"{stat.name} has {dominance['top_5_bioproject_share_percent']}% of assemblies in the top five BioProjects. "
                         "Downstream analyses should consider BioProject-aware sampling."
@@ -1294,6 +1661,8 @@ def generate_global_insights_snapshot(
                         "bias_type": f"{label} dominance",
                         "severity": severity_from_share(share),
                         "metric_percent": share,
+                        "denominator": stat.rows,
+                        "denominator_note": denominator_note(stat.rows, f"assemblies assigned to {stat.name}"),
                         "warning": f"{stat.name} is dominated by {label} '{top_label}' ({share}% of assemblies).",
                     }
                 )
@@ -1309,17 +1678,40 @@ def generate_global_insights_snapshot(
             "standardized_value": std,
             "evidence_source": evidence,
             "confidence": confidence,
+            "correction_type": ctype,
             "records_rescued": count,
+            "denominator": unique_total,
+            "denominator_note": denominator_note(unique_total),
         }
-        for (field, raw, std, evidence, confidence), count in correction_counter.most_common(100)
+        for (field, raw, std, evidence, confidence, ctype), count in correction_counter.most_common(100)
     ]
+
+    field_confidence_summary = build_field_confidence_summary(field_confidence_counters, unique_total)
+    validation_accuracy, validation_accuracy_available = load_validation_accuracy()
+    case_studies = build_case_studies(taxon_stats, taxon_quality)
+    top_bioprojects = []
+    for rank, (project, count) in enumerate(bioproject_counter.most_common(100), start=1):
+        dominant_taxon, dominant_taxon_count = bioproject_taxon_counter.get(project, Counter()).most_common(1)[0] if bioproject_taxon_counter.get(project) else ("not recorded", 0)
+        top_bioprojects.append(
+            {
+                "rank": rank,
+                "bioproject": project,
+                "count": int(count),
+                "percent": percent(count, unique_total),
+                "dominant_taxon": dominant_taxon,
+                "dominant_taxon_records": int(dominant_taxon_count),
+                "dominant_taxon_share_within_bioproject_percent": percent(dominant_taxon_count, count),
+                "denominator": unique_total,
+                "denominator_note": denominator_note(unique_total),
+            }
+        )
 
     yearly_growth_rows = []
     cumulative = 0
     for year in sorted(year_counter):
         count = int(year_counter[year])
         cumulative += count
-        yearly_growth_rows.append({"year": year, "assemblies": count, "cumulative_assemblies": cumulative})
+        yearly_growth_rows.append({"year": year, "assemblies": count, "cumulative_assemblies": cumulative, "denominator": unique_total, "denominator_note": denominator_note(unique_total)})
 
     priority_pathogens = load_priority_pathogens()
     taxon_quality_by_name = {normalized_key(row["taxon"]): row for row in taxon_quality}
@@ -1362,6 +1754,7 @@ def generate_global_insights_snapshot(
         {"check": "correction_evidence_available", "status": "pass" if any(row.get("evidence_source") != "not recorded" for row in correction_rows[:30]) else "warning", "detail": "Top correction rows include evidence_source and confidence fields."},
         {"check": "metadata_files_scanned", "status": "pass" if files_scanned > 0 else "fail", "detail": f"{files_scanned} files scanned; {files_skipped} files skipped."},
         {"check": "duplicate_rows_recorded", "status": "pass", "detail": f"{duplicate_rows} duplicate rows skipped by Assembly Accession."},
+        {"check": "manual_validation_accuracy", "status": "pass" if validation_accuracy_available else "warning", "detail": "Manual validation accuracy CSV was summarized." if validation_accuracy_available else "No manual validation_records.csv found; validation accuracy panel reports the expected input format."},
     ]
     for metric_key, label, expected in standardization_validation_checks:
         raw_value = production_metrics.get(metric_key)
@@ -1445,12 +1838,14 @@ def generate_global_insights_snapshot(
                 "app_commit_available": app_commit_available,
                 "qa_gate_passed": qa_status == "pass",
                 "rule_version_available": rule_manifest.get("version") != "not available",
-                "validation_summary_available": bool(production_gate),
+                "validation_summary_available": bool(production_gate) or validation_accuracy_available,
                 "tool_versions_available": tool_versions.get("ncbi_datasets_version") != "not available" and tool_versions.get("taxonkit_version") != "not available",
                 "all_figures_exported": False,
                 "source_data_exported": True,
                 "missing_values_not_biological_categories": True,
                 "snapshot_archived": True,
+            "checksums_available": False,
+            "publication_export_audit_passed": False,
             },
         },
         "taxonomic_landscape": {
@@ -1462,6 +1857,8 @@ def generate_global_insights_snapshot(
             "countries": top_rows(country_counter, unique_total, 50),
             "continents": top_rows(continent_counter, unique_total, 20),
             "subcontinents": top_rows(subcontinent_counter, unique_total, 30),
+            "income_groups": [],
+            "income_group_note": "World Bank income-group representation is not calculated until a versioned country-to-income lookup is configured.",
         },
         "host_source_bias": {
             "hosts": top_rows(host_counter, unique_total, 50),
@@ -1480,6 +1877,11 @@ def generate_global_insights_snapshot(
         "yearly_growth": yearly_growth_rows,
         "metadata_quality": taxon_quality[:100],
         "qc_ready_taxa": qc_ready_taxa[:100],
+        "metadata_readiness_tiers": readiness_tiers,
+        "field_confidence_summary": field_confidence_summary,
+        "validation_accuracy": validation_accuracy,
+        "case_studies": case_studies,
+        "top_bioprojects": top_bioprojects[:100],
         "bioproject_dominance": bioproject_dominance[:100],
         "bias_warnings": bias_warnings[:100],
         "pathogen_insights": pathogen_rows,
@@ -1489,8 +1891,16 @@ def generate_global_insights_snapshot(
             "top_genera": "tables/top_genera.csv",
             "top_species": "tables/top_species.csv",
             "countries": "tables/countries.csv",
+            "continents": "tables/continents.csv",
+            "subcontinents": "tables/subcontinents.csv",
+            "host_categories": "tables/host_categories.csv",
             "metadata_completeness": "tables/metadata_completeness.csv",
             "metadata_quality": "tables/metadata_quality.csv",
+            "metadata_readiness_tiers": "tables/metadata_readiness_tiers.csv",
+            "field_confidence_summary": "tables/field_confidence_summary.csv",
+            "validation_accuracy": "tables/validation_accuracy.csv",
+            "case_studies": "tables/case_studies.csv",
+            "top_bioprojects": "tables/top_bioprojects.csv",
             "bias_warnings": "tables/bias_warnings.csv",
             "top_corrections": "tables/top_corrections.csv",
             "yearly_growth": "tables/yearly_growth.csv",
@@ -1501,35 +1911,63 @@ def generate_global_insights_snapshot(
     }
     summary["manuscript"] = build_narrative(summary)
 
-    write_csv(table_dir / "top_genera.csv", summary["taxonomic_landscape"]["top_genera"], ["rank", "label", "count", "percent"])
-    write_csv(table_dir / "top_species.csv", summary["taxonomic_landscape"]["top_species"], ["rank", "label", "count", "percent"])
-    write_csv(table_dir / "countries.csv", summary["geographic_bias"]["countries"], ["rank", "label", "count", "percent"])
+    top_row_fields = ["rank", "label", "count", "percent", "denominator", "denominator_note"]
+    write_csv(table_dir / "top_genera.csv", summary["taxonomic_landscape"]["top_genera"], top_row_fields)
+    write_csv(table_dir / "top_species.csv", summary["taxonomic_landscape"]["top_species"], top_row_fields)
+    write_csv(table_dir / "countries.csv", summary["geographic_bias"]["countries"], top_row_fields)
+    write_csv(table_dir / "continents.csv", summary["geographic_bias"]["continents"], top_row_fields)
+    write_csv(table_dir / "subcontinents.csv", summary["geographic_bias"]["subcontinents"], top_row_fields)
+    write_csv(table_dir / "host_categories.csv", summary["host_source_bias"]["host_categories"], top_row_fields)
     write_csv(
         table_dir / "metadata_completeness.csv",
         metadata_completeness,
         [
             "field",
-            "raw_present",
-            "raw_present_percent",
-            "standardized_records",
-            "standardized_percent",
-            "both_usable_records",
-            "raw_not_standardized_records",
-            "raw_values_remapped",
+            "raw_usable",
+            "raw_usable_percent",
+            "standardized_usable",
+            "standardized_usable_percent",
+            "both_raw_and_standardized_usable",
+            "standardized_only_rescued",
+            "raw_only_unresolved",
+            "neither_usable",
+            "changed_mapping_count",
+            "standardized_gain_percentage_points",
+            "denominator",
+            "denominator_note",
         ],
     )
     write_csv(table_dir / "metadata_quality.csv", taxon_quality, list(taxon_quality[0].keys()) if taxon_quality else ["taxon", "rank", "assemblies"])
-    write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "assemblies", "bias_type", "severity", "metric_percent", "warning"])
-    write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "primary_raw_value", "raw_value", "standardized_value", "evidence_source", "confidence", "records_rescued"])
-    write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies"])
+    write_csv(table_dir / "metadata_readiness_tiers.csv", readiness_tiers, ["tier", "taxa", "definition", "denominator", "denominator_note"])
+    write_csv(table_dir / "field_confidence_summary.csv", field_confidence_summary, ["field", "confidence_status", "count", "percent", "denominator", "denominator_note"])
+    write_csv(table_dir / "validation_accuracy.csv", validation_accuracy, ["field", "validation_records", "precision_percent", "false_positive_rate_percent", "unresolved_rate_percent", "common_error_types", "validation_source", "status"])
+    write_csv(table_dir / "case_studies.csv", case_studies, sorted({key for row in case_studies for key in row.keys()}) if case_studies else ["taxon", "status", "assemblies"])
+    write_csv(table_dir / "top_bioprojects.csv", top_bioprojects, ["rank", "bioproject", "count", "percent", "dominant_taxon", "dominant_taxon_records", "dominant_taxon_share_within_bioproject_percent", "denominator", "denominator_note"])
+    write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "assemblies", "bias_type", "severity", "metric_percent", "denominator", "denominator_note", "warning"])
+    write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "primary_raw_value", "raw_value", "standardized_value", "evidence_source", "confidence", "correction_type", "records_rescued", "denominator", "denominator_note"])
+    write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies", "denominator", "denominator_note"])
     write_csv(table_dir / "qc_ready_taxa.csv", qc_ready_taxa, list(qc_ready_taxa[0].keys()) if qc_ready_taxa else ["taxon", "rank", "assemblies"])
-    write_csv(table_dir / "bioproject_dominance.csv", bioproject_dominance, ["taxon", "rank", "assemblies", "top_1_bioproject_share_percent", "top_5_bioproject_share_percent", "top_10_bioproject_share_percent", "top_bioproject"])
+    write_csv(table_dir / "bioproject_dominance.csv", bioproject_dominance, ["taxon", "rank", "assemblies", "top_1_bioproject_share_percent", "top_5_bioproject_share_percent", "top_10_bioproject_share_percent", "top_bioproject", "denominator", "denominator_note"])
     write_csv(table_dir / "pathogen_insights.csv", pathogen_rows, sorted({key for row in pathogen_rows for key in row.keys()}) if pathogen_rows else ["taxon_name", "rank", "group", "notes"])
 
     generate_publication_exports(summary, tmp_dir, table_dir)
-
+    summary.setdefault("downloads", {}).update(
+        {
+            "archive_manifest": "manifest.json",
+            "provenance_manifest": "provenance/manifest.json",
+            "software_versions": "provenance/software_versions.json",
+            "rule_fingerprint": "provenance/rule_fingerprint.json",
+            "qa_report": "provenance/qa_report.json",
+            "publication_export_audit": "provenance/publication_export_audit.json",
+            "checksums_sha256": "checksums.sha256",
+        }
+    )
+    summary.setdefault("qa", {}).setdefault("manuscript_readiness", {})["checksums_available"] = True
+    completed_at = utc_now()
+    status_path.write_text(json.dumps({"snapshot_id": snapshot_id, "status": "completed", "completed_at": completed_at}, indent=2), encoding="utf-8")
+    write_snapshot_manifest(summary, tmp_dir)
     (tmp_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-    status_path.write_text(json.dumps({"snapshot_id": snapshot_id, "status": "completed", "completed_at": utc_now()}, indent=2), encoding="utf-8")
+    write_checksums(tmp_dir)
     if snapshot_dir.exists():
         shutil.rmtree(snapshot_dir)
     tmp_dir.rename(snapshot_dir)
@@ -1656,6 +2094,8 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
                 "source_data_exported": False,
                 "missing_values_not_biological_categories": True,
                 "snapshot_archived": True,
+            "checksums_available": False,
+            "publication_export_audit_passed": False,
             },
         },
     }

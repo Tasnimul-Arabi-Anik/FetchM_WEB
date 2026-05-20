@@ -22254,6 +22254,8 @@ def download_global_insights_file(relative_path: str) -> Any:
         allowed_files.update(str(value) for value in files.values() if value)
         if figure.get("source_data"):
             allowed_files.add(str(figure["source_data"]))
+        if figure.get("legend_file"):
+            allowed_files.add(str(figure["legend_file"]))
     normalized = Path(relative_path)
     if normalized.is_absolute() or ".." in normalized.parts:
         abort(404)

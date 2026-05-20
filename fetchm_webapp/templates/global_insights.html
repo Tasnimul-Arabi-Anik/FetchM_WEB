@@ -815,6 +815,8 @@
           <div class="metric-card"><strong>{{ "yes" if checklist.get("validation_summary_available") else "no" }}</strong><span>Validation summary available</span></div>
           <div class="metric-card"><strong>{{ "yes" if checklist.get("missing_values_not_biological_categories") else "unknown" }}</strong><span>Missing values excluded from biological categories</span></div>
           <div class="metric-card"><strong>{{ "yes" if checklist.get("source_data_exported") else "unknown" }}</strong><span>Source tables exported</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("checksums_available") else "no" }}</strong><span>Checksums available</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("publication_export_audit_passed") else "no" }}</strong><span>Figure audit passed</span></div>
         </div>
         <div class="table-scroll top-gap">
           <table>
@@ -875,12 +877,16 @@
           {% if downloads.get("global_insights_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_figures_zip')) }}">All figures ZIP</a>{% endif %}
           {% if downloads.get("source_data_for_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('source_data_for_figures_zip')) }}">Source data for figures ZIP</a>{% endif %}
           {% if downloads.get("global_insights_tables_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_tables_zip')) }}">All tables ZIP</a>{% endif %}
+          {% if downloads.get("global_insights_case_studies_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_case_studies_zip')) }}">Case-study reports ZIP</a>{% endif %}
+          {% if downloads.get("archive_manifest") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('archive_manifest')) }}">Archive manifest</a>{% endif %}
+          {% if downloads.get("checksums_sha256") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('checksums_sha256')) }}">SHA256 checksums</a>{% endif %}
+          {% if downloads.get("publication_export_audit") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('publication_export_audit')) }}">Publication export audit</a>{% endif %}
         </div>
         {% if summary.figure_exports %}
           <h3>Figure Index</h3>
           <div class="table-scroll">
             <table>
-              <thead><tr><th>Figure</th><th>Title</th><th>Denominator</th><th>Source data</th><th>Downloads</th></tr></thead>
+              <thead><tr><th>Figure</th><th>Title</th><th>Denominator</th><th>Source data</th><th>Legend</th><th>Downloads</th></tr></thead>
               <tbody>
                 {% for figure in summary.figure_exports %}
                   <tr>
@@ -888,6 +894,7 @@
                     <td>{{ figure.title }}</td>
                     <td>{{ figure.denominator }}</td>
                     <td><a href="{{ url_for('download_global_insights_file', relative_path=figure.source_data) }}">CSV</a></td>
+                    <td>{% if figure.legend_file %}<a href="{{ url_for('download_global_insights_file', relative_path=figure.legend_file) }}">TXT</a>{% else %}—{% endif %}</td>
                     <td>
                       <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.svg) }}">SVG</a> ·
                       <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.pdf) }}">PDF</a> ·
@@ -901,6 +908,65 @@
         {% else %}
           <p class="job-meta top-gap">Publication exports are not embedded in this snapshot yet. Regenerate Global Insights after deployment.</p>
         {% endif %}
+      </div>
+    </details>
+
+    <details class="panel insight-details">
+      <summary><span>Manuscript Support Tables</span><span class="tag">readiness, validation, case studies</span></summary>
+      <div class="insight-details-body">
+        <p class="insight-note">These tables support reviewer-facing claims: denominator logic, field confidence, metadata-readiness tiers, BioProject dominance, and optional manual validation accuracy.</p>
+        <h3>Readiness tiers</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Tier</th><th>Taxa</th><th>Definition</th></tr></thead>
+            <tbody>
+              {% for row in summary.metadata_readiness_tiers or [] %}
+                <tr><td>{{ row.tier }}</td><td>{{ row.taxa }}</td><td>{{ row.definition }}</td></tr>
+              {% else %}
+                <tr><td colspan="3">Regenerate Global Insights to populate readiness tiers.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <h3>Top BioProjects</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>BioProject</th><th>Assemblies</th><th>Share</th><th>Dominant taxon</th></tr></thead>
+            <tbody>
+              {% for row in (summary.top_bioprojects or [])[:12] %}
+                <tr><td>{{ row.bioproject }}</td><td>{{ row.count }}</td><td>{{ row.percent }}%</td><td>{{ row.dominant_taxon }}</td></tr>
+              {% else %}
+                <tr><td colspan="4">No BioProject summary is embedded in this snapshot yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <h3>Manual validation accuracy</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Field</th><th>Records</th><th>Precision</th><th>False-positive rate</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for row in summary.validation_accuracy or [] %}
+                <tr><td>{{ row.field }}</td><td>{{ row.validation_records }}</td><td>{{ row.precision_percent }}</td><td>{{ row.false_positive_rate_percent }}</td><td>{{ row.status }}</td></tr>
+              {% else %}
+                <tr><td colspan="5">No validation accuracy table is embedded in this snapshot yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <h3>Case studies</h3>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Taxon</th><th>Assemblies</th><th>Quality</th><th>Readiness</th><th>Top BioProject share</th></tr></thead>
+            <tbody>
+              {% for row in summary.case_studies or [] %}
+                <tr><td>{{ row.taxon }}</td><td>{{ row.assemblies }}</td><td>{{ row.metadata_quality_score }}</td><td>{{ row.metadata_readiness_tier }}</td><td>{{ row.top_bioproject_share_percent }}</td></tr>
+              {% else %}
+                <tr><td colspan="5">No case-study table is embedded in this snapshot yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </details>
 
