@@ -194,6 +194,10 @@ DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE = max(
     1,
     int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE", "10")),
 )
+DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES = max(
+    0,
+    int(os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES", "3")),
+)
 BIOSAMPLE_CACHE_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_CACHE_HOURS", "720")))
 BIOSAMPLE_NEGATIVE_CACHE_HOURS = max(
     1, int(os.environ.get("FETCHM_WEBAPP_BIOSAMPLE_NEGATIVE_CACHE_HOURS", "168"))
@@ -1039,6 +1043,9 @@ def init_db() -> None:
             skipped_count INTEGER NOT NULL DEFAULT 0,
             failed_count INTEGER NOT NULL DEFAULT 0,
             failed_candidates_json TEXT NOT NULL DEFAULT '[]',
+            retry_count INTEGER NOT NULL DEFAULT 0,
+            last_retry_at TEXT,
+            retry_reason TEXT,
             error TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -6084,6 +6091,12 @@ def ensure_species_columns(db: sqlite3.Connection) -> None:
     columns = {row["name"] for row in db.execute("PRAGMA table_info(derived_species_metadata_tasks)").fetchall()} if table_exists else set()
     if table_exists and "failed_candidates_json" not in columns:
         db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN failed_candidates_json TEXT NOT NULL DEFAULT '[]'")
+    if table_exists and "retry_count" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0")
+    if table_exists and "last_retry_at" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN last_retry_at TEXT")
+    if table_exists and "retry_reason" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN retry_reason TEXT")
     db.commit()
 
 
@@ -6186,6 +6199,9 @@ def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
             skipped_count INTEGER NOT NULL DEFAULT 0,
             failed_count INTEGER NOT NULL DEFAULT 0,
             failed_candidates_json TEXT NOT NULL DEFAULT '[]',
+            retry_count INTEGER NOT NULL DEFAULT 0,
+            last_retry_at TEXT,
+            retry_reason TEXT,
             error TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
@@ -6199,6 +6215,12 @@ def ensure_derived_species_metadata_task_table(db: sqlite3.Connection) -> None:
     columns = {row["name"] for row in db.execute("PRAGMA table_info(derived_species_metadata_tasks)").fetchall()}
     if "failed_candidates_json" not in columns:
         db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN failed_candidates_json TEXT NOT NULL DEFAULT '[]'")
+    if "retry_count" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN retry_count INTEGER NOT NULL DEFAULT 0")
+    if "last_retry_at" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN last_retry_at TEXT")
+    if "retry_reason" not in columns:
+        db.execute("ALTER TABLE derived_species_metadata_tasks ADD COLUMN retry_reason TEXT")
     db.commit()
 
 
@@ -7347,13 +7369,32 @@ def build_dataset_pipeline_step_cards(
                         )
                     if len(failed_examples) >= 3:
                         break
+            retry_total = int(progress.get("derive_task_retries") or 0)
+            retry_pending = int(progress.get("derive_task_retry_pending") or 0)
+            retry_running = int(progress.get("derive_task_retry_running") or 0)
+            throughput_line = "Throughput: waiting for enough completed source genera to estimate"
+            if row and task_done > 0:
+                started_at = parse_optional_utc(row.get("started_at"))
+                if started_at is not None:
+                    elapsed_hours = max((utc_now_dt() - started_at).total_seconds() / 3600.0, 0.001)
+                    tasks_per_hour = task_done / elapsed_hours
+                    remaining_tasks = max(0, task_total - task_done)
+                    eta = format_elapsed_brief((remaining_tasks / tasks_per_hour) * 3600.0) if tasks_per_hour > 0 else "unknown"
+                    throughput_line = f"Throughput: {tasks_per_hour:.1f} source genera/hour; ETA {eta}"
             detail_lines = [
                 f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
                 f"{task_done}/{task_total} source genera complete; {task_running} running, {task_pending} queued",
+                throughput_line,
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
                 f"{failed} species candidates unresolved across {failed_source_genera} source genera",
                 "Processing mode: parallel source-genus claims",
             ]
+            if retry_total:
+                detail_lines.append(
+                    f"Transient retries: {retry_total} total; {retry_pending} pending retry, {retry_running} running retry; max {int(progress.get('max_auto_retries') or DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES)} per source genus"
+                )
+            for retry_example in list(progress.get("derive_task_retry_examples") or [])[:3]:
+                detail_lines.append(f"Retry example: {retry_example}")
             if row and status == "completed" and run is not None:
                     summary = verification_summary or cached_dataset_version_verification_summary(
                         db,
@@ -7421,14 +7462,20 @@ def build_dataset_pipeline_step_cards(
                 f"{int(progress.get('staged_unique_assemblies') or 0):,} unique staged genome accessions verified",
                 f"{int(progress.get('staged_genus_metadata_ready') or 0):,} genus and {int(progress.get('staged_species_metadata_ready') or 0):,} species metadata files ready",
                 f"Current live baseline: {int(progress.get('live_unique_assemblies') or 0):,} unique assemblies; {int(progress.get('live_species_metadata_ready') or 0):,} species metadata files",
-                "Replacement remains blocked until verification completes.",
+                f"Release gate: {str(progress.get('release_verification_status') or verification_summary.get('release_verification_status') or 'not run')}; safe to replace: {'yes' if (progress.get('safe_to_replace') or verification_summary.get('safe_to_replace')) else 'no'}",
+                "Replacement remains blocked until verification and release gate complete.",
             ]
         elif step_key == "replace":
             percent = 100 if active_version != "legacy-live" else 0
+            release_status = verification_summary.get("release_verification_status") or "not run"
+            safe_to_replace = bool(verification_summary.get("safe_to_replace"))
             detail_lines = [
                 f"Active dataset: {active_version}",
-                "Replacement is blocked unless upstream steps in the same run completed successfully.",
+                f"Release gate: {release_status}; safe to replace: {'yes' if safe_to_replace else 'no'}",
+                "Replacement is blocked unless upstream steps and release verification completed successfully.",
             ]
+            for blocker in list(verification_summary.get("release_verification_blockers") or [])[:3]:
+                detail_lines.append(f"Release blocker: {blocker}")
         elif step_key == "global_insights":
             percent = 100 if latest_insight and str(latest_insight.get("status")) == "completed" else 0
             if latest_insight:
@@ -8341,6 +8388,141 @@ def staged_non_regression_blockers(staged: Mapping[str, Any], live: Mapping[str,
     return blockers
 
 
+
+
+def is_retryable_derived_species_error(exc: BaseException | str) -> bool:
+    text = str(exc).lower()
+    retry_tokens = (
+        "database is locked",
+        "database table is locked",
+        "unable to open database file",
+        "disk i/o error",
+        "stale running claim",
+    )
+    return any(token in text for token in retry_tokens)
+
+
+def dataset_release_dir(version_id: str) -> Path:
+    return dataset_version_root(version_id) / "release"
+
+
+def build_dataset_release_verification(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+    run_id: str | None = None,
+) -> tuple[dict[str, Any], list[str]]:
+    staged = dataset_version_metadata_summary(db, dataset_version_id)
+    live = current_live_dataset_summary(db)
+    species_search = staged_species_search_summary(db, dataset_version_id)
+    derive = derived_species_metadata_task_progress(db, dataset_version_id)
+    reconcile = species_reconciliation_task_progress(db, dataset_version_id)
+    blockers = staged_non_regression_blockers(staged, live)
+
+    if int(staged.get("staged_genus_metadata_ready") or 0) <= 0:
+        blockers.append("No staged genus metadata files are ready.")
+    if int(staged.get("staged_species_metadata_ready") or 0) <= 0:
+        blockers.append("No staged species metadata files are ready.")
+    if int(staged.get("staged_unique_assemblies") or 0) <= 0:
+        blockers.append("No staged unique genome assemblies were verified.")
+    if int(derive.get("derive_task_failed") or 0):
+        blockers.append(f"{int(derive.get('derive_task_failed') or 0)} species derivation source-genera exhausted retry limits.")
+    if int(derive.get("derive_task_pending") or 0) or int(derive.get("derive_task_running") or 0):
+        blockers.append("Species derivation tasks are still active or queued.")
+    if int(reconcile.get("reconcile_task_failed") or 0):
+        blockers.append(f"{int(reconcile.get('reconcile_task_failed') or 0)} species reconciliation tasks failed.")
+    if int(reconcile.get("reconcile_task_pending") or 0) or int(reconcile.get("reconcile_task_running") or 0):
+        blockers.append("Species reconciliation tasks are still active or queued.")
+
+    step_statuses: dict[str, str] = {}
+    if run_id:
+        step_rows = db.execute(
+            "SELECT step_key, status FROM dataset_update_pipeline_steps WHERE run_id = ? ORDER BY step_order",
+            (run_id,),
+        ).fetchall()
+        step_statuses = {str(row["step_key"]): str(row["status"]) for row in step_rows}
+        for required_step in ("discovery", "catalog", "metadata", "standardization", "derive_species", "reconcile_species", "verify"):
+            status = step_statuses.get(required_step)
+            if status and status != "completed" and required_step != "verify":
+                blockers.append(f"{dataset_pipeline_step_label(required_step)} is {status}; replacement requires completed.")
+
+    unique_blockers = list(dict.fromkeys(blockers))
+    generated_at = utc_now()
+    payload: dict[str, Any] = {
+        "schema_version": 1,
+        "dataset_version_id": dataset_version_id,
+        "run_id": run_id,
+        "generated_at": generated_at,
+        "status": "pass" if not unique_blockers else "fail",
+        "safe_to_replace": not unique_blockers,
+        "blockers": unique_blockers,
+        "live_baseline": live,
+        "staged_candidate": staged,
+        "staged_species_search": species_search,
+        "species_derivation": derive,
+        "species_reconciliation": reconcile,
+        "step_statuses": step_statuses,
+        "coverage_drop_policy": {
+            "max_drop_fraction": max(0.0, float(os.environ.get("FETCHM_WEBAPP_MAX_STAGED_COVERAGE_DROP_FRACTION", "0.01") or "0.01")),
+        },
+    }
+    return payload, unique_blockers
+
+
+def write_dataset_release_verification(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+    run_id: str | None = None,
+) -> tuple[dict[str, Any], list[str]]:
+    payload, blockers = build_dataset_release_verification(db, dataset_version_id, run_id)
+    release_dir = dataset_release_dir(dataset_version_id)
+    release_dir.mkdir(parents=True, exist_ok=True)
+    json_path = release_dir / "dataset_release_verification.json"
+    md_path = release_dir / "dataset_release_summary.md"
+    json_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    staged = payload.get("staged_candidate") or {}
+    live = payload.get("live_baseline") or {}
+    md_lines = [
+        "# FetchM WEB Dataset Release Verification",
+        "",
+        f"Generated at: {payload.get('generated_at')}",
+        f"Dataset version: `{dataset_version_id}`",
+        f"Pipeline run: `{run_id or 'n/a'}`",
+        f"Status: **{payload.get('status')}**",
+        f"Safe to replace: **{'yes' if payload.get('safe_to_replace') else 'no'}**",
+        "",
+        "## Coverage",
+        "",
+        f"- Live unique assemblies: {int(live.get('live_unique_assemblies') or 0):,}",
+        f"- Staged unique assemblies: {int(staged.get('staged_unique_assemblies') or 0):,}",
+        f"- Live genus/species metadata files: {int(live.get('live_genus_metadata_ready') or 0):,} / {int(live.get('live_species_metadata_ready') or 0):,}",
+        f"- Staged genus/species metadata files: {int(staged.get('staged_genus_metadata_ready') or 0):,} / {int(staged.get('staged_species_metadata_ready') or 0):,}",
+        "",
+        "## Blockers",
+        "",
+    ]
+    if blockers:
+        md_lines.extend(f"- {item}" for item in blockers)
+    else:
+        md_lines.append("- None")
+    md_path.write_text("\n".join(md_lines) + "\n", encoding="utf-8")
+    merge_dataset_version_summary(
+        db,
+        dataset_version_id,
+        {
+            "release_verification": {
+                "status": payload.get("status"),
+                "safe_to_replace": bool(payload.get("safe_to_replace")),
+                "generated_at": payload.get("generated_at"),
+                "blockers": blockers,
+                "json_path": str(json_path),
+                "summary_path": str(md_path),
+                "staged_unique_assemblies": int(staged.get("staged_unique_assemblies") or 0),
+                "live_unique_assemblies": int(live.get("live_unique_assemblies") or 0),
+            }
+        },
+    )
+    return payload, blockers
+
 def parse_dataset_version_summary(row: Mapping[str, Any] | None) -> dict[str, Any]:
     if row is None:
         return {}
@@ -8385,8 +8567,16 @@ def cached_dataset_version_verification_summary(
     ).fetchone()
     version_summary = parse_dataset_version_summary(row)
     cached = version_summary.get("verification_summary")
+    release = version_summary.get("release_verification")
     if isinstance(cached, dict):
-        return cached
+        result = dict(cached)
+        if isinstance(release, dict):
+            result["release_verification_status"] = release.get("status")
+            result["safe_to_replace"] = bool(release.get("safe_to_replace"))
+            result["release_verification_blockers"] = release.get("blockers") if isinstance(release.get("blockers"), list) else []
+            result["release_verification_json_path"] = release.get("json_path")
+            result["release_verification_summary_path"] = release.get("summary_path")
+        return result
     if run_id:
         step_row = db.execute(
             """
@@ -8425,7 +8615,21 @@ def cached_dataset_version_verification_summary(
                 if key in progress
             }
             if summary:
+                if isinstance(release, dict):
+                    summary["release_verification_status"] = release.get("status")
+                    summary["safe_to_replace"] = bool(release.get("safe_to_replace"))
+                    summary["release_verification_blockers"] = release.get("blockers") if isinstance(release.get("blockers"), list) else []
+                    summary["release_verification_json_path"] = release.get("json_path")
+                    summary["release_verification_summary_path"] = release.get("summary_path")
                 return summary
+    if isinstance(release, dict):
+        return {
+            "release_verification_status": release.get("status"),
+            "safe_to_replace": bool(release.get("safe_to_replace")),
+            "release_verification_blockers": release.get("blockers") if isinstance(release.get("blockers"), list) else [],
+            "release_verification_json_path": release.get("json_path"),
+            "release_verification_summary_path": release.get("summary_path"),
+        }
     return {}
 
 
@@ -8589,7 +8793,11 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
                COALESCE(SUM(updated_count), 0) AS updated,
                COALESCE(SUM(skipped_count), 0) AS skipped,
                COALESCE(SUM(failed_count), 0) AS failed_candidates,
-               COALESCE(SUM(CASE WHEN failed_count > 0 THEN 1 ELSE 0 END), 0) AS failed_source_genera
+               COALESCE(SUM(CASE WHEN failed_count > 0 THEN 1 ELSE 0 END), 0) AS failed_source_genera,
+               COALESCE(SUM(retry_count), 0) AS retry_total,
+               COALESCE(SUM(CASE WHEN status = 'pending' AND retry_count > 0 THEN 1 ELSE 0 END), 0) AS retry_pending,
+               COALESCE(SUM(CASE WHEN status = 'running' AND retry_count > 0 THEN 1 ELSE 0 END), 0) AS retry_running,
+               MAX(last_retry_at) AS last_retry_at
         FROM derived_species_metadata_tasks
         WHERE dataset_version_id = ?
         """,
@@ -8610,6 +8818,11 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
             "failed": 0,
             "failed_source_genera": 0,
             "failed_candidate_examples": [],
+            "derive_task_retries": 0,
+            "derive_task_retry_pending": 0,
+            "derive_task_retry_running": 0,
+            "derive_task_last_retry_at": None,
+            "derive_task_retry_examples": [],
         }
     processed = int(row["processed"] or 0)
     skipped = int(row["skipped"] or 0)
@@ -8643,6 +8856,20 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
                 failed_examples.append(f"{failed_row['source_taxon_name']}: {int(failed_row['failed_count'] or 0)} unresolved candidates")
             if len(failed_examples) >= 5:
                 break
+    retry_examples = [
+        f"{retry_row['source_taxon_name']}: retry {int(retry_row['retry_count'] or 0)} ({retry_row['retry_reason'] or retry_row['error'] or 'transient error'})"
+        for retry_row in db.execute(
+            """
+            SELECT source_taxon_name, retry_count, retry_reason, error
+            FROM derived_species_metadata_tasks
+            WHERE dataset_version_id = ?
+              AND retry_count > 0
+            ORDER BY retry_count DESC, updated_at DESC, source_taxon_name COLLATE NOCASE ASC
+            LIMIT 5
+            """,
+            (dataset_version_id,),
+        ).fetchall()
+    ]
     return {
         "derive_task_total": int(row["total"] or 0),
         "derive_task_pending": int(row["pending"] or 0),
@@ -8657,6 +8884,11 @@ def derived_species_metadata_task_progress(db: sqlite3.Connection, dataset_versi
         "failed": failed_candidates,
         "failed_source_genera": int(row["failed_source_genera"] or 0),
         "failed_candidate_examples": failed_examples,
+        "derive_task_retries": int(row["retry_total"] or 0),
+        "derive_task_retry_pending": int(row["retry_pending"] or 0),
+        "derive_task_retry_running": int(row["retry_running"] or 0),
+        "derive_task_last_retry_at": row["last_retry_at"],
+        "derive_task_retry_examples": retry_examples,
     }
 
 
@@ -9116,6 +9348,7 @@ def refresh_derive_species_pipeline_progress(db: sqlite3.Connection, dataset_ver
     progress.update(derived_species_metadata_task_progress(db, dataset_version_id))
     progress["batch_size"] = DERIVED_SPECIES_METADATA_BATCH_SIZE
     progress["genus_batch_size"] = DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE
+    progress["max_auto_retries"] = DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES
     progress["note"] = (
         "Species metadata is derived in parallel by source genus from standardized genus metadata; "
         "no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed."
@@ -9144,14 +9377,34 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
         db.execute(
             """
             UPDATE derived_species_metadata_tasks
-            SET status = 'pending',
+            SET status = 'failed',
                 claimed_by = NULL,
                 claimed_at = NULL,
+                error = COALESCE(error, 'Stale running claim exceeded retry limit.'),
+                retry_reason = COALESCE(retry_reason, 'stale running claim exceeded retry limit'),
                 updated_at = ?
             WHERE status = 'running'
               AND claimed_at < ?
+              AND retry_count >= ?
             """,
-            (now, stale_cutoff),
+            (now, stale_cutoff, DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES),
+        )
+        db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = 'pending',
+                claimed_by = NULL,
+                claimed_at = NULL,
+                retry_count = retry_count + 1,
+                last_retry_at = ?,
+                retry_reason = 'stale running claim reset',
+                error = 'Stale running claim was reset for automatic retry.',
+                updated_at = ?
+            WHERE status = 'running'
+              AND claimed_at < ?
+              AND retry_count < ?
+            """,
+            (now, now, stale_cutoff, DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES),
         )
         row = db.execute(
             """
@@ -9520,13 +9773,29 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
     if failures:
         blockers.append("Resolve failed update tasks before replacement: " + ", ".join(failures))
     version = db.execute(
-        "SELECT status FROM dataset_versions WHERE version_id = ?",
+        "SELECT status, summary_json FROM dataset_versions WHERE version_id = ?",
         (step["dataset_version_id"],),
     ).fetchone()
     if version is None:
         blockers.append("Staged dataset version record is missing.")
     elif str(version["status"]) != "verified":
         blockers.append(f"Staged dataset version is {version['status']}; replacement requires verified.")
+    else:
+        version_summary = parse_dataset_version_summary(version)
+        release = version_summary.get("release_verification")
+        if not isinstance(release, dict):
+            payload, release_blockers = write_dataset_release_verification(
+                db,
+                str(step["dataset_version_id"]),
+                str(step["run_id"]),
+            )
+            release = {"safe_to_replace": bool(payload.get("safe_to_replace")), "blockers": release_blockers}
+        if not bool(release.get("safe_to_replace")):
+            release_blockers = release.get("blockers") if isinstance(release.get("blockers"), list) else []
+            if release_blockers:
+                blockers.append("Release verification gate failed: " + "; ".join(str(item) for item in release_blockers[:5]))
+            else:
+                blockers.append("Release verification gate has not passed.")
     return blockers
 
 
@@ -9883,6 +10152,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
                     progress.update(derived_species_metadata_task_progress(db, str(step["dataset_version_id"])))
                     progress["note"] = "Species metadata is derived in parallel by source genus from standardized genus metadata; no BioSample re-fetch, second standardization pass, or species ncbi_dataset_updated.tsv is performed."
+                    progress["max_auto_retries"] = DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES
                     task_total = int(progress.get("derive_task_total") or 0)
                     task_pending = int(progress.get("derive_task_pending") or 0)
                     task_running = int(progress.get("derive_task_running") or 0)
@@ -10032,6 +10302,22 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if failures:
                     failed = True
                     blockers.append("Failed update tasks require review: " + ", ".join(failures))
+                release_payload, release_blockers = write_dataset_release_verification(
+                    db,
+                    str(step["dataset_version_id"]),
+                    str(step["run_id"]),
+                )
+                for release_blocker in release_blockers:
+                    if release_blocker not in blockers:
+                        blockers.append(release_blocker)
+                if release_blockers:
+                    failed = True
+                progress["release_verification_status"] = release_payload.get("status")
+                progress["safe_to_replace"] = bool(release_payload.get("safe_to_replace"))
+                progress["release_verification_path"] = (
+                    (release_payload.get("dataset_version_id") and str(dataset_release_dir(str(step["dataset_version_id"])) / "dataset_release_verification.json"))
+                    or ""
+                )
                 progress["verified_at"] = utc_now()
             if step_key in {"discovery", "catalog", "metadata", "standardization", "derive_species", "reconcile_species", "verify"}:
                 if failed:
@@ -10266,6 +10552,14 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", (error, version_id))
                 db.commit()
                 return
+            release_payload, release_blockers = write_dataset_release_verification(db, version_id, run_id)
+            if release_blockers:
+                error = "; ".join(release_blockers)
+                set_pipeline_step_status(db, int(step["id"]), "failed", progress=release_payload, blockers=release_blockers, error=error)
+                db.execute("UPDATE dataset_update_pipeline_runs SET status = 'blocked', error = ? WHERE run_id = ?", (error, run_id))
+                db.execute("UPDATE dataset_versions SET status = 'failed', error = ? WHERE version_id = ?", (error, version_id))
+                db.commit()
+                return
             previous = get_active_dataset_version_id(db)
             now = utc_now()
             snapshot_count = snapshot_live_species_state(db, previous)
@@ -10280,7 +10574,12 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "metadata_search_snapshot_entries": metadata_search_snapshot_count,
                 "promoted_metadata_search_entries": promoted_metadata_search_entries,
                 "promoted_at": now,
-                "note": "Live species pointers were replaced after upstream steps completed and verification passed.",
+                "release_verification": {
+                    "status": release_payload.get("status"),
+                    "safe_to_replace": release_payload.get("safe_to_replace"),
+                    "generated_at": release_payload.get("generated_at"),
+                },
+                "note": "Live species pointers were replaced after upstream steps completed and release verification passed.",
             }
             db.execute(
                 "UPDATE dataset_versions SET status = 'archived', archived_at = ? WHERE version_id = ? AND status = 'live'",
@@ -11877,6 +12176,46 @@ def iter_admin_audit_bundle_files() -> list[tuple[Path, str]]:
         unique.append((path, arcname))
     return unique
 
+
+
+
+def iter_dataset_release_bundle_files(db: sqlite3.Connection) -> list[tuple[Path, str]]:
+    version_ids: list[str] = []
+    for candidate in [
+        get_active_dataset_version_id(db),
+        str(get_setting("previous_dataset_version_id", "", db) or ""),
+    ]:
+        if candidate and candidate not in version_ids:
+            version_ids.append(candidate)
+    for row in db.execute(
+        """
+        SELECT version_id
+        FROM dataset_versions
+        WHERE status IN ('staging', 'verified', 'failed', 'live')
+        ORDER BY created_at DESC, id DESC
+        LIMIT 3
+        """
+    ).fetchall():
+        version_id = str(row["version_id"] or "")
+        if version_id and version_id not in version_ids:
+            version_ids.append(version_id)
+
+    files: list[tuple[Path, str]] = []
+    seen: set[str] = set()
+    for version_id in version_ids:
+        release_dir = dataset_release_dir(version_id)
+        if not release_dir.exists():
+            continue
+        for filename in ("dataset_release_verification.json", "dataset_release_summary.md"):
+            path = release_dir / filename
+            if not path.exists() or not path.is_file():
+                continue
+            arcname = f"dataset_releases/{version_id}/{filename}"
+            if arcname in seen:
+                continue
+            seen.add(arcname)
+            files.append((path, arcname))
+    return files
 
 def format_eta_hours(hours: float | None) -> str:
     if hours is None or hours < 0:
@@ -18379,6 +18718,9 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
     processed = 0
     candidate_count = 0
     failed_candidates: list[dict[str, str]] = []
+    retry_count = int(task["retry_count"] or 0) if "retry_count" in task.keys() else 0
+    retry_reason = str(task["retry_reason"] or "") if "retry_reason" in task.keys() else ""
+    last_retry_at = task["last_retry_at"] if "last_retry_at" in task.keys() else None
 
     try:
         with get_sqlite_connection() as db:
@@ -18518,6 +18860,8 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                     created += 1
                 processed += 1
             except Exception as exc:
+                if is_retryable_derived_species_error(exc):
+                    raise
                 failed += 1
                 failed_candidates.append(
                     {
@@ -18531,9 +18875,18 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
         error = None
     except Exception as exc:
         error_text = str(exc)
-        is_transient_lock = isinstance(exc, sqlite3.OperationalError) and "database is locked" in error_text.lower()
-        status = "pending" if is_transient_lock else "failed"
-        error = str(exc)
+        retryable = is_retryable_derived_species_error(exc)
+        if retryable and retry_count < DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES:
+            retry_count += 1
+            status = "pending"
+            retry_reason = error_text[:500] or "transient derivation error"
+            last_retry_at = utc_now()
+            error = f"Retryable transient derivation error; auto-retry {retry_count}/{DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES}: {retry_reason}"
+        else:
+            status = "failed"
+            error = str(exc)
+            if retryable:
+                retry_reason = f"retry limit reached: {error_text[:500]}"
         logging.exception("Failed to process derived species metadata task for source taxon %s.", source_taxon_id)
 
     now = utc_now()
@@ -18550,6 +18903,9 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 skipped_count = ?,
                 failed_count = ?,
                 failed_candidates_json = ?,
+                retry_count = ?,
+                last_retry_at = ?,
+                retry_reason = ?,
                 error = ?,
                 updated_at = ?,
                 claimed_by = NULL,
@@ -18567,6 +18923,9 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 skipped,
                 failed,
                 json.dumps(failed_candidates[:100], sort_keys=True),
+                retry_count,
+                last_retry_at,
+                retry_reason or None,
                 error,
                 now,
                 int(task["id"]),
@@ -22972,6 +23331,10 @@ def admin_audit_bundle() -> Any:
         for path, arcname in iter_admin_audit_bundle_files():
             archive.write(path, arcname)
             included_audit_files.append(arcname)
+        release_files: list[str] = []
+        for path, arcname in iter_dataset_release_bundle_files(get_db()):
+            archive.write(path, arcname)
+            release_files.append(arcname)
 
         summary = [
             "# FetchM Web Admin Audit Bundle",
@@ -22984,6 +23347,7 @@ def admin_audit_bundle() -> Any:
             f"Completed jobs: {analytics['completed']}",
             f"Failed jobs: {analytics['failed']}",
             f"Standardization audit files included: {len(included_audit_files)}",
+            f"Dataset release files included: {len(release_files)}",
             "",
             "## Included standardization artifacts",
             "",
@@ -22992,6 +23356,11 @@ def admin_audit_bundle() -> Any:
             summary.extend(f"- `{arcname}`" for arcname in included_audit_files)
         else:
             summary.append("- No standardization audit artifacts were found.")
+        summary.extend(["", "## Included dataset release artifacts", ""])
+        if release_files:
+            summary.extend(f"- `{arcname}`" for arcname in release_files)
+        else:
+            summary.append("- No dataset release verification artifacts were found.")
         archive.writestr("README.md", "\n".join(summary) + "\n")
     bundle.seek(0)
     record_audit_event("admin.audit_bundle_download")
@@ -23351,6 +23720,9 @@ def admin_retry_derived_species_failures() -> Any:
                 skipped_count = 0,
                 failed_count = 0,
                 failed_candidates_json = '[]',
+                retry_count = 0,
+                last_retry_at = NULL,
+                retry_reason = NULL,
                 error = NULL,
                 updated_at = ?
             WHERE dataset_version_id = ?
@@ -23448,6 +23820,16 @@ def admin_promote_dataset_pipeline() -> Any:
         if version is None or str(version["status"]) != "verified":
             flash("Only verified staging versions can be promoted.", "error")
             return redirect(url_for("admin_dashboard"))
+        run = db.execute("SELECT run_id FROM dataset_update_pipeline_runs WHERE dataset_version_id = ? ORDER BY id DESC LIMIT 1", (version_id,)).fetchone()
+        release_payload, release_blockers = write_dataset_release_verification(
+            db,
+            version_id,
+            str(run["run_id"]) if run is not None else None,
+        )
+        if release_blockers:
+            db.commit()
+            flash("Promotion blocked by release verification: " + "; ".join(release_blockers[:5]), "error")
+            return redirect(url_for("admin_dashboard"))
         previous = get_active_dataset_version_id(db)
         now = utc_now()
         snapshot_live_species_state(db, previous)
@@ -23480,6 +23862,11 @@ def admin_promote_dataset_pipeline() -> Any:
                     "active_version": version_id,
                     "promoted_at": now,
                     "pruned_archived_versions": pruned_archives,
+                    "release_verification": {
+                        "status": release_payload.get("status"),
+                        "safe_to_replace": release_payload.get("safe_to_replace"),
+                        "generated_at": release_payload.get("generated_at"),
+                    },
                     "post_publish_verification": post_summary,
                 }
             },
@@ -23498,7 +23885,6 @@ def admin_promote_dataset_pipeline() -> Any:
                     public_latest["summary_path"] = str(public_snapshot_dir / "summary.json")
                     global_insights_root().mkdir(parents=True, exist_ok=True)
                     global_insights_latest_path().write_text(json.dumps(public_latest, indent=2), encoding="utf-8")
-        run = db.execute("SELECT run_id FROM dataset_update_pipeline_runs WHERE dataset_version_id = ? ORDER BY id DESC LIMIT 1", (version_id,)).fetchone()
         if run is not None:
             db.execute("UPDATE dataset_update_pipeline_runs SET status = 'promoted', completed_at = ? WHERE run_id = ?", (now, run["run_id"]))
             db.execute("UPDATE dataset_update_pipeline_steps SET status = 'completed', completed_at = ?, blockers_json = '[]' WHERE run_id = ? AND step_key = 'replace'", (now, run["run_id"]))
