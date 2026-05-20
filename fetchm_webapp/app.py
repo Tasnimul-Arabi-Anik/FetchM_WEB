@@ -7351,12 +7351,19 @@ def build_dataset_pipeline_step_cards(
             running = int(progress.get("reconcile_task_running") or 0)
             failed = int(progress.get("reconcile_task_failed") or 0)
             percent = 100 if total == 0 and status == "completed" else progress_percent(done, total)
-            detail_lines = [
-                f"{done}/{total} unresolved species candidates checked; {running} running, {pending} queued",
-                f"{int(progress.get('reconcile_direct_fetch') or 0)} resolved by direct species fetch; {int(progress.get('reconcile_already_ready') or 0)} already ready",
-                f"{int(progress.get('reconcile_genus_only') or 0)} kept genus-only, {int(progress.get('reconcile_no_data') or 0)} no-data, {int(progress.get('reconcile_ambiguous') or 0)} ambiguous",
-                f"{int(progress.get('reconcile_resolved_genomes') or 0):,} species-level genomes recovered by reconciliation",
-            ]
+            if total == 0 and status == "completed":
+                detail_lines = [
+                    "No species gaps found in the current candidate set.",
+                    "Ready species metadata or genus-derived metadata already covers the public species candidates.",
+                    "No direct species fetch was needed for this run.",
+                ]
+            else:
+                detail_lines = [
+                    f"{done}/{total} unresolved species candidates checked; {running} running, {pending} queued",
+                    f"{int(progress.get('reconcile_direct_fetch') or 0)} resolved by direct species fetch; {int(progress.get('reconcile_already_ready') or 0)} already ready",
+                    f"{int(progress.get('reconcile_genus_only') or 0)} kept genus-only, {int(progress.get('reconcile_no_data') or 0)} no-data, {int(progress.get('reconcile_ambiguous') or 0)} ambiguous",
+                    f"{int(progress.get('reconcile_resolved_genomes') or 0):,} species-level genomes recovered by reconciliation",
+                ]
             if failed:
                 detail_lines.append(f"{failed} reconciliation tasks failed and need retry")
             for example in list(progress.get("reconcile_examples") or [])[:3]:
@@ -7382,8 +7389,9 @@ def build_dataset_pipeline_step_cards(
             detail_lines = [
                 f"{active_total} update tasks still active",
                 f"{failed_total} update tasks failed",
-                f"{int(progress.get('staged_unique_assemblies') or 0)} unique staged genome accessions verified",
-                f"{int(progress.get('staged_genus_metadata_ready') or 0)} genus and {int(progress.get('staged_species_metadata_ready') or 0)} species metadata files ready",
+                f"{int(progress.get('staged_unique_assemblies') or 0):,} unique staged genome accessions verified",
+                f"{int(progress.get('staged_genus_metadata_ready') or 0):,} genus and {int(progress.get('staged_species_metadata_ready') or 0):,} species metadata files ready",
+                f"Current live baseline: {int(progress.get('live_unique_assemblies') or 0):,} unique assemblies; {int(progress.get('live_species_metadata_ready') or 0):,} species metadata files",
                 "Replacement remains blocked until verification completes.",
             ]
         elif step_key == "replace":
@@ -8232,6 +8240,58 @@ def dataset_version_metadata_summary(db: sqlite3.Connection, dataset_version_id:
     return summary
 
 
+def current_live_dataset_summary(db: sqlite3.Connection) -> dict[str, int]:
+    row = db.execute(
+        """
+        SELECT
+            COALESCE(SUM(CASE WHEN taxon_rank = 'genus' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END), 0) AS live_genus_metadata_ready,
+            COALESCE(SUM(CASE WHEN taxon_rank = 'species' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END), 0) AS live_species_metadata_ready,
+            COALESCE(SUM(CASE WHEN live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END), 0) AS live_taxon_scoped_genomes
+        FROM species
+        WHERE is_live = 1
+        """
+    ).fetchone()
+    unique_row = db.execute(
+        """
+        SELECT COUNT(DISTINCT am.assembly_accession) AS unique_assemblies
+        FROM assembly_metadata am
+        JOIN species s ON s.id = am.species_id
+        WHERE s.is_live = 1
+          AND s.live_metadata_status = 'ready'
+          AND s.live_metadata_clean_path IS NOT NULL
+        """
+    ).fetchone()
+    search_row = db.execute("SELECT COUNT(*) AS total FROM metadata_species_search").fetchone()
+    return {
+        "live_genus_metadata_ready": int(row["live_genus_metadata_ready"] or 0) if row is not None else 0,
+        "live_species_metadata_ready": int(row["live_species_metadata_ready"] or 0) if row is not None else 0,
+        "live_taxon_scoped_genomes": int(row["live_taxon_scoped_genomes"] or 0) if row is not None else 0,
+        "live_unique_assemblies": int(unique_row["unique_assemblies"] or 0) if unique_row is not None else 0,
+        "live_species_search_rows": int(search_row["total"] or 0) if search_row is not None else 0,
+    }
+
+
+def staged_non_regression_blockers(staged: Mapping[str, Any], live: Mapping[str, Any]) -> list[str]:
+    max_drop_fraction = max(0.0, float(os.environ.get("FETCHM_WEBAPP_MAX_STAGED_COVERAGE_DROP_FRACTION", "0.01") or "0.01"))
+    checks = [
+        ("staged_genus_metadata_ready", "live_genus_metadata_ready", "genus metadata files"),
+        ("staged_species_metadata_ready", "live_species_metadata_ready", "species metadata files"),
+        ("staged_unique_assemblies", "live_unique_assemblies", "unique genome assemblies"),
+    ]
+    blockers: list[str] = []
+    for staged_key, live_key, label in checks:
+        live_value = int(live.get(live_key) or 0)
+        staged_value = int(staged.get(staged_key) or 0)
+        if live_value <= 0:
+            continue
+        minimum = int(live_value * (1.0 - max_drop_fraction))
+        if staged_value < minimum:
+            blockers.append(
+                f"Staged {label} coverage regressed: {staged_value:,} staged < {minimum:,} allowed minimum from {live_value:,} live."
+            )
+    return blockers
+
+
 def parse_dataset_version_summary(row: Mapping[str, Any] | None) -> dict[str, Any]:
     if row is None:
         return {}
@@ -8616,6 +8676,65 @@ def species_reconciliation_task_progress(db: sqlite3.Connection, dataset_version
     }
 
 
+def unresolved_live_species_candidate_sources(db: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Return live species-search rows that do not already have ready species metadata."""
+    ready_rows = db.execute(
+        """
+        SELECT species_name, query_name
+        FROM species
+        WHERE taxon_rank = 'species'
+          AND metadata_status = 'ready'
+          AND metadata_clean_path IS NOT NULL
+        """
+    ).fetchall()
+    ready_search_names = {str(row["query_name"] or "").strip().lower() for row in ready_rows if str(row["query_name"] or "").strip()}
+    ready_species_names = {str(row["species_name"] or "").strip().lower() for row in ready_rows if str(row["species_name"] or "").strip()}
+    rows = db.execute(
+        """
+        SELECT m.source_taxon_id,
+               m.source_taxon_name,
+               m.species_name,
+               m.search_name,
+               m.genome_count
+        FROM metadata_species_search m
+        JOIN species g ON g.id = m.source_taxon_id
+        WHERE m.source_taxon_id IS NOT NULL
+          AND g.taxon_rank = 'genus'
+          AND g.metadata_status = 'ready'
+          AND g.metadata_clean_path IS NOT NULL
+        ORDER BY m.source_taxon_name COLLATE NOCASE ASC,
+                 m.genome_count DESC,
+                 m.species_name COLLATE NOCASE ASC
+        """
+    ).fetchall()
+    candidates: list[dict[str, Any]] = []
+    for row in rows:
+        source_taxon_name = str(row["source_taxon_name"] or "").strip()
+        species_raw = str(row["species_name"] or "").strip()
+        canonical = canonical_species_from_organism_name(species_raw, source_taxon_name)
+        if not canonical:
+            continue
+        search_name = str(row["search_name"] or "").strip().lower()
+        species_name = species_raw.lower()
+        canonical_name = canonical.lower()
+        if search_name and search_name in ready_search_names:
+            continue
+        if species_name and species_name in ready_species_names:
+            continue
+        if canonical_name in ready_species_names:
+            continue
+        candidates.append(
+            {
+                "source_taxon_id": int(row["source_taxon_id"]),
+                "source_taxon_name": source_taxon_name,
+                "species_name": canonical,
+                "search_name": str(row["search_name"] or ""),
+                "genome_count": int(row["genome_count"] or 0),
+            }
+        )
+    return candidates
+
+
 def reconciliation_candidate_rows_for_source(
     db: sqlite3.Connection,
     dataset_version_id: str,
@@ -8766,32 +8885,29 @@ def ensure_species_reconciliation_tasks_for_version(db: sqlite3.Connection, data
 def ensure_live_species_gap_reconciliation_tasks_for_version(db: sqlite3.Connection, dataset_version_id: str) -> int:
     now = utc_now()
     inserted = 0
-    source_rows = db.execute(
-        """
-        SELECT DISTINCT m.source_taxon_id, m.source_taxon_name
-        FROM metadata_species_search m
-        JOIN species g ON g.id = m.source_taxon_id
-        WHERE m.source_taxon_id IS NOT NULL
-          AND g.taxon_rank = 'genus'
-          AND g.metadata_status = 'ready'
-          AND g.metadata_clean_path IS NOT NULL
-        ORDER BY m.source_taxon_name COLLATE NOCASE ASC
-        """
-    ).fetchall()
-    for source in source_rows:
-        source_taxon_id = int(source["source_taxon_id"])
-        source_taxon_name = str(source["source_taxon_name"] or "").strip()
+    candidates = unresolved_live_species_candidate_sources(db)
+    if not candidates:
+        return 0
+
+    candidates_by_source: dict[tuple[int, str], list[dict[str, Any]]] = {}
+    for row in candidates:
+        source_taxon_id = int(row["source_taxon_id"])
+        source_taxon_name = str(row["source_taxon_name"] or "").strip()
         if not source_taxon_name:
             continue
+        candidates_by_source.setdefault((source_taxon_id, source_taxon_name), []).append(row)
+
+    for (source_taxon_id, source_taxon_name), rows in candidates_by_source.items():
         rows_by_canonical = genus_metadata_canonical_species(source_taxon_id, source_taxon_name)
         if not rows_by_canonical:
             continue
-        for species_name, genome_count in reconciliation_candidate_rows_for_source(
-            db,
-            dataset_version_id,
-            source_taxon_id,
-            source_taxon_name,
-        ):
+        grouped: dict[str, int] = {}
+        for row in rows:
+            canonical = canonical_species_from_organism_name(str(row["species_name"] or ""), source_taxon_name)
+            if not canonical:
+                continue
+            grouped[canonical] = grouped.get(canonical, 0) + int(row["genome_count"] or 0)
+        for species_name, genome_count in sorted(grouped.items(), key=lambda item: (-item[1], item[0].lower())):
             if species_name in rows_by_canonical:
                 continue
             if species_reconciliation_task_already_ready(
@@ -8808,7 +8924,7 @@ def ensure_live_species_gap_reconciliation_tasks_for_version(db: sqlite3.Connect
                 source_taxon_name=source_taxon_name,
                 species_name=species_name,
                 genome_count=genome_count,
-                reason="live genus metadata has no matching standardized species rows",
+                reason="live species search has no ready species metadata or matching genus-derived rows",
                 now=now,
             )
     return inserted
@@ -9775,6 +9891,12 @@ def advance_dataset_update_pipeline_runs() -> None:
             elif step_key == "verify":
                 progress.update(dataset_version_metadata_summary(db, str(step["dataset_version_id"])))
                 progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
+                live_summary = current_live_dataset_summary(db)
+                progress.update(live_summary)
+                regression_blockers = staged_non_regression_blockers(progress, live_summary)
+                if regression_blockers:
+                    failed = True
+                    blockers.extend(regression_blockers)
                 derive_row = db.execute(
                     """
                     SELECT status, progress_json
@@ -10051,6 +10173,11 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 else "Unresolved species are checked by direct species fetch; valid results are standardized and staged, ambiguous/no-data records remain genus-only."
             )
             if int(progress.get("reconcile_task_total") or 0) <= 0:
+                progress["note"] = (
+                    "No species gaps found. Current public species candidates already have ready species metadata "
+                    "or are represented by genus-derived metadata; no direct species fetch was needed."
+                )
+                progress["candidate_total"] = 0
                 mark_pipeline_step_completed(db, step, progress)
             else:
                 set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
