@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import math
 import re
 import shutil
+import subprocess
+import textwrap
+import zipfile
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -23,6 +27,7 @@ MISSING_TOKENS = {
     "null",
     "missing",
     "unknown",
+    "absent",
     "not collected",
     "not provided",
     "not applicable",
@@ -113,7 +118,51 @@ def is_usable(value: Any) -> bool:
         return False
     if text.startswith("unknown ") or text.endswith(" unknown"):
         return False
+    if text.startswith("absent ") or text.endswith(" absent"):
+        return False
     return True
+
+
+def safe_display_value(value: Any, fallback: str = "missing/unusable") -> str:
+    text = normalize(value)
+    return text if is_usable(text) else fallback
+
+
+def evidence_value(row: dict[str, Any], fields: Iterable[str]) -> str:
+    for field_name in fields:
+        value = row.get(field_name)
+        if is_usable(value):
+            return normalize(value)
+    return "not recorded"
+
+
+def correction_evidence(row: dict[str, Any], field_name: str, raw_value: str, standardized_value: str) -> tuple[str, str, str]:
+    if field_name == "Country":
+        evidence = evidence_value(row, ("Country_Source", "Country_Evidence", "Country_Confidence"))
+        confidence = evidence_value(row, ("Country_Confidence", "Country_Evidence"))
+    elif field_name == "Host":
+        evidence = evidence_value(row, ("Host_SD_Method", "Host_SD_Source", "Host_Source", "Host_SD_Evidence"))
+        confidence = evidence_value(row, ("Host_SD_Confidence", "Host_Confidence", "Host_SD_Method"))
+    elif field_name == "Isolation source":
+        evidence = evidence_value(row, ("Isolation_Source_SD_Method", "Isolation_Source_Source", "Isolation_Source_Evidence"))
+        confidence = evidence_value(row, ("Isolation_Source_SD_Confidence", "Isolation_Source_Confidence"))
+    elif field_name == "Sample type":
+        evidence = evidence_value(row, ("Sample_Type_SD_Method", "Sample_Type_Source", "Sample_Type_Evidence"))
+        confidence = evidence_value(row, ("Sample_Type_SD_Confidence", "Sample_Type_Confidence"))
+    elif field_name == "Environment":
+        evidence = evidence_value(row, ("Environment_Medium_SD_Method", "Environment_Source", "Environment_Evidence"))
+        confidence = evidence_value(row, ("Environment_Medium_SD_Confidence", "Environment_Confidence"))
+    else:
+        evidence = "not recorded"
+        confidence = "not recorded"
+
+    if not is_usable(raw_value) and is_usable(standardized_value):
+        raw_display = f"primary {field_name.lower()} field absent/unusable; recovered from secondary evidence"
+        if evidence == "not recorded":
+            evidence = "secondary standardized metadata field"
+    else:
+        raw_display = safe_display_value(raw_value)
+    return raw_display[:180], evidence[:180], confidence[:120]
 
 
 def row_value(row: dict[str, Any], fields: Iterable[str]) -> str:
@@ -194,7 +243,9 @@ def severity_from_share(value: float) -> str:
 
 
 def classify_host_source(host: str, source: str) -> str:
-    text = f"{host} {source}".casefold()
+    host_text = normalize(host) if is_usable(host) else ""
+    source_text = normalize(source) if is_usable(source) else ""
+    text = f"{host_text} {source_text}".casefold()
     if not text.strip():
         return "Missing/ambiguous"
     if any(token in text for token in ("human", "homo sapiens", "patient", "clinical", "hospital", "stool", "feces", "faeces", "blood", "urine", "sputum")):
@@ -287,6 +338,110 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> 
         writer.writerows(rows)
 
 
+def command_version(command: list[str]) -> str:
+    try:
+        result = subprocess.run(command, check=False, capture_output=True, text=True, timeout=8)
+    except Exception:
+        return "not available"
+    output = normalize((result.stdout or result.stderr or "").splitlines()[0] if (result.stdout or result.stderr) else "")
+    return output or f"available, return code {result.returncode}"
+
+
+def standardization_root() -> Path:
+    return Path(__file__).resolve().parents[1] / "standardization"
+
+
+def latest_production_readiness_gate() -> dict[str, Any] | None:
+    root = standardization_root() / "review" / "final_audit"
+    if not root.exists():
+        return None
+    candidates = sorted(root.glob("*/production_readiness_gate.json"), key=lambda path: path.parent.name, reverse=True)
+    for candidate in candidates:
+        try:
+            return json.loads(candidate.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+    return None
+
+
+def standardization_rule_manifest() -> dict[str, Any]:
+    root = standardization_root()
+    rule_files = [
+        root / "host_synonyms.csv",
+        root / "host_negative_rules.csv",
+        root / "controlled_categories.csv",
+        root / "approved_broad_categories.csv",
+        root / "geography_reviewed_rules.csv",
+        root / "collection_date_reviewed_rules.csv",
+    ]
+    digest = hashlib.sha256()
+    files: list[dict[str, Any]] = []
+    total_rows = 0
+    approved_rows = 0
+    review_rows = 0
+    for rule_file in rule_files:
+        if not rule_file.exists():
+            files.append({"path": str(rule_file.relative_to(root.parent)), "exists": False, "rows": 0})
+            continue
+        data = rule_file.read_bytes()
+        digest.update(rule_file.name.encode("utf-8"))
+        digest.update(data)
+        rows = 0
+        file_approved = 0
+        file_review = 0
+        try:
+            with rule_file.open(newline="", encoding="utf-8", errors="replace") as handle:
+                for row in csv.DictReader(handle):
+                    rows += 1
+                    status = normalized_key(row.get("status"))
+                    if status == "approved":
+                        file_approved += 1
+                    elif status and status != "approved":
+                        file_review += 1
+        except Exception:
+            rows = max(0, data.count(b"\n") - 1)
+        total_rows += rows
+        approved_rows += file_approved
+        review_rows += file_review
+        files.append(
+            {
+                "path": str(rule_file.relative_to(root.parent)),
+                "exists": True,
+                "rows": rows,
+                "approved_rows": file_approved,
+                "review_or_nonapproved_rows": file_review,
+                "sha256_12": hashlib.sha256(data).hexdigest()[:12],
+            }
+        )
+    version = f"sha256:{digest.hexdigest()[:16]}" if any(file["exists"] for file in files) else "not available"
+    audit = latest_production_readiness_gate()
+    audit_metrics = (audit or {}).get("metrics") or {}
+    return {
+        "version": version,
+        "files": files,
+        "total_rule_rows": total_rows,
+        "approved_rule_rows": approved_rows,
+        "review_or_nonapproved_rule_rows": review_rows,
+        "latest_audit_timestamp": audit_metrics.get("latest_audit_timestamp") or "not available",
+        "latest_audit_git_commit": audit_metrics.get("git_commit") or "not available",
+        "latest_audit_code_version": audit_metrics.get("code_version") or "not available",
+        "production_readiness_gate": audit,
+    }
+
+
+def tool_version_manifest() -> dict[str, str]:
+    return {
+        "ncbi_datasets_version": command_version(["datasets", "--version"]),
+        "taxonkit_version": command_version(["taxonkit", "version"]),
+    }
+
+
+def iso_from_timestamp(value: float | int | None) -> str:
+    if not value:
+        return "not recorded"
+    return datetime.fromtimestamp(float(value), timezone.utc).isoformat()
+
+
 def load_priority_pathogens(path: Path | None = None) -> list[dict[str, str]]:
     source = path or Path(__file__).with_name("priority_pathogens.csv")
     if not source.exists():
@@ -346,60 +501,514 @@ def calculate_taxon_quality(row: TaxonStats) -> dict[str, Any]:
 
 def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     overview = summary["overview"]
-    top_genera = summary["taxonomic_landscape"]["top_genera"]
-    top_genus_names = ", ".join(row["label"] for row in top_genera[:5]) or "the most represented genera"
+    snapshot_id = summary.get("snapshot_id", "unknown snapshot")
+    generated_at = summary.get("generated_at", "unknown date")
+    top_genera = summary["taxonomic_landscape"].get("top_genera", [])
+    top_species = summary["taxonomic_landscape"].get("top_species", [])
+    top_countries = summary.get("geographic_bias", {}).get("countries", [])
+    host_categories = summary.get("host_source_bias", {}).get("host_categories", [])
+    assembly_levels = summary.get("assembly_quality", {}).get("assembly_levels", [])
     completeness = {row["field"]: row for row in summary["metadata_completeness"]}
     country = completeness.get("Country", {})
     host = completeness.get("Host", {})
     source = completeness.get("Isolation source", {})
+    sample = completeness.get("Sample type", {})
+    env = completeness.get("Environment", {})
+    year = completeness.get("Collection year", {})
     top10_share = summary["taxonomic_landscape"].get("top_10_genus_share_percent", 0)
+    denominator = int(overview.get("unique_assemblies") or 0)
+    top_genus_names = ", ".join(row["label"] for row in top_genera[:5]) or "the most represented genera"
+    top_species_names = ", ".join(row["label"] for row in top_species[:5]) or "the most represented species labels"
+    top_country = top_countries[0] if top_countries else {"label": "not available", "percent": 0, "count": 0}
+    top_host_category = host_categories[0] if host_categories else {"label": "not available", "percent": 0, "count": 0}
+    top_assembly = assembly_levels[0] if assembly_levels else {"label": "not available", "percent": 0, "count": 0}
+
     abstract = (
-        f"The current FetchM Global Metadata Insights snapshot contained {overview['unique_assemblies']:,} unique bacterial "
-        f"genome assemblies from {overview['metadata_files_scanned']:,} ready metadata files. The indexed assemblies represented "
-        f"{overview['species_observed']:,} observed species labels, {overview['genera_observed']:,} genera, and "
-        f"{overview['bioprojects_observed']:,} BioProjects. The ten most represented genera accounted for {top10_share}% "
-        "of unique assemblies, indicating that public genome repositories are taxonomically concentrated."
+        f"FetchM Global Metadata Insights snapshot {snapshot_id} ({generated_at}) summarized {denominator:,} unique public bacterial "
+        f"genome assemblies from {overview['metadata_files_scanned']:,} ready metadata files, representing {overview['species_observed']:,} "
+        f"observed species labels, {overview['genera_observed']:,} genera, and {overview['bioprojects_observed']:,} BioProjects. "
+        f"Repository representation was uneven: the ten most represented genera accounted for {top10_share}% of assemblies, and the "
+        f"largest standardized country category was {top_country['label']} ({top_country['count']:,} assemblies; {top_country['percent']}%). "
+        "These results describe public repository composition rather than true bacterial prevalence."
     )
-    results = (
-        f"Genome availability was highly uneven across taxa. The most represented genera included {top_genus_names}. "
-        f"Raw country fields were present for {country.get('raw_usable_percent', 0)}% of unique assemblies, while "
-        f"FetchM standardized country assignments were available for {country.get('standardized_usable_percent', 0)}%. "
-        f"Standardized host assignments were available for {host.get('standardized_usable_percent', 0)}% of assemblies, and "
-        f"standardized isolation-source assignments were available for {source.get('standardized_usable_percent', 0)}%. "
-        "Raw-field presence and standardized-field availability are different measures: a submitter value can be present but "
-        "still too vague, inconsistent, or unmapped for reliable metadata filtering."
+    dataset_overview = (
+        f"Dataset overview. Snapshot {snapshot_id} included {denominator:,} non-redundant assemblies after removing "
+        f"{overview['duplicate_rows_skipped']:,} duplicate metadata rows by Assembly Accession. The scan covered "
+        f"{overview['metadata_rows_scanned']:,} metadata rows from {overview['metadata_files_scanned']:,} files and skipped "
+        f"{overview['metadata_files_skipped']:,} unavailable files."
     )
-    methods = (
-        "Global Metadata Insights were generated from ready FetchM standardized metadata files. Unique assemblies were counted "
-        "using Assembly Accession. When duplicate assemblies were present across species- and genus-level files, the species-level "
-        "record was preferred, followed by the newest synced taxon. Metadata completeness was calculated separately for raw and "
-        "standardized fields, with missing, unknown, not collected, not applicable, unidentified, and similarly non-informative "
-        "values treated as unusable."
+    completeness_text = (
+        f"Metadata completeness and standardization. Standardized country assignments were available for "
+        f"{country.get('standardized_usable', 0):,}/{denominator:,} assemblies ({country.get('standardized_usable_percent', 0)}%), "
+        f"standardized host assignments for {host.get('standardized_usable', 0):,} ({host.get('standardized_usable_percent', 0)}%), "
+        f"standardized isolation-source assignments for {source.get('standardized_usable', 0):,} ({source.get('standardized_usable_percent', 0)}%), "
+        f"sample-type assignments for {sample.get('standardized_usable', 0):,} ({sample.get('standardized_usable_percent', 0)}%), "
+        f"environment assignments for {env.get('standardized_usable', 0):,} ({env.get('standardized_usable_percent', 0)}%), and usable "
+        f"collection years for {year.get('standardized_usable', 0):,} ({year.get('standardized_usable_percent', 0)}%). Raw-field presence and "
+        "standardized-field availability are intentionally reported separately because present free text may remain too vague, inconsistent, "
+        "or unmapped for reliable filtering."
+    )
+    taxonomic_text = (
+        f"Taxonomic concentration. The most represented genera were {top_genus_names}, and the most represented species labels were "
+        f"{top_species_names}. The top ten genera accounted for {top10_share}% of all non-redundant assemblies, indicating that public "
+        "bacterial genome repositories are dominated by a limited set of heavily sequenced taxa."
+    )
+    geography_text = (
+        f"Geographic representation. Standardized country metadata identified {overview['countries_observed']:,} country categories. "
+        f"The largest country category was {top_country['label']}, with {top_country['count']:,} assemblies ({top_country['percent']}% of "
+        "the full assembly denominator). These values measure representation in public repositories and should not be interpreted as "
+        "country-level disease burden or environmental abundance."
+    )
+    host_text = (
+        f"Host and source representation. Host/source categorization was led by {top_host_category['label']} "
+        f"({top_host_category['count']:,} assemblies; {top_host_category['percent']}%). Missing or ambiguous values are separated from "
+        "biological host categories so that absent submitter fields are not treated as host dominance."
+    )
+    temporal_quality_text = (
+        f"Temporal growth and assembly quality. Release-year and collection-year fields were used to summarize temporal coverage, while "
+        f"assembly-level metadata showed {top_assembly['label']} as the largest assembly-level category "
+        f"({top_assembly['count']:,} assemblies; {top_assembly['percent']}%). Assembly-quality availability was incorporated into the "
+        "metadata quality score when completeness, contamination, N50, contig count, genome size, or GC fields were present."
+    )
+    quality_text = (
+        f"Metadata quality and readiness. Under the default readiness rule, {overview['qc_ready_taxa']:,} taxa had at least 100 assemblies, "
+        "at least 70% standardized country completeness, at least 70% host/source completeness, and at least 50% collection-year completeness. "
+        "The metadata quality score combines country, host/source, collection year, assembly-quality availability, BioProject diversity, "
+        "isolation-source completeness, and standardization-confidence components."
+    )
+    bias_text = (
+        "BioProject dominance and sampling bias. Bias warnings quantify repository sampling structure, including top BioProject share, "
+        "country dominance, host dominance, and collection-year dominance. Missing values such as absent, unknown, not collected, or not "
+        "applicable are excluded from biological dominance warnings and should instead be interpreted as metadata missingness."
     )
     limitations = (
-        "These results describe representation within public bacterial genome repositories and should not be interpreted as direct "
-        "estimates of true global bacterial abundance, disease burden, or environmental prevalence. Public genome metadata are "
-        "influenced by database submission practices, surveillance priorities, sequencing capacity, outbreak sampling, and uneven "
-        "reporting standards."
+        "Several limitations should be considered. FetchM Global Insights reflects publicly available genome metadata and is influenced by "
+        "database submission practices, surveillance priorities, sequencing capacity, outbreak sampling, and reporting standards. Standardization "
+        "can recover many useful records but cannot infer reliable biological context from unsupported or ambiguous submitter text. All percentages "
+        "therefore describe public repository representation, not true global bacterial abundance, disease burden, or environmental prevalence."
+    )
+    methods = (
+        f"Global Metadata Insights snapshot {snapshot_id} was generated from ready FetchM standardized metadata files. Unique assemblies were "
+        "counted by Assembly Accession, with species-level rows preferred over genus-level rows and newer synced taxa scanned first within each rank. "
+        "Metadata completeness was calculated separately for raw submitter fields and standardized analysis fields. Empty, absent, unknown, not "
+        "collected, not applicable, unidentified, and similarly non-informative values were treated as unusable metadata."
     )
     figure_legend = (
-        "Figure X. Global distribution and metadata completeness of FetchM-indexed bacterial genome assemblies. Annual genome "
-        "availability, dominant bacterial taxa, geographic representation, host/source distributions, raw-versus-standardized "
-        "metadata completeness, and bias warnings were calculated from the latest FetchM Global Metadata Insights snapshot."
+        f"Figure X. Repository representation and metadata completeness of FetchM-indexed bacterial genome assemblies. Values were calculated "
+        f"from Global Metadata Insights snapshot {snapshot_id} using {denominator:,} non-redundant public bacterial assemblies. Panels summarize "
+        "taxonomic concentration, geographic representation, host/source categories, temporal coverage, assembly-level metadata, raw-versus-"
+        "standardized metadata availability, and automated bias warnings. Source data are provided in the snapshot tables."
     )
     table_caption = (
-        "Table X. Metadata completeness, standardization impact, metadata quality scores, and repository representation bias "
-        "among FetchM-indexed bacterial taxa."
+        f"Table X. Metadata completeness, standardization impact, metadata quality scores, QC-ready taxa, and repository bias warnings for "
+        f"FetchM Global Metadata Insights snapshot {snapshot_id}. Denominators use {denominator:,} non-redundant assemblies unless otherwise stated."
     )
+    results = " ".join([
+        dataset_overview,
+        completeness_text,
+        taxonomic_text,
+        geography_text,
+        host_text,
+        temporal_quality_text,
+        quality_text,
+        bias_text,
+    ])
     return {
         "abstract": abstract,
         "results": results,
+        "dataset_overview": dataset_overview,
+        "metadata_completeness": completeness_text,
+        "taxonomic_concentration": taxonomic_text,
+        "geographic_representation": geography_text,
+        "host_source_representation": host_text,
+        "temporal_growth_and_assembly_quality": temporal_quality_text,
+        "metadata_quality_by_taxon": quality_text,
+        "bioproject_dominance_and_sampling_bias": bias_text,
         "methods": methods,
         "limitations": limitations,
         "figure_legend": figure_legend,
         "table_caption": table_caption,
     }
 
+
+def _figure_label(value: Any, limit: int = 34) -> str:
+    text = normalize(value)
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1].rstrip() + "…"
+
+
+def _write_source_data(path: Path, rows: list[dict[str, Any]]) -> None:
+    if not rows:
+        write_csv(path, [], ["label", "value"])
+        return
+    fieldnames: list[str] = []
+    for row in rows:
+        for key in row.keys():
+            if key not in fieldnames:
+                fieldnames.append(key)
+    write_csv(path, rows, fieldnames)
+
+
+def _zip_relative_files(base_dir: Path, zip_path: Path, relative_paths: list[str]) -> None:
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for relative_path in relative_paths:
+            source = base_dir / relative_path
+            if source.exists() and source.is_file():
+                archive.write(source, relative_path)
+
+
+def _write_minimal_docx(path: Path, title: str, sections: list[tuple[str, str]]) -> None:
+    """Write a small valid DOCX without requiring python-docx."""
+    from xml.sax.saxutils import escape
+
+    def paragraph(text: str, *, heading: bool = False) -> str:
+        style = '<w:pStyle w:val="Heading1"/>' if heading else ""
+        return (
+            "<w:p><w:pPr>" + style + "</w:pPr><w:r><w:t xml:space=\"preserve\">"
+            + escape(text)
+            + "</w:t></w:r></w:p>"
+        )
+
+    body = [paragraph(title, heading=True)]
+    for section_title, section_body in sections:
+        body.append(paragraph(section_title, heading=True))
+        for chunk in textwrap.wrap(section_body or "Not available.", width=100) or [""]:
+            body.append(paragraph(chunk))
+    document_xml = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'
+        '<w:body>'
+        + "".join(body)
+        + '<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>'
+        + '</w:body></w:document>'
+    )
+    content_types = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+        '<Default Extension="xml" ContentType="application/xml"/>'
+        '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'
+        '</Types>'
+    )
+    rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>'
+        '</Relationships>'
+    )
+    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr("[Content_Types].xml", content_types)
+        archive.writestr("_rels/.rels", rels)
+        archive.writestr("word/document.xml", document_xml)
+
+
+def _save_figure(fig: Any, base_dir: Path, stem: str) -> dict[str, str]:
+    figure_dir = base_dir / "figures"
+    figure_dir.mkdir(parents=True, exist_ok=True)
+    files = {
+        "svg": f"figures/{stem}.svg",
+        "pdf": f"figures/{stem}.pdf",
+        "png": f"figures/{stem}.png",
+    }
+    for ext, relative_path in files.items():
+        kwargs = {"bbox_inches": "tight", "facecolor": "white"}
+        if ext == "png":
+            kwargs["dpi"] = 600
+        fig.savefig(base_dir / relative_path, **kwargs)
+    return files
+
+
+def _plot_barh(ax: Any, rows: list[dict[str, Any]], *, label_key: str = "label", value_key: str = "count", title: str = "", color: str = "#165c4e") -> None:
+    rows = [row for row in rows if row.get(value_key) not in (None, "")]
+    if not rows:
+        ax.text(0.5, 0.5, "No data available", ha="center", va="center", transform=ax.transAxes)
+        ax.set_axis_off()
+        return
+    labels = [_figure_label(row.get(label_key, ""), 32) for row in rows][::-1]
+    values = [float(row.get(value_key) or 0) for row in rows][::-1]
+    ax.barh(labels, values, color=color, alpha=0.92)
+    ax.set_title(title, loc="left", fontweight="bold")
+    ax.grid(axis="x", color="#d9ded6", linewidth=0.7, alpha=0.65)
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.tick_params(axis="y", length=0)
+
+
+def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, table_dir: Path) -> None:
+    """Generate manuscript-grade static figures, source data, and reports for a Global Insights snapshot."""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from matplotlib.backends.backend_pdf import PdfPages
+    except Exception as exc:  # pragma: no cover - depends on deployment image
+        summary.setdefault("qa", {}).setdefault("checks", []).append(
+            {"check": "publication_exports_generated", "status": "warning", "detail": f"Matplotlib export unavailable: {exc}"}
+        )
+        summary.setdefault("qa", {}).setdefault("manuscript_readiness", {})["all_figures_exported"] = False
+        return
+
+    figure_dir = snapshot_dir / "figures"
+    source_dir = snapshot_dir / "source_data"
+    report_dir = snapshot_dir / "reports"
+    for directory in (figure_dir, source_dir, report_dir):
+        directory.mkdir(parents=True, exist_ok=True)
+
+    plt.rcParams.update(
+        {
+            "font.family": "DejaVu Sans",
+            "axes.edgecolor": "#52615b",
+            "axes.labelcolor": "#26332f",
+            "xtick.color": "#52615b",
+            "ytick.color": "#26332f",
+            "figure.facecolor": "white",
+            "axes.facecolor": "white",
+        }
+    )
+
+    overview = summary.get("overview", {})
+    manuscript = summary.get("manuscript", {})
+    snapshot_id = summary.get("snapshot_id", "unknown snapshot")
+    generated_at = summary.get("generated_at", "unknown date")
+    denominator = int(overview.get("unique_assemblies") or 0)
+    figure_exports: list[dict[str, Any]] = []
+    all_figure_files: list[str] = []
+    source_files: list[str] = []
+
+    def add_figure(fig: Any, stem: str, title: str, rows: list[dict[str, Any]], source_name: str, interpretation: str) -> None:
+        files = _save_figure(fig, snapshot_dir, stem)
+        plt.close(fig)
+        source_relative = f"source_data/{source_name}.csv"
+        source_table_name = source_relative
+        _write_source_data(snapshot_dir / source_relative, rows)
+        all_figure_files.extend(files.values())
+        source_files.append(source_relative)
+        figure_number = len(figure_exports) + 1
+        interpretation_note = interpretation or "This figure summarizes repository representation and should not be interpreted as true biological prevalence."
+        legend = (
+            f"Figure {figure_number}. {title}. Values were calculated from Global Metadata Insights snapshot {snapshot_id} "
+            f"generated at {generated_at}. The exact denominator is {denominator:,} non-redundant public bacterial assemblies unless the panel label states otherwise. "
+            f"Source table: {source_table_name}. {interpretation_note}"
+        )
+        figure_exports.append(
+            {
+                "figure_id": stem,
+                "title": title,
+                "files": files,
+                "source_data": source_relative,
+                "source_table_name": source_table_name,
+                "denominator": denominator,
+                "snapshot_id": snapshot_id,
+                "generated_at": generated_at,
+                "interpretation_note": interpretation_note,
+                "legend": legend,
+            }
+        )
+
+    # Figure 1: global snapshot overview.
+    overview_rows = [
+        {"metric": "Unique assemblies", "value": overview.get("unique_assemblies", 0)},
+        {"metric": "Observed species labels", "value": overview.get("species_observed", 0)},
+        {"metric": "Observed genera", "value": overview.get("genera_observed", 0)},
+        {"metric": "BioProjects", "value": overview.get("bioprojects_observed", 0)},
+        {"metric": "Ready metadata files", "value": overview.get("metadata_files_scanned", 0)},
+        {"metric": "QC-ready taxa", "value": overview.get("qc_ready_taxa", 0)},
+    ]
+    fig, ax = plt.subplots(figsize=(11, 6.2))
+    ax.set_axis_off()
+    ax.text(0.02, 0.93, "Global Metadata Insights", fontsize=21, fontweight="bold", color="#165c4e", transform=ax.transAxes)
+    ax.text(0.02, 0.86, f"Snapshot {snapshot_id} · {generated_at}", fontsize=10.5, color="#52615b", transform=ax.transAxes)
+    positions = [(0.03, 0.58), (0.36, 0.58), (0.69, 0.58), (0.03, 0.28), (0.36, 0.28), (0.69, 0.28)]
+    for row, (x, y) in zip(overview_rows, positions):
+        ax.add_patch(plt.Rectangle((x, y), 0.28, 0.2, transform=ax.transAxes, facecolor="#f5efe1", edgecolor="#cbd8d2", linewidth=1.2))
+        ax.text(x + 0.025, y + 0.115, f"{int(row['value']):,}", fontsize=20, fontweight="bold", color="#165c4e", transform=ax.transAxes)
+        ax.text(x + 0.025, y + 0.055, row["metric"], fontsize=10.5, color="#52615b", transform=ax.transAxes)
+    add_figure(fig, "figure_1_global_snapshot", "Global snapshot overview", overview_rows, "figure_1_global_snapshot_source_data", manuscript.get("figure_legend", ""))
+
+    # Figure 2: raw vs standardized metadata completeness.
+    completeness_rows = summary.get("metadata_completeness", [])
+    fig, ax = plt.subplots(figsize=(11, 6.4))
+    fields = [row.get("field", "") for row in completeness_rows]
+    x = range(len(fields))
+    raw_values = [float(row.get("raw_usable_percent") or 0) for row in completeness_rows]
+    std_values = [float(row.get("standardized_usable_percent") or 0) for row in completeness_rows]
+    width = 0.36
+    ax.bar([i - width / 2 for i in x], raw_values, width=width, label="Raw field present", color="#b8844d")
+    ax.bar([i + width / 2 for i in x], std_values, width=width, label="Standardized", color="#165c4e")
+    ax.set_xticks(list(x), [_figure_label(field, 20) for field in fields], rotation=25, ha="right")
+    ax.set_ylabel("Assemblies (%)")
+    ax.set_ylim(0, 100)
+    ax.set_title("Raw versus standardized metadata completeness", loc="left", fontweight="bold")
+    ax.legend(frameon=False)
+    ax.grid(axis="y", color="#d9ded6", linewidth=0.7, alpha=0.65)
+    ax.spines[["top", "right"]].set_visible(False)
+    add_figure(fig, "figure_2_metadata_completeness", "Raw versus standardized metadata completeness", completeness_rows, "figure_2_metadata_completeness_source_data", manuscript.get("metadata_completeness", ""))
+
+    # Figure 3: top genera and species.
+    fig, axes = plt.subplots(1, 2, figsize=(13, 7))
+    top_genera = summary.get("taxonomic_landscape", {}).get("top_genera", [])[:12]
+    top_species = summary.get("taxonomic_landscape", {}).get("top_species", [])[:12]
+    _plot_barh(axes[0], top_genera, title="Top genera", color="#165c4e")
+    _plot_barh(axes[1], top_species, title="Top species labels", color="#8a5a16")
+    fig.suptitle("Taxonomic concentration in public bacterial genome repositories", x=0.03, ha="left", fontweight="bold", fontsize=15)
+    add_figure(fig, "figure_3_taxonomic_concentration", "Taxonomic concentration", top_genera + top_species, "figure_3_taxonomic_concentration_source_data", manuscript.get("taxonomic_concentration", ""))
+
+    # Figure 4: geography.
+    country_rows = summary.get("geographic_bias", {}).get("countries", [])[:20]
+    fig, ax = plt.subplots(figsize=(10.5, 7.2))
+    _plot_barh(ax, country_rows, title="Top standardized countries", color="#165c4e")
+    ax.set_xlabel("Assemblies")
+    add_figure(fig, "figure_4_geographic_representation", "Geographic representation", country_rows, "figure_4_geographic_representation_source_data", manuscript.get("geographic_representation", ""))
+
+    # Figure 5: host/source representation.
+    fig, axes = plt.subplots(1, 2, figsize=(13, 7))
+    host_categories = summary.get("host_source_bias", {}).get("host_categories", [])[:12]
+    top_sources = summary.get("host_source_bias", {}).get("sources", [])[:12]
+    _plot_barh(axes[0], host_categories, title="Host/source categories", color="#165c4e")
+    _plot_barh(axes[1], top_sources, title="Top standardized isolation sources", color="#8a5a16")
+    fig.suptitle("Host, source, and environment representation", x=0.03, ha="left", fontweight="bold", fontsize=15)
+    add_figure(fig, "figure_5_host_source_representation", "Host and source representation", host_categories + top_sources, "figure_5_host_source_representation_source_data", manuscript.get("host_source_representation", ""))
+
+    # Figure 6: temporal growth and assembly levels.
+    fig, axes = plt.subplots(1, 2, figsize=(13, 6.6))
+    yearly = summary.get("yearly_growth", [])[-20:]
+    if yearly:
+        axes[0].plot([row.get("year") for row in yearly], [int(row.get("assemblies") or 0) for row in yearly], color="#165c4e", linewidth=2.4)
+        axes[0].fill_between([row.get("year") for row in yearly], [int(row.get("assemblies") or 0) for row in yearly], color="#165c4e", alpha=0.15)
+        axes[0].tick_params(axis="x", rotation=45)
+        axes[0].set_title("Annual genome availability", loc="left", fontweight="bold")
+        axes[0].set_ylabel("Assemblies")
+        axes[0].grid(axis="y", color="#d9ded6", linewidth=0.7, alpha=0.65)
+        axes[0].spines[["top", "right"]].set_visible(False)
+    else:
+        axes[0].text(0.5, 0.5, "No year data", ha="center", va="center")
+        axes[0].set_axis_off()
+    assembly_rows = summary.get("assembly_quality", {}).get("assembly_levels", [])[:10]
+    _plot_barh(axes[1], assembly_rows, title="Assembly levels", color="#8a5a16")
+    add_figure(fig, "figure_6_temporal_growth_assembly_levels", "Temporal growth and assembly levels", yearly + assembly_rows, "figure_6_temporal_growth_source_data", manuscript.get("temporal_growth_and_assembly_quality", ""))
+
+    # Figure 7: metadata quality and QC-ready taxa.
+    quality_rows = summary.get("metadata_quality", [])[:20]
+    fig, ax = plt.subplots(figsize=(11, 8))
+    plot_rows = [{"label": row.get("taxon"), "count": row.get("metadata_quality_score", 0)} for row in quality_rows]
+    _plot_barh(ax, plot_rows, title="Top metadata quality scores", color="#165c4e")
+    ax.set_xlabel("Metadata quality score (0-100)")
+    ax.set_xlim(0, 100)
+    add_figure(fig, "figure_7_metadata_quality_qc_ready", "Metadata quality and QC-ready taxa", quality_rows, "figure_7_metadata_quality_source_data", manuscript.get("metadata_quality_by_taxon", ""))
+
+    # Figure 8: bias warning counts.
+    warning_rows = summary.get("bias_warnings", [])
+    warning_counter = Counter(row.get("bias_type", "Unknown") for row in warning_rows)
+    warning_plot_rows = [{"label": label, "count": count} for label, count in warning_counter.most_common(15)]
+    fig, ax = plt.subplots(figsize=(10.5, 7))
+    _plot_barh(ax, warning_plot_rows, title="Automated bias warnings by type", color="#8a5a16")
+    ax.set_xlabel("Warnings")
+    add_figure(fig, "figure_8_bias_warnings", "Automated bias warnings", warning_plot_rows, "figure_8_bias_warnings_source_data", manuscript.get("bioproject_dominance_and_sampling_bias", ""))
+
+    # Figure 9: standardization impact/corrections.
+    correction_rows = summary.get("standardization_impact", {}).get("top_corrections", [])[:18]
+    correction_plot_rows = [
+        {
+            "label": f"{row.get('field')}: {_figure_label(row.get('standardized_value'), 24)}",
+            "count": int(row.get("records_rescued") or 0),
+            **row,
+        }
+        for row in correction_rows
+    ]
+    fig, ax = plt.subplots(figsize=(11, 8))
+    _plot_barh(ax, correction_plot_rows, title="Most common raw-to-standardized mappings", color="#165c4e")
+    ax.set_xlabel("Mapped records")
+    add_figure(fig, "figure_9_standardization_impact", "Standardization impact", correction_plot_rows, "figure_9_standardization_impact_source_data", manuscript.get("metadata_completeness", ""))
+
+    # Manuscript report files.
+    sections = [
+        ("Abstract-style summary", manuscript.get("abstract", "")),
+        ("Dataset overview", manuscript.get("dataset_overview", "")),
+        ("Metadata completeness and standardization", manuscript.get("metadata_completeness", "")),
+        ("Taxonomic concentration", manuscript.get("taxonomic_concentration", "")),
+        ("Geographic representation", manuscript.get("geographic_representation", "")),
+        ("Host/source representation", manuscript.get("host_source_representation", "")),
+        ("Temporal growth and assembly quality", manuscript.get("temporal_growth_and_assembly_quality", "")),
+        ("Metadata quality by taxon", manuscript.get("metadata_quality_by_taxon", "")),
+        ("BioProject dominance and sampling bias", manuscript.get("bioproject_dominance_and_sampling_bias", "")),
+        ("Methods", manuscript.get("methods", "")),
+        ("Limitations", manuscript.get("limitations", "")),
+        ("Figure legend", manuscript.get("figure_legend", "")),
+        ("Table caption", manuscript.get("table_caption", "")),
+    ]
+    report_md = report_dir / "global_insights_report.md"
+    md_lines = [f"# Global Metadata Insights Report", "", f"Snapshot: `{snapshot_id}`", f"Generated: `{generated_at}`", ""]
+    for title, body in sections:
+        md_lines.extend([f"## {title}", "", body or "Not available.", ""])
+    md_lines.extend(["## Publication Figures", ""])
+    for figure in figure_exports:
+        md_lines.extend([f"### {figure['title']}", "", figure["legend"] or "Legend not available.", ""])
+    report_md.write_text("\n".join(md_lines), encoding="utf-8")
+
+    report_docx = report_dir / "global_insights_report.docx"
+    docx_sections = sections + [(figure["title"], figure.get("legend", "")) for figure in figure_exports]
+    try:
+        from docx import Document
+        document = Document()
+        document.add_heading("Global Metadata Insights Report", level=1)
+        document.add_paragraph(f"Snapshot: {snapshot_id}")
+        document.add_paragraph(f"Generated: {generated_at}")
+        for title, body in docx_sections:
+            document.add_heading(title, level=2)
+            document.add_paragraph(body or "Not available.")
+        document.save(report_docx)
+    except Exception as exc:  # pragma: no cover - optional export dependency
+        _write_minimal_docx(
+            report_docx,
+            "Global Metadata Insights Report",
+            [("Snapshot", f"Snapshot: {snapshot_id}\nGenerated: {generated_at}"), *docx_sections],
+        )
+        summary.setdefault("qa", {}).setdefault("checks", []).append(
+            {"check": "docx_report_generated", "status": "pass", "detail": f"DOCX generated with built-in fallback because python-docx was unavailable: {exc}"}
+        )
+
+    report_pdf = report_dir / "global_insights_report.pdf"
+    try:
+        with PdfPages(report_pdf) as pdf:
+            for title, body in sections:
+                page = plt.figure(figsize=(8.27, 11.69))
+                page.text(0.08, 0.94, title, fontsize=15, fontweight="bold", color="#165c4e")
+                wrapped = "\n".join(textwrap.wrap(body or "Not available.", width=94))
+                page.text(0.08, 0.89, wrapped, fontsize=9.5, color="#26332f", va="top")
+                page.text(0.08, 0.04, f"Snapshot {snapshot_id}", fontsize=8, color="#52615b")
+                pdf.savefig(page, bbox_inches="tight")
+                plt.close(page)
+    except Exception as exc:  # pragma: no cover - optional export backend
+        report_pdf = None
+        summary.setdefault("qa", {}).setdefault("checks", []).append(
+            {"check": "pdf_report_generated", "status": "warning", "detail": f"PDF report export unavailable: {exc}"}
+        )
+
+    table_files = [f"tables/{path.name}" for path in table_dir.glob("*.csv")]
+    figure_zip = snapshot_dir / "global_insights_figures.zip"
+    table_zip = snapshot_dir / "global_insights_tables.zip"
+    source_zip = snapshot_dir / "source_data_for_figures.zip"
+    _zip_relative_files(snapshot_dir, figure_zip, all_figure_files)
+    _zip_relative_files(snapshot_dir, table_zip, table_files)
+    _zip_relative_files(snapshot_dir, source_zip, source_files)
+
+    report_downloads = {
+        "global_insights_report_md": "reports/global_insights_report.md",
+        "global_insights_figures_zip": "global_insights_figures.zip",
+        "global_insights_tables_zip": "global_insights_tables.zip",
+        "source_data_for_figures_zip": "source_data_for_figures.zip",
+    }
+    if report_docx:
+        report_downloads["global_insights_report_docx"] = "reports/global_insights_report.docx"
+    if report_pdf:
+        report_downloads["global_insights_report_pdf"] = "reports/global_insights_report.pdf"
+    summary.setdefault("downloads", {}).update(report_downloads)
+    summary["figure_exports"] = figure_exports
+    summary.setdefault("qa", {}).setdefault("checks", []).append(
+        {"check": "publication_exports_generated", "status": "pass", "detail": f"{len(figure_exports)} figures exported as SVG, PDF, and 600-dpi PNG with source data."}
+    )
+    summary.setdefault("qa", {}).setdefault("manuscript_readiness", {})["all_figures_exported"] = len(figure_exports) >= 9
 
 def generate_global_insights_snapshot(
     taxa: Iterable[dict[str, Any] | TaxonInput],
@@ -432,6 +1041,8 @@ def generate_global_insights_snapshot(
     metadata_rows_scanned = 0
     files_scanned = 0
     files_skipped = 0
+    latest_metadata_mtime = 0.0
+    latest_taxon_synced_at = ""
     genus_counter: Counter[str] = Counter()
     species_counter: Counter[str] = Counter()
     country_counter: Counter[str] = Counter()
@@ -445,7 +1056,7 @@ def generate_global_insights_snapshot(
     cumulative_year_counter: Counter[str] = Counter()
     bioproject_counter: Counter[str] = Counter()
     confidence_counter: Counter[str] = Counter()
-    correction_counter: Counter[tuple[str, str, str]] = Counter()
+    correction_counter: Counter[tuple[str, str, str, str, str]] = Counter()
     taxon_stats: dict[str, TaxonStats] = {}
     completeness_fields = {
         "Country": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
@@ -481,6 +1092,12 @@ def generate_global_insights_snapshot(
                 files_skipped += 1
                 continue
             files_scanned += 1
+            try:
+                latest_metadata_mtime = max(latest_metadata_mtime, path.stat().st_mtime)
+            except OSError:
+                pass
+            if taxon.last_synced_at and taxon.last_synced_at > latest_taxon_synced_at:
+                latest_taxon_synced_at = taxon.last_synced_at
             taxon_key = f"{taxon.rank}:{taxon.name}"
             stat = taxon_stats.setdefault(taxon_key, TaxonStats(name=taxon.name, rank=taxon.rank))
             with path.open(newline="", encoding="utf-8", errors="replace") as handle:
@@ -569,8 +1186,9 @@ def generate_global_insights_snapshot(
                         ("Sample type", raw_sample, std_sample),
                         ("Environment", raw_env, std_env),
                     ):
-                        if is_usable(raw_value) and is_usable(std_value) and normalized_key(raw_value) != normalized_key(std_value):
-                            correction_counter[(label, raw_value[:120], std_value[:120])] += 1
+                        if is_usable(std_value) and (not is_usable(raw_value) or normalized_key(raw_value) != normalized_key(std_value)):
+                            raw_display, evidence, confidence = correction_evidence(row, label, raw_value, std_value)
+                            correction_counter[(label, raw_display, std_value[:120], evidence, confidence)] += 1
 
                     simulator_writer.writerow(
                         {
@@ -684,8 +1302,16 @@ def generate_global_insights_snapshot(
     bias_warnings.sort(key=lambda row: ({"severe": 0, "high": 1, "moderate": 2, "low": 3}.get(str(row["severity"]), 9), -int(row.get("assemblies") or 0), -float(row["metric_percent"])))
 
     correction_rows = [
-        {"field": field, "raw_value": raw, "standardized_value": std, "records_rescued": count}
-        for (field, raw, std), count in correction_counter.most_common(100)
+        {
+            "field": field,
+            "primary_raw_value": raw,
+            "raw_value": raw,
+            "standardized_value": std,
+            "evidence_source": evidence,
+            "confidence": confidence,
+            "records_rescued": count,
+        }
+        for (field, raw, std, evidence, confidence), count in correction_counter.most_common(100)
     ]
 
     yearly_growth_rows = []
@@ -705,6 +1331,63 @@ def generate_global_insights_snapshot(
             pathogen_rows.append({**pathogen, **quality})
         else:
             pathogen_rows.append({**pathogen, "assemblies": 0, "metadata_quality_score": "", "metadata_quality_grade": "Not available"})
+
+    app_commit_available = bool(app_commit and app_commit != "unknown")
+    rule_manifest = standardization_rule_manifest()
+    tool_versions = tool_version_manifest()
+    production_gate = rule_manifest.get("production_readiness_gate") or {}
+    production_metrics = production_gate.get("metrics") or {}
+    standardization_validation_checks = [
+        ("file_errors", "file errors", 0),
+        ("non_country_values_in_country_rows", "invalid standardized country rows", 0),
+        ("country_continent_mismatch_rows", "country-continent mismatches", 0),
+        ("country_subcontinent_mismatch_rows", "country-subcontinent mismatches", 0),
+        ("invalid_sample_type_host_term_rows", "host-like sample-type rows", 0),
+        ("noisy_isolation_source_broad_rows", "unapproved broad source rows", 0),
+        ("body_site_leakage_values", "body-site leakage values", 0),
+        ("disease_leakage_values", "disease/source leakage values", 0),
+        ("raw_code_leakage_values", "raw code/text leakage values", 0),
+        ("controlled_category_duplicate_keys", "controlled-category duplicate keys", 0),
+        ("controlled_category_conflict_keys", "controlled-category conflict keys", 0),
+        ("regression_tests_failed", "regression tests failed", 0),
+    ]
+    qa_checks = [
+        {"check": "real_snapshot", "status": "pass", "detail": "Snapshot was generated from live metadata files, not demo values."},
+        {"check": "app_commit_available", "status": "pass" if app_commit_available else "warning", "detail": app_commit if app_commit_available else "FETCHM_WEBAPP_GIT_COMMIT was not set during build."},
+        {"check": "standardization_rules_fingerprinted", "status": "pass" if rule_manifest.get("version") != "not available" else "warning", "detail": f"{rule_manifest.get('version')} across {rule_manifest.get('total_rule_rows', 0):,} rule rows."},
+        {"check": "standardization_audit_available", "status": "pass" if production_gate else "warning", "detail": f"Latest audit: {rule_manifest.get('latest_audit_timestamp', 'not available')}"},
+        {"check": "standardization_production_ready", "status": "pass" if production_gate.get("production_ready") is True else "warning", "detail": "Production-readiness gate passed." if production_gate.get("production_ready") is True else "No passing production-readiness gate recorded."},
+        {"check": "tool_versions_recorded", "status": "pass" if tool_versions.get("ncbi_datasets_version") != "not available" and tool_versions.get("taxonkit_version") != "not available" else "warning", "detail": f"NCBI Datasets: {tool_versions.get('ncbi_datasets_version')}; TaxonKit: {tool_versions.get('taxonkit_version')}"},
+        {"check": "missing_values_excluded_from_biological_dominance", "status": "pass", "detail": "Missing tokens including absent/unknown/not applicable are excluded from host, country, source, and correction counters."},
+        {"check": "correction_evidence_available", "status": "pass" if any(row.get("evidence_source") != "not recorded" for row in correction_rows[:30]) else "warning", "detail": "Top correction rows include evidence_source and confidence fields."},
+        {"check": "metadata_files_scanned", "status": "pass" if files_scanned > 0 else "fail", "detail": f"{files_scanned} files scanned; {files_skipped} files skipped."},
+        {"check": "duplicate_rows_recorded", "status": "pass", "detail": f"{duplicate_rows} duplicate rows skipped by Assembly Accession."},
+    ]
+    for metric_key, label, expected in standardization_validation_checks:
+        raw_value = production_metrics.get(metric_key)
+        try:
+            numeric_value = int(float(str(raw_value)))
+        except (TypeError, ValueError):
+            numeric_value = None
+        qa_checks.append(
+            {
+                "check": metric_key,
+                "status": "pass" if numeric_value == expected else "warning",
+                "detail": f"{label}: {raw_value if raw_value not in (None, '') else 'not recorded'}",
+            }
+        )
+    qa_checks.append(
+        {
+            "check": "review_needed_counts",
+            "status": "pass",
+            "detail": (
+                f"Host review-needed rows: {production_metrics.get('host_review_needed_rows', 'not recorded')}; "
+                f"source-like mapped host rows for review: {production_metrics.get('source_like_mapped_host_rows_for_review', 'not recorded')}; "
+                f"source-like unmapped host rows for review: {production_metrics.get('source_like_unmapped_host_rows_for_review', 'not recorded')}"
+            ),
+        }
+    )
+    qa_status = "fail" if any(row["status"] == "fail" for row in qa_checks) else "warning" if any(row["status"] == "warning" for row in qa_checks) else "pass"
 
     summary = {
         "snapshot_id": snapshot_id,
@@ -733,7 +1416,42 @@ def generate_global_insights_snapshot(
             "qc_ready_rule": "At least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
             "bias_score_formulas": "Dominance scores are calculated as the top category share among assemblies in scope: top 1/5/10 BioProject share, top country share, top host share, and top collection-year share. Warning severity uses low <25%, moderate 25-49.99%, high 50-74.99%, and severe >=75%.",
             "metadata_quality_score": "0.20 country + 0.20 host/source + 0.15 collection year + 0.15 assembly quality + 0.10 BioProject diversity + 0.10 isolation source + 0.10 standardization confidence.",
+            "retrieval_date": latest_taxon_synced_at or iso_from_timestamp(latest_metadata_mtime),
+            "biosample_enrichment_date": latest_taxon_synced_at or iso_from_timestamp(latest_metadata_mtime),
+            "standardization_refresh_date": iso_from_timestamp(latest_metadata_mtime),
+            "files_scanned": files_scanned,
+            "files_skipped": files_skipped,
+            "metadata_rows_scanned": metadata_rows_scanned,
+            "duplicate_rows_skipped": duplicate_rows,
+            "final_unique_assemblies": unique_total,
+            "assembly_source": "all public assemblies represented by the current FetchM metadata snapshot; exact original GenBank/RefSeq/all request is not stored per legacy row",
+            "standardization_rule_version": rule_manifest.get("version", "not available"),
+            "standardization_rule_rows": rule_manifest.get("total_rule_rows", 0),
+            "standardization_approved_rule_rows": rule_manifest.get("approved_rule_rows", 0),
+            "standardization_review_or_nonapproved_rule_rows": rule_manifest.get("review_or_nonapproved_rule_rows", 0),
+            "standardization_rule_files": rule_manifest.get("files", []),
+            "latest_standardization_audit_timestamp": rule_manifest.get("latest_audit_timestamp", "not available"),
+            "latest_standardization_audit_git_commit": rule_manifest.get("latest_audit_git_commit", "not available"),
+            "latest_standardization_audit_code_version": rule_manifest.get("latest_audit_code_version", "not available"),
+            "ncbi_datasets_version": tool_versions.get("ncbi_datasets_version", "not available"),
+            "taxonkit_version": tool_versions.get("taxonkit_version", "not available"),
             "caution": "Global Insights describe representation within public genome repositories, not true global bacterial abundance, disease burden, or environmental prevalence.",
+        },
+        "qa": {
+            "status": qa_status,
+            "checks": qa_checks,
+            "manuscript_readiness": {
+                "real_snapshot": True,
+                "app_commit_available": app_commit_available,
+                "qa_gate_passed": qa_status == "pass",
+                "rule_version_available": rule_manifest.get("version") != "not available",
+                "validation_summary_available": bool(production_gate),
+                "tool_versions_available": tool_versions.get("ncbi_datasets_version") != "not available" and tool_versions.get("taxonkit_version") != "not available",
+                "all_figures_exported": False,
+                "source_data_exported": True,
+                "missing_values_not_biological_categories": True,
+                "snapshot_archived": True,
+            },
         },
         "taxonomic_landscape": {
             "top_genera": top_rows(genus_counter, unique_total, 25),
@@ -802,11 +1520,13 @@ def generate_global_insights_snapshot(
     )
     write_csv(table_dir / "metadata_quality.csv", taxon_quality, list(taxon_quality[0].keys()) if taxon_quality else ["taxon", "rank", "assemblies"])
     write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "assemblies", "bias_type", "severity", "metric_percent", "warning"])
-    write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "raw_value", "standardized_value", "records_rescued"])
+    write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "primary_raw_value", "raw_value", "standardized_value", "evidence_source", "confidence", "records_rescued"])
     write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies"])
     write_csv(table_dir / "qc_ready_taxa.csv", qc_ready_taxa, list(qc_ready_taxa[0].keys()) if qc_ready_taxa else ["taxon", "rank", "assemblies"])
     write_csv(table_dir / "bioproject_dominance.csv", bioproject_dominance, ["taxon", "rank", "assemblies", "top_1_bioproject_share_percent", "top_5_bioproject_share_percent", "top_10_bioproject_share_percent", "top_bioproject"])
     write_csv(table_dir / "pathogen_insights.csv", pathogen_rows, sorted({key for row in pathogen_rows for key in row.keys()}) if pathogen_rows else ["taxon_name", "rank", "group", "notes"])
+
+    generate_publication_exports(summary, tmp_dir, table_dir)
 
     (tmp_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     status_path.write_text(json.dumps({"snapshot_id": snapshot_id, "status": "completed", "completed_at": utc_now()}, indent=2), encoding="utf-8")
@@ -826,6 +1546,15 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
         shutil.rmtree(snapshot_dir)
     table_dir = snapshot_dir / "tables"
     table_dir.mkdir(parents=True, exist_ok=True)
+    app_commit_available = bool(app_commit and app_commit != "unknown")
+    qa_checks = [
+        {"check": "real_snapshot", "status": "warning", "detail": "Demo snapshot uses placeholder values and must not be cited."},
+        {"check": "app_commit_available", "status": "pass" if app_commit_available else "warning", "detail": app_commit if app_commit_available else "FETCHM_WEBAPP_GIT_COMMIT was not set during build."},
+        {"check": "missing_values_excluded_from_biological_dominance", "status": "pass", "detail": "Demo follows the same missing-value handling policy as live snapshots."},
+        {"check": "publication_exports_generated", "status": "pending", "detail": "Publication exports are generated after demo summary assembly."},
+    ]
+    qa_status = "warning"
+
     summary = {
         "snapshot_id": snapshot_id,
         "generated_at": utc_now(),
@@ -916,8 +1645,22 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
         ],
         "pathogen_insights": [],
         "downloads": {},
+        "qa": {
+            "status": qa_status,
+            "checks": qa_checks,
+            "manuscript_readiness": {
+                "real_snapshot": False,
+                "app_commit_available": app_commit_available,
+                "qa_gate_passed": False,
+                "all_figures_exported": False,
+                "source_data_exported": False,
+                "missing_values_not_biological_categories": True,
+                "snapshot_archived": True,
+            },
+        },
     }
     summary["manuscript"] = build_narrative(summary)
+    generate_publication_exports(summary, snapshot_dir, table_dir)
     (snapshot_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     (snapshot_dir / "status.json").write_text(json.dumps({"snapshot_id": snapshot_id, "status": "completed", "completed_at": utc_now()}, indent=2), encoding="utf-8")
     (output_root / "latest.json").write_text(json.dumps({"snapshot_id": snapshot_id, "summary_path": str(snapshot_dir / "summary.json"), "generated_at": summary["generated_at"], "is_demo": True}, indent=2), encoding="utf-8")

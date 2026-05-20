@@ -64,6 +64,7 @@ from global_insights import (
 APP_VERSION = "2026.05-genus-v1.1"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
+PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
 DATA_DIR = BASE_DIR / "data"
 JOBS_DIR = DATA_DIR / "jobs"
 GLOBAL_INSIGHTS_DIR_NAME = "global_insights"
@@ -109,6 +110,7 @@ PUBLIC_ENDPOINTS = {
     "forgot_password",
     "reset_password",
     "healthz",
+    "plotly_js",
     "static",
     "index",
     "api_taxa_search",
@@ -15831,8 +15833,12 @@ def make_plot_html(figure: Any, *, include_js: bool = False) -> str:
     return pio.to_html(
         figure,
         full_html=False,
-        include_plotlyjs="cdn",
-        config={"displayModeBar": False, "responsive": True},
+        include_plotlyjs="cdn" if include_js else False,
+        config={
+            "displayModeBar": False,
+            "responsive": True,
+            "topojsonURL": "/static/plotly-topojson/",
+        },
     )
 
 
@@ -15904,7 +15910,7 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
     def add_plot(key: str, figure: Any) -> None:
         styled = style_figure(figure)
         plots[key] = {
-            "html": make_plot_html(styled, include_js=True),
+            "html": make_plot_html(styled, include_js=False),
             "figure": styled,
         }
 
@@ -16040,8 +16046,9 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
             & ~countries.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing"})
         ]
         if not countries.empty:
-            country_counts = countries.value_counts().head(15).reset_index()
-            country_counts.columns = ["Country", "Genomes"]
+            country_counts_all = countries.value_counts().reset_index()
+            country_counts_all.columns = ["Country", "Genomes"]
+            country_counts = country_counts_all.head(15)
             add_plot(
                 "country_bar",
                 px.bar(
@@ -16060,7 +16067,7 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
             add_plot(
                 "geography_map",
                 px.choropleth(
-                    country_counts,
+                    country_counts_all,
                     locations="Country",
                     locationmode="country names",
                     color="Genomes",
@@ -16072,7 +16079,20 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
                         (1.0, "#173f45"),
                     ],
                     title="Geographic distribution",
-                ).update_layout(margin={"l": 0, "r": 0, "t": 60, "b": 0}),
+                )
+                .update_geos(
+                    projection_type="natural earth",
+                    showframe=False,
+                    showcoastlines=True,
+                    coastlinecolor="rgba(31,42,31,0.25)",
+                    showcountries=True,
+                    countrycolor="rgba(31,42,31,0.22)",
+                    showland=True,
+                    landcolor="#f7f1e3",
+                    showocean=True,
+                    oceancolor="#e8f0ed",
+                )
+                .update_layout(height=520, margin={"l": 0, "r": 0, "t": 60, "b": 0}),
             )
 
     for key, field, title, scale in [
@@ -22186,6 +22206,11 @@ def index() -> str:
     )
 
 
+@app.route("/assets/plotly.min.js")
+def plotly_js() -> Any:
+    return send_from_directory(PLOTLY_PACKAGE_DATA_DIR, "plotly.min.js")
+
+
 @app.route("/healthz")
 def healthz() -> Any:
     return {"commit": APP_COMMIT, "status": "ok", "version": APP_VERSION}
@@ -22224,6 +22249,11 @@ def download_global_insights_file(relative_path: str) -> Any:
         abort(404)
     allowed_files = {str(value) for value in (summary.get("downloads") or {}).values() if value}
     allowed_files.add("summary.json")
+    for figure in summary.get("figure_exports") or []:
+        files = figure.get("files") or {}
+        allowed_files.update(str(value) for value in files.values() if value)
+        if figure.get("source_data"):
+            allowed_files.add(str(figure["source_data"]))
     normalized = Path(relative_path)
     if normalized.is_absolute() or ".." in normalized.parts:
         abort(404)

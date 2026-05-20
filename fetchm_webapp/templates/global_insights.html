@@ -445,7 +445,7 @@
         <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
         <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
         <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Standardized country</span></div>
-        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Raw values standardized</span></div>
+        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Raw-to-standardized mappings</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
     </section>
@@ -467,8 +467,8 @@
     </section>
 
     <section class="panel">
-      <p class="insight-kicker">Main story</p>
-      <h2>What Exists, What Is Biased, and What Researchers Should Check</h2>
+      <p class="insight-kicker">Key findings</p>
+      <h2>Repository Representation and Sampling Bias</h2>
       <div class="story-grid">
         <article class="story-card">
           <p class="eyebrow">Taxonomic concentration</p>
@@ -605,13 +605,16 @@
       </div>
       {% if summary.standardization_impact.top_corrections %}
         <h3>Most Common Metadata Corrections</h3>
+        <p class="insight-note">If a primary field was absent or unusable but a standardized value was recovered from another reviewed field, the table now labels it as recovered secondary evidence rather than displaying misleading mappings such as “absent → host”.</p>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
                 <th>Field</th>
-                <th>Raw value</th>
+                <th>Primary raw value / recovery note</th>
                 <th>Standardized value</th>
+                <th>Evidence source</th>
+                <th>Confidence</th>
                 <th>Mapped records</th>
               </tr>
             </thead>
@@ -619,8 +622,10 @@
               {% for row in summary.standardization_impact.top_corrections[:12] %}
                 <tr>
                   <td>{{ row.field }}</td>
-                  <td>{{ row.raw_value }}</td>
+                  <td>{{ row.primary_raw_value|default(row.raw_value, true) }}</td>
                   <td>{{ row.standardized_value }}</td>
+                  <td>{{ row.evidence_source|default("not recorded", true) }}</td>
+                  <td>{{ row.confidence|default("not recorded", true) }}</td>
                   <td>{{ row.records_rescued }}</td>
                 </tr>
               {% endfor %}
@@ -632,9 +637,9 @@
     </details>
 
     <details class="panel insight-details">
-      <summary><span>Try the Standardization Impact Simulator</span><span class="tag">query</span></summary>
+      <summary><span>Raw versus Standardized Dataset-selection Simulator</span><span class="tag">query</span></summary>
       <div class="insight-details-body">
-      <p>Compare approximate dataset size under raw metadata filtering versus FetchM standardized metadata filtering. This uses the compact simulator table generated with the snapshot.</p>
+      <p>Estimate how dataset selection changes when the same query is applied to raw submitter fields versus FetchM standardized metadata fields. This uses the compact simulator table generated with the snapshot.</p>
       <form method="get" action="{{ url_for('global_insights') }}" class="job-form">
         <div class="grid two-column">
           <label><span>Taxon contains</span><input name="taxon" value="{{ simulator_filters.taxon }}" placeholder="Escherichia coli"></label>
@@ -644,7 +649,7 @@
           <label><span>Year from</span><input name="year_from" value="{{ simulator_filters.year_from }}" placeholder="2018"></label>
           <label><span>Year to</span><input name="year_to" value="{{ simulator_filters.year_to }}" placeholder="2025"></label>
         </div>
-        <button type="submit">Compare raw vs standardized filters</button>
+        <button type="submit">Compare dataset selection</button>
       </form>
       {% if simulator_result %}
         {% if simulator_result.available %}
@@ -798,6 +803,35 @@
     </details>
 
     <details class="panel insight-details">
+      <summary><span>Validation and Manuscript-readiness QA</span><span class="tag">{{ (summary.qa or {}).get("status", "legacy") }}</span></summary>
+      <div class="insight-details-body">
+        <p class="insight-note">This panel separates scientific correctness checks from visual dashboard rendering. Legacy snapshots may show missing QA fields until Global Insights is regenerated.</p>
+        {% set qa = summary.qa or {} %}
+        {% set checklist = qa.get("manuscript_readiness") or {} %}
+        <div class="metrics-grid">
+          <div class="metric-card"><strong>{{ qa.get("status", "legacy") }}</strong><span>QA gate</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("app_commit_available") else "no" }}</strong><span>App commit available</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("rule_version_available") else "no" }}</strong><span>Rule version available</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("validation_summary_available") else "no" }}</strong><span>Validation summary available</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("missing_values_not_biological_categories") else "unknown" }}</strong><span>Missing values excluded from biological categories</span></div>
+          <div class="metric-card"><strong>{{ "yes" if checklist.get("source_data_exported") else "unknown" }}</strong><span>Source tables exported</span></div>
+        </div>
+        <div class="table-scroll top-gap">
+          <table>
+            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+            <tbody>
+              {% for check in qa.get("checks", []) %}
+                <tr><td>{{ check.check }}</td><td>{{ check.status }}</td><td>{{ check.detail }}</td></tr>
+              {% else %}
+                <tr><td colspan="3">No QA checklist is embedded in this snapshot yet. Regenerate Global Insights after the latest code update.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel insight-details">
       <summary><span>Methods & Reproducibility</span><span class="tag">expand</span></summary>
       <div class="insight-details-body">
       <div class="coverage-table">
@@ -812,7 +846,61 @@
         <div class="coverage-row"><strong>QC-ready rule</strong><span>{{ summary.methods.qc_ready_rule }}</span><span></span></div>
         <div class="coverage-row"><strong>Bias formulas</strong><span>{{ summary.methods.bias_score_formulas }}</span><span></span></div>
         <div class="coverage-row"><strong>Quality score</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>
+        <div class="coverage-row"><strong>Files scanned/skipped</strong><span>{{ summary.methods.files_scanned|default(summary.overview.metadata_files_scanned, true) }} scanned · {{ summary.methods.files_skipped|default(summary.overview.metadata_files_skipped, true) }} skipped</span><span></span></div>
+        <div class="coverage-row"><strong>Rows and duplicates</strong><span>{{ summary.methods.metadata_rows_scanned|default(summary.overview.metadata_rows_scanned, true) }} rows scanned · {{ summary.methods.duplicate_rows_skipped|default(summary.overview.duplicate_rows_skipped, true) }} duplicates skipped</span><span></span></div>
+        <div class="coverage-row"><strong>Snapshot dates</strong><span>Retrieval/enrichment: {{ summary.methods.retrieval_date|default("not recorded", true) }} · Standardization refresh: {{ summary.methods.standardization_refresh_date|default("not recorded", true) }}</span><span></span></div>
+        <div class="coverage-row"><strong>Assembly source</strong><span>{{ summary.methods.assembly_source|default("not recorded", true) }}</span><span></span></div>
+        <div class="coverage-row"><strong>Rule/tool versions</strong><span>Standardization rules: {{ summary.methods.standardization_rule_version|default("not recorded", true) }} · NCBI Datasets: {{ summary.methods.ncbi_datasets_version|default("not recorded", true) }} · TaxonKit: {{ summary.methods.taxonkit_version|default("not recorded", true) }}</span><span></span></div>
+        <div class="coverage-row"><strong>Rule rows</strong><span>{{ summary.methods.standardization_rule_rows|default("not recorded", true) }} total · {{ summary.methods.standardization_approved_rule_rows|default("not recorded", true) }} approved · {{ summary.methods.standardization_review_or_nonapproved_rule_rows|default("not recorded", true) }} review/non-approved</span><span></span></div>
+        <div class="coverage-row"><strong>Latest standardization audit</strong><span>{{ summary.methods.latest_standardization_audit_timestamp|default("not recorded", true) }} · code {{ summary.methods.latest_standardization_audit_code_version|default("not recorded", true) }}</span><span></span></div>
       </div>
+      </div>
+    </details>
+
+    <details class="panel insight-details" open>
+      <summary><span>Publication Exports</span><span class="tag">figures and reports</span></summary>
+      <div class="insight-details-body">
+        <p class="insight-note">Download manuscript-oriented reports, static figures, and source data generated from the same snapshot shown on this page. PNG figures are exported at 600 dpi; SVG and PDF versions are included for editing and journal production.</p>
+        {% set downloads = summary.downloads or {} %}
+        <div class="metrics-grid">
+          <div class="metric-card"><strong>{{ (summary.figure_exports or [])|length }}</strong><span>Publication figures</span></div>
+          <div class="metric-card"><strong>{{ "yes" if downloads.get("global_insights_figures_zip") else "no" }}</strong><span>Figure ZIP</span></div>
+          <div class="metric-card"><strong>{{ "yes" if downloads.get("source_data_for_figures_zip") else "no" }}</strong><span>Source data ZIP</span></div>
+          <div class="metric-card"><strong>{{ "yes" if downloads.get("global_insights_report_docx") else "no" }}</strong><span>DOCX report</span></div>
+        </div>
+        <div class="file-list top-gap">
+          {% if downloads.get("global_insights_report_md") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_md')) }}">Manuscript report MD</a>{% endif %}
+          {% if downloads.get("global_insights_report_docx") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_docx')) }}">Manuscript report DOCX</a>{% endif %}
+          {% if downloads.get("global_insights_report_pdf") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_pdf')) }}">Manuscript report PDF</a>{% endif %}
+          {% if downloads.get("global_insights_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_figures_zip')) }}">All figures ZIP</a>{% endif %}
+          {% if downloads.get("source_data_for_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('source_data_for_figures_zip')) }}">Source data for figures ZIP</a>{% endif %}
+          {% if downloads.get("global_insights_tables_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_tables_zip')) }}">All tables ZIP</a>{% endif %}
+        </div>
+        {% if summary.figure_exports %}
+          <h3>Figure Index</h3>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Figure</th><th>Title</th><th>Denominator</th><th>Source data</th><th>Downloads</th></tr></thead>
+              <tbody>
+                {% for figure in summary.figure_exports %}
+                  <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ figure.title }}</td>
+                    <td>{{ figure.denominator }}</td>
+                    <td><a href="{{ url_for('download_global_insights_file', relative_path=figure.source_data) }}">CSV</a></td>
+                    <td>
+                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.svg) }}">SVG</a> ·
+                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.pdf) }}">PDF</a> ·
+                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.png) }}">PNG</a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="job-meta top-gap">Publication exports are not embedded in this snapshot yet. Regenerate Global Insights after deployment.</p>
+        {% endif %}
       </div>
     </details>
 
@@ -820,7 +908,15 @@
       <h2>Copyable Manuscript-ready Summary</h2>
       <p class="insight-explain">These are copyable text outputs, not figures. Figure-ready visual summaries are shown above in the main story and growth sections.</p>
       {{ copy_block("Abstract-style summary", summary.manuscript.abstract, "copy-abstract") }}
-      {{ copy_block("Results paragraph", summary.manuscript.results, "copy-results") }}
+      {{ copy_block("Full results paragraph", summary.manuscript.results, "copy-results") }}
+      {{ copy_block("Dataset overview", summary.manuscript.dataset_overview, "copy-dataset-overview") }}
+      {{ copy_block("Metadata completeness and standardization", summary.manuscript.metadata_completeness, "copy-metadata-completeness") }}
+      {{ copy_block("Taxonomic concentration", summary.manuscript.taxonomic_concentration, "copy-taxonomic-concentration") }}
+      {{ copy_block("Geographic representation", summary.manuscript.geographic_representation, "copy-geographic-representation") }}
+      {{ copy_block("Host/source representation", summary.manuscript.host_source_representation, "copy-host-source") }}
+      {{ copy_block("Temporal growth and assembly quality", summary.manuscript.temporal_growth_and_assembly_quality, "copy-temporal-quality") }}
+      {{ copy_block("Metadata quality by taxon", summary.manuscript.metadata_quality_by_taxon, "copy-quality-taxon") }}
+      {{ copy_block("BioProject dominance and sampling bias", summary.manuscript.bioproject_dominance_and_sampling_bias, "copy-bioproject-bias") }}
       {{ copy_block("Methods paragraph", summary.manuscript.methods, "copy-methods") }}
       {{ copy_block("Limitations paragraph", summary.manuscript.limitations, "copy-limitations") }}
       {{ copy_block("Figure legend text", summary.manuscript.figure_legend, "copy-figure") }}
@@ -828,7 +924,7 @@
     </section>
 
     <details class="panel insight-details">
-      <summary><span>Downloads</span><span class="tag">export tables</span></summary>
+      <summary><span>Downloads</span><span class="tag">exports</span></summary>
       <div class="insight-details-body">
       <div class="file-list">
         <a href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">summary.json</a>
