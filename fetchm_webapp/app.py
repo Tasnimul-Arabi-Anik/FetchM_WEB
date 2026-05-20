@@ -10017,6 +10017,13 @@ def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
             JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
             WHERE s.status = 'pending'
               AND r.status IN ('pending', 'running')
+              AND NOT EXISTS (
+                    SELECT 1
+                    FROM dataset_update_pipeline_steps ps
+                    WHERE ps.run_id = s.run_id
+                      AND ps.step_order < s.step_order
+                      AND ps.status != 'completed'
+              )
             ORDER BY r.requested_at ASC, s.step_order ASC
             LIMIT 1
             """
