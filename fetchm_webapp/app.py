@@ -8074,6 +8074,46 @@ def request_pipeline_catalog_syncs(db: sqlite3.Connection, rank: str, dataset_ve
     }
 
 
+def clear_reusable_metadata_refresh_requests(
+    db: sqlite3.Connection,
+    rank: str,
+    dataset_version_id: str | None = None,
+) -> int:
+    rank = normalize_taxon_rank(rank)
+    now = utc_now()
+    params: list[Any] = [now, rank]
+    dataset_filter = ""
+    if dataset_version_id:
+        dataset_filter = "AND staging_dataset_version_id = ?"
+        params.append(dataset_version_id)
+    cursor = db.execute(
+        f"""
+        UPDATE species
+        SET metadata_refresh_requested = 0,
+            metadata_claimed_by = NULL,
+            metadata_claimed_at = NULL,
+            metadata_error = NULL,
+            updated_at = ?
+        WHERE taxon_rank = ?
+          AND status = 'ready'
+          AND tsv_path IS NOT NULL
+          AND metadata_status = 'ready'
+          AND metadata_path IS NOT NULL
+          AND metadata_clean_path IS NOT NULL
+          AND metadata_claimed_at IS NULL
+          AND metadata_refresh_requested = 1
+          {dataset_filter}
+          AND COALESCE(genome_count, 0) <= (
+                SELECT COUNT(DISTINCT am.assembly_accession)
+                FROM assembly_metadata am
+                WHERE am.species_id = species.id
+          )
+        """,
+        tuple(params),
+    )
+    return int(cursor.rowcount or 0)
+
+
 def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_version_id: str | None = None) -> dict[str, Any]:
     rank = normalize_taxon_rank(rank)
     now = utc_now()
@@ -8128,30 +8168,7 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_
         """,
         (dataset_version_id, now, rank),
     )
-    if dataset_version_id:
-        db.execute(
-            """
-            UPDATE species
-            SET metadata_refresh_requested = 0,
-                metadata_claimed_by = NULL,
-                metadata_claimed_at = NULL,
-                metadata_error = NULL,
-                updated_at = ?
-            WHERE taxon_rank = ?
-              AND status = 'ready'
-              AND tsv_path IS NOT NULL
-              AND metadata_status = 'ready'
-              AND metadata_path IS NOT NULL
-              AND metadata_clean_path IS NOT NULL
-              AND staging_dataset_version_id = ?
-              AND COALESCE(genome_count, 0) <= (
-                    SELECT COUNT(DISTINCT am.assembly_accession)
-                    FROM assembly_metadata am
-                    WHERE am.species_id = species.id
-              )
-            """,
-            (now, rank, dataset_version_id),
-        )
+    reused_now = clear_reusable_metadata_refresh_requests(db, rank, dataset_version_id) if dataset_version_id else 0
     counts = dataset_pipeline_rank_counts(db)
     reusable_row = db.execute(
         """
@@ -8178,7 +8195,7 @@ def request_pipeline_metadata_builds(db: sqlite3.Connection, rank: str, dataset_
         "active": counts.get(f"metadata_{rank}_active", 0),
         "ready": counts.get(f"metadata_{rank}_ready", 0),
         "total": counts.get(f"metadata_{rank}_total", 0),
-        "reused": int(reusable_row["total"] or 0) if reusable_row is not None else 0,
+        "reused": reused_now or (int(reusable_row["total"] or 0) if reusable_row is not None else 0),
         "mode": "incremental_new_accessions",
     }
 
@@ -17188,6 +17205,7 @@ def claim_next_species_metadata_build(worker_name: str) -> SpeciesRecord | None:
         db.execute("BEGIN IMMEDIATE")
         release_stale_metadata_claims_for_dead_workers(db)
         release_duplicate_metadata_claims_for_worker(db, worker_name)
+        clear_reusable_metadata_refresh_requests(db, "genus", active_pipeline_dataset_version(db))
         genus_work_exists = db.execute(
             """
             SELECT 1
@@ -17670,9 +17688,60 @@ def claim_next_assembly_feature_backfill(worker_name: str) -> SpeciesRecord | No
         return claimed
 
 
+def release_stale_species_sync_claims_for_dead_workers(db: sqlite3.Connection) -> int:
+    rows = db.execute(
+        """
+        SELECT id, status, tsv_path, refresh_requested, claimed_by
+        FROM species
+        WHERE taxon_rank = 'genus'
+          AND claimed_at IS NOT NULL
+        """
+    ).fetchall()
+    stale_rows = [
+        row
+        for row in rows
+        if row["claimed_by"] and not worker_heartbeat_is_live(str(row["claimed_by"]))
+    ]
+    if not stale_rows:
+        return 0
+    now = utc_now()
+    reset_count = 0
+    for row in stale_rows:
+        status = str(row["status"] or "")
+        has_tsv = bool(row["tsv_path"])
+        refresh_requested = int(row["refresh_requested"] or 0)
+        if status == "syncing":
+            next_status = "ready" if has_tsv else "pending"
+            next_refresh = refresh_requested if has_tsv else 1
+        else:
+            next_status = status
+            next_refresh = refresh_requested
+        cursor = db.execute(
+            """
+            UPDATE species
+            SET status = ?,
+                refresh_requested = ?,
+                claimed_by = NULL,
+                claimed_at = NULL,
+                sync_error = CASE
+                    WHEN status = 'syncing' THEN COALESCE(sync_error, 'Stale catalog claim from a dead worker was reset.')
+                    ELSE sync_error
+                END,
+                updated_at = ?
+            WHERE id = ?
+              AND taxon_rank = 'genus'
+              AND claimed_at IS NOT NULL
+            """,
+            (next_status, next_refresh, now, row["id"]),
+        )
+        reset_count += int(cursor.rowcount or 0)
+    return reset_count
+
+
 def claim_next_species_sync(worker_name: str) -> SpeciesRecord | None:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
+        release_stale_species_sync_claims_for_dead_workers(db)
         row = db.execute(
             """
             SELECT *
