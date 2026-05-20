@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
-<main class="layout">
-  <section class="panel detail-head">
+<main class="layout admin-console">
+  <section class="panel admin-hero">
     <div>
-      <p class="eyebrow">Admin</p>
-      <h1>Overview</h1>
-      <p class="lede">Dataset refresh pipeline, release summary, and operational health.</p>
+      <p class="eyebrow">Admin Operations</p>
+      <h1>Dataset Command Center</h1>
+      <p class="lede">Staged dataset refresh, live replacement safety, and system health.</p>
+      <div class="admin-chip-row">
+        <span class="admin-chip live">Live {{ admin_summary.active_version_id }}</span>
+        <span class="admin-chip {{ 'running' if dataset_pipeline.active_run else 'idle' }}">{{ 'Active run' if dataset_pipeline.active_run else 'Idle' }}</span>
+        <span class="admin-chip">Schedule {{ 'enabled' if dataset_pipeline.discovery_schedule_enabled else 'paused' }}</span>
+        <span class="admin-chip {{ 'live' if system_monitor.quality_gate.accepting_quality_jobs else 'failed' }}">QC {{ 'accepting' if system_monitor.quality_gate.accepting_quality_jobs else 'paused' }}</span>
+      </div>
     </div>
-    <div class="status-box">
-      <span class="status running">admin</span>
-      <div class="job-meta">Live: {{ admin_summary.active_version_id }}</div>
+    <div class="admin-hero-actions">
       {% if admin_summary.latest_run %}
-        <div class="job-meta">Latest run: {{ admin_summary.latest_run.status }}</div>
+        <div class="job-meta">Latest: {{ admin_summary.latest_run.status }} · {{ admin_summary.latest_run.requested_at }}</div>
+      {% endif %}
+      {% if dataset_pipeline.active_run %}
+        <form action="{{ url_for('admin_cancel_dataset_pipeline') }}" method="post">
+          <input type="hidden" name="run_id" value="{{ dataset_pipeline.active_run.run_id }}">
+          <button type="submit" class="ghost">Stop current run</button>
+        </form>
       {% endif %}
     </div>
   </section>
@@ -19,17 +29,75 @@
   {% include "_admin_nav.html" %}
 
   <style>
-    .pipeline-board { display: grid; gap: 14px; }
-    .pipeline-stage {
+    .admin-console { gap: 18px; }
+    .admin-hero {
       display: grid;
-      grid-template-columns: minmax(220px, 0.78fr) minmax(360px, 1.22fr);
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: start;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(208, 138, 60, 0.18), transparent 34%),
+        linear-gradient(135deg, rgba(22, 92, 78, 0.10), rgba(255,255,255,0.86));
+    }
+    .admin-hero-actions { display: grid; gap: 10px; justify-items: end; }
+    .admin-chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .admin-chip {
+      display: inline-flex;
+      align-items: center;
+      width: max-content;
+      padding: 7px 10px;
+      border: 1px solid rgba(22, 92, 78, 0.16);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.72);
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 0.035em;
+    }
+    .admin-chip.live { color: var(--success); background: rgba(27, 107, 57, 0.11); }
+    .admin-chip.running { color: #8a5a16; background: rgba(208, 138, 60, 0.14); }
+    .admin-chip.failed { color: var(--danger); background: rgba(142, 47, 29, 0.10); }
+    .admin-chip.idle { color: var(--accent); }
+    .admin-command-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; align-items: stretch; }
+    .dataset-state-panel {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .dataset-state-card {
+      padding: 15px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.70);
+      display: grid;
+      gap: 8px;
+    }
+    .dataset-state-card h3 { margin: 0; font-size: 1rem; }
+    .dataset-state-card .version { font-weight: 900; color: var(--accent); overflow-wrap: anywhere; }
+    .dataset-state-metrics { display: grid; gap: 5px; color: var(--muted); font-size: 0.92rem; }
+    .health-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .health-card {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.72);
+    }
+    .health-card strong { display: block; font-size: 1.18rem; line-height: 1.15; overflow-wrap: anywhere; }
+    .health-card span { color: var(--muted); font-size: 0.86rem; }
+    .pipeline-board { display: grid; gap: 12px; }
+    .pipeline-step-card {
+      display: grid;
+      grid-template-columns: minmax(210px, 0.62fr) minmax(420px, 1.38fr);
       gap: 18px;
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 18px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(246,241,228,0.72));
+      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(246,241,228,0.70));
     }
-    .pipeline-stage-head { display: flex; gap: 12px; align-items: flex-start; }
+    .pipeline-step-card.is-running { border-color: rgba(208, 138, 60, 0.36); box-shadow: 0 10px 26px rgba(84, 68, 40, 0.08); }
+    .pipeline-step-main { display: grid; gap: 12px; align-content: start; }
+    .pipeline-step-title { display: flex; gap: 11px; align-items: flex-start; }
     .pipeline-index {
       display: inline-flex;
       align-items: center;
@@ -41,149 +109,122 @@
       color: var(--accent);
       font-weight: 900;
     }
-    .pipeline-stage h3 { margin: 0 0 3px; font-size: 1.1rem; }
-    .pipeline-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+    .pipeline-step-title h3 { margin: 0 0 2px; font-size: 1.08rem; }
+    .pipeline-controls { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
     .pipeline-controls form, .pipeline-inline-form { margin: 0; }
     .pipeline-check {
       display: inline-flex;
-      gap: 8px;
+      gap: 7px;
       align-items: center;
       padding: 8px 10px;
       border: 1px solid var(--line);
       border-radius: 999px;
       background: rgba(255,255,255,0.72);
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 800;
+      font-size: 0.88rem;
     }
     .pipeline-progress-box { display: grid; gap: 8px; align-content: start; }
-    .pipeline-progress-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; font-weight: 800; }
+    .pipeline-progress-top { display: flex; justify-content: space-between; gap: 12px; align-items: center; font-weight: 900; }
     .pipeline-bar { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(22, 92, 78, 0.12); }
     .pipeline-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #165c4e, #d08a3c); }
-    .pipeline-stage.is-running .pipeline-bar span { min-width: 24px; background-size: 220% 100%; animation: pipeline-flow 1.8s linear infinite; }
+    .pipeline-step-card.is-running .pipeline-bar span { min-width: 24px; background-size: 220% 100%; animation: pipeline-flow 1.8s linear infinite; }
     @keyframes pipeline-flow { from { background-position: 0% 50%; } to { background-position: 220% 50%; } }
-    .pipeline-detail-list { display: grid; gap: 4px; color: var(--muted); font-size: 0.92rem; }
+    .pipeline-detail-list { display: grid; gap: 4px; color: var(--muted); font-size: 0.91rem; }
+    .pipeline-detail-list .status-line { color: var(--accent); font-weight: 900; }
     .pipeline-settings { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-top: 12px; }
     .pipeline-settings label { min-width: 150px; }
-    .pipeline-danger-panel {
+    .danger-zone {
       margin-top: 14px;
       padding: 14px;
-      border: 1px solid rgba(142, 47, 29, 0.2);
+      border: 1px solid rgba(142, 47, 29, 0.22);
       border-radius: 16px;
-      background: rgba(142, 47, 29, 0.06);
+      background: rgba(142, 47, 29, 0.055);
     }
-    .pipeline-live-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 12px;
-      border: 1px solid rgba(22, 92, 78, 0.16);
-      border-radius: 14px;
-      background: rgba(22, 92, 78, 0.06);
+    .admin-advanced summary { cursor: pointer; font-weight: 900; color: var(--accent); }
+    .admin-advanced { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: rgba(255,255,255,0.62); }
+    @media (max-width: 1100px) {
+      .admin-command-grid, .dataset-state-panel, .pipeline-step-card { grid-template-columns: 1fr; }
+      .health-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
-    .admin-summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-      gap: 10px;
+    @media (max-width: 720px) {
+      .admin-hero { grid-template-columns: 1fr; }
+      .admin-hero-actions { justify-items: start; }
+      .health-strip { grid-template-columns: 1fr; }
     }
-    .admin-advanced summary {
-      cursor: pointer;
-      font-weight: 800;
-      color: var(--accent);
-    }
-    .admin-advanced {
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 14px;
-      background: rgba(255,255,255,0.62);
-    }
-    @media (max-width: 980px) { .pipeline-stage { grid-template-columns: 1fr; } }
   </style>
 
   <section class="panel">
     <div class="admin-group-head">
       <div>
-        <p class="eyebrow">Summary</p>
-        <h2>Current and staged dataset state</h2>
+        <p class="eyebrow">Dataset State</p>
+        <h2>Live, staged, and rollback data</h2>
       </div>
-      <p class="section-note">The website serves the live dataset until a staged run is verified and replaced.</p>
+      <p class="section-note">Users stay on the live dataset until staged data is verified and published.</p>
     </div>
-    <div class="admin-summary-grid top-gap">
-      <div class="metric-card metric-wide">
-        <strong>{{ admin_summary.active_version_id }}</strong>
-        <span>Current live dataset version</span>
+    <div class="admin-command-grid top-gap">
+      <div class="dataset-state-panel">
+        <article class="dataset-state-card">
+          <h3>Current Live</h3>
+          <div class="version">{{ admin_summary.active_version_id }}</div>
+          <div class="dataset-state-metrics">
+            <span>{{ admin_summary.live.genus_metadata_ready or 0 }} genera with metadata</span>
+            <span>{{ admin_summary.live.species_metadata_ready or 0 }} species with metadata</span>
+            <span>{{ admin_summary.live.live_unique_assemblies or 0 }} unique assemblies</span>
+            <span>{{ admin_summary.live.taxon_scoped_genomes or 0 }} taxon-scoped rows</span>
+          </div>
+        </article>
+        <article class="dataset-state-card">
+          <h3>Staged Candidate</h3>
+          <div class="version">{{ dataset_pipeline.staging_version.version_id if dataset_pipeline.staging_version else 'No staged version' }}</div>
+          <div class="dataset-state-metrics">
+            <span>{{ admin_summary.staged.staged_genus_metadata_ready or 0 }} verified genera</span>
+            <span>{{ admin_summary.staged.staged_species_metadata_ready or 0 }} verified species</span>
+            <span>{{ admin_summary.staged.staged_unique_assemblies or 0 }} verified unique assemblies</span>
+            <span>{{ admin_summary.staged.staged_genus_only_unique_assemblies or 0 }} genus-only/unmapped assemblies</span>
+          </div>
+        </article>
+        <article class="dataset-state-card">
+          <h3>Archived Rollback</h3>
+          <div class="version">{{ admin_summary.previous_version_id or 'No archive' }}</div>
+          <div class="dataset-state-metrics">
+            {% if admin_summary.previous_version_id and admin_summary.previous %}
+              <span>{{ admin_summary.previous.genus_metadata_ready or 0 }} genera</span>
+              <span>{{ admin_summary.previous.species_metadata_ready or 0 }} species</span>
+              <span>{{ admin_summary.previous.taxon_scoped_genomes or 0 }} taxon-scoped rows</span>
+            {% else %}
+              <span>Created after the next successful replacement.</span>
+            {% endif %}
+            <span>Retention: one rollback version</span>
+          </div>
+        </article>
       </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.live.genus_metadata_ready or 0 }}</strong>
-        <span>Live genera with metadata</span>
+      <div class="health-strip">
+        <div class="health-card"><strong>{{ observability.live_worker_total }}</strong><span>Live workers</span></div>
+        <div class="health-card"><strong>{{ "%.1f"|format(system_monitor.cpu_percent) if system_monitor.cpu_percent is not none else "N/A" }}%</strong><span>CPU usage</span></div>
+        <div class="health-card"><strong>{{ system_monitor.memory.used_label }}</strong><span>Memory used of {{ system_monitor.memory.total_label }}</span></div>
+        <div class="health-card"><strong>{{ storage.disk_free_label }}</strong><span>System free space</span></div>
+        <div class="health-card"><strong>{{ system_monitor.network.rx_rate_label }} / {{ system_monitor.network.tx_rate_label }}</strong><span>Network RX / TX</span></div>
+        <div class="health-card"><strong>{% if system_monitor.hottest_sensor %}{{ system_monitor.hottest_sensor.current_c }} C{% else %}N/A{% endif %}</strong><span>Hottest sensor</span></div>
       </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.live.species_metadata_ready or 0 }}</strong>
-        <span>Live species with metadata</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.live.taxon_scoped_genomes or 0 }}</strong>
-        <span>Live taxon-scoped genome rows</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.staged.staged_unique_assemblies or 0 }}</strong>
-        <span>Verified staged unique assemblies</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.staged.staged_genus_metadata_ready or 0 }}</strong>
-        <span>Verified staged genera</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.staged.staged_species_metadata_ready or 0 }}</strong>
-        <span>Verified staged species</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ admin_summary.staged.staged_genus_only_unique_assemblies or 0 }}</strong>
-        <span>Genus-only or unmapped assemblies</span>
-      </div>
-    </div>
-    <div class="job-meta top-gap">
-      Replacement policy: the current live dataset is archived before a verified staged dataset becomes live.
-      Only one archived rollback version is retained; older archives are deleted after the next successful replacement.
-      {% if admin_summary.previous_version_id and admin_summary.previous %}
-        Previous archived version: {{ admin_summary.previous_version_id }}
-        ({{ admin_summary.previous.genus_metadata_ready or 0 }} genera,
-        {{ admin_summary.previous.species_metadata_ready or 0 }} species,
-        {{ admin_summary.previous.taxon_scoped_genomes or 0 }} taxon-scoped genome rows).
-      {% endif %}
     </div>
     <div class="hint-block top-gap">
       <strong>Coverage principle</strong>
       <p>Genus metadata is the comprehensive bacterial coverage layer. Species metadata is derived only for confident species assignments; ambiguous or provisional records remain available at genus level instead of being forced into incorrect species files.</p>
     </div>
-    {% if admin_summary.latest_run %}
-      <div class="hint-block top-gap">
-        <strong>Latest pipeline run</strong>
-        <p>
-          {{ admin_summary.latest_run.run_id }} is {{ admin_summary.latest_run.status }}.
-          Requested: {{ admin_summary.latest_run.requested_at }}.
-          {% if admin_summary.latest_run.completed_at %}Completed: {{ admin_summary.latest_run.completed_at }}.{% endif %}
-          {% if admin_summary.latest_run.error %}<span class="danger-text">{{ admin_summary.latest_run.error }}</span>{% endif %}
-        </p>
-      </div>
-    {% endif %}
   </section>
 
   <section class="panel">
     <div class="admin-group-head">
       <div>
         <p class="eyebrow">Dataset Update Pipeline</p>
-        <h2>Sequential dataset refresh controls</h2>
+        <h2>Sequential refresh controls</h2>
       </div>
-      <p class="section-note">Run from any stage when idle, or let enabled stages continue automatically.</p>
+      <p class="section-note">Run from any stage when idle. Enabled stages continue only after the previous step completes.</p>
     </div>
     {% if dataset_pipeline.active_run %}
       <div class="pipeline-live-actions top-gap">
-        <span class="job-meta">
-          Active: {{ dataset_pipeline.active_run.run_id }}. Auto-refreshing every 30 seconds.
-          Stop this run before rerunning an individual step.
-        </span>
+        <span class="job-meta">Active: {{ dataset_pipeline.active_run.run_id }}. Auto-refreshing every 30 seconds.</span>
         <form action="{{ url_for('admin_cancel_dataset_pipeline') }}" method="post">
           <input type="hidden" name="run_id" value="{{ dataset_pipeline.active_run.run_id }}">
           <button type="submit" class="ghost">Stop current run</button>
@@ -193,46 +234,19 @@
 
     <form id="pipeline-settings-form" action="{{ url_for('admin_set_dataset_pipeline_settings') }}" method="post"></form>
     <div class="pipeline-settings top-gap">
-      <label>
-        <span>Discovery schedule</span>
-        <select form="pipeline-settings-form" name="dataset_pipeline_discovery_schedule_enabled">
-          <option value="1" {% if dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Enabled</option>
-          <option value="0" {% if not dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Paused</option>
-        </select>
-      </label>
-      <label>
-        <span>Every N days</span>
-        <input form="pipeline-settings-form" type="number" name="dataset_pipeline_discovery_interval_days" min="1" max="365" value="{{ dataset_pipeline.discovery_interval_days }}" list="pipeline-day-options">
-        <datalist id="pipeline-day-options">
-          <option value="7"></option>
-          <option value="14"></option>
-          <option value="30"></option>
-          <option value="60"></option>
-        </datalist>
-      </label>
-      <label>
-        <span>UTC hour</span>
-        <input form="pipeline-settings-form" type="number" name="dataset_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.schedule_hour_utc }}">
-      </label>
-      <label>
-        <span>Discovery taxon</span>
-        <input form="pipeline-settings-form" type="text" name="dataset_pipeline_scope" value="{{ dataset_pipeline.scope }}">
-      </label>
-      <label>
-        <span>Replacement mode</span>
-        <select form="pipeline-settings-form" name="dataset_pipeline_auto_publish_insights">
-          <option value="1" {% if dataset_pipeline.auto_publish_insights %}selected{% endif %}>Auto replace and generate insights</option>
-          <option value="0" {% if not dataset_pipeline.auto_publish_insights %}selected{% endif %}>Verify only</option>
-        </select>
-      </label>
-      <button form="pipeline-settings-form" type="submit">Save pipeline settings</button>
+      <label><span>Schedule</span><select form="pipeline-settings-form" name="dataset_pipeline_discovery_schedule_enabled"><option value="1" {% if dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not dataset_pipeline.discovery_schedule_enabled %}selected{% endif %}>Paused</option></select></label>
+      <label><span>Every N days</span><input form="pipeline-settings-form" type="number" name="dataset_pipeline_discovery_interval_days" min="1" max="365" value="{{ dataset_pipeline.discovery_interval_days }}" list="pipeline-day-options"><datalist id="pipeline-day-options"><option value="7"></option><option value="14"></option><option value="30"></option><option value="60"></option></datalist></label>
+      <label><span>UTC hour</span><input form="pipeline-settings-form" type="number" name="dataset_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.schedule_hour_utc }}"></label>
+      <label><span>Discovery target</span><input form="pipeline-settings-form" type="text" name="dataset_pipeline_scope" value="{{ dataset_pipeline.scope }}"></label>
+      <label><span>Replacement mode</span><select form="pipeline-settings-form" name="dataset_pipeline_auto_publish_insights"><option value="1" {% if dataset_pipeline.auto_publish_insights %}selected{% endif %}>Auto replace + insights</option><option value="0" {% if not dataset_pipeline.auto_publish_insights %}selected{% endif %}>Verify only</option></select></label>
+      <button form="pipeline-settings-form" type="submit">Save settings</button>
     </div>
 
     <div class="pipeline-board top-gap">
       {% for stage in dataset_pipeline.step_cards %}
-        <article class="pipeline-stage {% if stage.status == 'running' %}is-running{% endif %}">
-          <div>
-            <div class="pipeline-stage-head">
+        <article class="pipeline-step-card {% if stage.status == 'running' %}is-running{% endif %}">
+          <div class="pipeline-step-main">
+            <div class="pipeline-step-title">
               <span class="pipeline-index">{{ stage.index }}</span>
               <div>
                 <h3>{{ stage.label }}</h3>
@@ -244,335 +258,79 @@
                 <input type="hidden" name="start_step" value="{{ stage.key }}">
                 <button type="submit" {% if not dataset_pipeline.can_run_now %}disabled{% endif %}>{{ stage.run_label }}</button>
               </form>
+              {% if stage.status == 'failed' %}
+                <form action="{{ url_for('admin_run_dataset_pipeline') }}" method="post">
+                  <input type="hidden" name="start_step" value="{{ stage.key }}">
+                  <button type="submit" class="ghost" {% if dataset_pipeline.active_run %}disabled{% endif %}>Retry failed step</button>
+                </form>
+              {% endif %}
               {% if stage.has_sequential_control %}
                 {% set setting_name = "dataset_pipeline_" ~ stage.key ~ "_sequential" %}
-                <label class="pipeline-check">
-                  <input form="pipeline-settings-form" type="checkbox" name="{{ setting_name }}" value="1" {% if stage.sequential_enabled %}checked{% endif %}>
-                  Run after previous
-                </label>
+                <label class="pipeline-check"><input form="pipeline-settings-form" type="checkbox" name="{{ setting_name }}" value="1" {% if stage.sequential_enabled %}checked{% endif %}>Run after previous</label>
               {% else %}
-                <span class="pipeline-check">Scheduled</span>
+                <span class="pipeline-check">Start step</span>
               {% endif %}
             </div>
           </div>
           <div class="pipeline-progress-box">
-            <div class="pipeline-progress-top">
-              <span>{{ stage.metric_label }}</span>
-              <span>{{ stage.percent }}%</span>
-            </div>
+            <div class="pipeline-progress-top"><span>{{ stage.metric_label }}</span><span>{{ stage.percent }}%</span></div>
             <div class="pipeline-bar" aria-hidden="true"><span style="width: {{ stage.percent }}%"></span></div>
             <div class="pipeline-detail-list">
-              <span>Status: {{ stage.status }}</span>
-              {% for detail in stage.details %}
-                <span>{{ detail }}</span>
-              {% endfor %}
-              {% if stage.time_label %}
-                <span>{{ stage.time_label }}</span>
-              {% endif %}
-              {% if stage.row and stage.row.blockers %}
-                <span class="danger-text">{{ stage.row.blockers|join('; ') }}</span>
-              {% endif %}
+              <span class="status-line">Status: {{ stage.status }}</span>
+              {% for detail in stage.details %}<span>{{ detail }}</span>{% endfor %}
+              {% if stage.time_label %}<span>{{ stage.time_label }}</span>{% endif %}
+              {% if stage.row and stage.row.blockers %}<span class="danger-text">{{ stage.row.blockers|join('; ') }}</span>{% endif %}
             </div>
           </div>
         </article>
       {% endfor %}
     </div>
 
-    <div class="pipeline-danger-panel">
-      <div class="admin-group-head">
-        <div>
-          <p class="eyebrow">Manual Maintenance</p>
-          <h3>Restart Metadata Standardization</h3>
-          <p class="section-note">Use this after adding or changing standardization rules. It reprocesses existing ready metadata independent of the incremental pipeline.</p>
-        </div>
-      </div>
-      <form action="{{ url_for('admin_restart_dataset_standardization') }}" method="post" class="pipeline-settings">
-        <label>
-          <span>Taxa scope</span>
-          <select name="rank_scope">
-            <option value="all">Genus and species</option>
-            <option value="genus">Genus only</option>
-            <option value="species">Species only</option>
-          </select>
-        </label>
-        <label>
-          <span>Optional limit</span>
-          <input type="number" name="limit" min="1" max="100000" placeholder="all">
-        </label>
+    <div class="danger-zone">
+      <div class="admin-group-head"><div><p class="eyebrow">Advanced Operations</p><h3>Manual maintenance</h3></div><p class="section-note">Use these only when correcting rules, gaps, or release state.</p></div>
+      <form action="{{ url_for('admin_restart_dataset_standardization') }}" method="post" class="pipeline-settings" onsubmit="return confirm('Restart metadata standardization for the selected scope?')">
+        <label><span>Taxa scope</span><select name="rank_scope"><option value="all">Genus and species</option><option value="genus">Genus only</option><option value="species">Species only</option></select></label>
+        <label><span>Optional limit</span><input type="number" name="limit" min="1" max="100000" placeholder="all"></label>
         <button type="submit" class="ghost">Restart standardization</button>
       </form>
-      <div class="top-gap">
-        <p class="section-note">Use staged species gap resolution when public species exist but are not represented in the current genus-derived metadata.</p>
-        <form action="{{ url_for('admin_resolve_live_species_gaps') }}" method="post">
-          <button type="submit" class="ghost" {% if dataset_pipeline.active_run %}disabled{% endif %}>
-            Resolve species gaps from live data
-          </button>
-          <span class="job-meta">Checks public species records, builds missing species metadata, and stages results without replacing live data.</span>
-        </form>
+      <div class="pipeline-controls top-gap">
+        <form action="{{ url_for('admin_resolve_live_species_gaps') }}" method="post"><button type="submit" class="ghost" {% if dataset_pipeline.active_run %}disabled{% endif %}>Resolve species gaps</button></form>
+        <form action="{{ url_for('admin_retry_derived_species_failures') }}" method="post"><button type="submit" class="ghost" {% if dataset_pipeline.active_run or not dataset_pipeline.retryable_derived_failures.species_candidates %}disabled{% endif %}>Retry unresolved derivations</button></form>
+        <form action="{{ url_for('admin_rollback_dataset_pipeline') }}" method="post" onsubmit="return confirm('Rollback to the archived live dataset version?')"><button type="submit" class="ghost" {% if not dataset_pipeline.can_rollback %}disabled{% endif %}>Rollback live version</button></form>
       </div>
-      <div class="top-gap">
-        <p class="section-note">Species derivation retries only rerun source genera with unresolved species candidates from the latest derivation run.</p>
-        <form action="{{ url_for('admin_retry_derived_species_failures') }}" method="post">
-          <button type="submit" class="ghost" {% if dataset_pipeline.active_run or not dataset_pipeline.retryable_derived_failures.species_candidates %}disabled{% endif %}>
-            Retry unresolved species derivations
-          </button>
-          <span class="job-meta">
-            {{ dataset_pipeline.retryable_derived_failures.species_candidates }} unresolved candidates across
-            {{ dataset_pipeline.retryable_derived_failures.source_genera }} source genera.
-          </span>
-        </form>
-      </div>
-    </div>
-
-    <div class="action-row top-gap">
-      <form action="{{ url_for('admin_rollback_dataset_pipeline') }}" method="post">
-        <button type="submit" class="ghost" {% if not dataset_pipeline.can_rollback %}disabled{% endif %}>Rollback live version</button>
-      </form>
+      <div class="job-meta top-gap">Unresolved derivations: {{ dataset_pipeline.retryable_derived_failures.species_candidates }} candidates across {{ dataset_pipeline.retryable_derived_failures.source_genera }} source genera.</div>
     </div>
   </section>
 
   <section class="panel">
-    <div class="admin-group-head">
-      <div>
-        <p class="eyebrow">Operations</p>
-        <h2>Health and workers</h2>
-      </div>
-      <p class="section-note">Worker details are collapsed to keep the overview focused on the release pipeline.</p>
-    </div>
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <strong>{{ observability.live_worker_total }}</strong>
-        <span>Live workers</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ observability.active_metadata_total }}</strong>
-        <span>Active metadata builds</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ observability.active_job_total }}</strong>
-        <span>Queued or running jobs</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ "%.1f"|format(system_monitor.cpu_percent) if system_monitor.cpu_percent is not none else "N/A" }}%</strong>
-        <span>CPU usage</span>
-      </div>
-      <div class="metric-card metric-wide">
-        <strong>{{ system_monitor.memory.used_label }} / {{ system_monitor.memory.total_label }}</strong>
-        <span>Memory usage ({{ system_monitor.memory.used_percent }}%)</span>
-      </div>
-      <div class="metric-card">
-        <strong>{{ "Accepting" if system_monitor.quality_gate.accepting_quality_jobs else "Paused" }}</strong>
-        <span>Quality job gate</span>
-      </div>
-    </div>
-
+    <div class="admin-group-head"><div><p class="eyebrow">Operations</p><h2>System health and workers</h2></div><p class="section-note">Summary stays visible; detailed claims remain collapsed.</p></div>
     <details class="admin-advanced top-gap">
       <summary>System details: storage, processor, memory, network, and temperature</summary>
       <div class="grid admin-group-grid top-gap">
-        <section>
-          <h3>Storage</h3>
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <strong>{{ storage.disk_free_label }}</strong>
-              <span>System free space</span>
-            </div>
-            <div class="metric-card">
-              <strong>{{ storage.disk_used_label }}</strong>
-              <span>System used ({{ storage.disk_used_percent }}%)</span>
-            </div>
-            <div class="metric-card">
-              <strong>{{ storage.db_label }}</strong>
-              <span>SQLite DB size</span>
-            </div>
-          </div>
-        </section>
-        <section>
-          <h3>Processor and Memory</h3>
-          <div class="metrics-grid">
-            <div class="metric-card metric-wide">
-              <strong>{{ "%.1f"|format(system_monitor.cpu_percent) if system_monitor.cpu_percent is not none else "N/A" }}%</strong>
-              <span>CPU usage</span>
-              <div class="progress-track wave-track" aria-hidden="true">
-                <div class="progress-fill wave-fill {{ system_monitor.cpu_status }}" style="width: {{ system_monitor.cpu_percent or 0 }}%;"></div>
-              </div>
-            </div>
-            <div class="metric-card metric-wide">
-              <strong>{{ system_monitor.memory.used_label }} / {{ system_monitor.memory.total_label }}</strong>
-              <span>Memory usage ({{ system_monitor.memory.used_percent }}%)</span>
-              <div class="progress-track wave-track" aria-hidden="true">
-                <div class="progress-fill wave-fill {{ system_monitor.memory_status }}" style="width: {{ system_monitor.memory.used_percent }}%;"></div>
-              </div>
-              <span>{{ system_monitor.memory.available_label }} available</span>
-            </div>
-          </div>
-        </section>
-        <section>
-          <h3>Network</h3>
-          <div class="metrics-grid">
-            <div class="metric-card metric-wide">
-              <strong>{{ system_monitor.network.link_speed_label }}</strong>
-              <span>Negotiated link capacity</span>
-              <span>
-                {{ system_monitor.network.primary_interface or 'N/A' }}
-                {% if system_monitor.network.operstate %} / {{ system_monitor.network.operstate }}{% endif %}
-                {% if system_monitor.network.duplex %} / {{ system_monitor.network.duplex }}{% endif %}
-              </span>
-            </div>
-            <div class="metric-card">
-              <strong>{{ system_monitor.network.rx_rate_label }}</strong>
-              <span>Receive throughput</span>
-            </div>
-            <div class="metric-card">
-              <strong>{{ system_monitor.network.tx_rate_label }}</strong>
-              <span>Transmit throughput</span>
-            </div>
-            <div class="metric-card metric-wide">
-              <strong>{{ system_monitor.network.interface_count }}</strong>
-              <span>Active interfaces</span>
-              <span>
-                {% if system_monitor.network.active_interfaces %}
-                  {{ system_monitor.network.active_interfaces|join(', ') }}
-                {% else %}
-                  None detected
-                {% endif %}
-              </span>
-            </div>
-          </div>
-        </section>
-        <section>
-          <h3>Temperature</h3>
-          {% if system_monitor.temperatures %}
-            <div class="coverage-bars">
-              {% for item in system_monitor.temperatures %}
-                <div class="coverage-bar-card">
-                  <div class="coverage-bar-head">
-                    <strong>{{ item.label }}</strong>
-                    <span>{{ item.current_c }} C / {{ item.threshold_c }} C</span>
-                  </div>
-                  <div class="coverage-track thermometer-track">
-                    <div class="coverage-fill thermometer-fill {{ item.status }}" style="width: {{ item.percent_of_threshold }}%;"></div>
-                  </div>
-                  <div class="coverage-caption">
-                    {% if item.current_c >= item.threshold_c %}
-                      Above alert threshold
-                    {% elif item.current_c >= item.threshold_c * 0.9 %}
-                      Near alert threshold
-                    {% else %}
-                      Within expected range
-                    {% endif %}
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <div class="metric-card metric-wide">
-              <strong>No hardware temperature sensors available</strong>
-              <span>The current runtime could not read any hwmon temperature inputs.</span>
-            </div>
-          {% endif %}
-          <form action="{{ url_for('admin_set_system_monitor') }}" method="post" class="inline-form top-gap">
-            <label>
-              <span>Alert email</span>
-              <input type="email" name="system_temp_alert_email" value="{{ system_monitor.alert_settings.email }}">
-            </label>
-            <label>
-              <span>Threshold (C)</span>
-              <input type="number" step="0.1" min="1" name="system_temp_alert_threshold_c" value="{{ system_monitor.alert_settings.threshold_c }}">
-            </label>
-            <label>
-              <span>Cooldown (minutes)</span>
-              <input type="number" min="1" name="system_temp_alert_cooldown_minutes" value="{{ system_monitor.alert_settings.cooldown_minutes }}">
-            </label>
-            <label class="checkbox-row">
-              <input type="checkbox" name="system_temp_alert_enabled" value="1" {% if system_monitor.alert_settings.enabled %}checked{% endif %}>
-              <span>Email me when temperatures are too high</span>
-            </label>
-            <button type="submit" class="ghost">Save temperature alert settings</button>
-          </form>
-        </section>
+        <section><h3>Storage</h3><div class="metrics-grid"><div class="metric-card"><strong>{{ storage.disk_free_label }}</strong><span>System free space</span></div><div class="metric-card"><strong>{{ storage.disk_used_label }}</strong><span>System used ({{ storage.disk_used_percent }}%)</span></div><div class="metric-card"><strong>{{ storage.db_label }}</strong><span>SQLite DB size</span></div></div></section>
+        <section><h3>Processor and Memory</h3><div class="metrics-grid"><div class="metric-card metric-wide"><strong>{{ "%.1f"|format(system_monitor.cpu_percent) if system_monitor.cpu_percent is not none else "N/A" }}%</strong><span>CPU usage</span><div class="progress-track wave-track" aria-hidden="true"><div class="progress-fill wave-fill {{ system_monitor.cpu_status }}" style="width: {{ system_monitor.cpu_percent or 0 }}%;"></div></div></div><div class="metric-card metric-wide"><strong>{{ system_monitor.memory.used_label }} / {{ system_monitor.memory.total_label }}</strong><span>Memory usage ({{ system_monitor.memory.used_percent }}%)</span><div class="progress-track wave-track" aria-hidden="true"><div class="progress-fill wave-fill {{ system_monitor.memory_status }}" style="width: {{ system_monitor.memory.used_percent }}%;"></div></div><span>{{ system_monitor.memory.available_label }} available</span></div></div></section>
+        <section><h3>Network</h3><div class="metrics-grid"><div class="metric-card metric-wide"><strong>{{ system_monitor.network.link_speed_label }}</strong><span>{{ system_monitor.network.primary_interface or 'N/A' }}{% if system_monitor.network.operstate %} / {{ system_monitor.network.operstate }}{% endif %}{% if system_monitor.network.duplex %} / {{ system_monitor.network.duplex }}{% endif %}</span></div><div class="metric-card"><strong>{{ system_monitor.network.rx_rate_label }}</strong><span>Receive throughput</span></div><div class="metric-card"><strong>{{ system_monitor.network.tx_rate_label }}</strong><span>Transmit throughput</span></div></div></section>
+        <section><h3>Temperature</h3>{% if system_monitor.temperatures %}<div class="coverage-bars">{% for item in system_monitor.temperatures %}<div class="coverage-bar-card"><div class="coverage-bar-head"><strong>{{ item.label }}</strong><span>{{ item.current_c }} C / {{ item.threshold_c }} C</span></div><div class="coverage-track thermometer-track"><div class="coverage-fill thermometer-fill {{ item.status }}" style="width: {{ item.percent_of_threshold }}%;"></div></div></div>{% endfor %}</div>{% else %}<div class="metric-card metric-wide"><strong>No hardware temperature sensors available</strong><span>The runtime could not read hwmon temperature inputs.</span></div>{% endif %}<form action="{{ url_for('admin_set_system_monitor') }}" method="post" class="inline-form top-gap"><label><span>Alert email</span><input type="email" name="system_temp_alert_email" value="{{ system_monitor.alert_settings.email }}"></label><label><span>Threshold (C)</span><input type="number" step="0.1" min="1" name="system_temp_alert_threshold_c" value="{{ system_monitor.alert_settings.threshold_c }}"></label><label><span>Cooldown (minutes)</span><input type="number" min="1" name="system_temp_alert_cooldown_minutes" value="{{ system_monitor.alert_settings.cooldown_minutes }}"></label><label class="checkbox-row"><input type="checkbox" name="system_temp_alert_enabled" value="1" {% if system_monitor.alert_settings.enabled %}checked{% endif %}><span>Email me when temperatures are too high</span></label><button type="submit" class="ghost">Save alert settings</button></form></section>
       </div>
     </details>
-
     <details class="admin-advanced top-gap">
       <summary>Workers and active claims</summary>
       <div class="grid admin-group-grid top-gap">
-        <section>
-          <h3>Workers</h3>
-          {% if observability.worker_snapshots %}
-            <div class="admin-list">
-              {% for item in observability.worker_snapshots %}
-                <div class="admin-card">
-                  <div class="job-card-head">
-                    <strong>{{ item.worker_name }}</strong>
-                    <span class="status {{ 'running' if item.alive else 'failed' }}">{{ 'live' if item.alive else 'stale' }}</span>
-                  </div>
-                  <div class="job-meta">Last heartbeat {{ item.age_label }} ago</div>
-                  <div class="job-meta">{{ item.metadata_builds }} metadata builds • {{ item.running_jobs }} running jobs</div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="empty">No worker heartbeats found.</p>
-          {% endif %}
-        </section>
-        <section>
-          <h3>Active Metadata Builds</h3>
-          {% if observability.metadata_claims %}
-            <div class="admin-list">
-              {% for item in observability.metadata_claims %}
-                <div class="admin-card">
-                  <div class="job-card-head">
-                    <strong>{{ item.species_name }}</strong>
-                    <span class="status {{ 'running' if item.worker_live else 'failed' }}">{{ item.status }}</span>
-                  </div>
-                  <div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div>
-                  <div class="job-meta">{{ item.progress.headline }} ({{ item.progress.percent }}%)</div>
-                </div>
-              {% endfor %}
-            </div>
-          {% else %}
-            <p class="empty">No active metadata builds.</p>
-          {% endif %}
-        </section>
+        <section><h3>Workers</h3>{% if observability.worker_snapshots %}<div class="admin-list">{% for item in observability.worker_snapshots %}<div class="admin-card"><div class="job-card-head"><strong>{{ item.worker_name }}</strong><span class="status {{ 'running' if item.alive else 'failed' }}">{{ 'live' if item.alive else 'stale' }}</span></div><div class="job-meta">Last heartbeat {{ item.age_label }} ago</div><div class="job-meta">{{ item.metadata_builds }} metadata builds • {{ item.running_jobs }} running jobs</div></div>{% endfor %}</div>{% else %}<p class="empty">No worker heartbeats found.</p>{% endif %}</section>
+        <section><h3>Active Metadata Builds</h3>{% if observability.metadata_claims %}<div class="admin-list">{% for item in observability.metadata_claims %}<div class="admin-card"><div class="job-card-head"><strong>{{ item.species_name }}</strong><span class="status {{ 'running' if item.worker_live else 'failed' }}">{{ item.status }}</span></div><div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div><div class="job-meta">{{ item.progress.headline }} ({{ item.progress.percent }}%)</div></div>{% endfor %}</div>{% else %}<p class="empty">No active metadata builds.</p>{% endif %}</section>
       </div>
     </details>
   </section>
 
   <section class="panel">
-    <div class="admin-group-head">
-      <div>
-        <p class="eyebrow">Audit</p>
-        <h2>Admin Audit Bundle</h2>
-      </div>
-      <a class="button-like ghost" href="{{ url_for('admin_audit_bundle') }}">Download audit bundle</a>
-    </div>
+    <div class="admin-group-head"><div><p class="eyebrow">Audit</p><h2>Admin Audit Bundle</h2></div><a class="button-like ghost" href="{{ url_for('admin_audit_bundle') }}">Download audit bundle</a></div>
     <p class="section-note">Exports recent admin audit events, job analytics, and metadata standardization artifacts as a ZIP file.</p>
   </section>
 
   <section class="panel">
-    <div class="admin-group-head">
-      <div>
-        <p class="eyebrow">Security</p>
-        <h2>Access Posture</h2>
-      </div>
-      <p class="section-note">Current account and session controls. Keep infrastructure TLS/HSTS configured at the reverse proxy.</p>
-    </div>
-    <div class="metrics-grid">
-      <div class="metric-card"><strong>{{ security_posture.app_version }}</strong><span>Application version</span></div>
-      <div class="metric-card metric-wide"><strong>Password policy</strong><span>{{ security_posture.password_policy }}</span></div>
-      <div class="metric-card"><strong>{{ security_posture.session_lifetime }}</strong><span>Session lifetime</span></div>
-      <div class="metric-card"><strong>{{ "on" if security_posture.cookie_httponly else "off" }}</strong><span>HttpOnly cookie</span></div>
-      <div class="metric-card"><strong>{{ "on" if security_posture.cookie_secure else "off" }}</strong><span>Secure cookie</span></div>
-      <div class="metric-card"><strong>{{ security_posture.csrf }}</strong><span>CSRF protection</span></div>
-      <div class="metric-card metric-wide"><strong>Admin model</strong><span>{{ security_posture.admin_model }}</span></div>
-    </div>
+    <div class="admin-group-head"><div><p class="eyebrow">Security</p><h2>Access Posture</h2></div><p class="section-note">Current account and session controls. Keep infrastructure TLS/HSTS configured at the reverse proxy.</p></div>
+    <div class="metrics-grid"><div class="metric-card"><strong>{{ security_posture.app_version }}</strong><span>Application version</span></div><div class="metric-card metric-wide"><strong>Password policy</strong><span>{{ security_posture.password_policy }}</span></div><div class="metric-card"><strong>{{ security_posture.session_lifetime }}</strong><span>Session lifetime</span></div><div class="metric-card"><strong>{{ "on" if security_posture.cookie_httponly else "off" }}</strong><span>HttpOnly cookie</span></div><div class="metric-card"><strong>{{ "on" if security_posture.cookie_secure else "off" }}</strong><span>Secure cookie</span></div><div class="metric-card"><strong>{{ security_posture.csrf }}</strong><span>CSRF protection</span></div><div class="metric-card metric-wide"><strong>Admin model</strong><span>{{ security_posture.admin_model }}</span></div></div>
   </section>
 </main>
-{% if dataset_pipeline.active_run %}
-  <script>
-    window.setTimeout(() => {
-      if (!document.hidden) window.location.reload();
-    }, 30000);
-  </script>
-{% endif %}
+{% if dataset_pipeline.active_run %}<script>window.setTimeout(() => { if (!document.hidden) window.location.reload(); }, 30000);</script>{% endif %}
 {% endblock %}

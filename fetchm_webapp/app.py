@@ -6408,6 +6408,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_scope", "2"),
         ("dataset_pipeline_auto_publish_insights", "1"),
+        ("dataset_pipeline_discovery_sequential", "1"),
         ("dataset_pipeline_catalog_sequential", "1"),
         ("dataset_pipeline_metadata_sequential", "1"),
         ("dataset_pipeline_standardization_sequential", "1"),
@@ -6667,6 +6668,7 @@ def set_setting(key: str, value: str, db: sqlite3.Connection | None = None) -> N
 
 
 DATASET_PIPELINE_STEPS = [
+    ("taxonomy_update", "Update taxonomy database"),
     ("discovery", "Discover bacterial genera"),
     ("catalog", "Update genus catalog"),
     ("metadata", "Build genus metadata"),
@@ -6682,10 +6684,15 @@ DATASET_PIPELINE_STEP_INDEX = {
 }
 
 DATASET_PIPELINE_STEP_COPY = {
-    "discovery": {
-        "short": "Genus discovery check.",
+    "taxonomy_update": {
+        "short": "Validate mounted TaxonKit taxonomy snapshot.",
         "run_label": "Run from here",
-        "metric_label": "Genus discovery check",
+        "metric_label": "Taxonomy database",
+    },
+    "discovery": {
+        "short": "Re-run bacterial genus discovery.",
+        "run_label": "Run from here",
+        "metric_label": "Genus discovery scan",
     },
     "catalog": {
         "short": "Refresh genus TSV catalogs.",
@@ -6730,6 +6737,7 @@ DATASET_PIPELINE_STEP_COPY = {
 }
 
 DATASET_PIPELINE_SEQUENTIAL_KEYS = {
+    "discovery": "dataset_pipeline_discovery_sequential",
     "catalog": "dataset_pipeline_catalog_sequential",
     "metadata": "dataset_pipeline_metadata_sequential",
     "standardization": "dataset_pipeline_standardization_sequential",
@@ -6923,7 +6931,7 @@ def queue_dataset_update_pipeline_run(
     trigger_type: str,
     requested_by: int | None = None,
     *,
-    start_step: str = "discovery",
+    start_step: str = "taxonomy_update",
 ) -> tuple[str | None, str | None]:
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
@@ -7145,7 +7153,21 @@ def build_dataset_pipeline_step_cards(
         progress = row.get("progress", {}) if row else {}
         detail_lines: list[str] = []
         percent = 0
-        if step_key == "discovery":
+        if step_key == "taxonomy_update":
+            snapshot = taxonomy_database_snapshot()
+            if row and progress:
+                snapshot.update({key: progress[key] for key in progress if key in {"latest_label", "file_count", "bacterial_genera_seen", "writable", "path", "note"}})
+            percent = 100 if status == "completed" else (20 if status in {"pending", "running"} else 0)
+            detail_lines = [
+                f"Taxonomy path: {snapshot.get('path')}",
+                f"Latest mounted file update: {snapshot.get('latest_label')}",
+                f"Files detected: {snapshot.get('file_count', 0)}; writable from app: {'yes' if snapshot.get('writable') else 'no'}",
+            ]
+            if progress.get("bacterial_genera_seen"):
+                detail_lines.append(f"Bacterial genera visible to TaxonKit: {int(progress.get('bacterial_genera_seen') or 0):,}")
+            if not snapshot.get("writable"):
+                detail_lines.append("Host-side taxonomy refresh is required to update this read-only mount.")
+        elif step_key == "discovery":
             total = counts.get("discovery_total", 0)
             ready = counts.get("discovery_ready", 0)
             pending = discovery_status_counts.get("pending", 0)
@@ -7501,6 +7523,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "schedule_hour_utc": schedule_hour_utc,
         "scope": get_setting("dataset_pipeline_scope", "2", connection),
         "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "taxonomy": taxonomy_database_snapshot(),
         "sequential": {
             step_key: dataset_pipeline_sequential_enabled(step_key, connection)
             for step_key in DATASET_PIPELINE_SEQUENTIAL_KEYS
@@ -7546,12 +7569,14 @@ def build_admin_summary_dashboard(db: sqlite3.Connection | None = None) -> dict[
         )
     previous_version = get_setting("previous_dataset_version_id", "", connection) or ""
     previous_counts = archived_dataset_version_counts(connection, previous_version)
+    live_summary = dict(live_counts) if live_counts is not None else {}
+    live_summary.update(current_live_dataset_summary(connection))
     return {
         "active_version_id": active_version_id,
         "previous_version_id": previous_version,
         "latest_run": latest_run,
         "latest_insight": latest_insight,
-        "live": dict(live_counts) if live_counts is not None else {},
+        "live": live_summary,
         "staged": verification_summary,
         "previous": previous_counts,
     }
@@ -7589,7 +7614,7 @@ def scheduled_dataset_pipeline_due_at(db: sqlite3.Connection | None = None) -> d
         SELECT requested_at
         FROM dataset_update_pipeline_runs
         WHERE trigger_type = 'scheduled'
-          AND summary_json LIKE '%"start_step": "discovery"%'
+          AND (summary_json LIKE '%"start_step": "taxonomy_update"%' OR summary_json LIKE '%"start_step": "discovery"%')
         ORDER BY requested_at DESC, id DESC
         LIMIT 1
         """
@@ -7619,7 +7644,7 @@ def schedule_due_dataset_pipeline_run() -> None:
         now = datetime.now(timezone.utc)
         if now < due or now.hour < hour:
             return
-    queue_dataset_update_pipeline_run("scheduled", None, start_step="discovery")
+    queue_dataset_update_pipeline_run("scheduled", None, start_step="taxonomy_update")
 
 
 def global_insights_root() -> Path:
@@ -10085,6 +10110,23 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
     run_id = str(step["run_id"])
     version_id = str(step["dataset_version_id"])
     with get_sqlite_connection() as db:
+        if step_key == "taxonomy_update":
+            try:
+                progress = validate_taxonomy_database_for_pipeline()
+            except Exception as exc:
+                set_pipeline_step_status(
+                    db,
+                    int(step["id"]),
+                    "failed",
+                    progress=taxonomy_database_snapshot(),
+                    blockers=[str(exc)],
+                    error=str(exc),
+                )
+                block_downstream_pipeline_steps(db, step, [str(exc)], fail_version=False)
+            else:
+                mark_pipeline_step_completed(db, step, progress)
+            db.commit()
+            return
         if step_key == "discovery":
             before = dataset_pipeline_rank_counts(db)
             queued = request_pipeline_discovery_refresh(db)
@@ -10432,6 +10474,47 @@ def normalize_assembly_source(value: str | None) -> str:
 
 DEFAULT_ASSEMBLY_SOURCE = normalize_assembly_source(os.environ.get("FETCHM_WEBAPP_DEFAULT_ASSEMBLY_SOURCE", "all"))
 DISCOVERY_LIMIT_PER_SCOPE = normalize_discovery_limit(DISCOVERY_LIMIT_PER_SCOPE)
+TAXONKIT_DATA_DIR = Path(os.environ.get("FETCHM_WEBAPP_TAXONKIT_DATA_DIR", "/home/fetchm/.taxonkit"))
+
+
+def taxonomy_database_snapshot() -> dict[str, Any]:
+    files = [TAXONKIT_DATA_DIR / name for name in ("names.dmp", "nodes.dmp", "delnodes.dmp", "merged.dmp")]
+    existing = [path for path in files if path.exists()]
+    latest_mtime = max((path.stat().st_mtime for path in existing), default=None)
+    required_present = all((TAXONKIT_DATA_DIR / name).exists() for name in ("names.dmp", "nodes.dmp"))
+    latest_label = "Not found"
+    latest_iso = None
+    if latest_mtime is not None:
+        latest_dt = datetime.fromtimestamp(latest_mtime, timezone.utc)
+        latest_iso = latest_dt.isoformat()
+        latest_label = compact_datetime_label(latest_iso)
+    return {
+        "path": str(TAXONKIT_DATA_DIR),
+        "required_present": required_present,
+        "file_count": len(existing),
+        "latest_mtime": latest_iso,
+        "latest_label": latest_label,
+        "writable": os.access(TAXONKIT_DATA_DIR, os.W_OK),
+    }
+
+
+def validate_taxonomy_database_for_pipeline() -> dict[str, Any]:
+    snapshot = taxonomy_database_snapshot()
+    progress = dict(snapshot)
+    progress["validated_at"] = utc_now()
+    progress["note"] = (
+        "Mounted TaxonKit taxonomy was validated. The container mount is read-only, so host-side taxonomy refresh must update this directory before the next scan."
+        if not snapshot["writable"]
+        else "Mounted TaxonKit taxonomy was validated and is writable from this runtime."
+    )
+    if not snapshot["required_present"]:
+        raise RuntimeError(f"TaxonKit taxonomy files are missing from {snapshot['path']}.")
+    try:
+        genus_count = len(fetch_bacterial_genera_from_local_taxonomy())
+    except Exception as exc:
+        raise RuntimeError(f"TaxonKit bacterial genus validation failed: {exc}") from exc
+    progress["bacterial_genera_seen"] = genus_count
+    return progress
 
 
 def make_discovery_scope_key(scope_value: str, target_rank: str) -> str:
@@ -22995,6 +23078,24 @@ def admin_run_dataset_pipeline() -> Any:
             metadata={"start_step": start_step},
         )
         flash(f"{dataset_pipeline_step_label(start_step)} queued: {run_id}. Sequentially enabled downstream steps will follow.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/update-taxonomy", methods=["POST"])
+def admin_update_taxonomy_database() -> Any:
+    require_admin()
+    user_id = int(g.current_user["id"]) if g.current_user else None
+    run_id, error = queue_dataset_update_pipeline_run("manual", user_id, start_step="taxonomy_update")
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_update_taxonomy",
+            target_type="dataset_pipeline",
+            target_id=run_id,
+            metadata={"start_step": "taxonomy_update"},
+        )
+        flash(f"Taxonomy database validation queued: {run_id}. Enabled downstream steps will follow.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
