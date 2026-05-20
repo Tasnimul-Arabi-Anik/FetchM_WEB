@@ -7148,7 +7148,6 @@ def build_dataset_pipeline_step_cards(
         if step_key == "discovery":
             total = counts.get("discovery_total", 0)
             ready = counts.get("discovery_ready", 0)
-            percent = progress_percent(ready, total)
             pending = discovery_status_counts.get("pending", 0)
             discovering = discovery_status_counts.get("discovering", 0)
             failed = discovery_status_counts.get("failed", 0)
@@ -7157,15 +7156,21 @@ def build_dataset_pipeline_step_cards(
             new_genera = max(0, counts.get("catalog_genus_total", 0) - genus_before)
             species_now = counts.get("catalog_species_total", 0)
             new_species = max(0, species_now - species_before)
+            if status == "completed":
+                percent = 100
+            elif pending or discovering:
+                percent = 15 if discovering else 5
+            else:
+                percent = 0
             detail_lines = [
-                f"{ready}/{total} discovery scopes ready; {discovering} running, {pending} queued",
-                f"Genera: {genus_before} before, {counts.get('catalog_genus_total', 0)} now, +{new_genera} this run",
-                f"Species: {species_before} before, {species_now} now, +{new_species} this run",
+                f"Genus discovery scan: {discovering} running, {pending} queued",
+                f"Genera: {genus_before} before, {counts.get('catalog_genus_total', 0)} now, +{new_genera} from this scan",
+                f"Species records are derived later from refreshed genus metadata; current species catalog count: {species_now}",
             ]
             if status == "completed":
                 detail_lines.insert(
                     0,
-                    "Discovery check finished; downstream catalog refresh is the long-running step.",
+                    "Genus discovery scan finished; catalog refresh is now updating every genus TSV.",
                 )
             if active_discovery_scope is not None:
                 active_label = str(active_discovery_scope["scope_label"] or active_discovery_scope["scope_value"])
@@ -10088,7 +10093,7 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
                 "queued": queued,
                 "species_before": before.get("catalog_species_total", 0),
                 "genus_before": before.get("catalog_genus_total", 0),
-                "note": "Genus-first discovery queued. Species are expanded after genus catalogs and metadata are available.",
+                "note": "Manual discovery re-runs the Bacteria genus taxonomy scan. If no genera are added, the pipeline continues to catalog refresh.",
             }
             set_pipeline_step_status(db, int(step["id"]), "running", progress=progress)
             db.commit()
