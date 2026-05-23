@@ -1,6 +1,5 @@
 FROM python:3.12-slim
 
-ARG FETCHM_WEBAPP_GIT_COMMIT=unknown
 ARG NEXTFLOW_VERSION=25.04.6
 ARG MINIFORGE_VERSION=25.3.1-0
 ARG NCBI_DATASETS_URL=https://ftp.ncbi.nlm.nih.gov/pub/datasets/command-line/v2/linux-amd64/datasets
@@ -8,7 +7,6 @@ ARG TAXONKIT_VERSION=0.20.0
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    FETCHM_WEBAPP_GIT_COMMIT=${FETCHM_WEBAPP_GIT_COMMIT} \
     PORT=8000 \
     BROWSER_PATH=/usr/bin/chromium
 
@@ -73,6 +71,9 @@ ENV HOME=/home/fetchm \
     NXF_CONDA_CACHEDIR=/app/fetchm_webapp/data/external_tools/conda/envs \
     CONDA_PKGS_DIRS=/app/fetchm_webapp/data/external_tools/conda/pkgs \
     NXF_SYNTAX_PARSER=v1
+
+ARG FETCHM_WEBAPP_GIT_COMMIT=unknown
+ENV FETCHM_WEBAPP_GIT_COMMIT=${FETCHM_WEBAPP_GIT_COMMIT}
 
 USER fetchm
 
