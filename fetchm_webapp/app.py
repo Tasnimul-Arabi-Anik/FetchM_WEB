@@ -7770,6 +7770,16 @@ def build_release_gate_summary(dataset_pipeline: Mapping[str, Any], admin_summar
             version_id = str(latest_run.get("dataset_version_id") or "")
     json_path = verification.get("release_verification_json_path")
     summary_path = verification.get("release_verification_summary_path")
+    if json_path:
+        try:
+            version_id = Path(str(json_path)).parent.parent.name or version_id
+        except Exception:
+            pass
+    elif summary_path:
+        try:
+            version_id = Path(str(summary_path)).parent.parent.name or version_id
+        except Exception:
+            pass
     json_available = bool(json_path and Path(str(json_path)).exists())
     summary_available = bool(summary_path and Path(str(summary_path)).exists())
     return {
