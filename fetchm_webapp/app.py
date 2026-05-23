@@ -6854,20 +6854,27 @@ def ensure_legacy_live_dataset_version(db: sqlite3.Connection | None = None) -> 
     if existing is not None:
         return
     now = utc_now()
+    active_version_id = get_setting("active_dataset_version_id", None, connection)
+    legacy_is_active = active_version_id in (None, "", "legacy-live")
+    status = "live" if legacy_is_active else "superseded"
+    promoted_at = now if legacy_is_active else None
     summary = {
         "mode": "legacy",
         "note": "Initial live dataset registered from existing FetchM Web managed paths.",
     }
+    if not legacy_is_active:
+        summary["note"] = "Legacy dataset marker retained for provenance after staged dataset promotion."
+        summary["superseded_by"] = str(active_version_id)
     connection.execute(
         """
         INSERT INTO dataset_versions (
             version_id, status, created_at, promoted_at, root_path, summary_json
         )
-        VALUES (?, 'live', ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        ("legacy-live", now, now, str(DATA_DIR), json.dumps(summary, sort_keys=True)),
+        ("legacy-live", status, now, promoted_at, str(DATA_DIR), json.dumps(summary, sort_keys=True)),
     )
-    if get_setting("active_dataset_version_id", None, connection) is None:
+    if legacy_is_active:
         set_setting("active_dataset_version_id", "legacy-live", connection)
     connection.commit()
 
