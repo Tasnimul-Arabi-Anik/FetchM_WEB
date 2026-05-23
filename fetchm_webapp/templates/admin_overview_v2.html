@@ -251,6 +251,18 @@
           <span>Species metadata: live {{ release_gate.live_species }} / staged {{ release_gate.staged_species }}</span>
           <span>Genus-only assemblies in staged data: {{ release_gate.genus_only_assemblies }}</span>
         </div>
+        <div class="pipeline-controls top-gap">
+          <form action="{{ url_for('admin_generate_dataset_release_report') }}" method="post">
+            <input type="hidden" name="version_id" value="{{ release_gate.version_id }}">
+            <button type="submit" class="ghost" {% if not release_gate.version_id %}disabled{% endif %}>Generate validation report</button>
+          </form>
+          {% if release_gate.summary_available %}
+            <a class="button-like ghost" href="{{ url_for('admin_download_dataset_release_file', version_id=release_gate.version_id, filename='dataset_release_summary.md') }}">Download summary</a>
+          {% endif %}
+          {% if release_gate.json_available %}
+            <a class="button-like ghost" href="{{ url_for('admin_download_dataset_release_file', version_id=release_gate.version_id, filename='dataset_release_verification.json') }}">Download JSON</a>
+          {% endif %}
+        </div>
         {% if release_gate.blockers %}
           <div class="pipeline-detail-list top-gap">
             {% for blocker in release_gate.blockers[:5] %}<span class="danger-text">{{ blocker }}</span>{% endfor %}

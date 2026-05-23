@@ -7760,12 +7760,27 @@ def build_release_gate_summary(dataset_pipeline: Mapping[str, Any], admin_summar
         blockers = []
     status = str(verification.get("release_verification_status") or "not run")
     safe = bool(verification.get("safe_to_replace"))
+    version_id = ""
+    staging = dataset_pipeline.get("staging_version")
+    if isinstance(staging, Mapping):
+        version_id = str(staging.get("version_id") or "")
+    if not version_id:
+        latest_run = dataset_pipeline.get("latest_run")
+        if isinstance(latest_run, Mapping):
+            version_id = str(latest_run.get("dataset_version_id") or "")
+    json_path = verification.get("release_verification_json_path")
+    summary_path = verification.get("release_verification_summary_path")
+    json_available = bool(json_path and Path(str(json_path)).exists())
+    summary_available = bool(summary_path and Path(str(summary_path)).exists())
     return {
+        "version_id": version_id,
         "status": status,
         "safe_to_replace": safe,
         "blockers": blockers,
-        "json_path": verification.get("release_verification_json_path"),
-        "summary_path": verification.get("release_verification_summary_path"),
+        "json_path": json_path,
+        "summary_path": summary_path,
+        "json_available": json_available,
+        "summary_available": summary_available,
         "live_unique_assemblies": int(live.get("live_unique_assemblies") or 0),
         "staged_unique_assemblies": int(staged.get("staged_unique_assemblies") or verification.get("staged_unique_assemblies") or 0),
         "live_genera": int(live.get("genus_metadata_ready") or live.get("live_genus_metadata_ready") or 0),
@@ -9999,18 +10014,20 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
         version_summary = parse_dataset_version_summary(version)
         release = version_summary.get("release_verification")
         if not isinstance(release, dict):
-            payload, release_blockers = write_dataset_release_verification(
-                db,
-                str(step["dataset_version_id"]),
-                str(step["run_id"]),
-            )
-            release = {"safe_to_replace": bool(payload.get("safe_to_replace")), "blockers": release_blockers}
-        if not bool(release.get("safe_to_replace")):
-            release_blockers = release.get("blockers") if isinstance(release.get("blockers"), list) else []
-            if release_blockers:
-                blockers.append("Release verification gate failed: " + "; ".join(str(item) for item in release_blockers[:5]))
-            else:
-                blockers.append("Release verification gate has not passed.")
+            blockers.append("Generate the validation report before replacement; no release verification report is recorded.")
+        else:
+            json_path = release.get("json_path")
+            summary_path = release.get("summary_path")
+            if json_path and not Path(str(json_path)).exists():
+                blockers.append("Release verification JSON is recorded but missing on disk; regenerate the validation report.")
+            if summary_path and not Path(str(summary_path)).exists():
+                blockers.append("Release verification summary is recorded but missing on disk; regenerate the validation report.")
+            if not bool(release.get("safe_to_replace")):
+                release_blockers = release.get("blockers") if isinstance(release.get("blockers"), list) else []
+                if release_blockers:
+                    blockers.append("Release verification gate failed: " + "; ".join(str(item) for item in release_blockers[:5]))
+                else:
+                    blockers.append("Release verification gate has not passed.")
     return blockers
 
 
@@ -24059,6 +24076,67 @@ def admin_cancel_dataset_pipeline() -> Any:
     record_audit_event("admin.dataset_pipeline_cancel", target_type="dataset_pipeline", target_id=run_id)
     flash(f"Cancelled staging dataset update {run_id}. Public data was unchanged.", "success")
     return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/release-report", methods=["POST"])
+def admin_generate_dataset_release_report() -> Any:
+    require_admin()
+    requested_version = (request.form.get("version_id") or "").strip()
+    with get_sqlite_connection() as db:
+        version = None
+        if requested_version:
+            version = db.execute("SELECT * FROM dataset_versions WHERE version_id = ?", (requested_version,)).fetchone()
+        if version is None:
+            version = db.execute(
+                """
+                SELECT *
+                FROM dataset_versions
+                WHERE status IN ('staging', 'verified', 'failed')
+                ORDER BY created_at DESC, id DESC
+                LIMIT 1
+                """
+            ).fetchone()
+        if version is None:
+            flash("No staged dataset version is available for validation.", "error")
+            return redirect(url_for("admin_dashboard"))
+        version_id = str(version["version_id"])
+        run = db.execute(
+            "SELECT run_id FROM dataset_update_pipeline_runs WHERE dataset_version_id = ? ORDER BY id DESC LIMIT 1",
+            (version_id,),
+        ).fetchone()
+        run_id = str(run["run_id"]) if run is not None else None
+        payload, blockers = write_dataset_release_verification(db, version_id, run_id)
+        db.commit()
+    record_audit_event(
+        "admin.dataset_release_report",
+        target_type="dataset_version",
+        target_id=version_id,
+        metadata={"status": payload.get("status"), "safe_to_replace": payload.get("safe_to_replace"), "blocker_count": len(blockers)},
+    )
+    if blockers:
+        flash("Validation report generated with blockers: " + "; ".join(blockers[:5]), "error")
+    else:
+        flash(f"Validation report generated for {version_id}; safe to replace.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-release/<version_id>/<filename>")
+def admin_download_dataset_release_file(version_id: str, filename: str) -> Any:
+    require_admin()
+    if filename not in {"dataset_release_verification.json", "dataset_release_summary.md"}:
+        abort(404)
+    safe_version_id = secure_filename(version_id)
+    if safe_version_id != version_id:
+        abort(404)
+    release_dir = dataset_release_dir(version_id).resolve()
+    root = dataset_versions_root().resolve()
+    if root not in release_dir.parents:
+        abort(404)
+    path = release_dir / filename
+    if not path.exists():
+        abort(404)
+    record_audit_event("admin.dataset_release_download", target_type="dataset_version", target_id=version_id, metadata={"file": filename})
+    return send_from_directory(release_dir, filename, as_attachment=True)
 
 
 @app.route("/admin/dataset-pipeline/promote", methods=["POST"])
