@@ -108,7 +108,7 @@ container recreation on current Docker engines.
 From the repository root:
 
 ```bash
-docker compose -f fetchm_webapp/docker-compose.yml up --build
+FETCHM_WEBAPP_GIT_COMMIT=$(git rev-parse HEAD) docker compose -f fetchm_webapp/docker-compose.yml up --build
 ```
 
 For production on `fetchm.dulab206.xyz`, Caddy now sits in front of the app and terminates HTTPS automatically.
@@ -123,7 +123,7 @@ Before starting:
 Then start:
 
 ```bash
-docker compose -f fetchm_webapp/docker-compose.yml up --build -d
+FETCHM_WEBAPP_GIT_COMMIT=$(git rev-parse HEAD) docker compose -f fetchm_webapp/docker-compose.yml up --build -d
 ```
 
 After DNS is live, Caddy will obtain and renew the HTTPS certificate automatically.
