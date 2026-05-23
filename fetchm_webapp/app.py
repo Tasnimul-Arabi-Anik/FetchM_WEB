@@ -7667,12 +7667,12 @@ def build_admin_summary_dashboard(db: sqlite3.Connection | None = None) -> dict[
     live_counts = connection.execute(
         """
         SELECT
-            COUNT(*) AS taxa_total,
-            SUM(CASE WHEN taxon_rank = 'genus' THEN 1 ELSE 0 END) AS genus_total,
-            SUM(CASE WHEN taxon_rank = 'species' THEN 1 ELSE 0 END) AS species_total,
-            SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_ready_total,
-            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'genus' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_metadata_ready,
-            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'species' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS species_metadata_ready,
+            SUM(CASE WHEN is_live = 1 THEN 1 ELSE 0 END) AS taxa_total,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'genus' THEN 1 ELSE 0 END) AS genus_total,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'species' THEN 1 ELSE 0 END) AS species_total,
+            SUM(CASE WHEN is_live = 1 AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_ready_total,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'genus' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_metadata_ready,
+            SUM(CASE WHEN is_live = 1 AND taxon_rank = 'species' AND live_metadata_status = 'ready' AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS species_metadata_ready,
             COALESCE(SUM(CASE WHEN is_live = 1 AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END), 0) AS taxon_scoped_genomes
         FROM species
         """
