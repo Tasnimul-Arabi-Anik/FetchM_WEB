@@ -23,7 +23,7 @@ docker compose -f docker-compose.yml build "$SERVICE"
 docker compose -f docker-compose.yml up -d --force-recreate --no-deps "$SERVICE"
 
 for attempt in $(seq 1 30); do
-  if curl -fsS -H "Host: $HEALTH_HOST" "$HEALTH_URL" >/tmp/fetchm_webapp_healthz.json; then
+  if curl -fs -H "Host: $HEALTH_HOST" "$HEALTH_URL" >/tmp/fetchm_webapp_healthz.json; then
     break
   fi
   sleep 2
