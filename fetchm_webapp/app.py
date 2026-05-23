@@ -1227,6 +1227,7 @@ def inject_security_context() -> dict[str, Any]:
     return {
         "app_version": APP_VERSION,
         "csrf_token": get_csrf_token,
+        "taxonomy_label_metadata": taxonomy_label_metadata,
     }
 
 
@@ -6547,6 +6548,66 @@ def normalize_species_name(value: str) -> str:
 
 def species_search_name(value: str) -> str:
     return normalize_species_name(value).lower()
+
+
+def taxonomy_label_metadata(name: str, rank: str = "species") -> dict[str, str]:
+    normalized = normalize_species_name(name)
+    rank_key = normalize_species_name(rank).lower()
+    if rank_key == "genus":
+        return {
+            "key": "canonical_genus",
+            "label": "Canonical genus",
+            "description": "Genus-level taxon page.",
+        }
+    if not normalized:
+        return {
+            "key": "unknown_taxon_label",
+            "label": "Unknown taxon label",
+            "description": "Taxon label is missing or unusable.",
+        }
+
+    lower = normalized.casefold()
+    parts = normalized.split()
+    if parts and parts[0].casefold() == "candidatus":
+        return {
+            "key": "provisional_taxonomic_label",
+            "label": "Provisional taxonomic label",
+            "description": "Candidatus or provisional nomenclature; searchable but reported separately from canonical species.",
+        }
+    if "uncultured" in lower or "metagenome" in lower or "unclassified" in lower:
+        return {
+            "key": "unresolved_species_level_label",
+            "label": "Unresolved species-level label",
+            "description": "Uncultured, metagenomic, or unclassified label; searchable but not counted as a canonical species.",
+        }
+    if any(token in lower for token in (" sp.", " spp.", " species complex", " group ", " clade ")) or lower.endswith(" sp") or re.search(r"\bsp\d", lower):
+        return {
+            "key": "unresolved_species_level_label",
+            "label": "Unresolved species-level label",
+            "description": "Placeholder or strain-like species label; searchable but not counted as a canonical species.",
+        }
+    if any(char in normalized for char in "()[]"):
+        return {
+            "key": "noncanonical_species_label",
+            "label": "Non-canonical species label",
+            "description": "Species-level label contains complex or parenthetical nomenclature; searchable but reported separately.",
+        }
+
+    if len(parts) >= 2:
+        genus = parts[0].strip()
+        epithet = parts[1].strip().rstrip(".,;:")
+        if genus and re.match(r"^[a-z][a-z0-9-]*$", epithet.lower()) and epithet.lower() not in NON_CANONICAL_SPECIES_TOKENS and not re.match(r"^sp\d", epithet.lower()):
+            return {
+                "key": "canonical_species",
+                "label": "Canonical species",
+                "description": "Binomial species label used for standard species-level reporting.",
+            }
+
+    return {
+        "key": "noncanonical_species_label",
+        "label": "Non-canonical species label",
+        "description": "Searchable species-level label that does not meet canonical binomial rules.",
+    }
 
 
 NON_CANONICAL_SPECIES_TOKENS = {
@@ -22818,17 +22879,22 @@ def api_taxa_search() -> Any:
         """,
         (like_value, starts_value),
     ).fetchall()
-    results = [
-        {
-            "id": int(row["id"]),
-            "species_name": str(row["species_name"]),
-            "taxon_rank": str(row["taxon_rank"]),
-            "genome_count": int(row["genome_count"] or 0),
-            "assembly_source": str(row["assembly_source"] or "all"),
-            "source": "catalog",
-        }
-        for row in rows
-    ]
+    results = []
+    for row in rows:
+        label_meta = taxonomy_label_metadata(str(row["species_name"]), str(row["taxon_rank"]))
+        results.append(
+            {
+                "id": int(row["id"]),
+                "species_name": str(row["species_name"]),
+                "taxon_rank": str(row["taxon_rank"]),
+                "genome_count": int(row["genome_count"] or 0),
+                "assembly_source": str(row["assembly_source"] or "all"),
+                "source": "catalog",
+                "taxon_label_class": label_meta["key"],
+                "taxon_label": label_meta["label"],
+                "taxon_label_description": label_meta["description"],
+            }
+        )
     seen_names = {species_search_name(item["species_name"]) for item in results}
 
     if g.current_user is not None:
@@ -22854,6 +22920,7 @@ def api_taxa_search() -> Any:
             key = species_search_name(name)
             if key in seen_names:
                 continue
+            label_meta = taxonomy_label_metadata(name, "species")
             results.append(
                 {
                     "id": None,
@@ -22865,6 +22932,9 @@ def api_taxa_search() -> Any:
                     "source_taxon_id": int(row["source_taxon_id"]),
                     "source_taxon_name": str(row["source_taxon_name"]),
                     "requires_prepare": True,
+                    "taxon_label_class": label_meta["key"],
+                    "taxon_label": label_meta["label"],
+                    "taxon_label_description": label_meta["description"],
                 }
             )
             seen_names.add(key)
@@ -22889,6 +22959,7 @@ def api_prepare_metadata_species() -> Any:
             status=400,
             mimetype="application/json",
         )
+    label_meta = taxonomy_label_metadata(species.species_name, species.taxon_rank)
     return app.response_class(
         json.dumps(
             {
@@ -22898,6 +22969,9 @@ def api_prepare_metadata_species() -> Any:
                 "genome_count": species.genome_count or 0,
                 "assembly_source": species.assembly_source,
                 "source": "catalog",
+                "taxon_label_class": label_meta["key"],
+                "taxon_label": label_meta["label"],
+                "taxon_label_description": label_meta["description"],
             }
         ),
         mimetype="application/json",

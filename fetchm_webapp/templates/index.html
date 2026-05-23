@@ -217,6 +217,22 @@
     return value.trim().toLowerCase();
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;",
+    }[char]));
+  }
+
+  function taxonLabelBadge(item) {
+    const label = item.taxon_label || (item.taxon_rank === "genus" ? "Canonical genus" : "Canonical species");
+    if (!label || label === "Canonical species" || label === "Canonical genus") return "";
+    return `<span class="taxonomy-badge ${escapeHtml(item.taxon_label_class || "noncanonical")}" title="${escapeHtml(item.taxon_label_description || "")}">${escapeHtml(label)}</span>`;
+  }
+
   function rankedMatches(query) {
     if (!query) return [];
     const items = [];
@@ -259,7 +275,7 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "search-result";
-      button.innerHTML = `<strong>${item.species_name}</strong><span>${item.taxon_rank} · ${item.genome_count || 0} genomes</span>`;
+      button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(item.taxon_rank)} · ${item.genome_count || 0} genomes</span>`;
       button.addEventListener("click", () => chooseTaxon(item));
       taxonSearchResults.appendChild(button);
     });
@@ -278,7 +294,7 @@
     if (selected) {
       selectedTaxonId.value = selected.id;
       selectionName.textContent = selected.species_name;
-      selectionMeta.textContent = `${selected.taxon_rank} · ${selected.genome_count || 0} genomes`;
+      selectionMeta.textContent = `${selected.taxon_label || selected.taxon_rank} · ${selected.genome_count || 0} genomes`;
       metadataPageLink.href = `/taxa/${selected.id}/metadata`;
       metadataPageLink.classList.remove("is-disabled");
       metadataPageLink.setAttribute("aria-disabled", "false");

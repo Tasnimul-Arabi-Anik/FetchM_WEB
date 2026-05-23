@@ -107,6 +107,22 @@
     return value.trim().toLowerCase();
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;",
+    }[char]));
+  }
+
+  function taxonLabelBadge(item) {
+    const label = item.taxon_label || (item.taxon_rank === "genus" ? "Canonical genus" : "Canonical species");
+    if (!label || label === "Canonical species" || label === "Canonical genus") return "";
+    return `<span class="taxonomy-badge ${escapeHtml(item.taxon_label_class || "noncanonical")}" title="${escapeHtml(item.taxon_label_description || "")}">${escapeHtml(label)}</span>`;
+  }
+
   function rankedMatches(query) {
     if (!query) return [];
     const items = [];
@@ -200,7 +216,7 @@
       const sourceLabel = item.source === "genus_metadata" && item.source_taxon_name
         ? `species in ${item.source_taxon_name} metadata`
         : item.taxon_rank;
-      button.innerHTML = `<strong>${item.species_name}</strong><span>${sourceLabel} · ${item.genome_count || 0} genomes</span>`;
+      button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(sourceLabel)} · ${item.genome_count || 0} genomes</span>`;
       button.addEventListener("mousedown", (event) => {
         event.preventDefault();
       });

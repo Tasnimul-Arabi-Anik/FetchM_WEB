@@ -22,10 +22,17 @@ from app import (
     standardize_host_metadata,
 )
 from external_tools.quality_check.runner import validate_quality_runtime
-from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator
+from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_taxonomy_label_classification_keeps_noncanonical_labels_honest(self) -> None:
+        self.assertEqual(global_taxonomy_label_metadata("Escherichia coli")["key"], "canonical_species")
+        self.assertEqual(global_taxonomy_label_metadata("Staphylococcus sp. HMSC06C11")["key"], "unresolved_species_level_label")
+        self.assertEqual(global_taxonomy_label_metadata("Prevotella sp016901395")["key"], "unresolved_species_level_label")
+        self.assertEqual(global_taxonomy_label_metadata("Candidatus Liberibacter asiaticus")["key"], "provisional_taxonomic_label")
+        self.assertEqual(global_taxonomy_label_metadata("Staphylococcus cohnii species complex 1637")["key"], "unresolved_species_level_label")
+
     def test_dataset_pipeline_derives_species_after_genus_standardization(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

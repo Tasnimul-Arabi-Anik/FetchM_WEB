@@ -892,6 +892,40 @@ button.danger {
   font-size: 0.92rem;
 }
 
+.search-result strong {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.taxonomy-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(126, 91, 24, 0.22);
+  background: rgba(237, 183, 86, 0.2);
+  color: #6d4712;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.taxonomy-badge.provisional_taxonomic_label {
+  border-color: rgba(41, 99, 120, 0.24);
+  background: rgba(87, 164, 190, 0.16);
+  color: #245669;
+}
+
+.taxonomy-badge.noncanonical_species_label {
+  border-color: rgba(117, 77, 122, 0.22);
+  background: rgba(170, 118, 177, 0.14);
+  color: #684470;
+}
+
 .selection-summary {
   display: grid;
   gap: 4px;

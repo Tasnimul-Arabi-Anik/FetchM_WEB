@@ -441,11 +441,11 @@
       <h2>Global Snapshot</h2>
       <div class="metrics-grid">
         <div class="metric-card"><strong>{{ summary.overview.unique_assemblies }}</strong><span>Unique assemblies</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.species_observed }}</strong><span>Observed species labels</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.canonical_species_pages|default(summary.overview.species_observed) }}</strong><span>Canonical species pages</span></div>
+        <div class="metric-card"><strong>{{ summary.overview.unresolved_species_level_label_pages|default(0) }}</strong><span>Unresolved species-level labels</span></div>
         <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
         <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
         <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Standardized country</span></div>
-        <div class="metric-card"><strong>{{ ns.changed_total }}</strong><span>Raw-to-standardized mappings</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
     </section>
@@ -502,7 +502,20 @@
     <details class="panel insight-details">
       <summary><span>Which Bacterial Taxa Dominate Public Sequencing?</span><span class="tag">taxa</span></summary>
       <div class="insight-details-body">
-      <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot.</p>
+      <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot. FetchM keeps provisional and unresolved species-level labels searchable, but reports them separately from canonical binomial species.</p>
+      {% set label_rows = summary.taxonomic_landscape.catalog_species_label_classes|default(summary.taxonomic_landscape.species_label_classes|default([])) %}
+      {% if label_rows %}
+      <div class="table-scroll bottom-gap">
+        <table>
+          <thead><tr><th>Species-label class</th><th>Labels</th><th>Share</th><th>Interpretation</th></tr></thead>
+          <tbody>
+            {% for row in label_rows %}
+              <tr><td>{{ row.label }}</td><td>{{ row.labels }}</td><td>{{ row.label_percent }}%</td><td>{{ row.description }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
       <div class="grid two-column">
         <div>
           <h3>Top Genera</h3>
@@ -845,6 +858,7 @@
         <div class="coverage-row"><strong>Duplicate rule</strong><span>{{ summary.methods.duplicate_rule }}</span><span></span></div>
         <div class="coverage-row"><strong>Field mappings</strong><span>{{ summary.methods.field_mappings }}</span><span></span></div>
         <div class="coverage-row"><strong>Missing values</strong><span>{{ summary.methods.missing_value_rule }}</span><span></span></div>
+        <div class="coverage-row"><strong>Species-label policy</strong><span>{{ summary.methods.taxonomy_label_policy|default("Species-level labels are retained for access but canonical and non-canonical labels are reported separately.") }}</span><span></span></div>
         <div class="coverage-row"><strong>QC-ready rule</strong><span>{{ summary.methods.qc_ready_rule }}</span><span></span></div>
         <div class="coverage-row"><strong>Bias formulas</strong><span>{{ summary.methods.bias_score_formulas }}</span><span></span></div>
         <div class="coverage-row"><strong>Quality score</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>

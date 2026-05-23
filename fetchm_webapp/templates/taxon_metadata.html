@@ -5,8 +5,9 @@
   <section class="panel detail-head">
     <div>
       <p class="eyebrow">Metadata Analysis</p>
-      <h1>{{ species.species_name }}</h1>
-      <p class="lede">Metadata Analysis of your target taxon</p>
+      {% set taxon_label = taxonomy_label_metadata(species.species_name, species.taxon_rank) %}
+      <h1>{{ species.species_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
+      <p class="lede">Metadata Analysis of your target taxon{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %}. This label is searchable and retained for completeness, but reported separately from canonical species.{% endif %}</p>
     </div>
     <div class="status-box">
       <span class="status running">{{ species.taxon_rank }}</span>

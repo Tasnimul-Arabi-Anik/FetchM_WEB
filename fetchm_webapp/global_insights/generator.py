@@ -243,17 +243,126 @@ def parse_year(value: str) -> str:
     return ""
 
 
+NON_CANONICAL_SPECIES_TOKENS = {
+    "sp",
+    "sp.",
+    "spp",
+    "spp.",
+    "bacterium",
+    "archaeon",
+    "microorganism",
+    "metagenome",
+    "uncultured",
+    "unclassified",
+    "endosymbiont",
+    "symbiont",
+}
+
+TAXONOMY_LABEL_CLASS_ORDER = (
+    "canonical_species",
+    "unresolved_species_level_label",
+    "provisional_taxonomic_label",
+    "noncanonical_species_label",
+    "canonical_genus",
+    "unknown_taxon_label",
+)
+
+TAXONOMY_LABEL_CLASS_LABELS = {
+    "canonical_species": "Canonical species",
+    "unresolved_species_level_label": "Unresolved species-level label",
+    "provisional_taxonomic_label": "Provisional taxonomic label",
+    "noncanonical_species_label": "Non-canonical species label",
+    "canonical_genus": "Canonical genus",
+    "unknown_taxon_label": "Unknown taxon label",
+}
+
+TAXONOMY_LABEL_CLASS_DESCRIPTIONS = {
+    "canonical_species": "Binomial species label used for standard species-level reporting.",
+    "unresolved_species_level_label": "Placeholder, strain-like, uncultured, metagenomic, or unclassified species-level label; searchable but not counted as a canonical species.",
+    "provisional_taxonomic_label": "Candidatus or provisional nomenclature; searchable but reported separately from canonical species.",
+    "noncanonical_species_label": "Species-level label that does not meet canonical binomial rules; searchable but reported separately.",
+    "canonical_genus": "Genus-level taxon page.",
+    "unknown_taxon_label": "Taxon label is missing or unusable.",
+}
+
+
+def taxonomy_label_metadata(name: str, rank: str = "species") -> dict[str, str]:
+    normalized = normalize(name)
+    rank_key = normalize(rank).casefold()
+    if rank_key == "genus":
+        key = "canonical_genus"
+    elif not normalized:
+        key = "unknown_taxon_label"
+    else:
+        lower = normalized.casefold()
+        parts = normalized.split()
+        if parts and parts[0].casefold() == "candidatus":
+            key = "provisional_taxonomic_label"
+        elif "uncultured" in lower or "metagenome" in lower or "unclassified" in lower:
+            key = "unresolved_species_level_label"
+        elif any(token in lower for token in (" sp.", " spp.", " species complex", " group ", " clade ")) or lower.endswith(" sp") or re.search(r"\bsp\d", lower):
+            key = "unresolved_species_level_label"
+        elif any(char in normalized for char in "()[]"):
+            key = "noncanonical_species_label"
+        elif len(parts) >= 2:
+            epithet = parts[1].strip().rstrip(".,;:")
+            if re.match(r"^[a-z][a-z0-9-]*$", epithet.casefold()) and epithet.casefold() not in NON_CANONICAL_SPECIES_TOKENS and not re.match(r"^sp\d", epithet.casefold()):
+                key = "canonical_species"
+            else:
+                key = "noncanonical_species_label"
+        else:
+            key = "noncanonical_species_label"
+    return {
+        "key": key,
+        "label": TAXONOMY_LABEL_CLASS_LABELS[key],
+        "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS[key],
+    }
+
+
 def parse_taxonomy(organism_name: str, fallback_taxon: str = "") -> tuple[str, str]:
     text = normalize(organism_name) or normalize(fallback_taxon)
     if not text:
         return "Unclassified", "Unclassified"
     parts = [part for part in re.split(r"\s+", text) if part]
-    genus = parts[0] if parts else "Unclassified"
-    if len(parts) >= 2:
-        species = f"{parts[0]} {parts[1]}"
+    if parts and parts[0].casefold() == "candidatus" and len(parts) >= 3:
+        genus = f"{parts[0]} {parts[1]}"
+        species = f"{parts[0]} {parts[1]} {parts[2]}"
     else:
-        species = genus
+        genus = parts[0] if parts else "Unclassified"
+        if len(parts) >= 2:
+            species = f"{parts[0]} {parts[1]}"
+        else:
+            species = genus
     return genus, species
+
+
+def taxonomy_label_summary_rows(label_counts: Counter[str], label_name_sets: dict[str, set[str]], total_labels: int, total_assemblies: int | None = None) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for key in TAXONOMY_LABEL_CLASS_ORDER:
+        label_count = len(label_name_sets.get(key, set()))
+        assembly_count = int(label_counts.get(key, 0))
+        if label_count <= 0 and assembly_count <= 0:
+            continue
+        row = {
+            "label_class": key,
+            "label": TAXONOMY_LABEL_CLASS_LABELS[key],
+            "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS[key],
+            "labels": label_count,
+            "label_percent": percent(label_count, total_labels),
+            "denominator": int(total_labels),
+            "denominator_note": denominator_note(total_labels, "distinct species-level labels"),
+        }
+        if total_assemblies is not None:
+            row.update(
+                {
+                    "assemblies": assembly_count,
+                    "assembly_percent": percent(assembly_count, total_assemblies),
+                    "assembly_denominator": int(total_assemblies),
+                    "assembly_denominator_note": denominator_note(total_assemblies),
+                }
+            )
+        rows.append(row)
+    return rows
 
 
 def parse_float(value: str) -> float | None:
@@ -809,11 +918,17 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     top_country = top_countries[0] if top_countries else {"label": "not available", "percent": 0, "count": 0}
     top_host_category = host_categories[0] if host_categories else {"label": "not available", "percent": 0, "count": 0}
     top_assembly = assembly_levels[0] if assembly_levels else {"label": "not available", "percent": 0, "count": 0}
+    canonical_species_pages = int(overview.get("canonical_species_pages") or 0)
+    unresolved_species_pages = int(overview.get("unresolved_species_level_label_pages") or 0)
+    provisional_species_pages = int(overview.get("provisional_taxonomic_label_pages") or 0)
+    noncanonical_species_pages = int(overview.get("noncanonical_species_label_pages") or 0)
 
     abstract = (
         f"FetchM Global Metadata Insights snapshot {snapshot_id} ({generated_at}) summarized {denominator:,} unique public bacterial "
         f"genome assemblies from {overview['metadata_files_scanned']:,} ready metadata files, representing {overview['species_observed']:,} "
         f"observed species labels, {overview['genera_observed']:,} genera, and {overview['bioprojects_observed']:,} BioProjects. "
+        f"The live taxon catalog separated {canonical_species_pages:,} canonical species pages from {unresolved_species_pages:,} "
+        f"unresolved species-level labels, {provisional_species_pages:,} provisional labels, and {noncanonical_species_pages:,} non-canonical labels. "
         f"Repository representation was uneven: the ten most represented genera accounted for {top10_share}% of assemblies, and the "
         f"largest standardized country category was {top_country['label']} ({top_country['count']:,} assemblies; {top_country['percent']}%). "
         "These results describe public repository composition rather than true bacterial prevalence."
@@ -841,7 +956,8 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     taxonomic_text = (
         f"Taxonomic concentration. The most represented genera were {top_genus_names}, and the most represented species labels were "
         f"{top_species_names}. The top ten genera accounted for {top10_share}% of all non-redundant assemblies, indicating that public "
-        "bacterial genome repositories are dominated by a limited set of heavily sequenced taxa."
+        "bacterial genome repositories are dominated by a limited set of heavily sequenced taxa. FetchM keeps unresolved and provisional "
+        "species-level labels searchable for comprehensive access, but reports them separately from canonical binomial species labels."
     )
     geography_text = (
         f"Geographic representation. Standardized country metadata identified {overview['countries_observed']:,} country categories. "
@@ -881,7 +997,9 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         f"Global Metadata Insights snapshot {snapshot_id} was generated from ready FetchM standardized metadata files. Unique assemblies were "
         "counted by Assembly Accession, with species-level rows preferred over genus-level rows and newer synced taxa scanned first within each rank. "
         "Metadata completeness was calculated separately for raw submitter fields and standardized analysis fields. Empty, absent, unknown, not "
-        "collected, not applicable, unidentified, and similarly non-informative values were treated as unusable metadata."
+        "collected, not applicable, unidentified, and similarly non-informative values were treated as unusable metadata. Species-level labels "
+        "were classified as canonical binomial species, unresolved placeholder labels, provisional Candidatus labels, or non-canonical labels; all "
+        "remain searchable, but only canonical binomials are counted as canonical species."
     )
     figure_legend = (
         f"Figure X. Repository representation and metadata completeness of FetchM-indexed bacterial genome assemblies. Values were calculated "
@@ -1380,6 +1498,10 @@ def generate_global_insights_snapshot(
     latest_taxon_synced_at = ""
     genus_counter: Counter[str] = Counter()
     species_counter: Counter[str] = Counter()
+    species_label_class_assembly_counter: Counter[str] = Counter()
+    species_label_class_names: dict[str, set[str]] = defaultdict(set)
+    taxon_label_class_counter: Counter[str] = Counter()
+    taxon_label_class_names: dict[str, set[str]] = defaultdict(set)
     country_counter: Counter[str] = Counter()
     continent_counter: Counter[str] = Counter()
     subcontinent_counter: Counter[str] = Counter()
@@ -1420,10 +1542,17 @@ def generate_global_insights_snapshot(
         "collection_year",
         "assembly_level",
     ]
+    taxon_inputs = sorted_taxa(taxa)
+    for taxon in taxon_inputs:
+        if taxon.rank == "species":
+            label_meta = taxonomy_label_metadata(taxon.name, taxon.rank)
+            taxon_label_class_counter[label_meta["key"]] += 1
+            taxon_label_class_names[label_meta["key"]].add(taxon.name)
+
     with simulator_path.open("w", newline="", encoding="utf-8") as simulator_handle:
         simulator_writer = csv.DictWriter(simulator_handle, fieldnames=simulator_fields)
         simulator_writer.writeheader()
-        for taxon in sorted_taxa(taxa):
+        for taxon in taxon_inputs:
             path = resolve_metadata_path(taxon.metadata_clean_path)
             if not path.exists():
                 files_skipped += 1
@@ -1455,6 +1584,9 @@ def generate_global_insights_snapshot(
                     genus, species = parse_taxonomy(organism, taxon.name)
                     genus_counter[genus] += 1
                     species_counter[species] += 1
+                    species_label_meta = taxonomy_label_metadata(species, "species")
+                    species_label_class_assembly_counter[species_label_meta["key"]] += 1
+                    species_label_class_names[species_label_meta["key"]].add(species)
 
                     raw_country = row_value(row, COUNTRY_RAW_FIELDS)
                     std_country = row_value(row, COUNTRY_STD_FIELDS)
@@ -1724,6 +1856,18 @@ def generate_global_insights_snapshot(
         else:
             pathogen_rows.append({**pathogen, "assemblies": 0, "metadata_quality_score": "", "metadata_quality_grade": "Not available"})
 
+    species_label_classes = taxonomy_label_summary_rows(
+        species_label_class_assembly_counter,
+        species_label_class_names,
+        len(species_counter),
+        unique_total,
+    )
+    catalog_species_label_classes = taxonomy_label_summary_rows(
+        taxon_label_class_counter,
+        taxon_label_class_names,
+        sum(len(values) for values in taxon_label_class_names.values()),
+    )
+
     app_commit_available = bool(app_commit and app_commit != "unknown")
     rule_manifest = standardization_rule_manifest()
     tool_versions = tool_version_manifest()
@@ -1794,6 +1938,15 @@ def generate_global_insights_snapshot(
             "metadata_files_skipped": files_skipped,
             "genera_observed": len(genus_counter),
             "species_observed": len(species_counter),
+            "canonical_species_observed": len(species_label_class_names.get("canonical_species", set())),
+            "unresolved_species_level_labels_observed": len(species_label_class_names.get("unresolved_species_level_label", set())),
+            "provisional_species_labels_observed": len(species_label_class_names.get("provisional_taxonomic_label", set())),
+            "noncanonical_species_labels_observed": len(species_label_class_names.get("noncanonical_species_label", set())),
+            "species_pages_observed": sum(len(values) for values in taxon_label_class_names.values()),
+            "canonical_species_pages": len(taxon_label_class_names.get("canonical_species", set())),
+            "unresolved_species_level_label_pages": len(taxon_label_class_names.get("unresolved_species_level_label", set())),
+            "provisional_taxonomic_label_pages": len(taxon_label_class_names.get("provisional_taxonomic_label", set())),
+            "noncanonical_species_label_pages": len(taxon_label_class_names.get("noncanonical_species_label", set())),
             "countries_observed": len(country_counter),
             "hosts_observed": len(host_counter),
             "bioprojects_observed": len(bioproject_counter),
@@ -1806,6 +1959,7 @@ def generate_global_insights_snapshot(
             "duplicate_rule": "Unique assemblies are counted by Assembly Accession. Species-level metadata rows are preferred over genus-level rows; newer synced taxa are scanned first within each rank.",
             "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year: Collection Date; growth year: Assembly Release Date.",
             "missing_value_rule": "Empty, unknown, not collected, not applicable, unidentified, and similarly non-informative values are treated as unusable metadata.",
+            "taxonomy_label_policy": "Species-level labels are retained comprehensively for search and metadata access, but classified as canonical species, unresolved species-level labels, provisional taxonomic labels, or non-canonical species labels for honest reporting.",
             "qc_ready_rule": "At least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
             "bias_score_formulas": "Dominance scores are calculated as the top category share among assemblies in scope: top 1/5/10 BioProject share, top country share, top host share, and top collection-year share. Warning severity uses low <25%, moderate 25-49.99%, high 50-74.99%, and severe >=75%.",
             "metadata_quality_score": "0.20 country + 0.20 host/source + 0.15 collection year + 0.15 assembly quality + 0.10 BioProject diversity + 0.10 isolation source + 0.10 standardization confidence.",
@@ -1851,6 +2005,8 @@ def generate_global_insights_snapshot(
         "taxonomic_landscape": {
             "top_genera": top_rows(genus_counter, unique_total, 25),
             "top_species": top_rows(species_counter, unique_total, 25),
+            "species_label_classes": species_label_classes,
+            "catalog_species_label_classes": catalog_species_label_classes,
             "top_10_genus_share_percent": percent(sum(count for _, count in genus_counter.most_common(10)), unique_total),
         },
         "geographic_bias": {
@@ -1901,6 +2057,8 @@ def generate_global_insights_snapshot(
             "validation_accuracy": "tables/validation_accuracy.csv",
             "case_studies": "tables/case_studies.csv",
             "top_bioprojects": "tables/top_bioprojects.csv",
+            "species_label_classes": "tables/species_label_classes.csv",
+            "catalog_species_label_classes": "tables/catalog_species_label_classes.csv",
             "bias_warnings": "tables/bias_warnings.csv",
             "top_corrections": "tables/top_corrections.csv",
             "yearly_growth": "tables/yearly_growth.csv",
@@ -1914,6 +2072,9 @@ def generate_global_insights_snapshot(
     top_row_fields = ["rank", "label", "count", "percent", "denominator", "denominator_note"]
     write_csv(table_dir / "top_genera.csv", summary["taxonomic_landscape"]["top_genera"], top_row_fields)
     write_csv(table_dir / "top_species.csv", summary["taxonomic_landscape"]["top_species"], top_row_fields)
+    label_class_fields = ["label_class", "label", "description", "labels", "label_percent", "assemblies", "assembly_percent", "denominator", "denominator_note", "assembly_denominator", "assembly_denominator_note"]
+    write_csv(table_dir / "species_label_classes.csv", summary["taxonomic_landscape"].get("species_label_classes", []), label_class_fields)
+    write_csv(table_dir / "catalog_species_label_classes.csv", summary["taxonomic_landscape"].get("catalog_species_label_classes", []), label_class_fields)
     write_csv(table_dir / "countries.csv", summary["geographic_bias"]["countries"], top_row_fields)
     write_csv(table_dir / "continents.csv", summary["geographic_bias"]["continents"], top_row_fields)
     write_csv(table_dir / "subcontinents.csv", summary["geographic_bias"]["subcontinents"], top_row_fields)
@@ -2005,6 +2166,15 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
             "metadata_files_skipped": 0,
             "genera_observed": 5814,
             "species_observed": 48392,
+            "canonical_species_observed": 42110,
+            "unresolved_species_level_labels_observed": 5142,
+            "provisional_species_labels_observed": 820,
+            "noncanonical_species_labels_observed": 320,
+            "species_pages_observed": 48392,
+            "canonical_species_pages": 42110,
+            "unresolved_species_level_label_pages": 5142,
+            "provisional_taxonomic_label_pages": 820,
+            "noncanonical_species_label_pages": 320,
             "countries_observed": 184,
             "hosts_observed": 12140,
             "bioprojects_observed": 152706,
@@ -2017,6 +2187,7 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
             "duplicate_rule": "DEMO: unique assemblies are counted by Assembly Accession.",
             "field_mappings": "DEMO: raw country/host/source fields are compared with FetchM standardized country/host/source fields.",
             "missing_value_rule": "DEMO: non-informative metadata values are treated as unusable.",
+            "taxonomy_label_policy": "DEMO: species-level labels are retained for search but classified separately from canonical species.",
             "qc_ready_rule": "DEMO: >=100 assemblies and adequate standardized metadata completeness.",
             "bias_score_formulas": "DEMO: dominance shares use top BioProject, country, host, and year representation.",
             "metadata_quality_score": "DEMO: weighted country, host/source, year, quality, BioProject diversity, source, and confidence components.",
@@ -2034,6 +2205,14 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
                 {"rank": 1, "label": "Escherichia coli", "count": 287441, "percent": 10.1},
                 {"rank": 2, "label": "Salmonella enterica", "count": 241882, "percent": 8.5},
                 {"rank": 3, "label": "Staphylococcus aureus", "count": 184901, "percent": 6.5},
+            ],
+            "species_label_classes": [
+                {"label_class": "canonical_species", "label": "Canonical species", "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS["canonical_species"], "labels": 42110, "label_percent": 87.02, "assemblies": 2600000, "assembly_percent": 91.35},
+                {"label_class": "unresolved_species_level_label", "label": "Unresolved species-level label", "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS["unresolved_species_level_label"], "labels": 5142, "label_percent": 10.63, "assemblies": 210000, "assembly_percent": 7.38},
+            ],
+            "catalog_species_label_classes": [
+                {"label_class": "canonical_species", "label": "Canonical species", "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS["canonical_species"], "labels": 42110, "label_percent": 87.02},
+                {"label_class": "unresolved_species_level_label", "label": "Unresolved species-level label", "description": TAXONOMY_LABEL_CLASS_DESCRIPTIONS["unresolved_species_level_label"], "labels": 5142, "label_percent": 10.63},
             ],
             "top_10_genus_share_percent": 49.6,
         },

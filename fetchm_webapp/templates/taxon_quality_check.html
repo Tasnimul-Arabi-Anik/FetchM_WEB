@@ -152,7 +152,8 @@
     <p class="eyebrow">Quality Check</p>
     <div class="section-heading">
       <div>
-        <h1>{{ species.species_name }}</h1>
+        {% set taxon_label = taxonomy_label_metadata(species.species_name, species.taxon_rank) %}
+        <h1>{{ species.species_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
       </div>
       <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
     </div>
