@@ -12001,10 +12001,19 @@ def build_public_home_metrics() -> dict[str, Any]:
             SUM(CASE WHEN taxon_rank = 'species' AND is_live = 1 AND live_tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS species_ready,
             SUM(CASE WHEN taxon_rank = 'genus' AND is_live = 1 THEN 1 ELSE 0 END) AS genus_total,
             SUM(CASE WHEN taxon_rank = 'genus' AND is_live = 1 AND live_tsv_path IS NOT NULL THEN 1 ELSE 0 END) AS genus_ready,
-            SUM(CASE WHEN is_live = 1 AND live_tsv_path IS NOT NULL AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END) AS genome_total,
-            SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL AND live_genome_count IS NOT NULL THEN live_genome_count ELSE 0 END) AS metadata_genome_total,
             SUM(CASE WHEN is_live = 1 AND live_metadata_clean_path IS NOT NULL THEN 1 ELSE 0 END) AS metadata_taxa_ready
         FROM species
+        """
+    ).fetchone()
+    unique_assembly_counts = db.execute(
+        """
+        SELECT COUNT(DISTINCT am.assembly_accession) AS unique_assemblies
+        FROM assembly_metadata am
+        JOIN species s ON s.id = am.species_id
+        WHERE s.is_live = 1
+          AND s.live_metadata_clean_path IS NOT NULL
+          AND am.assembly_accession IS NOT NULL
+          AND TRIM(am.assembly_accession) != ''
         """
     ).fetchone()
     report_counts = db.execute(
@@ -12025,8 +12034,8 @@ def build_public_home_metrics() -> dict[str, Any]:
     species_total = int(counts["species_total"] or 0)
     genus_ready = int(counts["genus_ready"] or 0)
     genus_total = int(counts["genus_total"] or 0)
-    metadata_genome_total = int(counts["metadata_genome_total"] or 0)
-    genome_total = int(counts["genome_total"] or 0)
+    genome_total = int(unique_assembly_counts["unique_assemblies"] or 0) if unique_assembly_counts is not None else 0
+    metadata_genome_total = genome_total
     return {
         "species_total": species_total,
         "species_ready": species_ready,

@@ -76,6 +76,7 @@
     .dataset-state-card h3 { margin: 0; font-size: 1rem; }
     .dataset-state-card .version { font-weight: 900; color: var(--accent); overflow-wrap: anywhere; }
     .dataset-state-metrics { display: grid; gap: 5px; color: var(--muted); font-size: 0.92rem; }
+    .dataset-state-note { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.35; }
     .health-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
     .health-card {
       padding: 13px;
@@ -170,9 +171,11 @@
           <div class="dataset-state-metrics">
             <span>{{ admin_summary.live.genus_metadata_ready or 0 }} genera with metadata</span>
             <span>{{ admin_summary.live.species_metadata_ready or 0 }} species with metadata</span>
-            <span>{{ admin_summary.live.live_unique_assemblies or 0 }} unique assemblies</span>
-            <span>{{ admin_summary.live.taxon_scoped_genomes or 0 }} taxon-scoped rows</span>
+            <span>{{ admin_summary.live.live_unique_assemblies or 0 }} unique bacterial assemblies</span>
           </div>
+          <p class="dataset-state-note">
+            Unique assemblies are the non-redundant live genome count used for reporting.
+          </p>
         </article>
         <article class="dataset-state-card">
           <h3>Staged Candidate</h3>
@@ -180,7 +183,7 @@
           <div class="dataset-state-metrics">
             <span>{{ admin_summary.staged.staged_genus_metadata_ready or 0 }} verified genera</span>
             <span>{{ admin_summary.staged.staged_species_metadata_ready or 0 }} verified species</span>
-            <span>{{ admin_summary.staged.staged_unique_assemblies or 0 }} verified unique assemblies</span>
+            <span>{{ admin_summary.staged.staged_unique_assemblies or 0 }} verified unique bacterial assemblies</span>
             <span>{{ admin_summary.staged.staged_genus_only_unique_assemblies or 0 }} genus-only/unmapped assemblies</span>
           </div>
         </article>
@@ -191,7 +194,9 @@
             {% if admin_summary.previous_version_id and admin_summary.previous %}
               <span>{{ admin_summary.previous.genus_metadata_ready or 0 }} genera</span>
               <span>{{ admin_summary.previous.species_metadata_ready or 0 }} species</span>
-              <span>{{ admin_summary.previous.taxon_scoped_genomes or 0 }} taxon-scoped rows</span>
+              {% if admin_summary.previous.unique_assemblies is defined %}
+                <span>{{ admin_summary.previous.unique_assemblies or 0 }} unique bacterial assemblies</span>
+              {% endif %}
             {% else %}
               <span>Created after the next successful replacement.</span>
             {% endif %}
