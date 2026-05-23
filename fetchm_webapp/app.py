@@ -9070,6 +9070,92 @@ def species_reconciliation_task_already_ready(
     return True
 
 
+def preserve_live_species_metadata_for_staging(
+    db: sqlite3.Connection,
+    dataset_version_id: str,
+) -> dict[str, int]:
+    """Carry still-valid live species pages into a staged release.
+
+    Genus-first updates refresh species that can be derived from the latest
+    standardized genus metadata. Existing species pages that are still live and
+    usable should remain part of the effective release until they are replaced
+    or explicitly retired; otherwise verification undercounts the post-publish
+    species coverage and blocks safe incremental releases.
+    """
+    before = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE taxon_rank = 'species'
+          AND staging_dataset_version_id = ?
+          AND metadata_status = 'ready'
+          AND metadata_clean_path IS NOT NULL
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    eligible = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE taxon_rank = 'species'
+          AND is_live = 1
+          AND live_metadata_status = 'ready'
+          AND live_metadata_clean_path IS NOT NULL
+          AND live_metadata_clean_path != ''
+          AND (staging_dataset_version_id IS NULL OR staging_dataset_version_id != ?)
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    now = utc_now()
+    cursor = db.execute(
+        """
+        UPDATE species
+        SET staging_dataset_version_id = ?,
+            status = COALESCE(live_status, status, 'ready'),
+            tsv_path = COALESCE(live_tsv_path, tsv_path),
+            metadata_status = live_metadata_status,
+            metadata_path = live_metadata_path,
+            metadata_clean_path = live_metadata_clean_path,
+            genome_count = COALESCE(live_genome_count, genome_count),
+            taxon_id = COALESCE(live_taxon_id, taxon_id),
+            last_synced_at = COALESCE(live_last_synced_at, last_synced_at),
+            metadata_last_built_at = COALESCE(live_metadata_last_built_at, metadata_last_built_at),
+            metadata_error = NULL,
+            refresh_requested = 0,
+            metadata_refresh_requested = 0,
+            claimed_by = NULL,
+            claimed_at = NULL,
+            metadata_claimed_by = NULL,
+            metadata_claimed_at = NULL,
+            updated_at = ?
+        WHERE taxon_rank = 'species'
+          AND is_live = 1
+          AND live_metadata_status = 'ready'
+          AND live_metadata_clean_path IS NOT NULL
+          AND live_metadata_clean_path != ''
+          AND (staging_dataset_version_id IS NULL OR staging_dataset_version_id != ?)
+        """,
+        (dataset_version_id, now, dataset_version_id),
+    )
+    after = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM species
+        WHERE taxon_rank = 'species'
+          AND staging_dataset_version_id = ?
+          AND metadata_status = 'ready'
+          AND metadata_clean_path IS NOT NULL
+        """,
+        (dataset_version_id,),
+    ).fetchone()
+    return {
+        "preserved_live_species_metadata_eligible": int(eligible["total"] or 0) if eligible is not None else 0,
+        "preserved_live_species_metadata": int(cursor.rowcount or 0),
+        "staged_species_metadata_ready_before_preserve": int(before["total"] or 0) if before is not None else 0,
+        "staged_species_metadata_ready_after_preserve": int(after["total"] or 0) if after is not None else 0,
+    }
+
+
 def queue_species_reconciliation_candidate(
     db: sqlite3.Connection,
     *,
@@ -10175,6 +10261,8 @@ def advance_dataset_update_pipeline_runs() -> None:
                 if "note" not in progress and "reconcile_task_total" not in progress:
                     blockers.append("Species reconciliation queue is still initializing.")
                 live_gap_resolution = pipeline_step_is_live_species_gap_resolution(db, step)
+                if not live_gap_resolution:
+                    progress.update(preserve_live_species_metadata_for_staging(db, str(step["dataset_version_id"])))
                 derive_row = db.execute(
                     """
                     SELECT status
@@ -10208,6 +10296,7 @@ def advance_dataset_update_pipeline_runs() -> None:
                     elif pending or running:
                         blockers.append(f"Resolving species gaps: {done}/{total} checked, {running} running, {pending} queued")
             elif step_key == "verify":
+                progress.update(preserve_live_species_metadata_for_staging(db, str(step["dataset_version_id"])))
                 progress.update(dataset_version_metadata_summary(db, str(step["dataset_version_id"])))
                 progress.update(staged_species_search_summary(db, str(step["dataset_version_id"])))
                 live_summary = current_live_dataset_summary(db)
@@ -10523,8 +10612,15 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             db.commit()
             return
         if step_key == "reconcile_species":
+            live_gap_resolution = pipeline_step_is_live_species_gap_resolution(db, step)
+            preserve_summary = (
+                {}
+                if live_gap_resolution
+                else preserve_live_species_metadata_for_staging(db, version_id)
+            )
             inserted = ensure_reconciliation_tasks_for_step(db, step)
             progress = species_reconciliation_task_progress(db, version_id)
+            progress.update(preserve_summary)
             progress["queued"] = inserted
             progress["note"] = (
                 "Public species candidates missing from live genus metadata are checked by direct species fetch; valid results are standardized and staged."
