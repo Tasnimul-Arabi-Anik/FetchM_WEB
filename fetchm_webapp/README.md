@@ -101,6 +101,10 @@ Important: Gmail requires an App Password for SMTP. Do not use the normal accoun
 
 ## Run with Docker
 
+Use Docker Compose v2 (docker compose). The legacy Python docker-compose
+v1 client is not supported for production redeploys because it can fail during
+container recreation on current Docker engines.
+
 From the repository root:
 
 ```bash
