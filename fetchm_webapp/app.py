@@ -7715,6 +7715,67 @@ def build_admin_storage_summary() -> dict[str, Any]:
     }
 
 
+def build_deployment_status() -> dict[str, Any]:
+    status_path = DATA_DIR / "deployment_status.json"
+    status: dict[str, Any] = {}
+    if status_path.exists():
+        try:
+            status = json.loads(status_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            status = {"status": "unreadable"}
+    uptime_label = "unknown"
+    try:
+        stat_parts = Path("/proc/1/stat").read_text(encoding="utf-8").split()
+        start_ticks = int(stat_parts[21])
+        clock_ticks = os.sysconf(os.sysconf_names.get("SC_CLK_TCK", "SC_CLK_TCK"))
+        system_uptime = float(Path("/proc/uptime").read_text(encoding="utf-8").split()[0])
+        uptime_label = format_elapsed_brief(max(0, system_uptime - (start_ticks / clock_ticks)))
+    except Exception:
+        uptime_label = "unknown"
+    deployed_at = status.get("deployed_at") or "unknown"
+    deployed_commit = str(status.get("commit") or APP_COMMIT or "unknown")
+    return {
+        "status": status.get("status") or ("deployed" if status else "not recorded"),
+        "app_commit": APP_COMMIT,
+        "deployed_commit": deployed_commit,
+        "commit_matches_runtime": deployed_commit == APP_COMMIT,
+        "branch": status.get("branch") or "unknown",
+        "compose_version": status.get("compose_version") or "not recorded",
+        "deployed_at": deployed_at,
+        "deployed_at_label": compact_datetime_label(deployed_at),
+        "container_uptime_label": uptime_label,
+        "image_id": str(status.get("image_id") or "not recorded")[:24],
+        "container_id": str(status.get("container_id") or "not recorded")[:24],
+        "health_status": (status.get("health_response") or {}).get("status", "unknown") if isinstance(status.get("health_response"), dict) else "unknown",
+        "status_path": str(status_path),
+    }
+
+
+def build_release_gate_summary(dataset_pipeline: Mapping[str, Any], admin_summary: Mapping[str, Any]) -> dict[str, Any]:
+    verification = dict(dataset_pipeline.get("verification_summary") or {})
+    live = dict(admin_summary.get("live") or {})
+    staged = dict(admin_summary.get("staged") or {})
+    blockers = verification.get("release_verification_blockers")
+    if not isinstance(blockers, list):
+        blockers = []
+    status = str(verification.get("release_verification_status") or "not run")
+    safe = bool(verification.get("safe_to_replace"))
+    return {
+        "status": status,
+        "safe_to_replace": safe,
+        "blockers": blockers,
+        "json_path": verification.get("release_verification_json_path"),
+        "summary_path": verification.get("release_verification_summary_path"),
+        "live_unique_assemblies": int(live.get("live_unique_assemblies") or 0),
+        "staged_unique_assemblies": int(staged.get("staged_unique_assemblies") or verification.get("staged_unique_assemblies") or 0),
+        "live_genera": int(live.get("genus_metadata_ready") or live.get("live_genus_metadata_ready") or 0),
+        "staged_genera": int(staged.get("staged_genus_metadata_ready") or verification.get("staged_genus_metadata_ready") or 0),
+        "live_species": int(live.get("species_metadata_ready") or live.get("live_species_metadata_ready") or 0),
+        "staged_species": int(staged.get("staged_species_metadata_ready") or verification.get("staged_species_metadata_ready") or 0),
+        "genus_only_assemblies": int(staged.get("staged_genus_only_unique_assemblies") or verification.get("staged_genus_only_unique_assemblies") or 0),
+    }
+
+
 def scheduled_dataset_pipeline_due_at(db: sqlite3.Connection | None = None) -> datetime:
     connection = db or get_db()
     try:
@@ -23040,12 +23101,16 @@ def report_problem() -> Any:
 def admin_dashboard() -> str:
     require_admin()
     db = get_db()
+    admin_summary = build_admin_summary_dashboard(db)
+    dataset_pipeline = build_dataset_pipeline_dashboard(db)
     return render_template(
         "admin_overview_v2.html",
-        admin_summary=build_admin_summary_dashboard(db),
-        dataset_pipeline=build_dataset_pipeline_dashboard(),
+        admin_summary=admin_summary,
+        dataset_pipeline=dataset_pipeline,
         observability=build_observability_dashboard(),
         storage=build_admin_storage_summary(),
+        deployment=build_deployment_status(),
+        release_gate=build_release_gate_summary(dataset_pipeline, admin_summary),
         system_monitor=build_system_monitor(db),
         security_posture=build_security_posture(),
         **admin_common_context("overview"),

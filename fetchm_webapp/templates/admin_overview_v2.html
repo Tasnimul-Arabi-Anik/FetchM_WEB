@@ -217,6 +217,49 @@
       <strong>Coverage principle</strong>
       <p>Genus metadata is the comprehensive bacterial coverage layer. Species metadata is derived only for confident species assignments; ambiguous or provisional records remain available at genus level instead of being forced into incorrect species files.</p>
     </div>
+    <div class="admin-command-grid top-gap">
+      <article class="dataset-state-card">
+        <div class="admin-group-head">
+          <div>
+            <p class="eyebrow">Deployment</p>
+            <h3>Live web release</h3>
+          </div>
+          <span class="admin-chip {{ 'live' if deployment.health_status == 'ok' else 'failed' }}">{{ deployment.health_status }}</span>
+        </div>
+        <div class="dataset-state-metrics">
+          <span>Runtime commit: {{ deployment.app_commit }}</span>
+          <span>Deployed commit: {{ deployment.deployed_commit }}</span>
+          <span>Commit stamp: {{ 'matches' if deployment.commit_matches_runtime else 'mismatch' }}</span>
+          <span>Compose: {{ deployment.compose_version }}</span>
+          <span>Deployed: {{ deployment.deployed_at_label }}</span>
+          <span>Container uptime: {{ deployment.container_uptime_label }}</span>
+          <span>Image: {{ deployment.image_id }}</span>
+        </div>
+      </article>
+      <article class="dataset-state-card">
+        <div class="admin-group-head">
+          <div>
+            <p class="eyebrow">Validation Gate</p>
+            <h3>Before replacement</h3>
+          </div>
+          <span class="admin-chip {{ 'live' if release_gate.safe_to_replace else 'failed' if release_gate.status == 'fail' else 'idle' }}">{{ release_gate.status }}</span>
+        </div>
+        <div class="dataset-state-metrics">
+          <span>Safe to replace: {{ 'yes' if release_gate.safe_to_replace else 'no' }}</span>
+          <span>Unique assemblies: live {{ release_gate.live_unique_assemblies }} / staged {{ release_gate.staged_unique_assemblies }}</span>
+          <span>Genera metadata: live {{ release_gate.live_genera }} / staged {{ release_gate.staged_genera }}</span>
+          <span>Species metadata: live {{ release_gate.live_species }} / staged {{ release_gate.staged_species }}</span>
+          <span>Genus-only assemblies in staged data: {{ release_gate.genus_only_assemblies }}</span>
+        </div>
+        {% if release_gate.blockers %}
+          <div class="pipeline-detail-list top-gap">
+            {% for blocker in release_gate.blockers[:5] %}<span class="danger-text">{{ blocker }}</span>{% endfor %}
+          </div>
+        {% else %}
+          <p class="dataset-state-note">No release blockers recorded for the latest staged candidate.</p>
+        {% endif %}
+      </article>
+    </div>
   </section>
 
   <section class="panel">

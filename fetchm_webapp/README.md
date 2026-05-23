@@ -126,6 +126,15 @@ Then start:
 FETCHM_WEBAPP_GIT_COMMIT=$(git rev-parse HEAD) docker compose -f fetchm_webapp/docker-compose.yml up --build -d
 ```
 
+For routine production web redeploys, use the guarded deploy script. It validates
+the Compose file, rebuilds only the web image with the current commit stamp,
+recreates only the web container, checks `/healthz`, and writes
+`fetchm_webapp/data/deployment_status.json` for the admin Deployment card.
+
+```bash
+fetchm_webapp/scripts/deploy_web.sh
+```
+
 After DNS is live, Caddy will obtain and renew the HTTPS certificate automatically.
 
 Job uploads, logs, and outputs are persisted in `fetchm_webapp/data/`.
