@@ -37,6 +37,38 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             created_at="", updated_at="", query_name="Candidatus Liberibacter asiaticus", taxon_rank="species"
         )
         self.assertEqual(fetchm_app.species_parent_genus_name(candidatus), "Liberibacter")
+        self.assertEqual(
+            fetchm_app.species_derivation_label_from_organism_name("Morganella morganii strain ABC", "Morganella"),
+            "Morganella morganii",
+        )
+        self.assertEqual(
+            fetchm_app.species_derivation_label_from_organism_name("Morganella sp. FDAARGOS_123", "Morganella"),
+            "Morganella sp. FDAARGOS_123",
+        )
+        self.assertEqual(
+            fetchm_app.species_derivation_label_from_organism_name("Staphylococcus cohnii species complex 1637", "Staphylococcus"),
+            "Staphylococcus cohnii species complex 1637",
+        )
+        self.assertIsNone(
+            fetchm_app.species_derivation_label_from_organism_name("Proteus mirabilis", "Morganella")
+        )
+        self.assertIsNone(
+            fetchm_app.species_derivation_candidate_label_from_row(
+                "Morganella sp. singleton", "Morganella", source_kind="metadata_search", genome_count=1
+            )
+        )
+        self.assertEqual(
+            fetchm_app.species_derivation_candidate_label_from_row(
+                "Morganella sp. repeated", "Morganella", source_kind="metadata_search", genome_count=2
+            ),
+            "Morganella sp. repeated",
+        )
+        self.assertEqual(
+            fetchm_app.species_derivation_candidate_label_from_row(
+                "Morganella sp. singleton", "Morganella", source_kind="existing_species", genome_count=1
+            ),
+            "Morganella sp. singleton",
+        )
 
     def test_non_exact_taxonomy_error_is_genus_only_not_failed(self) -> None:
         error = RuntimeError(

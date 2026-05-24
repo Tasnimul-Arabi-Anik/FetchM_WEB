@@ -6624,6 +6624,14 @@ NON_CANONICAL_SPECIES_TOKENS = {
     "symbiont",
 }
 
+try:
+    NONCANONICAL_SPECIES_METADATA_MIN_GENOMES = max(
+        1,
+        int(os.environ.get("FETCHM_WEBAPP_NONCANONICAL_SPECIES_MIN_GENOMES", "2") or "2"),
+    )
+except ValueError:
+    NONCANONICAL_SPECIES_METADATA_MIN_GENOMES = 2
+
 
 def canonical_species_from_organism_name(value: str, expected_genus: str | None = None) -> str | None:
     name = normalize_species_name(value)
@@ -6649,6 +6657,77 @@ def canonical_species_from_organism_name(value: str, expected_genus: str | None 
     if offset:
         return " ".join([parts[0], genus, species_epithet])
     return " ".join([genus, species_epithet])
+
+
+def species_derivation_label_from_organism_name(value: str, expected_genus: str | None = None) -> str | None:
+    """Return the species-page label represented by a genus metadata organism name.
+
+    Canonical organism labels collapse to binomial species names. Placeholder,
+    complex, group, Candidatus, and other non-canonical labels are retained so
+    they remain searchable and downloadable, but they are classified separately
+    by taxonomy_label_metadata instead of being counted as canonical species.
+    """
+    name = normalize_species_name(value)
+    if not name:
+        return None
+    parts = name.split()
+    if not parts:
+        return None
+    offset = 1 if parts[0].casefold() == "candidatus" else 0
+    if len(parts) < offset + 2:
+        return None
+    genus = parts[offset].strip()
+    if expected_genus and genus.casefold() != normalize_species_name(expected_genus).casefold():
+        return None
+
+    lower = name.casefold()
+    noncanonical_marker = (
+        " sp." in lower
+        or " spp." in lower
+        or lower.endswith(" sp")
+        or lower.endswith(" spp")
+        or re.search(r"\bsp\d", lower) is not None
+        or " species complex" in lower
+        or " group " in lower
+        or lower.endswith(" group")
+        or " clade " in lower
+        or lower.endswith(" clade")
+    )
+    if noncanonical_marker:
+        return name
+
+    canonical = canonical_species_from_organism_name(name, expected_genus)
+    if canonical:
+        return canonical
+
+    label_meta = taxonomy_label_metadata(name, "species")
+    if label_meta["key"] in {
+        "provisional_taxonomic_label",
+        "unresolved_species_level_label",
+        "noncanonical_species_label",
+    }:
+        return name
+    return None
+
+
+def species_derivation_candidate_label_from_row(
+    value: str,
+    expected_genus: str | None = None,
+    *,
+    source_kind: str = "metadata_search",
+    genome_count: int = 0,
+) -> str | None:
+    canonical = canonical_species_from_organism_name(value, expected_genus)
+    if canonical:
+        return canonical
+    label = species_derivation_label_from_organism_name(value, expected_genus)
+    if not label:
+        return None
+    if source_kind == "existing_species":
+        return label
+    if int(genome_count or 0) >= NONCANONICAL_SPECIES_METADATA_MIN_GENOMES:
+        return label
+    return None
 
 
 def refresh_metadata_species_search_entries(species: SpeciesRecord, rows: list[dict[str, Any]]) -> None:
@@ -8961,13 +9040,13 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
     inserted += int(fallback_cursor.rowcount or 0)
     missing_rows = db.execute(
         """
-        SELECT source_taxon_id, source_taxon_name, species_name
+        SELECT source_taxon_id, source_taxon_name, species_name, genome_count, source_kind
         FROM (
-            SELECT source_taxon_id, source_taxon_name, species_name
+            SELECT source_taxon_id, source_taxon_name, species_name, genome_count, 'metadata_search' AS source_kind
             FROM metadata_species_search_staging
             WHERE dataset_version_id = ?
             UNION ALL
-            SELECT m.source_taxon_id, m.source_taxon_name, m.species_name
+            SELECT m.source_taxon_id, m.source_taxon_name, m.species_name, m.genome_count, 'metadata_search' AS source_kind
             FROM metadata_species_search m
             JOIN species s ON s.id = m.source_taxon_id
             WHERE s.staging_dataset_version_id = ?
@@ -8982,7 +9061,9 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
             UNION ALL
             SELECT g.id AS source_taxon_id,
                    g.species_name AS source_taxon_name,
-                   sp.species_name
+                   sp.species_name,
+                   COALESCE(sp.live_genome_count, sp.genome_count, 0) AS genome_count,
+                   'existing_species' AS source_kind
             FROM species sp
             JOIN species g
               ON g.taxon_rank = 'genus'
@@ -9010,9 +9091,14 @@ def ensure_derived_species_metadata_tasks_for_version(db: sqlite3.Connection, da
     candidates_by_source: dict[int, set[str]] = defaultdict(set)
     for row in missing_rows:
         source_taxon_id = int(row["source_taxon_id"])
-        canonical_name = canonical_species_from_organism_name(str(row["species_name"]), str(row["source_taxon_name"]))
-        if canonical_name:
-            candidates_by_source[source_taxon_id].add(canonical_name)
+        candidate_name = species_derivation_candidate_label_from_row(
+            str(row["species_name"]),
+            str(row["source_taxon_name"]),
+            source_kind=str(row["source_kind"] or "metadata_search"),
+            genome_count=int(row["genome_count"] or 0),
+        )
+        if candidate_name:
+            candidates_by_source[source_taxon_id].add(candidate_name)
     for source_taxon_id, candidates in candidates_by_source.items():
         db.execute(
             """
@@ -9253,12 +9339,17 @@ def unresolved_live_species_candidate_sources(db: sqlite3.Connection) -> list[di
     for row in rows:
         source_taxon_name = str(row["source_taxon_name"] or "").strip()
         species_raw = str(row["species_name"] or "").strip()
-        canonical = canonical_species_from_organism_name(species_raw, source_taxon_name)
-        if not canonical:
+        candidate = species_derivation_candidate_label_from_row(
+            species_raw,
+            source_taxon_name,
+            source_kind="metadata_search",
+            genome_count=int(row["genome_count"] or 0),
+        )
+        if not candidate:
             continue
         search_name = str(row["search_name"] or "").strip().lower()
         species_name = species_raw.lower()
-        canonical_name = canonical.lower()
+        canonical_name = candidate.lower()
         if search_name and search_name in ready_search_names:
             continue
         if species_name and species_name in ready_species_names:
@@ -9269,7 +9360,7 @@ def unresolved_live_species_candidate_sources(db: sqlite3.Connection) -> list[di
             {
                 "source_taxon_id": int(row["source_taxon_id"]),
                 "source_taxon_name": source_taxon_name,
-                "species_name": canonical,
+                "species_name": candidate,
                 "search_name": str(row["search_name"] or ""),
                 "genome_count": int(row["genome_count"] or 0),
             }
@@ -9307,10 +9398,15 @@ def reconciliation_candidate_rows_for_source(
     ).fetchall()
     candidates: dict[str, int] = {}
     for row in rows:
-        canonical = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
-        if not canonical:
+        candidate = species_derivation_candidate_label_from_row(
+            str(row["species_name"]),
+            source_taxon_name,
+            source_kind="metadata_search",
+            genome_count=int(row["genome_count"] or 0),
+        )
+        if not candidate:
             continue
-        candidates[canonical] = candidates.get(canonical, 0) + int(row["genome_count"] or 0)
+        candidates[candidate] = candidates.get(candidate, 0) + int(row["genome_count"] or 0)
     return sorted(candidates.items(), key=lambda item: (-item[1], item[0].lower()))
 
 
@@ -9590,9 +9686,9 @@ def genus_metadata_canonical_species(source_taxon_id: int, source_taxon_name: st
         return set()
     rows_by_canonical: set[str] = set()
     for row in genus_rows.values():
-        canonical = canonical_species_from_organism_name(str(row.get("Organism Name") or ""), source_taxon_name)
-        if canonical:
-            rows_by_canonical.add(canonical)
+        candidate = species_derivation_label_from_organism_name(str(row.get("Organism Name") or ""), source_taxon_name)
+        if candidate:
+            rows_by_canonical.add(candidate)
     return rows_by_canonical
 
 
@@ -9662,10 +9758,15 @@ def ensure_live_species_gap_reconciliation_tasks_for_version(db: sqlite3.Connect
             continue
         grouped: dict[str, int] = {}
         for row in rows:
-            canonical = canonical_species_from_organism_name(str(row["species_name"] or ""), source_taxon_name)
-            if not canonical:
+            candidate = species_derivation_candidate_label_from_row(
+                str(row["species_name"] or ""),
+                source_taxon_name,
+                source_kind="metadata_search",
+                genome_count=int(row["genome_count"] or 0),
+            )
+            if not candidate:
                 continue
-            grouped[canonical] = grouped.get(canonical, 0) + int(row["genome_count"] or 0)
+            grouped[candidate] = grouped.get(candidate, 0) + int(row["genome_count"] or 0)
         for species_name, genome_count in sorted(grouped.items(), key=lambda item: (-item[1], item[0].lower())):
             if species_name in rows_by_canonical:
                 continue
@@ -19176,16 +19277,21 @@ def expand_species_catalog_from_genus_metadata(
     for row in rows:
         source_taxon_id = int(row["source_taxon_id"])
         source_taxon_name = str(row["source_taxon_name"])
-        canonical_name = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
-        if not canonical_name:
+        candidate_name = species_derivation_candidate_label_from_row(
+            str(row["species_name"]),
+            source_taxon_name,
+            source_kind="metadata_search",
+            genome_count=int(row["genome_count"] or 0),
+        )
+        if not candidate_name:
             continue
-        key = (source_taxon_id, canonical_name)
+        key = (source_taxon_id, candidate_name)
         entry = candidates.setdefault(
             key,
             {
                 "source_taxon_id": source_taxon_id,
                 "source_taxon_name": source_taxon_name,
-                "species_name": canonical_name,
+                "species_name": candidate_name,
                 "genome_count": 0,
             },
         )
@@ -19223,9 +19329,9 @@ def expand_species_catalog_from_genus_metadata(
             genus_rows = load_taxon_metadata_rows(genus.id)
             rows_by_canonical: dict[str, list[dict[str, Any]]] = defaultdict(list)
             for row in genus_rows.values():
-                canonical_name = canonical_species_from_organism_name(str(row.get("Organism Name") or ""), genus.species_name)
-                if canonical_name:
-                    rows_by_canonical[canonical_name].append(row)
+                candidate_name = species_derivation_label_from_organism_name(str(row.get("Organism Name") or ""), genus.species_name)
+                if candidate_name:
+                    rows_by_canonical[candidate_name].append(row)
         except Exception:
             failed += len(genus_candidates)
             logging.exception("Failed to load genus metadata for species expansion: %s.", source_taxon_id)
@@ -19362,14 +19468,14 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
         with get_sqlite_connection() as db:
             rows = db.execute(
                 """
-                SELECT species_name, genome_count
+                SELECT species_name, genome_count, source_kind
                 FROM (
-                    SELECT species_name, genome_count
+                    SELECT species_name, genome_count, 'metadata_search' AS source_kind
                     FROM metadata_species_search_staging
                     WHERE dataset_version_id = ?
                       AND source_taxon_id = ?
                     UNION ALL
-                    SELECT m.species_name, m.genome_count
+                    SELECT m.species_name, m.genome_count, 'metadata_search' AS source_kind
                     FROM metadata_species_search m
                     WHERE m.source_taxon_id = ?
                       AND NOT EXISTS (
@@ -19379,7 +19485,7 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                             AND ms.source_taxon_id = m.source_taxon_id
                       )
                     UNION ALL
-                    SELECT sp.species_name, COALESCE(sp.genome_count, 0) AS genome_count
+                    SELECT sp.species_name, COALESCE(sp.live_genome_count, sp.genome_count, 0) AS genome_count, 'existing_species' AS source_kind
                     FROM species sp
                     JOIN species g ON g.id = ?
                     WHERE sp.taxon_rank = 'species'
@@ -19396,9 +19502,14 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
 
         candidates: dict[str, int] = {}
         for row in rows:
-            canonical_name = canonical_species_from_organism_name(str(row["species_name"]), source_taxon_name)
-            if canonical_name:
-                candidates[canonical_name] = candidates.get(canonical_name, 0) + int(row["genome_count"] or 0)
+            candidate_name = species_derivation_candidate_label_from_row(
+                str(row["species_name"]),
+                source_taxon_name,
+                source_kind=str(row["source_kind"] or "metadata_search"),
+                genome_count=int(row["genome_count"] or 0),
+            )
+            if candidate_name:
+                candidates[candidate_name] = candidates.get(candidate_name, 0) + int(row["genome_count"] or 0)
 
         # Preflight may already have staged every unchanged species for this genus.
         # In that case, avoid reading and partitioning a large genus metadata file.
@@ -19466,14 +19577,18 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
         with get_sqlite_connection() as db:
             prior_species_rows = db.execute(
                 """
-                SELECT species_name, COALESCE(live_genome_count, genome_count, 0) AS genome_count
-                FROM species
-                WHERE taxon_rank = 'species'
-                  AND is_live = 1
-                  AND live_metadata_status = 'ready'
-                  AND metadata_source_taxon_id = ?
+                SELECT sp.species_name, COALESCE(sp.live_genome_count, sp.genome_count, 0) AS genome_count
+                FROM species sp
+                JOIN species g ON g.id = ?
+                WHERE sp.taxon_rank = 'species'
+                  AND sp.is_live = 1
+                  AND sp.live_metadata_status = 'ready'
+                  AND (
+                       sp.metadata_source_taxon_id = ?
+                       OR lower(sp.species_name) LIKE lower(g.species_name || ' %')
+                  )
                 """,
-                (source_taxon_id,),
+                (source_taxon_id, source_taxon_id),
             ).fetchall()
         for row in prior_species_rows:
             existing_label = normalize_species_name(str(row["species_name"] or ""))
@@ -24918,7 +25033,7 @@ def admin_expand_species_catalog() -> Any:
         "Expanded species catalog from genus metadata: "
         f"{summary['created']} created, {summary['updated']} updated, "
         f"{summary['skipped']} already ready, {summary['failed']} failed "
-        f"from {summary['candidate_total']} canonical candidates.",
+        f"from {summary['candidate_total']} species-label candidates.",
         "success" if summary["failed"] == 0 else "error",
     )
     return redirect(url_for("admin_metadata"))
