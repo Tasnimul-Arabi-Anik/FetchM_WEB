@@ -9945,7 +9945,12 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
             SET status = 'running',
                 claimed_by = ?,
                 claimed_at = ?,
-                updated_at = ?
+                updated_at = ?,
+                error = NULL,
+                retry_reason = CASE
+                    WHEN retry_reason = 'reset after heartbeat-enabled worker deploy' THEN NULL
+                    ELSE retry_reason
+                END
             WHERE id = ?
               AND status = 'pending'
             """,
