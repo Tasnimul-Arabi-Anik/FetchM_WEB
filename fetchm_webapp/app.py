@@ -8639,7 +8639,6 @@ def staged_non_regression_blockers(staged: Mapping[str, Any], live: Mapping[str,
     max_drop_fraction = max(0.0, float(os.environ.get("FETCHM_WEBAPP_MAX_STAGED_COVERAGE_DROP_FRACTION", "0.01") or "0.01"))
     checks = [
         ("staged_genus_metadata_ready", "live_genus_metadata_ready", "genus metadata files"),
-        ("staged_species_metadata_ready", "live_species_metadata_ready", "species metadata files"),
         ("staged_unique_assemblies", "live_unique_assemblies", "unique genome assemblies"),
     ]
     blockers: list[str] = []
@@ -10336,10 +10335,11 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
     if incomplete:
         blockers.append("Upstream steps are not complete: " + ", ".join(incomplete))
     counts = dataset_update_active_counts(db)
+    rank_counts = dataset_pipeline_rank_counts(db)
     active_parts = {
         "discovery": counts.get("discovery_active", 0),
         "catalog": counts.get("catalog_active", 0),
-        "metadata": counts.get("metadata_active", 0),
+        "genus metadata": rank_counts.get("metadata_genus_active", 0),
         "standardization": counts.get("standardization_active", 0),
         "derive species": counts.get("derive_species_active", 0),
     }
@@ -10349,7 +10349,7 @@ def replacement_step_blockers(db: sqlite3.Connection, step: sqlite3.Row) -> list
     failed_parts = {
         "discovery": counts.get("discovery_failed", 0),
         "catalog": counts.get("catalog_failed", 0),
-        "metadata": counts.get("metadata_failed", 0),
+        "genus metadata": rank_counts.get("metadata_genus_failed", 0),
         "standardization": counts.get("standardization_failed", 0),
         "derive species": counts.get("derive_species_failed", 0),
     }
@@ -10869,14 +10869,14 @@ def advance_dataset_update_pipeline_runs() -> None:
                 active_parts = {
                     "discovery": counts.get("discovery_active", 0),
                     "catalog": rank_counts.get("catalog_genus_active", 0),
-                    "metadata": counts.get("metadata_active", 0),
+                    "genus metadata": rank_counts.get("metadata_genus_active", 0),
                     "standardization": counts.get("standardization_active", 0),
                     "derive species": counts.get("derive_species_active", 0),
                 }
                 failed_parts = {
                     "discovery": counts.get("discovery_failed", 0),
                     "catalog": rank_counts.get("catalog_genus_failed", 0),
-                    "metadata": counts.get("metadata_failed", 0),
+                    "genus metadata": rank_counts.get("metadata_genus_failed", 0),
                     "standardization": counts.get("standardization_failed", 0),
                     "derive species": counts.get("derive_species_failed", 0),
                 }
