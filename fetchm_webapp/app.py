@@ -9719,13 +9719,15 @@ def set_pipeline_step_status(
 
 
 def queue_next_pipeline_step(db: sqlite3.Connection, run_id: str, completed_order: int) -> None:
+    # A repeated completion poll must not leapfrog a successor that is already queued.
+    # Releasing a later step early can run replacement before verification or strand
+    # Global Insights after a promoted dataset has been marked complete.
     next_step = db.execute(
         """
-        SELECT id
+        SELECT id, status
         FROM dataset_update_pipeline_steps
         WHERE run_id = ?
           AND step_order > ?
-          AND status = 'waiting'
         ORDER BY step_order ASC
         LIMIT 1
         """,
@@ -9742,6 +9744,8 @@ def queue_next_pipeline_step(db: sqlite3.Connection, run_id: str, completed_orde
             """,
             (utc_now(), run_id),
         )
+        return
+    if str(next_step["status"]) != "waiting":
         return
     db.execute(
         """

@@ -48,13 +48,50 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     db = fetchm_app.get_db()
                     self.assertEqual(
                         fetchm_app.dataset_pipeline_steps_for_start("metadata", db),
-                        ["metadata", "standardization", "derive_species", "verify"],
+                        ["metadata", "standardization", "derive_species", "reconcile_species", "verify", "replace", "global_insights"],
                     )
                     self.assertLess(
                         fetchm_app.dataset_pipeline_step_keys().index("standardization"),
                         fetchm_app.dataset_pipeline_step_keys().index("derive_species"),
                     )
                     self.assertIn("genus", fetchm_app.DATASET_PIPELINE_STEP_COPY["standardization"]["short"].lower())
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_pipeline_completion_does_not_queue_past_pending_successor(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    fetchm_app.set_setting("dataset_pipeline_auto_publish_insights", "1", db)
+                    run_id, error = fetchm_app.queue_dataset_update_pipeline_run("manual", start_step="verify")
+                    self.assertIsNone(error)
+                    self.assertIsNotNone(run_id)
+                    steps = db.execute(
+                        "SELECT step_key, step_order, status FROM dataset_update_pipeline_steps WHERE run_id = ? ORDER BY step_order",
+                        (run_id,),
+                    ).fetchall()
+                    self.assertEqual([row["step_key"] for row in steps], ["verify", "replace", "global_insights"])
+                    db.execute("UPDATE dataset_update_pipeline_steps SET status = 'completed' WHERE run_id = ? AND step_key = 'verify'", (run_id,))
+                    db.execute("UPDATE dataset_update_pipeline_steps SET status = 'pending' WHERE run_id = ? AND step_key = 'replace'", (run_id,))
+                    fetchm_app.queue_next_pipeline_step(db, str(run_id), int(steps[0]["step_order"]))
+                    statuses = {
+                        row["step_key"]: row["status"]
+                        for row in db.execute(
+                            "SELECT step_key, status FROM dataset_update_pipeline_steps WHERE run_id = ?",
+                            (run_id,),
+                        ).fetchall()
+                    }
+                    self.assertEqual(statuses["replace"], "pending")
+                    self.assertEqual(statuses["global_insights"], "waiting")
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
@@ -1357,7 +1394,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     self.assertIn("Global Metadata Insights", html)
                     self.assertIn("DEMO DATA - NOT REAL RESULTS", html)
                     self.assertIn("Methods & Reproducibility", html)
-                    self.assertIn("Standardization Impact Simulator", html)
+                    self.assertIn("Raw versus Standardized Dataset-selection Simulator", html)
 
                     download = client.get("/global-insights/download/summary.json")
                     self.assertEqual(download.status_code, 200)
