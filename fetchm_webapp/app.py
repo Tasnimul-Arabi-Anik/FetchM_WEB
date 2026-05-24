@@ -7399,6 +7399,14 @@ def build_dataset_pipeline_step_cards(
                     "SELECT dataset_version_id FROM dataset_update_pipeline_runs WHERE run_id = ? LIMIT 1",
                     (row.get("run_id"),),
                 ).fetchone()
+            species_inventory = (
+                comprehensive_species_resolution_summary(db, str(run["dataset_version_id"]))
+                if run is not None
+                else {}
+            )
+            inventory_live = int(species_inventory.get("species_inventory_live_baseline") or 0)
+            inventory_staged = int(species_inventory.get("species_inventory_staged_ready") or completed_candidates)
+            inventory_unaccounted = int(species_inventory.get("species_inventory_unaccounted") or 0)
             if failed and run is not None and not failed_source_genera:
                 failed_row = db.execute(
                     """
@@ -7450,12 +7458,13 @@ def build_dataset_pipeline_step_cards(
                     eta = format_elapsed_brief((remaining_tasks / tasks_per_hour) * 3600.0) if tasks_per_hour > 0 else "unknown"
                     throughput_line = f"Throughput: {tasks_per_hour:.1f} source genera/hour; ETA {eta}"
             detail_lines = [
-                f"{completed_candidates}/{candidate_total} species candidates resolved from standardized genus metadata",
+                f"Local derivation/reuse: {completed_candidates}/{candidate_total} candidates resolved from standardized genus metadata",
                 f"{task_done}/{task_total} source genera complete; {task_running} running, {task_pending} queued",
                 throughput_line,
                 f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
-                f"Full species inventory: {int(progress.get('species_inventory_staged_ready') or completed_candidates):,} ready in staging; {int(progress.get('reconcile_task_done') or 0):,} residual datasets directly checked",
-                f"{int(progress.get('species_inventory_unaccounted') or 0):,} prior live species datasets awaiting a verified outcome",
+                f"Complete prior species inventory: {inventory_live:,} live; {inventory_staged:,} staged so far",
+                f"{inventory_unaccounted:,} prior live species datasets still require local derivation or residual verification",
+                f"Residual direct checks completed after local derivation: {int(progress.get('reconcile_task_done') or 0):,}",
                 f"{failed} genus-derived species candidates unresolved across {failed_source_genera} source genera",
                 "Processing mode: parallel genus derivation plus residual species verification",
             ]
