@@ -32,6 +32,11 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(global_taxonomy_label_metadata("Prevotella sp016901395")["key"], "unresolved_species_level_label")
         self.assertEqual(global_taxonomy_label_metadata("Candidatus Liberibacter asiaticus")["key"], "provisional_taxonomic_label")
         self.assertEqual(global_taxonomy_label_metadata("Staphylococcus cohnii species complex 1637")["key"], "unresolved_species_level_label")
+        candidatus = fetchm_app.SpeciesRecord(
+            id=0, species_name="Candidatus Liberibacter asiaticus", slug="", status="ready",
+            created_at="", updated_at="", query_name="Candidatus Liberibacter asiaticus", taxon_rank="species"
+        )
+        self.assertEqual(fetchm_app.species_parent_genus_name(candidatus), "Liberibacter")
 
     def test_dataset_pipeline_derives_species_after_genus_standardization(self) -> None:
         with TemporaryDirectory() as tmp:
@@ -92,6 +97,56 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     }
                     self.assertEqual(statuses["replace"], "pending")
                     self.assertEqual(statuses["global_insights"], "waiting")
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_derive_species_queues_prior_live_residuals_instead_of_silent_preservation(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    version_id = "staging-residual-test"
+                    db.execute(
+                        "INSERT INTO dataset_versions (version_id, status, created_at, root_path, summary_json) VALUES (?, 'staging', ?, ?, '{}')",
+                        (version_id, fetchm_app.utc_now(), str(root / version_id)),
+                    )
+                    genus = fetchm_app.create_species("Example", db=db, taxon_rank="genus", staging_dataset_version_id=version_id)
+                    genus.staging_dataset_version_id = None
+                    genus.is_live = True
+                    genus.live_status = "ready"
+                    genus.live_metadata_status = "ready"
+                    genus.live_metadata_clean_path = str(root / "genus_clean.csv")
+                    genus.live_metadata_path = str(root / "genus_clean.csv")
+                    fetchm_app.save_species(genus, db)
+                    self.assertEqual(fetchm_app.seed_live_genus_inputs_for_species_derivation(db, version_id), 1)
+                    genus = fetchm_app.get_species_by_id(genus.id, db)
+                    self.assertEqual(genus.staging_dataset_version_id, version_id)
+                    residual = fetchm_app.create_species("Example sp. isolate", db=db, taxon_rank="species")
+                    residual.is_live = True
+                    residual.live_metadata_status = "ready"
+                    residual.live_metadata_clean_path = str(root / "old_species_clean.csv")
+                    residual.live_genome_count = 2
+                    residual.metadata_source_taxon_id = genus.id
+                    fetchm_app.save_species(residual, db)
+                    queued = fetchm_app.queue_residual_species_derivation_checks(db, version_id)
+                    self.assertEqual(queued["residual_species_queued"], 1)
+                    progress = fetchm_app.comprehensive_species_resolution_summary(db, version_id)
+                    self.assertEqual(progress["species_inventory_unaccounted"], 1)
+                    db.execute(
+                        "UPDATE species_reconciliation_tasks SET status='done', result='no_data' WHERE dataset_version_id=?",
+                        (version_id,),
+                    )
+                    progress = fetchm_app.comprehensive_species_resolution_summary(db, version_id)
+                    self.assertEqual(progress["species_inventory_unaccounted"], 0)
+                    self.assertEqual(progress["species_inventory_retired_or_genus_only"], 1)
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
