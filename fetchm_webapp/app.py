@@ -7448,6 +7448,8 @@ def build_dataset_pipeline_step_cards(
             retry_total = int(progress.get("derive_task_retries") or 0)
             retry_pending = int(progress.get("derive_task_retry_pending") or 0)
             retry_running = int(progress.get("derive_task_retry_running") or 0)
+            reuse_preflight = int(progress.get("reuse_preflight_reused") or 0)
+            reuse_missing_files = int(progress.get("reuse_preflight_missing_files") or 0)
             throughput_line = "Throughput: waiting for enough completed source genera to estimate"
             if row and task_done > 0:
                 started_at = parse_optional_utc(row.get("started_at"))
@@ -7458,10 +7460,12 @@ def build_dataset_pipeline_step_cards(
                     eta = format_elapsed_brief((remaining_tasks / tasks_per_hour) * 3600.0) if tasks_per_hour > 0 else "unknown"
                     throughput_line = f"Throughput: {tasks_per_hour:.1f} source genera/hour; ETA {eta}"
             detail_lines = [
-                f"Local derivation/reuse: {completed_candidates}/{candidate_total} candidates resolved from standardized genus metadata",
+                f"Upfront reuse: {reuse_preflight:,} unchanged prior species files staged without regeneration",
+                f"Reusable outputs with missing files: {reuse_missing_files:,}",
+                f"Derivation checks: {completed_candidates}/{candidate_total} candidates resolved from standardized genus metadata",
                 f"{task_done}/{task_total} source genera complete; {task_running} running, {task_pending} queued",
                 throughput_line,
-                f"{int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated, {already_current} already current",
+                f"New or rewritten outputs: {int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated; {already_current} candidate checks required no rewrite",
                 f"Complete prior species inventory: {inventory_live:,} live; {inventory_staged:,} staged so far",
                 f"{inventory_unaccounted:,} prior live species datasets still require local derivation or residual verification",
                 f"Residual direct checks completed after local derivation: {int(progress.get('reconcile_task_done') or 0):,}",
@@ -8444,6 +8448,77 @@ def seed_live_genus_inputs_for_species_derivation(db: sqlite3.Connection, datase
         (dataset_version_id, now, dataset_version_id),
     )
     return int(cursor.rowcount or 0)
+
+
+def pre_stage_reusable_species_metadata(db: sqlite3.Connection, dataset_version_id: str) -> dict[str, int | bool]:
+    """Stage unchanged live species before derivation workers inspect source genera.
+
+    Reuse is safe only when the published species output exists and is at least as
+    recent as its staged source-genus metadata. Species from refreshed genera
+    remain unstaged so derivation or residual verification rebuilds them.
+    """
+    candidate_rows = db.execute(
+        """
+        SELECT sp.id, sp.live_metadata_clean_path
+        FROM species sp
+        JOIN species g ON g.id = sp.metadata_source_taxon_id
+        WHERE sp.taxon_rank = 'species'
+          AND sp.is_live = 1
+          AND sp.live_metadata_status = 'ready'
+          AND sp.live_metadata_clean_path IS NOT NULL
+          AND sp.live_metadata_clean_path != ''
+          AND (sp.staging_dataset_version_id IS NULL OR sp.staging_dataset_version_id != ?)
+          AND g.taxon_rank = 'genus'
+          AND g.staging_dataset_version_id = ?
+          AND g.metadata_status = 'ready'
+          AND g.metadata_clean_path IS NOT NULL
+          AND (
+                g.metadata_last_built_at IS NULL
+                OR (sp.live_metadata_last_built_at IS NOT NULL
+                    AND sp.live_metadata_last_built_at >= g.metadata_last_built_at)
+              )
+        """,
+        (dataset_version_id, dataset_version_id),
+    ).fetchall()
+    reusable_ids = [
+        int(row["id"])
+        for row in candidate_rows
+        if Path(str(row["live_metadata_clean_path"])).exists()
+    ]
+    now = utc_now()
+    reused = 0
+    for offset in range(0, len(reusable_ids), 500):
+        chunk = reusable_ids[offset : offset + 500]
+        placeholders = ", ".join("?" for _ in chunk)
+        cursor = db.execute(
+            f"""
+            UPDATE species
+            SET staging_dataset_version_id = ?,
+                status = COALESCE(live_status, status),
+                tsv_path = COALESCE(live_tsv_path, tsv_path),
+                metadata_status = live_metadata_status,
+                metadata_path = live_metadata_path,
+                metadata_clean_path = live_metadata_clean_path,
+                genome_count = COALESCE(live_genome_count, genome_count),
+                taxon_id = COALESCE(live_taxon_id, taxon_id),
+                last_synced_at = COALESCE(live_last_synced_at, last_synced_at),
+                metadata_last_built_at = COALESCE(live_metadata_last_built_at, metadata_last_built_at),
+                metadata_error = NULL,
+                refresh_requested = 0,
+                metadata_refresh_requested = 0,
+                updated_at = ?
+            WHERE id IN ({placeholders})
+              AND (staging_dataset_version_id IS NULL OR staging_dataset_version_id != ?)
+            """,
+            (dataset_version_id, now, *chunk, dataset_version_id),
+        )
+        reused += int(cursor.rowcount or 0)
+    return {
+        "reuse_preflight_completed": True,
+        "reuse_preflight_eligible": len(reusable_ids),
+        "reuse_preflight_reused": reused,
+        "reuse_preflight_missing_files": len(candidate_rows) - len(reusable_ids),
+    }
 
 
 def dataset_version_metadata_summary(db: sqlite3.Connection, dataset_version_id: str) -> dict[str, int]:
@@ -9765,9 +9840,17 @@ def refresh_derive_species_pipeline_progress(db: sqlite3.Connection, dataset_ver
     ).fetchone()
     if step is None:
         return
+    try:
+        existing_progress = json.loads(str(step["progress_json"] or "{}"))
+    except json.JSONDecodeError:
+        existing_progress = {}
     progress = dataset_update_active_counts(db)
+    for key in ("seeded_live_genus_inputs", "reuse_preflight_completed", "reuse_preflight_eligible", "reuse_preflight_reused", "reuse_preflight_missing_files"):
+        if key in existing_progress:
+            progress[key] = existing_progress[key]
     progress.update(staged_species_search_summary(db, dataset_version_id))
     progress.update(derived_species_metadata_task_progress(db, dataset_version_id))
+    progress.update(comprehensive_species_resolution_summary(db, dataset_version_id))
     progress["batch_size"] = DERIVED_SPECIES_METADATA_BATCH_SIZE
     progress["genus_batch_size"] = DERIVED_SPECIES_METADATA_GENUS_BATCH_SIZE
     progress["max_auto_retries"] = DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES
@@ -9871,6 +9954,95 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
         task = db.execute("SELECT * FROM derived_species_metadata_tasks WHERE id = ?", (int(row["id"]),)).fetchone()
         db.commit()
         return task
+
+
+def heartbeat_derived_species_metadata_task(task_id: int, worker_name: str) -> bool:
+    """Refresh ownership timestamp for a long-running source-genus derivation task."""
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        cursor = db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET claimed_at = ?, updated_at = ?
+            WHERE id = ?
+              AND status = 'running'
+              AND claimed_by = ?
+            """,
+            (now, now, int(task_id), worker_name),
+        )
+        db.commit()
+        return int(cursor.rowcount or 0) == 1
+
+
+def complete_derived_species_metadata_task(
+    *,
+    task_id: int,
+    worker_name: str,
+    dataset_version_id: str,
+    status: str,
+    candidate_count: int,
+    processed: int,
+    created: int,
+    updated: int,
+    skipped: int,
+    failed: int,
+    failed_candidates: list[dict[str, str]],
+    retry_count: int,
+    last_retry_at: str | None,
+    retry_reason: str | None,
+    error: str | None,
+) -> bool:
+    """Complete a derivation task only if this worker still owns it."""
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        cursor = db.execute(
+            """
+            UPDATE derived_species_metadata_tasks
+            SET status = ?,
+                completed_at = CASE WHEN ? = 'done' THEN ? ELSE completed_at END,
+                candidate_count = ?,
+                processed_count = ?,
+                created_count = ?,
+                updated_count = ?,
+                skipped_count = ?,
+                failed_count = ?,
+                failed_candidates_json = ?,
+                retry_count = ?,
+                last_retry_at = ?,
+                retry_reason = ?,
+                error = ?,
+                updated_at = ?,
+                claimed_by = NULL,
+                claimed_at = NULL
+            WHERE id = ?
+              AND status = 'running'
+              AND claimed_by = ?
+            """,
+            (
+                status,
+                status,
+                now,
+                candidate_count,
+                processed,
+                created,
+                updated,
+                skipped,
+                failed,
+                json.dumps(failed_candidates[:100], sort_keys=True),
+                retry_count,
+                last_retry_at,
+                retry_reason or None,
+                error,
+                now,
+                int(task_id),
+                worker_name,
+            ),
+        )
+        owned = int(cursor.rowcount or 0) == 1
+        if owned:
+            refresh_derive_species_pipeline_progress(db, dataset_version_id)
+        db.commit()
+        return owned
 
 
 def set_pipeline_step_status(
@@ -10976,9 +11148,11 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             return
         if step_key == "derive_species":
             seeded_live_genera = seed_live_genus_inputs_for_species_derivation(db, version_id)
+            reuse_preflight = pre_stage_reusable_species_metadata(db, version_id)
             progress = {
                 "candidate_total": 0,
                 "seeded_live_genus_inputs": seeded_live_genera,
+                **reuse_preflight,
                 "resolved": 0,
                 "created": 0,
                 "updated": 0,
@@ -19273,6 +19447,55 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
             if canonical_name:
                 candidates[canonical_name] = candidates.get(canonical_name, 0) + int(row["genome_count"] or 0)
 
+        # Preflight may already have staged every unchanged species for this genus.
+        # In that case, avoid reading and partitioning a large genus metadata file.
+        if candidates:
+            with get_sqlite_connection() as db:
+                staged_labels = {
+                    normalize_species_name(str(row["species_name"] or ""))
+                    for row in db.execute(
+                        """
+                        SELECT species_name
+                        FROM species
+                        WHERE taxon_rank = 'species'
+                          AND staging_dataset_version_id = ?
+                          AND metadata_status = 'ready'
+                          AND metadata_clean_path IS NOT NULL
+                          AND metadata_source_taxon_id = ?
+                        """,
+                        (dataset_version_id, source_taxon_id),
+                    ).fetchall()
+                }
+            if all(normalize_species_name(species_name) in staged_labels for species_name in candidates):
+                candidate_count = len(candidates)
+                skipped = candidate_count
+                now = utc_now()
+                complete_derived_species_metadata_task(
+                    task_id=int(task["id"]),
+                    worker_name=worker_name,
+                    dataset_version_id=dataset_version_id,
+                    status="done",
+                    candidate_count=candidate_count,
+                    processed=0,
+                    created=0,
+                    updated=0,
+                    skipped=skipped,
+                    failed=0,
+                    failed_candidates=[],
+                    retry_count=retry_count,
+                    last_retry_at=last_retry_at,
+                    retry_reason=retry_reason or None,
+                    error=None,
+                )
+                return {
+                    "candidate_count": candidate_count,
+                    "processed": 0,
+                    "created": 0,
+                    "updated": 0,
+                    "skipped": skipped,
+                    "failed": 0,
+                }
+
         genus = load_species(source_taxon_id)
         genus_rows = load_taxon_metadata_rows(genus.id)
         rows_by_candidate: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -19310,29 +19533,23 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
             status = "done"
             error = None
             now = utc_now()
-            with get_sqlite_connection() as db:
-                db.execute(
-                    """
-                    UPDATE derived_species_metadata_tasks
-                    SET status = ?,
-                        completed_at = ?,
-                        candidate_count = 0,
-                        processed_count = 0,
-                        created_count = 0,
-                        updated_count = 0,
-                        skipped_count = 0,
-                        failed_count = 0,
-                        failed_candidates_json = '[]',
-                        error = ?,
-                        updated_at = ?,
-                        claimed_by = NULL,
-                        claimed_at = NULL
-                    WHERE id = ?
-                    """,
-                    (status, now, error, now, int(task["id"])),
-                )
-                refresh_derive_species_pipeline_progress(db, dataset_version_id)
-                db.commit()
+            complete_derived_species_metadata_task(
+                task_id=int(task["id"]),
+                worker_name=worker_name,
+                dataset_version_id=dataset_version_id,
+                status=status,
+                candidate_count=0,
+                processed=0,
+                created=0,
+                updated=0,
+                skipped=0,
+                failed=0,
+                failed_candidates=[],
+                retry_count=retry_count,
+                last_retry_at=last_retry_at,
+                retry_reason=retry_reason or None,
+                error=error,
+            )
             return {
                 "candidate_count": 0,
                 "processed": 0,
@@ -19342,7 +19559,10 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 "failed": 0,
             }
 
-        for species_name, _genome_count in ordered_candidates:
+        for index, (species_name, _genome_count) in enumerate(ordered_candidates, start=1):
+            if index == 1 or index % 25 == 0:
+                if not heartbeat_derived_species_metadata_task(int(task["id"]), worker_name):
+                    raise RuntimeError("Derived species task ownership was lost before completion.")
             existing = get_taxon_by_name(species_name, "species")
             genus_built_at = parse_optional_utc(genus.metadata_last_built_at)
             existing_built_at = parse_optional_utc(existing.metadata_last_built_at) if existing is not None else None
@@ -19435,50 +19655,23 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 retry_reason = f"retry limit reached: {error_text[:500]}"
         logging.exception("Failed to process derived species metadata task for source taxon %s.", source_taxon_id)
 
-    now = utc_now()
-    with get_sqlite_connection() as db:
-        db.execute(
-            """
-            UPDATE derived_species_metadata_tasks
-            SET status = ?,
-                completed_at = CASE WHEN ? = 'done' THEN ? ELSE completed_at END,
-                candidate_count = ?,
-                processed_count = ?,
-                created_count = ?,
-                updated_count = ?,
-                skipped_count = ?,
-                failed_count = ?,
-                failed_candidates_json = ?,
-                retry_count = ?,
-                last_retry_at = ?,
-                retry_reason = ?,
-                error = ?,
-                updated_at = ?,
-                claimed_by = NULL,
-                claimed_at = NULL
-            WHERE id = ?
-            """,
-            (
-                status,
-                status,
-                now,
-                candidate_count,
-                processed,
-                created,
-                updated,
-                skipped,
-                failed,
-                json.dumps(failed_candidates[:100], sort_keys=True),
-                retry_count,
-                last_retry_at,
-                retry_reason or None,
-                error,
-                now,
-                int(task["id"]),
-            ),
-        )
-        refresh_derive_species_pipeline_progress(db, dataset_version_id)
-        db.commit()
+    complete_derived_species_metadata_task(
+        task_id=int(task["id"]),
+        worker_name=worker_name,
+        dataset_version_id=dataset_version_id,
+        status=status,
+        candidate_count=candidate_count,
+        processed=processed,
+        created=created,
+        updated=updated,
+        skipped=skipped,
+        failed=failed,
+        failed_candidates=failed_candidates,
+        retry_count=retry_count,
+        last_retry_at=last_retry_at,
+        retry_reason=retry_reason or None,
+        error=error,
+    )
     return {
         "candidate_count": candidate_count,
         "processed": processed,

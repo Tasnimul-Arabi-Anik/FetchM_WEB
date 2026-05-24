@@ -150,6 +150,76 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
+    def test_species_derivation_preflight_reuses_only_current_existing_files(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    version_id = "staging-reuse-test"
+                    genus_file = root / "genus_clean.csv"
+                    genus_file.write_text("Assembly Accession\nGCA_1\n", encoding="utf-8")
+                    genus = fetchm_app.create_species("Example", db=db, taxon_rank="genus")
+                    genus.is_live = True
+                    genus.live_status = "ready"
+                    genus.live_metadata_status = "ready"
+                    genus.live_metadata_clean_path = str(genus_file)
+                    genus.live_metadata_path = str(genus_file)
+                    genus.live_metadata_last_built_at = "2026-05-20T00:00:00+00:00"
+                    fetchm_app.save_species(genus, db)
+                    self.assertEqual(fetchm_app.seed_live_genus_inputs_for_species_derivation(db, version_id), 1)
+
+                    reusable_file = root / "reusable_clean.csv"
+                    reusable_file.write_text("Assembly Accession\nGCA_1\n", encoding="utf-8")
+                    reusable = fetchm_app.create_species("Example testus", db=db, taxon_rank="species")
+                    reusable.is_live = True
+                    reusable.live_status = "ready"
+                    reusable.live_metadata_status = "ready"
+                    reusable.live_metadata_clean_path = str(reusable_file)
+                    reusable.live_metadata_path = str(reusable_file)
+                    reusable.live_metadata_last_built_at = "2026-05-21T00:00:00+00:00"
+                    reusable.metadata_source_taxon_id = genus.id
+                    fetchm_app.save_species(reusable, db)
+
+                    stale_file = root / "stale_clean.csv"
+                    stale_file.write_text("Assembly Accession\nGCA_2\n", encoding="utf-8")
+                    stale = fetchm_app.create_species("Example staleus", db=db, taxon_rank="species")
+                    stale.is_live = True
+                    stale.live_status = "ready"
+                    stale.live_metadata_status = "ready"
+                    stale.live_metadata_clean_path = str(stale_file)
+                    stale.live_metadata_path = str(stale_file)
+                    stale.live_metadata_last_built_at = "2026-05-19T00:00:00+00:00"
+                    stale.metadata_source_taxon_id = genus.id
+                    fetchm_app.save_species(stale, db)
+
+                    missing = fetchm_app.create_species("Example missingus", db=db, taxon_rank="species")
+                    missing.is_live = True
+                    missing.live_status = "ready"
+                    missing.live_metadata_status = "ready"
+                    missing.live_metadata_clean_path = str(root / "missing_clean.csv")
+                    missing.live_metadata_path = missing.live_metadata_clean_path
+                    missing.live_metadata_last_built_at = "2026-05-21T00:00:00+00:00"
+                    missing.metadata_source_taxon_id = genus.id
+                    fetchm_app.save_species(missing, db)
+
+                    summary = fetchm_app.pre_stage_reusable_species_metadata(db, version_id)
+                    self.assertEqual(summary["reuse_preflight_reused"], 1)
+                    self.assertEqual(summary["reuse_preflight_eligible"], 1)
+                    self.assertEqual(summary["reuse_preflight_missing_files"], 1)
+                    self.assertEqual(fetchm_app.get_species_by_id(reusable.id, db).staging_dataset_version_id, version_id)
+                    self.assertIsNone(fetchm_app.get_species_by_id(stale.id, db).staging_dataset_version_id)
+                    self.assertIsNone(fetchm_app.get_species_by_id(missing.id, db).staging_dataset_version_id)
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_standardization_progress_counts_done_tasks(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
