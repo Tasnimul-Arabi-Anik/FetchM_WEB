@@ -60,7 +60,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     db = fetchm_app.get_db()
                     self.assertEqual(
                         fetchm_app.dataset_pipeline_steps_for_start("metadata", db),
-                        ["metadata", "standardization", "derive_species", "reconcile_species", "verify", "replace", "global_insights"],
+                        ["metadata", "standardization", "derive_species", "verify", "replace", "global_insights"],
                     )
                     self.assertLess(
                         fetchm_app.dataset_pipeline_step_keys().index("standardization"),
@@ -107,7 +107,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
-    def test_derive_species_queues_prior_live_residuals_instead_of_silent_preservation(self) -> None:
+    def test_derive_species_reuses_prior_live_species_when_source_genus_is_current(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
             old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
@@ -120,7 +120,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                 with fetchm_app.app.app_context():
                     fetchm_app.init_db()
                     db = fetchm_app.get_db()
-                    version_id = "staging-residual-test"
+                    version_id = "staging-single-inventory-test"
                     db.execute(
                         "INSERT INTO dataset_versions (version_id, status, created_at, root_path, summary_json) VALUES (?, 'staging', ?, ?, '{}')",
                         (version_id, fetchm_app.utc_now(), str(root / version_id)),
@@ -136,24 +136,27 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     self.assertEqual(fetchm_app.seed_live_genus_inputs_for_species_derivation(db, version_id), 1)
                     genus = fetchm_app.get_species_by_id(genus.id, db)
                     self.assertEqual(genus.staging_dataset_version_id, version_id)
-                    residual = fetchm_app.create_species("Example sp. isolate", db=db, taxon_rank="species")
-                    residual.is_live = True
-                    residual.live_metadata_status = "ready"
-                    residual.live_metadata_clean_path = str(root / "old_species_clean.csv")
-                    residual.live_genome_count = 2
-                    residual.metadata_source_taxon_id = genus.id
-                    fetchm_app.save_species(residual, db)
-                    queued = fetchm_app.queue_residual_species_derivation_checks(db, version_id)
-                    self.assertEqual(queued["residual_species_queued"], 1)
-                    progress = fetchm_app.comprehensive_species_resolution_summary(db, version_id)
-                    self.assertEqual(progress["species_inventory_unaccounted"], 1)
-                    db.execute(
-                        "UPDATE species_reconciliation_tasks SET status='done', result='no_data' WHERE dataset_version_id=?",
+                    species_file = root / "old_species_clean.csv"
+                    species_file.write_text("Assembly Accession\nGCA_1\n", encoding="utf-8")
+                    reusable = fetchm_app.create_species("Example reusable", db=db, taxon_rank="species")
+                    reusable.is_live = True
+                    reusable.live_status = "ready"
+                    reusable.live_metadata_status = "ready"
+                    reusable.live_metadata_clean_path = str(species_file)
+                    reusable.live_metadata_path = str(species_file)
+                    reusable.live_genome_count = 1
+                    reusable.live_metadata_last_built_at = genus.metadata_last_built_at
+                    reusable.metadata_source_taxon_id = genus.id
+                    fetchm_app.save_species(reusable, db)
+                    reused = fetchm_app.pre_stage_reusable_species_metadata(db, version_id)
+                    self.assertEqual(reused["reuse_preflight_reused"], 1)
+                    progress = fetchm_app.dataset_version_metadata_summary(db, version_id)
+                    self.assertEqual(progress["staged_species_metadata_ready"], 1)
+                    queued = db.execute(
+                        "SELECT COUNT(*) AS total FROM species_reconciliation_tasks WHERE dataset_version_id=?",
                         (version_id,),
-                    )
-                    progress = fetchm_app.comprehensive_species_resolution_summary(db, version_id)
-                    self.assertEqual(progress["species_inventory_unaccounted"], 0)
-                    self.assertEqual(progress["species_inventory_retired_or_genus_only"], 1)
+                    ).fetchone()
+                    self.assertEqual(int(queued["total"] or 0), 0)
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 

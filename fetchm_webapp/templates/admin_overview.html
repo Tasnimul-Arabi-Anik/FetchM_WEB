@@ -223,7 +223,7 @@
                   {% set setting_name = "dataset_pipeline_" ~ stage.key ~ "_sequential" %}
                   <label class="pipeline-check">
                     <input form="pipeline-settings-form" type="checkbox" name="{{ setting_name }}" value="1" {% if stage.sequential_enabled %}checked{% endif %}>
-                    Run sequentially after previous step
+                    Run after previous
                   </label>
                 {% else %}
                   <span class="pipeline-check">Scheduled from Discovery settings</span>
@@ -289,7 +289,7 @@
       </form>
       <div class="top-gap">
         <p class="section-note">
-          Species derivation retries only rerun source genera with unresolved species candidates.
+          Species derivation uses one inventory: unchanged species files are reused, and changed species files are derived from standardized genus metadata.
           Genus-only assemblies are not failures; they remain available through genus metadata.
         </p>
         <form action="{{ url_for('admin_retry_derived_species_failures') }}" method="post">
