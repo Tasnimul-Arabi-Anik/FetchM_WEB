@@ -7386,7 +7386,6 @@ def build_dataset_pipeline_step_cards(
             already_current = int(progress.get("already_current") or progress.get("skipped") or 0)
             failed = int(progress.get("failed") or 0)
             completed_candidates = min(candidate_total, resolved)
-            percent = progress_percent(completed_candidates, candidate_total)
             task_total = int(progress.get("derive_task_total") or 0)
             task_done = int(progress.get("derive_task_done") or 0)
             task_running = int(progress.get("derive_task_running") or 0)
@@ -7407,6 +7406,10 @@ def build_dataset_pipeline_step_cards(
             inventory_live = int(species_inventory.get("species_inventory_live_baseline") or 0)
             inventory_staged = int(species_inventory.get("species_inventory_staged_ready") or completed_candidates)
             inventory_unaccounted = int(species_inventory.get("species_inventory_unaccounted") or 0)
+            if inventory_live:
+                percent = progress_percent(max(0, inventory_live - inventory_unaccounted), inventory_live)
+            else:
+                percent = progress_percent(completed_candidates, candidate_total)
             if failed and run is not None and not failed_source_genera:
                 failed_row = db.execute(
                     """
@@ -7468,7 +7471,7 @@ def build_dataset_pipeline_step_cards(
                 f"New or rewritten outputs: {int(progress.get('created') or 0)} created, {int(progress.get('updated') or 0)} updated; {already_current} candidate checks required no rewrite",
                 f"Complete prior species inventory: {inventory_live:,} live; {inventory_staged:,} staged so far",
                 f"{inventory_unaccounted:,} prior live species datasets still require local derivation or residual verification",
-                f"Residual direct checks completed after local derivation: {int(progress.get('reconcile_task_done') or 0):,}",
+                f"Residual direct checks: {int(progress.get('reconcile_task_done') or 0):,}/{int(progress.get('reconcile_task_total') or 0):,} completed; {int(progress.get('reconcile_task_running') or 0):,} running",
                 f"{failed} genus-derived species candidates unresolved across {failed_source_genera} source genera",
                 "Processing mode: parallel genus derivation plus residual species verification",
             ]
