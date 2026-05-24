@@ -10798,14 +10798,14 @@ def advance_dataset_update_pipeline_runs() -> None:
                         residual_pending = int(progress.get("reconcile_task_pending") or 0)
                         residual_running = int(progress.get("reconcile_task_running") or 0)
                         unaccounted = int(progress.get("species_inventory_unaccounted") or 0)
-                        if residual_failed:
-                            failed = True
-                            blockers.append(f"{residual_failed} residual species direct-refresh tasks failed")
-                        elif residual_pending or residual_running:
+                        if residual_pending or residual_running:
                             blockers.append(
                                 f"Verifying residual species datasets directly: "
                                 f"{int(progress.get('reconcile_task_done') or 0)}/{int(progress.get('reconcile_task_total') or 0)} complete"
                             )
+                        elif residual_failed:
+                            failed = True
+                            blockers.append(f"{residual_failed} residual species direct-refresh tasks failed")
                         elif unaccounted:
                             failed = True
                             blockers.append(f"{unaccounted} prior live species datasets have no verified current derivation or direct-refresh outcome")
@@ -18836,6 +18836,15 @@ def is_no_catalog_data_error(exc: Exception) -> bool:
     )
 
 
+def is_non_exact_taxonomy_error(exc: Exception) -> bool:
+    message = str(exc).lower()
+    return (
+        "taxonomy name" in message
+        and "not exact" in message
+        and "suggested taxids" in message
+    )
+
+
 def sync_species_record(species: SpeciesRecord) -> None:
     try:
         initial = load_species(species.id)
@@ -19768,6 +19777,14 @@ def process_species_reconciliation_task(task: sqlite3.Row, worker_name: str) -> 
             status = "done"
             result = "no_data"
             error = message[:4000]
+        elif is_non_exact_taxonomy_error(exc):
+            status = "done"
+            result = "genus_only"
+            error = (
+                "Direct species lookup was not an exact NCBI taxonomy match; "
+                "candidate remains represented by genus-level metadata. "
+                + message
+            )[:4000]
         elif isinstance(exc, sqlite3.OperationalError) and "database is locked" in message.lower():
             status = "pending"
             result = "retry"

@@ -38,6 +38,13 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         )
         self.assertEqual(fetchm_app.species_parent_genus_name(candidatus), "Liberibacter")
 
+    def test_non_exact_taxonomy_error_is_genus_only_not_failed(self) -> None:
+        error = RuntimeError(
+            "Error: The taxonomy name 'Rothia similmucilaginosa' is not exact. "
+            "Try using one of the suggested taxids: Rothia mucilaginosa (species, taxid: 43675)"
+        )
+        self.assertTrue(fetchm_app.is_non_exact_taxonomy_error(error))
+
     def test_dataset_pipeline_derives_species_after_genus_standardization(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
