@@ -61,6 +61,7 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", default=None)
+    parser.add_argument("--datasets-bin", default="datasets", help=argparse.SUPPRESS)
     parser.add_argument("--page-size", type=int, default=1000)
     parser.add_argument("--max-attempts", type=int, default=5)
     parser.add_argument("--retry-sleep", type=float, default=10.0)
