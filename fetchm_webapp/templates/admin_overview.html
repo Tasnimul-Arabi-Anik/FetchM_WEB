@@ -294,10 +294,10 @@
         </p>
         <form action="{{ url_for('admin_retry_derived_species_failures') }}" method="post">
           <button type="submit" class="ghost" {% if dataset_pipeline.active_run or not dataset_pipeline.retryable_derived_failures.species_candidates %}disabled{% endif %}>
-            Retry unresolved species derivations
+            Retry failed species derivations
           </button>
           <span class="job-meta">
-            {{ dataset_pipeline.retryable_derived_failures.species_candidates }} unresolved candidates across
+            {{ dataset_pipeline.retryable_derived_failures.species_candidates }} affected candidates across
             {{ dataset_pipeline.retryable_derived_failures.source_genera }} source genera.
           </span>
         </form>

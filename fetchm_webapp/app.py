@@ -147,6 +147,12 @@ load_dotenv_file(ENV_FILE)
 
 WORKER_POLL_INTERVAL = float(os.environ.get("FETCHM_WEBAPP_WORKER_POLL_INTERVAL", "2"))
 WORKER_MODE = os.environ.get("FETCHM_WEBAPP_WORKER_MODE", "all").strip().lower()
+DERIVED_SPECIES_WORKER_ENABLED = os.environ.get("FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED", "1").strip().lower() not in {
+    "0",
+    "false",
+    "no",
+    "off",
+}
 WORKER_HEARTBEAT_SECONDS = max(1.0, float(os.environ.get("FETCHM_WEBAPP_WORKER_HEARTBEAT_SECONDS", "10")))
 WORKER_HEARTBEAT_STALE_SECONDS = max(2.0, float(os.environ.get("FETCHM_WEBAPP_WORKER_HEARTBEAT_STALE_SECONDS", "30")))
 SPECIES_REFRESH_HOURS = max(1, int(os.environ.get("FETCHM_WEBAPP_SPECIES_REFRESH_HOURS", "24")))
@@ -689,6 +695,18 @@ def is_sqlite_locked_error(exc: BaseException) -> bool:
 
 def sqlite_lock_backoff(attempt: int) -> None:
     time.sleep(min(5.0, 0.25 * (attempt + 1)))
+
+
+def retry_sqlite_locked(operation: Callable[[], Any], *, attempts: int = 12) -> Any:
+    """Retry transient SQLite writer contention without treating work as failed."""
+    for attempt in range(max(1, attempts)):
+        try:
+            return operation()
+        except sqlite3.OperationalError as exc:
+            if not is_sqlite_locked_error(exc) or attempt >= attempts - 1:
+                raise
+            sqlite_lock_backoff(attempt)
+    raise RuntimeError("SQLite lock retry loop exited unexpectedly.")
 
 
 def get_db() -> sqlite3.Connection:
@@ -7697,10 +7715,10 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         retry_row = connection.execute(
             """
             SELECT COUNT(*) AS source_genera,
-                   COALESCE(SUM(failed_count), 0) AS species_candidates
+                   COALESCE(SUM(CASE WHEN failed_count > 0 THEN failed_count ELSE candidate_count END), 0) AS species_candidates
             FROM derived_species_metadata_tasks
             WHERE dataset_version_id = ?
-              AND failed_count > 0
+              AND (status = 'failed' OR failed_count > 0)
             """,
             (latest_run["dataset_version_id"],),
         ).fetchone()
@@ -10046,20 +10064,23 @@ def claim_next_derived_species_metadata_task(worker_name: str) -> sqlite3.Row | 
 
 def heartbeat_derived_species_metadata_task(task_id: int, worker_name: str) -> bool:
     """Refresh ownership timestamp for a long-running source-genus derivation task."""
-    now = utc_now()
-    with get_sqlite_connection() as db:
-        cursor = db.execute(
-            """
-            UPDATE derived_species_metadata_tasks
-            SET claimed_at = ?, updated_at = ?
-            WHERE id = ?
-              AND status = 'running'
-              AND claimed_by = ?
-            """,
-            (now, now, int(task_id), worker_name),
-        )
-        db.commit()
-        return int(cursor.rowcount or 0) == 1
+    def heartbeat() -> bool:
+        now = utc_now()
+        with get_sqlite_connection() as db:
+            cursor = db.execute(
+                """
+                UPDATE derived_species_metadata_tasks
+                SET claimed_at = ?, updated_at = ?
+                WHERE id = ?
+                  AND status = 'running'
+                  AND claimed_by = ?
+                """,
+                (now, now, int(task_id), worker_name),
+            )
+            db.commit()
+            return int(cursor.rowcount or 0) == 1
+
+    return bool(retry_sqlite_locked(heartbeat))
 
 
 def complete_derived_species_metadata_task(
@@ -10081,11 +10102,12 @@ def complete_derived_species_metadata_task(
     error: str | None,
 ) -> bool:
     """Complete a derivation task only if this worker still owns it."""
-    now = utc_now()
-    with get_sqlite_connection() as db:
-        cursor = db.execute(
-            """
-            UPDATE derived_species_metadata_tasks
+    def complete() -> bool:
+        now = utc_now()
+        with get_sqlite_connection() as db:
+            cursor = db.execute(
+                """
+                UPDATE derived_species_metadata_tasks
             SET status = ?,
                 completed_at = CASE WHEN ? = 'done' THEN ? ELSE completed_at END,
                 candidate_count = ?,
@@ -10126,11 +10148,13 @@ def complete_derived_species_metadata_task(
                 worker_name,
             ),
         )
-        owned = int(cursor.rowcount or 0) == 1
-        if owned:
-            refresh_derive_species_pipeline_progress(db, dataset_version_id)
-        db.commit()
-        return owned
+            owned = int(cursor.rowcount or 0) == 1
+            if owned:
+                refresh_derive_species_pipeline_progress(db, dataset_version_id)
+            db.commit()
+            return owned
+
+    return bool(retry_sqlite_locked(complete))
 
 
 def set_pipeline_step_status(
@@ -12337,14 +12361,7 @@ def save_species(species: SpeciesRecord, db: sqlite3.Connection | None = None) -
 
 
 def save_species_with_lock_retry(species: SpeciesRecord, attempts: int = 8) -> SpeciesRecord:
-    for attempt in range(attempts):
-        try:
-            return save_species(species)
-        except sqlite3.OperationalError as exc:
-            if not is_sqlite_locked_error(exc) or attempt >= attempts - 1:
-                raise
-            sqlite_lock_backoff(attempt)
-    raise RuntimeError("Species save retry loop exited unexpectedly.")
+    return retry_sqlite_locked(lambda: save_species(species), attempts=attempts)
 
 
 def release_species_sync_claim_with_lock_retry(species: SpeciesRecord, attempts: int = 8) -> None:
@@ -19215,7 +19232,9 @@ def save_species_metadata_from_genus_rows(
 ) -> SpeciesRecord:
     if not filtered_rows:
         raise ValueError("No matching genomes were found in the source genus metadata.")
-    save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now(), normalize_rows=False)
+    retry_sqlite_locked(
+        lambda: save_taxon_metadata_rows(species.id, filtered_rows, refreshed_at=utc_now(), normalize_rows=False)
+    )
     metadata_path, clean_path, clean_count = write_taxon_metadata_outputs(
         species.slug,
         filtered_rows,
@@ -19240,7 +19259,7 @@ def save_species_metadata_from_genus_rows(
     latest.metadata_claimed_by = None
     latest.metadata_claimed_at = None
     latest.updated_at = latest.metadata_last_built_at
-    save_species(latest)
+    save_species_with_lock_retry(latest, attempts=12)
     return latest
 
 
@@ -19676,17 +19695,19 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
                 continue
             try:
                 was_existing = existing is not None
-                species = create_species(
-                    species_name,
-                    taxon_rank="species",
-                    assembly_source=genus.assembly_source,
-                    staging_dataset_version_id=dataset_version_id,
+                species = retry_sqlite_locked(
+                    lambda: create_species(
+                        species_name,
+                        taxon_rank="species",
+                        assembly_source=genus.assembly_source,
+                        staging_dataset_version_id=dataset_version_id,
+                    )
                 )
                 if dataset_version_id:
                     species.staging_dataset_version_id = dataset_version_id
                     if not species.live_tsv_path:
                         species.is_live = False
-                    species = save_species(species)
+                    species = save_species_with_lock_retry(species, attempts=12)
                 save_species_metadata_from_genus_rows(species, genus, filtered_rows)
                 if was_existing:
                     updated += 1
@@ -19710,7 +19731,13 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
     except Exception as exc:
         error_text = str(exc)
         retryable = is_retryable_derived_species_error(exc)
-        if retryable and retry_count < DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES:
+        lock_contention = is_sqlite_locked_error(exc)
+        if lock_contention:
+            status = "pending"
+            retry_reason = "SQLite writer contention; automatically deferred without consuming genus retries."
+            last_retry_at = utc_now()
+            error = retry_reason
+        elif retryable and retry_count < DERIVED_SPECIES_METADATA_MAX_AUTO_RETRIES:
             retry_count += 1
             status = "pending"
             retry_reason = error_text[:500] or "transient derivation error"
@@ -21792,16 +21819,24 @@ def run_worker_loop() -> None:
                         time.sleep(WORKER_POLL_INTERVAL)
                     continue
 
-                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
-                if derived_species_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_derived_species_metadata_task(derived_species_task, worker_name)
-                    continue
-                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
-                if reconciliation_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_species_reconciliation_task(reconciliation_task, worker_name)
-                    continue
+                if DERIVED_SPECIES_WORKER_ENABLED:
+                    try:
+                        derived_species_task = claim_next_derived_species_metadata_task(worker_name)
+                    except sqlite3.OperationalError as exc:
+                        if not is_sqlite_locked_error(exc):
+                            raise
+                        logging.warning("Species derivation claim skipped because SQLite is busy.")
+                        time.sleep(WORKER_POLL_INTERVAL)
+                        continue
+                    if derived_species_task is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            process_derived_species_metadata_task(derived_species_task, worker_name)
+                        continue
+                    reconciliation_task = claim_next_species_reconciliation_task(worker_name)
+                    if reconciliation_task is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            process_species_reconciliation_task(reconciliation_task, worker_name)
+                        continue
 
             if WORKER_MODE in {"all", "metadata"}:
                 with get_sqlite_connection() as db:
@@ -21835,16 +21870,24 @@ def run_worker_loop() -> None:
                                 process_metadata_chunk(metadata_chunk)
                             continue
 
-                derived_species_task = claim_next_derived_species_metadata_task(worker_name)
-                if derived_species_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_derived_species_metadata_task(derived_species_task, worker_name)
-                    continue
-                reconciliation_task = claim_next_species_reconciliation_task(worker_name)
-                if reconciliation_task is not None:
-                    with maintain_worker_heartbeat(worker_name):
-                        process_species_reconciliation_task(reconciliation_task, worker_name)
-                    continue
+                if DERIVED_SPECIES_WORKER_ENABLED:
+                    try:
+                        derived_species_task = claim_next_derived_species_metadata_task(worker_name)
+                    except sqlite3.OperationalError as exc:
+                        if not is_sqlite_locked_error(exc):
+                            raise
+                        logging.warning("Species derivation claim skipped because SQLite is busy.")
+                        time.sleep(WORKER_POLL_INTERVAL)
+                        continue
+                    if derived_species_task is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            process_derived_species_metadata_task(derived_species_task, worker_name)
+                        continue
+                    reconciliation_task = claim_next_species_reconciliation_task(worker_name)
+                    if reconciliation_task is not None:
+                        with maintain_worker_heartbeat(worker_name):
+                            process_species_reconciliation_task(reconciliation_task, worker_name)
+                        continue
 
             if WORKER_MODE == "assembly-backfill":
                 backfill_species = claim_next_assembly_feature_backfill(worker_name)
@@ -21854,12 +21897,26 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "standardization"}:
-                standardization_chunk = claim_next_standardization_refresh_chunk(worker_name)
+                try:
+                    standardization_chunk = claim_next_standardization_refresh_chunk(worker_name)
+                except sqlite3.OperationalError as exc:
+                    if not is_sqlite_locked_error(exc):
+                        raise
+                    logging.warning("Standardization chunk claim skipped because SQLite is busy.")
+                    time.sleep(WORKER_POLL_INTERVAL)
+                    continue
                 if standardization_chunk is not None:
                     with maintain_worker_heartbeat(worker_name):
                         process_standardization_refresh_chunk(standardization_chunk, worker_name)
                     continue
-                standardization_task = claim_next_standardization_refresh_task(worker_name)
+                try:
+                    standardization_task = claim_next_standardization_refresh_task(worker_name)
+                except sqlite3.OperationalError as exc:
+                    if not is_sqlite_locked_error(exc):
+                        raise
+                    logging.warning("Standardization task claim skipped because SQLite is busy.")
+                    time.sleep(WORKER_POLL_INTERVAL)
+                    continue
                 if standardization_task is not None:
                     with maintain_worker_heartbeat(worker_name):
                         apply_current_standardization_to_taxon(standardization_task)
@@ -24530,17 +24587,17 @@ def admin_retry_derived_species_failures() -> Any:
         retry_row = db.execute(
             """
             SELECT COUNT(*) AS source_genera,
-                   COALESCE(SUM(failed_count), 0) AS species_candidates
+                   COALESCE(SUM(CASE WHEN failed_count > 0 THEN failed_count ELSE candidate_count END), 0) AS species_candidates
             FROM derived_species_metadata_tasks
             WHERE dataset_version_id = ?
-              AND failed_count > 0
+              AND (status = 'failed' OR failed_count > 0)
             """,
             (dataset_version_id,),
         ).fetchone()
         source_genera = int(retry_row["source_genera"] or 0) if retry_row is not None else 0
         species_candidates = int(retry_row["species_candidates"] or 0) if retry_row is not None else 0
         if source_genera <= 0:
-            flash("No unresolved species derivation candidates are available to retry.", "info")
+            flash("No failed or interrupted species derivation tasks are available to retry.", "info")
             return redirect(url_for("admin_dashboard"))
         now = utc_now()
         db.execute(
@@ -24562,7 +24619,7 @@ def admin_retry_derived_species_failures() -> Any:
                 error = NULL,
                 updated_at = ?
             WHERE dataset_version_id = ?
-              AND failed_count > 0
+              AND (status = 'failed' OR failed_count > 0)
             """,
             (now, dataset_version_id),
         )
@@ -24586,7 +24643,7 @@ def admin_retry_derived_species_failures() -> Any:
                 blockers_json = '[]',
                 error = NULL
             WHERE run_id = ?
-              AND step_key = 'verify'
+              AND step_key IN ('verify', 'replace', 'global_insights')
             """,
             (latest["run_id"],),
         )
@@ -24619,7 +24676,7 @@ def admin_retry_derived_species_failures() -> Any:
         metadata={"source_genera": source_genera, "species_candidates": species_candidates},
     )
     flash(
-        f"Retry queued for {species_candidates} unresolved species candidates across {source_genera} source genera.",
+        f"Retry queued for {species_candidates} affected species candidates across {source_genera} failed or interrupted source genera.",
         "success",
     )
     return redirect(url_for("admin_dashboard"))
