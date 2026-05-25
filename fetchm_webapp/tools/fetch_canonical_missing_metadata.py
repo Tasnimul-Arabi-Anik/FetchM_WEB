@@ -129,47 +129,53 @@ def main() -> int:
     standardization_workers = min(32, max(1, args.standardization_workers or standardization_default))
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
     fetched = standardized = batches = 0
-    while True:
-        cycle_workers = request_workers
-        if args.max_batches:
-            cycle_workers = min(cycle_workers, args.max_batches - batches)
-            if cycle_workers <= 0:
-                break
-        accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size * cycle_workers)
-        if not accessions:
-            break
-        accession_batches = [accessions[start:start + args.batch_size] for start in range(0, len(accessions), args.batch_size)]
-        reports: list[dict[str, Any]] = []
-        with ThreadPoolExecutor(max_workers=request_workers) as executor:
-            futures = [
-                executor.submit(
-                    fetch_reports, batch, api_key=api_keys[index % len(api_keys)], max_attempts=args.max_attempts,
-                    retry_sleep=args.retry_sleep, timeout=args.request_timeout,
+    standardization_executor = ProcessPoolExecutor(max_workers=standardization_workers) if standardization_workers > 1 else None
+    try:
+        with ThreadPoolExecutor(max_workers=request_workers) as request_executor:
+            while True:
+                cycle_workers = request_workers
+                if args.max_batches:
+                    cycle_workers = min(cycle_workers, args.max_batches - batches)
+                    if cycle_workers <= 0:
+                        break
+                accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size * cycle_workers)
+                if not accessions:
+                    break
+                accession_batches = [accessions[start:start + args.batch_size] for start in range(0, len(accessions), args.batch_size)]
+                reports: list[dict[str, Any]] = []
+                futures = [
+                    request_executor.submit(
+                        fetch_reports, batch, api_key=api_keys[index % len(api_keys)], max_attempts=args.max_attempts,
+                        retry_sleep=args.retry_sleep, timeout=args.request_timeout,
+                    )
+                    for index, batch in enumerate(accession_batches)
+                ]
+                for future in as_completed(futures):
+                    reports.extend(future.result())
+                insert_inventory_batch(args.snapshot_id, reports)
+                if standardization_executor is None or len(reports) <= 1:
+                    rows = [standardizable_row(report) for report in reports]
+                else:
+                    rows = list(standardization_executor.map(
+                        standardizable_row, reports, chunksize=max(1, len(reports) // (standardization_workers * 4))
+                    ))
+                seeded = seed_standardized_metadata_batch(
+                    args.snapshot_id, rows, rule_fingerprint=fingerprint, status="fetched_ncbi_full_report"
                 )
-                for index, batch in enumerate(accession_batches)
-            ]
-            for future in as_completed(futures):
-                reports.extend(future.result())
-        insert_inventory_batch(args.snapshot_id, reports)
-        if standardization_workers <= 1 or len(reports) <= 1:
-            rows = [standardizable_row(report) for report in reports]
-        else:
-            with ProcessPoolExecutor(max_workers=standardization_workers) as executor:
-                rows = list(executor.map(standardizable_row, reports, chunksize=max(1, len(reports) // (standardization_workers * 4))))
-        seeded = seed_standardized_metadata_batch(
-            args.snapshot_id, rows, rule_fingerprint=fingerprint, status="fetched_ncbi_full_report"
-        )
-        if seeded["seeded"] != len(accessions):
-            raise RuntimeError(f"Only {seeded['seeded']} of {len(accessions)} retrieved rows were standardized.")
-        fetched += len(reports)
-        standardized += seeded["seeded"]
-        batches += len(accession_batches)
-        if batches % 20 == 0:
-            print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, "request_workers": request_workers, "standardization_workers": standardization_workers, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
-        if args.max_batches and batches >= args.max_batches:
-            break
-        if request_sleep > 0:
-            time.sleep(request_sleep)
+                if seeded["seeded"] != len(accessions):
+                    raise RuntimeError(f"Only {seeded['seeded']} of {len(accessions)} retrieved rows were standardized.")
+                fetched += len(reports)
+                standardized += seeded["seeded"]
+                batches += len(accession_batches)
+                if batches % 20 == 0:
+                    print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, "request_workers": request_workers, "standardization_workers": standardization_workers, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
+                if args.max_batches and batches >= args.max_batches:
+                    break
+                if request_sleep > 0:
+                    time.sleep(request_sleep)
+    finally:
+        if standardization_executor is not None:
+            standardization_executor.shutdown()
     summary = {
         "snapshot_id": args.snapshot_id,
         "metadata_source": "NCBI Datasets REST API v2 full accession report",
