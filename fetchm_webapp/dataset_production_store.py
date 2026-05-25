@@ -547,7 +547,7 @@ def missing_standardized_accession_batch(snapshot_id: str, *, limit: int = 100) 
             ORDER BY i.assembly_accession
             LIMIT %s
             """,
-            (snapshot_id, min(100, max(1, int(limit)))),
+            (snapshot_id, min(1000, max(1, int(limit)))),
         ).fetchall()
     return [str(row[0]) for row in rows]
 

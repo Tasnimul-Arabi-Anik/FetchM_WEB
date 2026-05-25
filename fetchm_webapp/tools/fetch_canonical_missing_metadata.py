@@ -12,12 +12,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import build_species_tsv_row, normalize_managed_metadata_row
+from app import NCBI_API_KEYS, build_species_tsv_row, normalize_managed_metadata_row
 from dataset_production_store import (
     insert_inventory_batch,
     missing_standardized_accession_batch,
@@ -114,21 +115,38 @@ def main() -> int:
     parser.add_argument("--retry-sleep", type=float, default=5.0)
     parser.add_argument("--request-timeout", type=float, default=120.0)
     parser.add_argument("--request-sleep", type=float, default=None)
-    parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""))
+    parser.add_argument("--request-workers", type=int, default=0, help="Concurrent NCBI report requests; defaults to two requests per configured API key.")
+    parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""), help="Fallback when no application key pool is configured.")
     args = parser.parse_args()
     if not 1 <= args.batch_size <= 100:
         parser.error("--batch-size must be between 1 and 100")
-    request_sleep = args.request_sleep if args.request_sleep is not None else (0.12 if args.api_key else 0.4)
+    api_keys = list(NCBI_API_KEYS) or ([args.api_key] if args.api_key else [""])
+    request_sleep = args.request_sleep if args.request_sleep is not None else (0.05 if api_keys[0] else 0.4)
+    worker_limit = min(10, max(1, len(api_keys) * 2)) if api_keys[0] else 2
+    request_workers = min(worker_limit, max(1, args.request_workers or worker_limit))
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
     fetched = standardized = batches = 0
     while True:
-        accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size)
+        cycle_workers = request_workers
+        if args.max_batches:
+            cycle_workers = min(cycle_workers, args.max_batches - batches)
+            if cycle_workers <= 0:
+                break
+        accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size * cycle_workers)
         if not accessions:
             break
-        reports = fetch_reports(
-            accessions, api_key=args.api_key, max_attempts=args.max_attempts,
-            retry_sleep=args.retry_sleep, timeout=args.request_timeout,
-        )
+        accession_batches = [accessions[start:start + args.batch_size] for start in range(0, len(accessions), args.batch_size)]
+        reports: list[dict[str, Any]] = []
+        with ThreadPoolExecutor(max_workers=request_workers) as executor:
+            futures = [
+                executor.submit(
+                    fetch_reports, batch, api_key=api_keys[index % len(api_keys)], max_attempts=args.max_attempts,
+                    retry_sleep=args.retry_sleep, timeout=args.request_timeout,
+                )
+                for index, batch in enumerate(accession_batches)
+            ]
+            for future in as_completed(futures):
+                reports.extend(future.result())
         insert_inventory_batch(args.snapshot_id, reports)
         rows = [standardizable_row(report) for report in reports]
         seeded = seed_standardized_metadata_batch(
@@ -138,9 +156,9 @@ def main() -> int:
             raise RuntimeError(f"Only {seeded['seeded']} of {len(accessions)} retrieved rows were standardized.")
         fetched += len(reports)
         standardized += seeded["seeded"]
-        batches += 1
-        if batches % 25 == 0:
-            print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
+        batches += len(accession_batches)
+        if batches % 20 == 0:
+            print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, "request_workers": request_workers, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
         if args.max_batches and batches >= args.max_batches:
             break
         if request_sleep > 0:
@@ -152,6 +170,8 @@ def main() -> int:
         "batches_complete": batches,
         "fetched_rows": fetched,
         "standardized_rows": standardized,
+        "request_workers": request_workers,
+        "configured_api_key_count": len([key for key in api_keys if key]),
         **standardized_metadata_coverage(args.snapshot_id),
     }
     print(json.dumps(summary, sort_keys=True))
