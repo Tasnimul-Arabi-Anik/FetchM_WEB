@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-canonical-root-v0.3"
+APP_VERSION = "2026.05-canonical-root-v0.4"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -7754,6 +7754,27 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                 LIMIT 1
                 """
             ).fetchone()
+            active_snapshot_id = str(row[0]) if row is not None else None
+            membership_count = 0
+            chunk_progress = None
+            if active_snapshot_id:
+                membership_count = int(connection.execute(
+                    "SELECT COUNT(*) FROM bacterial_inventory_membership WHERE snapshot_id = %s",
+                    (active_snapshot_id,),
+                ).fetchone()[0] or 0)
+                chunk_row = connection.execute(
+                    """
+                    SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'completed'),
+                           COUNT(*) FILTER (WHERE status = 'failed')
+                    FROM canonical_inventory_chunk WHERE snapshot_id = %s
+                    """,
+                    (active_snapshot_id,),
+                ).fetchone()
+                chunk_progress = {
+                    "total": int(chunk_row[0] or 0),
+                    "completed": int(chunk_row[1] or 0),
+                    "failed": int(chunk_row[2] or 0),
+                }
     except Exception as exc:
         status["error"] = str(exc)[:160]
         return status
@@ -7786,6 +7807,8 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "status": status["status"] if status.get("task_active") else row[1],
         "completed_at": row[2],
         "root_unique_assemblies": int(row[3] or 0),
+        "inserted_membership_rows": membership_count,
+        "chunk_progress": chunk_progress,
         "source_database": row[4],
         "canonical_accession_namespace": row[5],
         "error": row[6],

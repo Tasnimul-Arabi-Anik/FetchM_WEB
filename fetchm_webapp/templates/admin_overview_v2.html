@@ -226,7 +226,12 @@
         <span>Partitions: {{ dataset_pipeline.root_inventory.partition_status }}</span>
         {% if dataset_pipeline.root_inventory.available %}
           <span>Snapshot: {{ dataset_pipeline.root_inventory.snapshot_id }}</span>
-          <span>{{ dataset_pipeline.root_inventory.root_unique_assemblies }} canonical GenBank GCA assemblies</span>
+          {% if dataset_pipeline.root_inventory.status in ['pending', 'running'] %}
+            <span>{{ dataset_pipeline.root_inventory.inserted_membership_rows }} canonical rows inserted so far</span>
+            {% if dataset_pipeline.root_inventory.chunk_progress %}<span>Chunks complete: {{ dataset_pipeline.root_inventory.chunk_progress.completed }} / {{ dataset_pipeline.root_inventory.chunk_progress.total }}</span>{% endif %}
+          {% else %}
+            <span>{{ dataset_pipeline.root_inventory.root_unique_assemblies }} canonical GenBank GCA assemblies</span>
+          {% endif %}
         {% elif dataset_pipeline.root_inventory.configured %}
           <span>No canonical snapshot generated yet.</span>
         {% else %}

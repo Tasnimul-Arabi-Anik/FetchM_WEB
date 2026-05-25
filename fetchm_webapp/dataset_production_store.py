@@ -64,6 +64,23 @@ CREATE TABLE IF NOT EXISTS canonical_metadata_seed_task (
     summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
+CREATE TABLE IF NOT EXISTS canonical_inventory_chunk (
+    snapshot_id TEXT NOT NULL,
+    chunk_key TEXT NOT NULL,
+    released_after DATE NOT NULL,
+    released_before DATE NOT NULL,
+    status TEXT NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    raw_records BIGINT NOT NULL DEFAULT 0,
+    canonical_records BIGINT NOT NULL DEFAULT 0,
+    noncanonical_records BIGINT NOT NULL DEFAULT 0,
+    duplicate_records BIGINT NOT NULL DEFAULT 0,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    PRIMARY KEY (snapshot_id, chunk_key)
+);
+
 CREATE TABLE IF NOT EXISTS bacterial_inventory_snapshot (
     snapshot_id TEXT PRIMARY KEY,
     status TEXT NOT NULL,
@@ -145,6 +162,8 @@ CREATE TABLE IF NOT EXISTS canonical_root_reconciliation (
 
 CREATE INDEX IF NOT EXISTS idx_inventory_membership_accession
 ON bacterial_inventory_membership (assembly_accession);
+CREATE INDEX IF NOT EXISTS idx_inventory_chunk_status
+ON canonical_inventory_chunk (snapshot_id, status, released_after);
 CREATE INDEX IF NOT EXISTS idx_partition_type
 ON taxon_partition_membership (snapshot_id, partition_type);
 CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
@@ -418,8 +437,55 @@ def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version
             """,
             (snapshot_id, utc_now(), utc_now(), CANONICAL_SOURCE_DATABASE, CANONICAL_ACCESSION_NAMESPACE, BACTERIA_TAXON_ID, invocation, datasets_version),
         )
-        connection.execute('DELETE FROM bacterial_inventory_membership WHERE snapshot_id = %s', (snapshot_id,))
         connection.commit()
+
+def start_inventory_chunk(snapshot_id: str, chunk_key: str, released_after: str, released_before: str) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO canonical_inventory_chunk (
+                snapshot_id, chunk_key, released_after, released_before, status, attempt_count, started_at
+            ) VALUES (%s, %s, %s, %s, 'running', 1, %s)
+            ON CONFLICT (snapshot_id, chunk_key) DO UPDATE SET
+                status = 'running', attempt_count = canonical_inventory_chunk.attempt_count + 1,
+                started_at = EXCLUDED.started_at, completed_at = NULL, error = NULL
+            """,
+            (snapshot_id, chunk_key, released_after, released_before, utc_now()),
+        )
+        connection.commit()
+
+def completed_inventory_chunks(snapshot_id: str) -> set[str]:
+    with connect() as connection:
+        rows = connection.execute(
+            "SELECT chunk_key FROM canonical_inventory_chunk WHERE snapshot_id = %s AND status = 'completed'",
+            (snapshot_id,),
+        ).fetchall()
+    return {str(row[0]) for row in rows}
+
+def finish_inventory_chunk(snapshot_id: str, chunk_key: str, status: str, *, raw_records: int = 0, canonical_records: int = 0, noncanonical_records: int = 0, duplicate_records: int = 0, error: str | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE canonical_inventory_chunk SET status = %s, completed_at = %s, raw_records = %s,
+                   canonical_records = %s, noncanonical_records = %s, duplicate_records = %s, error = %s
+            WHERE snapshot_id = %s AND chunk_key = %s
+            """,
+            (status, utc_now(), raw_records, canonical_records, noncanonical_records, duplicate_records, error[:4000] if error else None, snapshot_id, chunk_key),
+        )
+        connection.commit()
+
+def inventory_chunk_progress(snapshot_id: str) -> dict[str, int]:
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'completed'), COUNT(*) FILTER (WHERE status = 'failed'),
+                   COALESCE(SUM(raw_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(noncanonical_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(duplicate_records) FILTER (WHERE status = 'completed'), 0)
+            FROM canonical_inventory_chunk WHERE snapshot_id = %s
+            """, (snapshot_id,),
+        ).fetchone()
+    return {'chunk_total': int(row[0] or 0), 'chunk_completed': int(row[1] or 0), 'chunk_failed': int(row[2] or 0), 'raw_records': int(row[3] or 0), 'noncanonical_records': int(row[4] or 0), 'duplicate_records': int(row[5] or 0)}
 
 def nested_value(payload: dict[str, Any], *paths: tuple[str, ...]) -> Any:
     for path in paths:
