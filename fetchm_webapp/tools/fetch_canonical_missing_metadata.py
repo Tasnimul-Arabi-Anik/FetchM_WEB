@@ -85,8 +85,17 @@ def fetch_reports(accessions: list[str], *, api_key: str, max_attempts: int, ret
             reports = [report for report in payload.get("reports", []) if isinstance(report, dict)]
             returned = {str(report.get("accession") or report.get("current_accession") or "").strip() for report in reports}
             missing = sorted(set(accessions) - returned)
+            if missing and len(accessions) > 1:
+                print(
+                    f"NCBI omitted {len(missing)} of {len(accessions)} accessions in a multi-accession response; retrying omitted accessions separately.",
+                    file=sys.stderr, flush=True,
+                )
+                return reports + fetch_reports(
+                    missing, api_key=api_key, max_attempts=max_attempts,
+                    retry_sleep=retry_sleep, timeout=timeout,
+                )
             if missing:
-                raise RuntimeError(f"NCBI did not return {len(missing)} requested accessions; example: {missing[0]}")
+                raise RuntimeError(f"NCBI did not return requested accession: {missing[0]}")
             return reports
         except (OSError, http.client.IncompleteRead, urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError, RuntimeError) as exc:
             error = f"Metadata report request attempt {attempt}/{max_attempts} failed: {exc}"
@@ -99,7 +108,7 @@ def fetch_reports(accessions: list[str], *, api_key: str, max_attempts: int, ret
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", required=True)
-    parser.add_argument("--batch-size", type=int, default=50)
+    parser.add_argument("--batch-size", type=int, default=20)
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for controlled validation only.")
     parser.add_argument("--max-attempts", type=int, default=5)
     parser.add_argument("--retry-sleep", type=float, default=5.0)
