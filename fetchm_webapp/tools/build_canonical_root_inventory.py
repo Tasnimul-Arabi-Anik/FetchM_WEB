@@ -7,6 +7,7 @@ import argparse
 import json
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -44,38 +45,47 @@ def main() -> int:
     parser.add_argument('--snapshot-id', default=None)
     parser.add_argument('--datasets-bin', default='datasets')
     parser.add_argument('--batch-size', type=int, default=1000)
+    parser.add_argument('--max-attempts', type=int, default=3)
+    parser.add_argument('--retry-sleep', type=float, default=20.0)
     args = parser.parse_args()
     snapshot_id = args.snapshot_id or datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ_genbank_bacteria_root')
     command = [args.datasets_bin, 'summary', 'genome', 'taxon', str(BACTERIA_TAXON_ID), '--assembly-source', 'genbank', '--as-json-lines']
     invocation = ' '.join(command)
     start_inventory_snapshot(snapshot_id, invocation, datasets_version(args.datasets_bin))
     raw_records = noncanonical = duplicates = 0
-    batch: list[dict[str, Any]] = []
+    last_error = ''
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
-        assert process.stdout is not None
-        for line in process.stdout:
-            if not line.strip():
-                continue
-            for report in parse_reports(line):
-                raw_records += 1
-                batch.append(report)
-                if len(batch) >= args.batch_size:
-                    _, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
-                    noncanonical += invalid
-                    duplicates += repeated
-                    batch.clear()
-        if batch:
-            _, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
-            noncanonical += invalid
-            duplicates += repeated
-        stderr = process.stderr.read() if process.stderr is not None else ''
-        return_code = process.wait()
-        if return_code != 0:
-            raise RuntimeError(f'datasets inventory command failed with return code {return_code}: {stderr[-1000:]}')
-        summary = finish_inventory_snapshot(snapshot_id, raw_records, noncanonical, duplicates)
-        print(json.dumps({'snapshot_id': snapshot_id, **summary}, sort_keys=True))
-        return 0 if summary.get('status') == 'completed' else 1
+        for attempt in range(1, max(1, args.max_attempts) + 1):
+            batch: list[dict[str, Any]] = []
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+            assert process.stdout is not None
+            for line in process.stdout:
+                if not line.strip():
+                    continue
+                for report in parse_reports(line):
+                    raw_records += 1
+                    batch.append(report)
+                    if len(batch) >= args.batch_size:
+                        _, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
+                        noncanonical += invalid
+                        duplicates += repeated
+                        batch.clear()
+            if batch:
+                _, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
+                noncanonical += invalid
+                duplicates += repeated
+            stderr = process.stderr.read() if process.stderr is not None else ''
+            return_code = process.wait()
+            if return_code == 0:
+                summary = finish_inventory_snapshot(snapshot_id, raw_records, noncanonical, duplicates)
+                summary['stream_attempts'] = attempt
+                print(json.dumps({'snapshot_id': snapshot_id, **summary}, sort_keys=True))
+                return 0 if summary.get('status') == 'completed' else 1
+            last_error = f'datasets inventory command failed on attempt {attempt}/{args.max_attempts} with return code {return_code}: {stderr[-1000:]}'
+            print(last_error, file=sys.stderr)
+            if attempt < max(1, args.max_attempts):
+                time.sleep(max(0.0, args.retry_sleep))
+        raise RuntimeError(last_error or 'datasets inventory command failed')
     except Exception as exc:
         fail_inventory_snapshot(snapshot_id, str(exc))
         raise

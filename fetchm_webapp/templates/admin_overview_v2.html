@@ -222,6 +222,7 @@
       <p>New global releases require a reconciled <strong>GenBank GCA bacterial inventory</strong>. Genus-first staging remains visible for audit but cannot replace live data without accounting for every canonical bacterial assembly.</p>
       <div class="dataset-state-metrics top-gap">
         <span>Root inventory: {{ dataset_pipeline.root_inventory.status }}</span>
+        <span>Metadata seed: {{ dataset_pipeline.root_inventory.metadata_seed_status }}</span>
         <span>Partitions: {{ dataset_pipeline.root_inventory.partition_status }}</span>
         {% if dataset_pipeline.root_inventory.available %}
           <span>Snapshot: {{ dataset_pipeline.root_inventory.snapshot_id }}</span>
@@ -230,6 +231,9 @@
           <span>No canonical snapshot generated yet.</span>
         {% else %}
           <span>Dataset production database is not configured yet.</span>
+        {% endif %}
+        {% if dataset_pipeline.root_inventory.standardized_metadata_coverage %}
+          <span>Standardized metadata: {{ dataset_pipeline.root_inventory.standardized_metadata_coverage.standardized_assemblies }} / {{ dataset_pipeline.root_inventory.standardized_metadata_coverage.root_unique_assemblies }}</span>
         {% endif %}
         {% if dataset_pipeline.root_inventory.latest_reconciliation %}
           <span>Accounted: {{ dataset_pipeline.root_inventory.latest_reconciliation.accounted_unique_assemblies }} / {{ dataset_pipeline.root_inventory.latest_reconciliation.root_unique_assemblies }}</span>
@@ -240,10 +244,14 @@
         <form action="{{ url_for('admin_run_canonical_inventory') }}" method="post">
           <button type="submit" {% if not dataset_pipeline.root_inventory.configured or dataset_pipeline.root_inventory.task_active %}disabled{% endif %}>Run canonical inventory</button>
         </form>
+        <form action="{{ url_for('admin_seed_canonical_metadata') }}" method="post">
+          <button type="submit" {% if not dataset_pipeline.root_inventory.available or dataset_pipeline.root_inventory.status != 'completed' or dataset_pipeline.root_inventory.metadata_seed_task_active %}disabled{% endif %}>Seed existing metadata</button>
+        </form>
         <form action="{{ url_for('admin_materialize_canonical_partitions') }}" method="post">
           <button type="submit" {% if not dataset_pipeline.root_inventory.available or dataset_pipeline.root_inventory.status != 'completed' or dataset_pipeline.root_inventory.partition_task_active %}disabled{% endif %}>Build partition preview</button>
         </form>
         {% if dataset_pipeline.root_inventory.error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.error }}</span>{% endif %}
+        {% if dataset_pipeline.root_inventory.metadata_seed_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.metadata_seed_error }}</span>{% endif %}
         {% if dataset_pipeline.root_inventory.partition_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.partition_error }}</span>{% endif %}
       </div>
     </div>

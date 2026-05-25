@@ -49,6 +49,21 @@ CREATE TABLE IF NOT EXISTS canonical_partition_task (
     summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
+CREATE TABLE IF NOT EXISTS canonical_metadata_seed_task (
+    id BIGSERIAL PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    sqlite_db_path TEXT,
+    rule_fingerprint TEXT,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
 CREATE TABLE IF NOT EXISTS bacterial_inventory_snapshot (
     snapshot_id TEXT PRIMARY KEY,
     status TEXT NOT NULL,
@@ -134,6 +149,10 @@ CREATE INDEX IF NOT EXISTS idx_partition_type
 ON taxon_partition_membership (snapshot_id, partition_type);
 CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
 ON canonical_partition_task (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_canonical_metadata_seed_task_status
+ON canonical_metadata_seed_task (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_assembly_standardization_status
+ON assembly_standardization (status, updated_at);
 """
 
 def utc_now() -> datetime:
@@ -305,6 +324,85 @@ def latest_partition_task() -> dict[str, Any] | None:
         'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
     }
 
+def queue_metadata_seed_task(
+    requested_by: str | None = None,
+    *,
+    snapshot_id: str | None = None,
+    sqlite_db_path: str | None = None,
+    rule_fingerprint: str | None = None,
+) -> tuple[str | None, str | None]:
+    bootstrap_schema()
+    if not snapshot_id:
+        latest = latest_completed_inventory_snapshot()
+        if latest is None:
+            return None, 'No completed canonical inventory snapshot is available.'
+        snapshot_id = str(latest['snapshot_id'])
+    with connect() as connection:
+        active = connection.execute(
+            "SELECT snapshot_id, status FROM canonical_metadata_seed_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
+        ).fetchone()
+        if active is not None:
+            return None, f'Canonical metadata seed task for {active[0]} is already {active[1]}.'
+        inventory = connection.execute(
+            "SELECT status FROM bacterial_inventory_snapshot WHERE snapshot_id = %s",
+            (snapshot_id,),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != 'completed':
+            return None, 'Canonical inventory snapshot is not completed.'
+        connection.execute(
+            """
+            INSERT INTO canonical_metadata_seed_task (
+                snapshot_id, status, requested_by, requested_at, sqlite_db_path, rule_fingerprint
+            ) VALUES (%s, 'pending', %s, %s, %s, %s)
+            """,
+            (snapshot_id, requested_by, utc_now(), sqlite_db_path, rule_fingerprint),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+def claim_metadata_seed_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, snapshot_id, sqlite_db_path, rule_fingerprint FROM canonical_metadata_seed_task
+            WHERE status = 'pending' ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            "UPDATE canonical_metadata_seed_task SET status = 'running', claimed_by = %s, claimed_at = %s WHERE id = %s",
+            (worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {
+            'id': int(row[0]), 'snapshot_id': str(row[1]),
+            'sqlite_db_path': str(row[2] or ''), 'rule_fingerprint': str(row[3] or ''),
+        }
+
+def finish_metadata_seed_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            'UPDATE canonical_metadata_seed_task SET status = %s, completed_at = %s, error = %s, summary_json = %s WHERE id = %s',
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+def latest_metadata_seed_task() -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            'SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error, summary_json FROM canonical_metadata_seed_task ORDER BY requested_at DESC LIMIT 1'
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'claimed_at': row[3],
+        'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
+    }
+
 def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version: str | None) -> None:
     bootstrap_schema()
     with connect() as connection:
@@ -398,7 +496,7 @@ def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) 
 def finish_inventory_snapshot(snapshot_id: str, raw_records: int, noncanonical: int, duplicates: int) -> dict[str, Any]:
     with connect() as connection:
         root_total = int(connection.execute('SELECT COUNT(*) FROM bacterial_inventory_membership WHERE snapshot_id = %s', (snapshot_id,)).fetchone()[0])
-        status = 'completed' if root_total > 0 and noncanonical == 0 and duplicates == 0 else 'failed'
+        status = 'completed' if root_total > 0 and noncanonical == 0 else 'failed'
         summary = {
             'source_database': CANONICAL_SOURCE_DATABASE, 'canonical_accession_namespace': CANONICAL_ACCESSION_NAMESPACE,
             'taxon_id': BACTERIA_TAXON_ID, 'root_unique_assemblies': root_total,
@@ -419,6 +517,77 @@ def fail_inventory_snapshot(snapshot_id: str, error: str) -> None:
     with connect() as connection:
         connection.execute('UPDATE bacterial_inventory_snapshot SET status = %s, completed_at = %s, error = %s WHERE snapshot_id = %s', ('failed', utc_now(), error[:4000], snapshot_id))
         connection.commit()
+
+
+def metadata_payload_fingerprint(payload: dict[str, Any]) -> str:
+    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(',', ':'), ensure_ascii=False).encode('utf-8')).hexdigest()
+
+def seed_standardized_metadata_batch(
+    snapshot_id: str,
+    rows: Iterable[dict[str, Any]],
+    *,
+    rule_fingerprint: str,
+) -> dict[str, int]:
+    total = seeded = skipped = 0
+    now = utc_now()
+    with connect() as connection:
+        with connection.cursor() as cursor:
+            for payload in rows:
+                total += 1
+                accession = str(payload.get('Assembly Accession') or payload.get('assembly_accession') or '').strip()
+                if not accession:
+                    skipped += 1
+                    continue
+                input_fingerprint = str(payload.get('FetchM_Standardization_Input_Fingerprint') or '').strip()
+                if not input_fingerprint:
+                    input_fingerprint = metadata_payload_fingerprint(payload)
+                result = cursor.execute(
+                    """
+                    INSERT INTO assembly_standardization (
+                        assembly_accession, input_fingerprint, rule_fingerprint,
+                        standardized_payload, status, updated_at
+                    )
+                    SELECT %s, %s, %s, %s, 'reused_existing', %s
+                    WHERE EXISTS (
+                        SELECT 1 FROM bacterial_inventory_membership
+                        WHERE snapshot_id = %s AND assembly_accession = %s
+                    )
+                    ON CONFLICT (assembly_accession) DO UPDATE SET
+                        input_fingerprint = EXCLUDED.input_fingerprint,
+                        rule_fingerprint = EXCLUDED.rule_fingerprint,
+                        standardized_payload = EXCLUDED.standardized_payload,
+                        status = EXCLUDED.status,
+                        updated_at = EXCLUDED.updated_at
+                    RETURNING assembly_accession
+                    """,
+                    (accession, input_fingerprint, rule_fingerprint, Jsonb(payload), now, snapshot_id, accession),
+                ).fetchone()
+                if result is None:
+                    skipped += 1
+                else:
+                    seeded += 1
+        connection.commit()
+    return {'total': total, 'seeded': seeded, 'skipped': skipped}
+
+def standardized_metadata_coverage(snapshot_id: str) -> dict[str, int]:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) AS root_total,
+                   COUNT(s.assembly_accession) AS standardized_total,
+                   COUNT(*) - COUNT(s.assembly_accession) AS missing_total
+            FROM bacterial_inventory_membership i
+            LEFT JOIN assembly_standardization s ON s.assembly_accession = i.assembly_accession
+            WHERE i.snapshot_id = %s
+            """,
+            (snapshot_id,),
+        ).fetchone()
+    return {
+        'root_unique_assemblies': int(row[0] or 0),
+        'standardized_assemblies': int(row[1] or 0),
+        'missing_standardized_assemblies': int(row[2] or 0),
+    }
 
 
 NON_CANONICAL_SPECIES_TOKENS = {

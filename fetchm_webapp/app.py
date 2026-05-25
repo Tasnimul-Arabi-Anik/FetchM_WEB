@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-canonical-root-v0.2"
+APP_VERSION = "2026.05-canonical-root-v0.3"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -7706,6 +7706,10 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "partition_status": "not generated",
         "partition_task_active": False,
         "partition_summary": None,
+        "metadata_seed_status": "not generated",
+        "metadata_seed_task_active": False,
+        "metadata_seed_summary": None,
+        "standardized_metadata_coverage": None,
         "latest_reconciliation": None,
     }
     if not configured:
@@ -7734,6 +7738,14 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                 LIMIT 1
                 """
             ).fetchone()
+            metadata_seed_task = connection.execute(
+                """
+                SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error, summary_json
+                FROM canonical_metadata_seed_task
+                ORDER BY requested_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
             reconciliation_row = connection.execute(
                 """
                 SELECT summary_json
@@ -7758,6 +7770,12 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["partition_task_active"] = str(partition_task[2]) in {"pending", "running"}
         status["partition_error"] = partition_task[5]
         status["partition_summary"] = dict(partition_task[6] or {})
+    if metadata_seed_task is not None:
+        status["metadata_seed_snapshot_id"] = metadata_seed_task[0]
+        status["metadata_seed_status"] = metadata_seed_task[1]
+        status["metadata_seed_task_active"] = str(metadata_seed_task[1]) in {"pending", "running"}
+        status["metadata_seed_error"] = metadata_seed_task[5]
+        status["metadata_seed_summary"] = dict(metadata_seed_task[6] or {})
     if reconciliation_row is not None:
         status["latest_reconciliation"] = dict(reconciliation_row[0] or {})
     if row is None:
@@ -7772,6 +7790,11 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "canonical_accession_namespace": row[5],
         "error": row[6],
     })
+    try:
+        from dataset_production_store import standardized_metadata_coverage
+        status["standardized_metadata_coverage"] = standardized_metadata_coverage(str(row[0]))
+    except Exception:
+        status["standardized_metadata_coverage"] = None
     return status
 
 
@@ -21989,6 +22012,8 @@ def run_worker_loop() -> None:
             if WORKER_MODE == "root-inventory":
                 if process_canonical_inventory_task(worker_name):
                     continue
+                if process_canonical_metadata_seed_task(worker_name):
+                    continue
                 if process_canonical_partition_task(worker_name):
                     continue
                 time.sleep(WORKER_POLL_INTERVAL)
@@ -22185,6 +22210,39 @@ def process_canonical_inventory_task(worker_name: str) -> bool:
         error = (result.stderr or result.stdout or "Canonical inventory command failed.")[-4000:]
         finish_inventory_task(int(task["id"]), "failed", error)
         logging.error("Canonical inventory task %s failed: %s", task["snapshot_id"], error)
+    return True
+
+
+def process_canonical_metadata_seed_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_metadata_seed_task, finish_metadata_seed_task
+        task = claim_metadata_seed_task(worker_name)
+    except Exception as exc:
+        logging.warning("Canonical metadata seed task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    sqlite_db_path = str(task.get("sqlite_db_path") or DB_PATH)
+    command = [
+        "python", str(BASE_DIR / "tools" / "seed_canonical_metadata_from_sqlite.py"),
+        "--snapshot-id", str(task["snapshot_id"]),
+        "--sqlite-db", sqlite_db_path,
+    ]
+    if task.get("rule_fingerprint"):
+        command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_metadata_seed_task(int(task["id"]), "completed", summary=summary)
+    else:
+        error = (result.stderr or result.stdout or "Canonical metadata seed command failed.")[-4000:]
+        finish_metadata_seed_task(int(task["id"]), "failed", error)
+        logging.error("Canonical metadata seed task %s failed: %s", task["snapshot_id"], error)
     return True
 
 
@@ -24734,6 +24792,28 @@ def admin_run_canonical_inventory() -> Any:
             metadata={"source_database": "genbank", "canonical_accession_namespace": "GCA", "taxon_id": 2},
         )
         flash(f"Canonical GenBank bacterial inventory queued: {snapshot_id}.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-metadata-seed", methods=["POST"])
+def admin_seed_canonical_metadata() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_metadata_seed_task
+        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH))
+    except Exception as exc:
+        flash(f"Canonical metadata seeding could not be queued: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_canonical_metadata_seed",
+            target_type="canonical_metadata_seed",
+            target_id=snapshot_id,
+            metadata={"source_database": "genbank", "canonical_accession_namespace": "GCA"},
+        )
+        flash(f"Canonical metadata seeding queued for {snapshot_id}. Existing standardized rows will be reused by accession.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
