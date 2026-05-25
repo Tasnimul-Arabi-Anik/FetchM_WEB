@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-canonical-root-v0.1"
+APP_VERSION = "2026.05-canonical-root-v0.2"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -7703,11 +7703,16 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "source_database": "GenBank",
         "canonical_accession_namespace": "GCA",
         "replacement_requires_reconciliation": True,
+        "partition_status": "not generated",
+        "partition_task_active": False,
+        "partition_summary": None,
+        "latest_reconciliation": None,
     }
     if not configured:
         return status
     try:
-        from dataset_production_store import connect as connect_dataset_store
+        from dataset_production_store import bootstrap_schema, connect as connect_dataset_store
+        bootstrap_schema()
         with connect_dataset_store() as connection:
             task = connection.execute(
                 "SELECT snapshot_id, status, requested_at, completed_at, error FROM canonical_inventory_task ORDER BY requested_at DESC LIMIT 1"
@@ -7721,6 +7726,22 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                 LIMIT 1
                 """
             ).fetchone()
+            partition_task = connection.execute(
+                """
+                SELECT snapshot_id, dataset_version_id, status, requested_at, completed_at, error, summary_json
+                FROM canonical_partition_task
+                ORDER BY requested_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+            reconciliation_row = connection.execute(
+                """
+                SELECT summary_json
+                FROM canonical_root_reconciliation
+                ORDER BY generated_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
     except Exception as exc:
         status["error"] = str(exc)[:160]
         return status
@@ -7730,6 +7751,15 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["task_active"] = str(task[1]) in {"pending", "running"}
         if status["task_active"]:
             status["status"] = task[1]
+    if partition_task is not None:
+        status["partition_snapshot_id"] = partition_task[0]
+        status["partition_dataset_version_id"] = partition_task[1]
+        status["partition_status"] = partition_task[2]
+        status["partition_task_active"] = str(partition_task[2]) in {"pending", "running"}
+        status["partition_error"] = partition_task[5]
+        status["partition_summary"] = dict(partition_task[6] or {})
+    if reconciliation_row is not None:
+        status["latest_reconciliation"] = dict(reconciliation_row[0] or {})
     if row is None:
         return status
     status.update({
@@ -8872,6 +8902,10 @@ def build_dataset_release_verification(
             if root_total <= 0 or accounted_total != root_total:
                 blockers.append(
                     "Canonical root reconciliation does not account for every GenBank bacterial assembly."
+                )
+            if not bool(root_reconciliation.get("release_views_materialized")):
+                blockers.append(
+                    "Canonical root reconciliation was generated as an inventory preview; verified public release views are not materialized yet."
                 )
 
     if int(staged.get("staged_genus_metadata_ready") or 0) <= 0:
@@ -21955,6 +21989,8 @@ def run_worker_loop() -> None:
             if WORKER_MODE == "root-inventory":
                 if process_canonical_inventory_task(worker_name):
                     continue
+                if process_canonical_partition_task(worker_name):
+                    continue
                 time.sleep(WORKER_POLL_INTERVAL)
                 continue
             if WORKER_MODE in {"all", "metadata", "global-insights"}:
@@ -22149,6 +22185,36 @@ def process_canonical_inventory_task(worker_name: str) -> bool:
         error = (result.stderr or result.stdout or "Canonical inventory command failed.")[-4000:]
         finish_inventory_task(int(task["id"]), "failed", error)
         logging.error("Canonical inventory task %s failed: %s", task["snapshot_id"], error)
+    return True
+
+
+def process_canonical_partition_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_partition_task, finish_partition_task
+        task = claim_partition_task(worker_name)
+    except Exception as exc:
+        logging.warning("Canonical partition task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "materialize_canonical_partitions.py"),
+        "--snapshot-id", str(task["snapshot_id"]),
+        "--dataset-version-id", str(task["dataset_version_id"]),
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_partition_task(int(task["id"]), "completed", summary=summary)
+    else:
+        error = (result.stderr or result.stdout or "Canonical partition command failed.")[-4000:]
+        finish_partition_task(int(task["id"]), "failed", error)
+        logging.error("Canonical partition task %s failed: %s", task["snapshot_id"], error)
     return True
 
 
@@ -24668,6 +24734,31 @@ def admin_run_canonical_inventory() -> Any:
             metadata={"source_database": "genbank", "canonical_accession_namespace": "GCA", "taxon_id": 2},
         )
         flash(f"Canonical GenBank bacterial inventory queued: {snapshot_id}.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-partitions", methods=["POST"])
+def admin_materialize_canonical_partitions() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_partition_task
+        snapshot_id, error = queue_partition_task(str(user["username"]))
+    except Exception as exc:
+        flash(f"Canonical partition materialization could not be queued: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_canonical_partitions",
+            target_type="canonical_partition",
+            target_id=snapshot_id,
+            metadata={"preview_only": True, "source_database": "genbank", "canonical_accession_namespace": "GCA"},
+        )
+        flash(
+            f"Canonical partition preview queued for {snapshot_id}. Replacement still requires materialized release views.",
+            "success",
+        )
     return redirect(url_for("admin_dashboard"))
 
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterable, Iterator
@@ -32,6 +33,20 @@ CREATE TABLE IF NOT EXISTS canonical_inventory_task (
     claimed_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
     error TEXT
+);
+
+CREATE TABLE IF NOT EXISTS canonical_partition_task (
+    id BIGSERIAL PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    dataset_version_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
 CREATE TABLE IF NOT EXISTS bacterial_inventory_snapshot (
@@ -117,6 +132,8 @@ CREATE INDEX IF NOT EXISTS idx_inventory_membership_accession
 ON bacterial_inventory_membership (assembly_accession);
 CREATE INDEX IF NOT EXISTS idx_partition_type
 ON taxon_partition_membership (snapshot_id, partition_type);
+CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
+ON canonical_partition_task (status, requested_at);
 """
 
 def utc_now() -> datetime:
@@ -192,6 +209,101 @@ def latest_inventory_task() -> dict[str, Any] | None:
     if row is None:
         return None
     return {'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'completed_at': row[3], 'error': row[4]}
+
+def latest_completed_inventory_snapshot() -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT snapshot_id, completed_at, root_unique_assemblies, source_database, canonical_accession_namespace
+            FROM bacterial_inventory_snapshot
+            WHERE status = 'completed'
+            ORDER BY completed_at DESC NULLS LAST, requested_at DESC
+            LIMIT 1
+            """
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        'snapshot_id': row[0], 'completed_at': row[1], 'root_unique_assemblies': int(row[2] or 0),
+        'source_database': row[3], 'canonical_accession_namespace': row[4],
+    }
+
+def queue_partition_task(
+    requested_by: str | None = None,
+    *,
+    snapshot_id: str | None = None,
+    dataset_version_id: str | None = None,
+) -> tuple[str | None, str | None]:
+    bootstrap_schema()
+    if not snapshot_id:
+        latest = latest_completed_inventory_snapshot()
+        if latest is None:
+            return None, 'No completed canonical inventory snapshot is available.'
+        snapshot_id = str(latest['snapshot_id'])
+    if not dataset_version_id:
+        dataset_version_id = f'canonical-root-preview-{snapshot_id}'
+    with connect() as connection:
+        active = connection.execute(
+            "SELECT snapshot_id, status FROM canonical_partition_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
+        ).fetchone()
+        if active is not None:
+            return None, f'Canonical partition task for {active[0]} is already {active[1]}.'
+        inventory = connection.execute(
+            "SELECT status FROM bacterial_inventory_snapshot WHERE snapshot_id = %s",
+            (snapshot_id,),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != 'completed':
+            return None, 'Canonical inventory snapshot is not completed.'
+        connection.execute(
+            """
+            INSERT INTO canonical_partition_task (snapshot_id, dataset_version_id, status, requested_by, requested_at)
+            VALUES (%s, %s, 'pending', %s, %s)
+            """,
+            (snapshot_id, dataset_version_id, requested_by, utc_now()),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+def claim_partition_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, snapshot_id, dataset_version_id FROM canonical_partition_task
+            WHERE status = 'pending' ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            "UPDATE canonical_partition_task SET status = 'running', claimed_by = %s, claimed_at = %s WHERE id = %s",
+            (worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {'id': int(row[0]), 'snapshot_id': str(row[1]), 'dataset_version_id': str(row[2])}
+
+def finish_partition_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            'UPDATE canonical_partition_task SET status = %s, completed_at = %s, error = %s, summary_json = %s WHERE id = %s',
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+def latest_partition_task() -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            'SELECT snapshot_id, dataset_version_id, status, requested_at, completed_at, error, summary_json FROM canonical_partition_task ORDER BY requested_at DESC LIMIT 1'
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        'snapshot_id': row[0], 'dataset_version_id': row[1], 'status': row[2], 'requested_at': row[3],
+        'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
+    }
 
 def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version: str | None) -> None:
     bootstrap_schema()
@@ -309,7 +421,148 @@ def fail_inventory_snapshot(snapshot_id: str, error: str) -> None:
         connection.commit()
 
 
-def reconcile_root_partitions(snapshot_id: str, dataset_version_id: str) -> dict[str, Any]:
+NON_CANONICAL_SPECIES_TOKENS = {
+    'sp', 'sp.', 'spp', 'spp.', 'bacterium', 'archaeon', 'microorganism',
+    'metagenome', 'uncultured', 'unclassified', 'endosymbiont', 'symbiont',
+}
+
+def normalize_taxon_label(value: Any) -> str:
+    return re.sub(r'\s+', ' ', str(value or '').strip())
+
+def canonical_partition_from_organism_name(value: Any) -> dict[str, str]:
+    name = normalize_taxon_label(value)
+    if not name:
+        return {
+            'genus_name': '', 'species_label': '', 'partition_type': 'unresolved_genus',
+            'assignment_confidence': 'none', 'assignment_reason': 'missing_organism_name',
+        }
+    parts = name.split()
+    offset = 1 if parts and parts[0].casefold() == 'candidatus' else 0
+    if len(parts) <= offset:
+        return {
+            'genus_name': '', 'species_label': '', 'partition_type': 'unresolved_genus',
+            'assignment_confidence': 'none', 'assignment_reason': 'missing_genus_token',
+        }
+    genus = parts[offset].strip().rstrip('.,;:')
+    if not re.match(r'^[A-Z][A-Za-z0-9_-]*$', genus):
+        return {
+            'genus_name': '', 'species_label': name, 'partition_type': 'unresolved_genus',
+            'assignment_confidence': 'low', 'assignment_reason': 'invalid_genus_token',
+        }
+    if len(parts) < offset + 2:
+        return {
+            'genus_name': genus, 'species_label': '', 'partition_type': 'genus_only',
+            'assignment_confidence': 'medium', 'assignment_reason': 'no_species_token',
+        }
+    lower = name.casefold()
+    epithet = parts[offset + 1].strip().rstrip('.,;:')
+    cleaned_epithet = epithet.casefold()
+    provisional_marker = (
+        offset == 1
+        or 'uncultured' in lower
+        or 'metagenome' in lower
+        or 'unclassified' in lower
+        or ' sp.' in lower
+        or ' spp.' in lower
+        or lower.endswith(' sp')
+        or lower.endswith(' spp')
+        or re.search(r'\bsp\d', lower) is not None
+        or ' species complex' in lower
+        or ' group ' in lower
+        or lower.endswith(' group')
+        or ' clade ' in lower
+        or lower.endswith(' clade')
+        or any(char in name for char in '()[]')
+    )
+    if not provisional_marker and re.match(r'^[a-z][a-z0-9-]*$', cleaned_epithet) and cleaned_epithet not in NON_CANONICAL_SPECIES_TOKENS:
+        return {
+            'genus_name': genus, 'species_label': f'{genus} {epithet}', 'partition_type': 'named_species',
+            'assignment_confidence': 'high', 'assignment_reason': 'canonical_binomial',
+        }
+    return {
+        'genus_name': genus, 'species_label': name, 'partition_type': 'provisional_species',
+        'assignment_confidence': 'medium' if provisional_marker else 'low',
+        'assignment_reason': 'provisional_or_noncanonical_species_label',
+    }
+
+def materialize_partitions_from_inventory(
+    snapshot_id: str,
+    dataset_version_id: str,
+    *,
+    batch_size: int = 10000,
+    release_views_materialized: bool = False,
+) -> dict[str, Any]:
+    bootstrap_schema()
+    counts = {
+        'named_species': 0, 'provisional_species': 0, 'genus_only': 0,
+        'unresolved_genus': 0, 'excluded': 0,
+    }
+    processed = 0
+    last_accession = ''
+    with connect() as connection:
+        inventory = connection.execute(
+            'SELECT status, root_unique_assemblies FROM bacterial_inventory_snapshot WHERE snapshot_id = %s',
+            (snapshot_id,),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != 'completed':
+            raise RuntimeError('Canonical inventory snapshot is not completed.')
+        connection.execute('DELETE FROM taxon_partition_membership WHERE snapshot_id = %s', (snapshot_id,))
+        connection.commit()
+        while True:
+            rows = connection.execute(
+                """
+                SELECT i.assembly_accession, COALESCE(m.organism_name, '') AS organism_name
+                FROM bacterial_inventory_membership i
+                JOIN assembly_master m ON m.assembly_accession = i.assembly_accession
+                WHERE i.snapshot_id = %s AND i.assembly_accession > %s
+                ORDER BY i.assembly_accession
+                LIMIT %s
+                """,
+                (snapshot_id, last_accession, int(batch_size)),
+            ).fetchall()
+            if not rows:
+                break
+            payload = []
+            for accession, organism_name in rows:
+                partition = canonical_partition_from_organism_name(organism_name)
+                counts[partition['partition_type']] = counts.get(partition['partition_type'], 0) + 1
+                payload.append((
+                    snapshot_id, accession, partition['genus_name'], partition['species_label'],
+                    partition['partition_type'], partition['assignment_confidence'], partition['assignment_reason'],
+                ))
+            with connection.cursor() as cursor:
+                cursor.executemany(
+                    """
+                    INSERT INTO taxon_partition_membership (
+                        snapshot_id, assembly_accession, genus_name, species_label,
+                        partition_type, assignment_confidence, assignment_reason
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (snapshot_id, assembly_accession) DO UPDATE SET
+                        genus_name = EXCLUDED.genus_name,
+                        species_label = EXCLUDED.species_label,
+                        partition_type = EXCLUDED.partition_type,
+                        assignment_confidence = EXCLUDED.assignment_confidence,
+                        assignment_reason = EXCLUDED.assignment_reason
+                    """,
+                    payload,
+                )
+            connection.commit()
+            processed += len(rows)
+            last_accession = str(rows[-1][0])
+    summary = reconcile_root_partitions(
+        snapshot_id,
+        dataset_version_id,
+        release_views_materialized=release_views_materialized,
+    )
+    summary.update({
+        'processed_assemblies': processed,
+        'partition_counts': counts,
+        'release_views_materialized': bool(release_views_materialized),
+    })
+    return summary
+
+
+def reconcile_root_partitions(snapshot_id: str, dataset_version_id: str, *, release_views_materialized: bool = False) -> dict[str, Any]:
     bootstrap_schema()
     with connect() as connection:
         inventory = connection.execute(
@@ -337,6 +590,7 @@ def reconcile_root_partitions(snapshot_id: str, dataset_version_id: str) -> dict
         summary = {
             'status': status, 'snapshot_id': snapshot_id, 'dataset_version_id': dataset_version_id,
             'source_database': CANONICAL_SOURCE_DATABASE, 'canonical_accession_namespace': CANONICAL_ACCESSION_NAMESPACE,
+            'release_views_materialized': bool(release_views_materialized),
             'root_unique_assemblies': root_total, 'accounted_unique_assemblies': accounted,
             'named_species_assemblies': int(counts.get('named_species', 0)),
             'provisional_species_assemblies': int(counts.get('provisional_species', 0)),

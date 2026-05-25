@@ -24,9 +24,23 @@ from app import (
 )
 from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+from dataset_production_store import canonical_partition_from_organism_name
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_canonical_partition_classification_keeps_root_inventory_honest(self) -> None:
+        canonical = canonical_partition_from_organism_name("Morganella morganii strain ABC")
+        self.assertEqual(canonical["partition_type"], "named_species")
+        self.assertEqual(canonical["species_label"], "Morganella morganii")
+        provisional = canonical_partition_from_organism_name("Morganella sp. FDAARGOS_123")
+        self.assertEqual(provisional["partition_type"], "provisional_species")
+        self.assertEqual(provisional["genus_name"], "Morganella")
+        candidatus = canonical_partition_from_organism_name("Candidatus Liberibacter asiaticus")
+        self.assertEqual(candidatus["partition_type"], "provisional_species")
+        self.assertEqual(candidatus["genus_name"], "Liberibacter")
+        genus_only = canonical_partition_from_organism_name("Morganella")
+        self.assertEqual(genus_only["partition_type"], "genus_only")
+
     def test_taxonomy_label_classification_keeps_noncanonical_labels_honest(self) -> None:
         self.assertEqual(global_taxonomy_label_metadata("Escherichia coli")["key"], "canonical_species")
         self.assertEqual(global_taxonomy_label_metadata("Staphylococcus sp. HMSC06C11")["key"], "unresolved_species_level_label")
@@ -129,8 +143,14 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     root_gate = {
                         "status": "pass", "source_database": "genbank",
                         "canonical_accession_namespace": "GCA", "root_unique_assemblies": 7,
-                        "accounted_unique_assemblies": 7,
+                        "accounted_unique_assemblies": 7, "release_views_materialized": False,
                     }
+                    db.execute("UPDATE dataset_versions SET summary_json = ? WHERE version_id = ?", (json.dumps({"canonical_root_reconciliation": root_gate}), version_id))
+                    with patch.object(fetchm_app, "dataset_version_metadata_summary", return_value=staged), patch.object(fetchm_app, "current_live_dataset_summary", return_value={}), patch.object(fetchm_app, "staged_species_search_summary", return_value={}), patch.object(fetchm_app, "derived_species_metadata_task_progress", return_value={}), patch.object(fetchm_app, "staged_non_regression_blockers", return_value=[]):
+                        payload, blockers = fetchm_app.build_dataset_release_verification(db, version_id)
+                    self.assertFalse(payload["safe_to_replace"])
+                    self.assertTrue(any("preview" in blocker for blocker in blockers))
+                    root_gate["release_views_materialized"] = True
                     db.execute("UPDATE dataset_versions SET summary_json = ? WHERE version_id = ?", (json.dumps({"canonical_root_reconciliation": root_gate}), version_id))
                     with patch.object(fetchm_app, "dataset_version_metadata_summary", return_value=staged), patch.object(fetchm_app, "current_live_dataset_summary", return_value={}), patch.object(fetchm_app, "staged_species_search_summary", return_value={}), patch.object(fetchm_app, "derived_species_metadata_task_progress", return_value={}), patch.object(fetchm_app, "staged_non_regression_blockers", return_value=[]):
                         payload, blockers = fetchm_app.build_dataset_release_verification(db, version_id)
