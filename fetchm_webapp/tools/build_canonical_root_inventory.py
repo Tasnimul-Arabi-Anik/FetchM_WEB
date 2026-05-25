@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
@@ -51,7 +52,7 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
         try:
             with urllib.request.urlopen(request, timeout=args.request_timeout) as response:
                 return json.load(response)
-        except (OSError, urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+        except (OSError, http.client.IncompleteRead, urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
             last_error = f"REST page request attempt {attempt}/{args.max_attempts} failed: {exc}"
             print(last_error, file=sys.stderr, flush=True)
             if attempt < max(1, args.max_attempts):
