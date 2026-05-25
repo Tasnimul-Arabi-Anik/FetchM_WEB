@@ -1,194 +1,111 @@
 #!/usr/bin/env python3
-"""Build the canonical GenBank bacterial assembly inventory with restartable date chunks."""
+"""Build the canonical GenBank bacterial inventory with restartable NCBI REST pages."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import subprocess
+import os
 import sys
 import time
-from calendar import monthrange
-from datetime import date, datetime, timedelta, timezone
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from dataset_production_store import (
     BACTERIA_TAXON_ID,
-    completed_inventory_chunks,
     fail_inventory_snapshot,
-    finish_inventory_chunk,
+    finish_inventory_page,
     finish_inventory_snapshot,
     insert_inventory_batch,
-    inventory_chunk_progress,
-    start_inventory_chunk,
+    inventory_page_progress,
+    latest_inventory_page_checkpoint,
+    start_inventory_page,
     start_inventory_snapshot,
 )
 
-
-def parse_reports(line: str) -> Iterable[dict[str, Any]]:
-    payload = json.loads(line)
-    reports = payload.get("reports") if isinstance(payload, dict) else None
-    if isinstance(reports, list):
-        for report in reports:
-            if isinstance(report, dict):
-                yield report
-    elif isinstance(payload, dict):
-        yield payload
+API_URL = f"https://api.ncbi.nlm.nih.gov/datasets/v2/genome/taxon/{BACTERIA_TAXON_ID}/dataset_report"
 
 
-def datasets_version(binary: str) -> str:
-    try:
-        result = subprocess.run([binary, "version"], capture_output=True, text=True, timeout=20, check=False)
-    except (OSError, subprocess.SubprocessError):
-        return "unknown"
-    value = (result.stdout or result.stderr or "").strip().splitlines()
-    return value[0] if value else "unknown"
-
-
-def month_end(value: date) -> date:
-    return value.replace(day=monthrange(value.year, value.month)[1])
-
-
-def inventory_windows(last_day: date) -> list[tuple[str, date, date]]:
-    """Use broad historical chunks and monthly recent chunks to bound API streams."""
-    windows: list[tuple[str, date, date]] = []
-    for year in range(1900, 2015):
-        windows.append((f"year-{year}", date(year, 1, 1), date(year, 12, 31)))
-    cursor = date(2015, 1, 1)
-    while cursor <= last_day:
-        end = min(month_end(cursor), last_day)
-        windows.append((f"month-{cursor:%Y-%m}", cursor, end))
-        cursor = end + timedelta(days=1)
-    return windows
-
-
-def query_bounds(start: date, end: date) -> tuple[str, str]:
-    # The previous-day overlap avoids missing boundary records if NCBI treats --released-after as exclusive.
-    after = start - timedelta(days=1) if start > date(1900, 1, 1) else start
-    return after.isoformat(), end.isoformat()
-
-
-def fetch_chunk(
-    args: argparse.Namespace,
-    snapshot_id: str,
-    chunk_key: str,
-    start: date,
-    end: date,
-) -> dict[str, int]:
-    released_after, released_before = query_bounds(start, end)
-    command = [
-        args.datasets_bin,
-        "summary", "genome", "taxon", str(BACTERIA_TAXON_ID),
-        "--assembly-source", "genbank",
-        "--assembly-version", "latest",
-        "--released-after", released_after,
-        "--released-before", released_before,
-        "--limit", "all",
-        "--as-json-lines",
-    ]
+def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, Any]:
+    params = {
+        "filters.assembly_source": "GENBANK",
+        "filters.assembly_version": "CURRENT",
+        "page_size": str(args.page_size),
+    }
+    if page_token:
+        params["page_token"] = page_token
+    url = API_URL + "?" + urllib.parse.urlencode(params)
+    headers = {"Accept": "application/json", "User-Agent": "FetchM-WEB/canonical-bacterial-inventory"}
+    if args.api_key:
+        headers["api-key"] = args.api_key
+    request = urllib.request.Request(url, headers=headers)
     last_error = ""
     for attempt in range(1, max(1, args.max_attempts) + 1):
-        start_inventory_chunk(snapshot_id, chunk_key, released_after, released_before)
-        raw_records = canonical = noncanonical = duplicates = 0
-        batch: list[dict[str, Any]] = []
-        process = subprocess.Popen(
-            ["timeout", "--signal=TERM", str(args.chunk_timeout), *command],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1,
-        )
-        assert process.stdout is not None
-        for line in process.stdout:
-            if not line.strip():
-                continue
-            for report in parse_reports(line):
-                raw_records += 1
-                batch.append(report)
-                if len(batch) >= args.batch_size:
-                    written, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
-                    canonical += written
-                    noncanonical += invalid
-                    duplicates += repeated
-                    batch.clear()
-        if batch:
-            written, invalid, repeated = insert_inventory_batch(snapshot_id, batch)
-            canonical += written
-            noncanonical += invalid
-            duplicates += repeated
-        stderr = process.stderr.read() if process.stderr is not None else ""
-        return_code = process.wait()
-        if return_code == 0:
-            finish_inventory_chunk(
-                snapshot_id,
-                chunk_key,
-                "completed",
-                raw_records=raw_records,
-                canonical_records=canonical,
-                noncanonical_records=noncanonical,
-                duplicate_records=duplicates,
-            )
-            return {
-                "raw_records": raw_records,
-                "canonical_records": canonical,
-                "noncanonical_records": noncanonical,
-                "duplicate_records": duplicates,
-            }
-        last_error = (
-            f"chunk {chunk_key} attempt {attempt}/{args.max_attempts} failed "
-            f"with return code {return_code}: {stderr[-1000:]}"
-        )
-        finish_inventory_chunk(
-            snapshot_id,
-            chunk_key,
-            "failed",
-            raw_records=raw_records,
-            canonical_records=canonical,
-            noncanonical_records=noncanonical,
-            duplicate_records=duplicates,
-            error=last_error,
-        )
-        print(last_error, file=sys.stderr, flush=True)
-        if attempt < max(1, args.max_attempts):
-            time.sleep(max(0.0, args.retry_sleep))
-    raise RuntimeError(last_error or f"chunk {chunk_key} failed")
+        try:
+            with urllib.request.urlopen(request, timeout=args.request_timeout) as response:
+                return json.load(response)
+        except (OSError, urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            last_error = f"REST page request attempt {attempt}/{args.max_attempts} failed: {exc}"
+            print(last_error, file=sys.stderr, flush=True)
+            if attempt < max(1, args.max_attempts):
+                time.sleep(max(0.0, args.retry_sleep))
+    raise RuntimeError(last_error or "NCBI REST page request failed")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", default=None)
-    parser.add_argument("--datasets-bin", default="datasets")
-    parser.add_argument("--batch-size", type=int, default=1000)
-    parser.add_argument("--max-attempts", type=int, default=3)
-    parser.add_argument("--retry-sleep", type=float, default=20.0)
-    parser.add_argument("--chunk-timeout", type=int, default=1800)
-    parser.add_argument("--through-date", default=None, help="Last release date to query (YYYY-MM-DD; defaults to today).")
+    parser.add_argument("--page-size", type=int, default=1000)
+    parser.add_argument("--max-attempts", type=int, default=5)
+    parser.add_argument("--retry-sleep", type=float, default=10.0)
+    parser.add_argument("--request-timeout", type=float, default=120.0)
+    parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""))
+    parser.add_argument("--max-pages", type=int, default=0, help="Stop after N pages for validation only; never completes a release snapshot.")
     args = parser.parse_args()
+    if not 1 <= args.page_size <= 1000:
+        parser.error("--page-size must be between 1 and 1000")
     snapshot_id = args.snapshot_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ_genbank_bacteria_root")
-    through_date = date.fromisoformat(args.through_date) if args.through_date else date.today()
     invocation = (
-        f"{args.datasets_bin} summary genome taxon {BACTERIA_TAXON_ID} --assembly-source genbank "
-        "--assembly-version latest --released-after/--released-before <chunk> --limit all --as-json-lines"
+        f"GET {API_URL}?filters.assembly_source=GENBANK&filters.assembly_version=CURRENT"
+        f"&page_size={args.page_size}&page_token=<checkpoint>"
     )
-    start_inventory_snapshot(snapshot_id, invocation, datasets_version(args.datasets_bin))
-    completed = completed_inventory_chunks(snapshot_id)
+    start_inventory_snapshot(snapshot_id, invocation, "NCBI Datasets REST API v2")
+    checkpoint = latest_inventory_page_checkpoint(snapshot_id)
+    page_number = int(checkpoint["page_number"] if checkpoint else 0)
+    page_token = checkpoint["next_page_token"] if checkpoint else None
+    if checkpoint and not page_token:
+        progress = inventory_page_progress(snapshot_id)
+        summary = finish_inventory_snapshot(snapshot_id, progress["raw_records"], progress["noncanonical_records"], progress["duplicate_records"])
+        print(json.dumps({"snapshot_id": snapshot_id, **summary, **progress, "inventory_mode": "rest_page_checkpoints"}, sort_keys=True))
+        return 0 if summary.get("status") == "completed" else 1
     try:
-        for chunk_key, start, end in inventory_windows(through_date):
-            if chunk_key in completed:
-                continue
-            fetch_chunk(args, snapshot_id, chunk_key, start, end)
-        progress = inventory_chunk_progress(snapshot_id)
-        summary = finish_inventory_snapshot(
-            snapshot_id,
-            progress["raw_records"],
-            progress["noncanonical_records"],
-            progress["duplicate_records"],
-        )
+        while True:
+            page_number += 1
+            start_inventory_page(snapshot_id, page_number, page_token)
+            payload = fetch_page(args, page_token)
+            reports = [report for report in payload.get("reports", []) if isinstance(report, dict)]
+            expected_total = int(payload.get("total_count") or 0)
+            written, invalid, duplicates = insert_inventory_batch(snapshot_id, reports) if reports else (0, 0, 0)
+            next_token = str(payload.get("next_page_token") or "") or None
+            finish_inventory_page(
+                snapshot_id, page_number, "completed", next_page_token=next_token, expected_total=expected_total,
+                raw_records=len(reports), canonical_records=written, noncanonical_records=invalid, duplicate_records=duplicates,
+            )
+            if args.max_pages and page_number >= args.max_pages:
+                raise RuntimeError("Validation max-pages limit reached; snapshot intentionally not complete.")
+            if not next_token:
+                break
+            page_token = next_token
+        progress = inventory_page_progress(snapshot_id)
+        summary = finish_inventory_snapshot(snapshot_id, progress["raw_records"], progress["noncanonical_records"], progress["duplicate_records"])
         summary.update(progress)
-        summary["inventory_mode"] = "release_date_chunks"
+        summary["inventory_mode"] = "rest_page_checkpoints"
         print(json.dumps({"snapshot_id": snapshot_id, **summary}, sort_keys=True))
         return 0 if summary.get("status") == "completed" else 1
     except Exception as exc:

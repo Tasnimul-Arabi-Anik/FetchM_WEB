@@ -227,8 +227,8 @@
         {% if dataset_pipeline.root_inventory.available %}
           <span>Snapshot: {{ dataset_pipeline.root_inventory.snapshot_id }}</span>
           {% if dataset_pipeline.root_inventory.status in ['pending', 'running'] %}
-            <span>{{ dataset_pipeline.root_inventory.inserted_membership_rows }} canonical rows inserted so far</span>
-            {% if dataset_pipeline.root_inventory.chunk_progress %}<span>Chunks complete: {{ dataset_pipeline.root_inventory.chunk_progress.completed }} / {{ dataset_pipeline.root_inventory.chunk_progress.total }}</span>{% endif %}
+            <span>{{ dataset_pipeline.root_inventory.inserted_membership_rows }} canonical assemblies retained so far</span>
+            {% if dataset_pipeline.root_inventory.chunk_progress and dataset_pipeline.root_inventory.chunk_progress.expected_total %}<span>NCBI total: {{ dataset_pipeline.root_inventory.chunk_progress.expected_total }} assemblies</span><span>Pages complete: {{ dataset_pipeline.root_inventory.chunk_progress.completed }} / {{ dataset_pipeline.root_inventory.chunk_progress.expected_pages }}</span>{% endif %}
           {% else %}
             <span>{{ dataset_pipeline.root_inventory.root_unique_assemblies }} canonical GenBank GCA assemblies</span>
           {% endif %}

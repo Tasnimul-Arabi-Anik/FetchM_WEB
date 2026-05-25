@@ -81,6 +81,24 @@ CREATE TABLE IF NOT EXISTS canonical_inventory_chunk (
     PRIMARY KEY (snapshot_id, chunk_key)
 );
 
+CREATE TABLE IF NOT EXISTS canonical_inventory_page (
+    snapshot_id TEXT NOT NULL,
+    page_number BIGINT NOT NULL,
+    input_page_token TEXT,
+    next_page_token TEXT,
+    status TEXT NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    expected_total BIGINT,
+    raw_records BIGINT NOT NULL DEFAULT 0,
+    canonical_records BIGINT NOT NULL DEFAULT 0,
+    noncanonical_records BIGINT NOT NULL DEFAULT 0,
+    duplicate_records BIGINT NOT NULL DEFAULT 0,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    PRIMARY KEY (snapshot_id, page_number)
+);
+
 CREATE TABLE IF NOT EXISTS bacterial_inventory_snapshot (
     snapshot_id TEXT PRIMARY KEY,
     status TEXT NOT NULL,
@@ -164,6 +182,8 @@ CREATE INDEX IF NOT EXISTS idx_inventory_membership_accession
 ON bacterial_inventory_membership (assembly_accession);
 CREATE INDEX IF NOT EXISTS idx_inventory_chunk_status
 ON canonical_inventory_chunk (snapshot_id, status, released_after);
+CREATE INDEX IF NOT EXISTS idx_inventory_page_status
+ON canonical_inventory_page (snapshot_id, status, page_number);
 CREATE INDEX IF NOT EXISTS idx_partition_type
 ON taxon_partition_membership (snapshot_id, partition_type);
 CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
@@ -486,6 +506,70 @@ def inventory_chunk_progress(snapshot_id: str) -> dict[str, int]:
             """, (snapshot_id,),
         ).fetchone()
     return {'chunk_total': int(row[0] or 0), 'chunk_completed': int(row[1] or 0), 'chunk_failed': int(row[2] or 0), 'raw_records': int(row[3] or 0), 'noncanonical_records': int(row[4] or 0), 'duplicate_records': int(row[5] or 0)}
+
+def start_inventory_page(snapshot_id: str, page_number: int, input_page_token: str | None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO canonical_inventory_page (
+                snapshot_id, page_number, input_page_token, status, attempt_count, started_at
+            ) VALUES (%s, %s, %s, 'running', 1, %s)
+            ON CONFLICT (snapshot_id, page_number) DO UPDATE SET
+                status = 'running', attempt_count = canonical_inventory_page.attempt_count + 1,
+                input_page_token = EXCLUDED.input_page_token, started_at = EXCLUDED.started_at,
+                completed_at = NULL, error = NULL
+            """,
+            (snapshot_id, page_number, input_page_token, utc_now()),
+        )
+        connection.commit()
+
+def latest_inventory_page_checkpoint(snapshot_id: str) -> dict[str, Any] | None:
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT page_number, next_page_token, expected_total
+            FROM canonical_inventory_page
+            WHERE snapshot_id = %s AND status = 'completed'
+            ORDER BY page_number DESC LIMIT 1
+            """,
+            (snapshot_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {'page_number': int(row[0]), 'next_page_token': row[1], 'expected_total': int(row[2] or 0)}
+
+def finish_inventory_page(snapshot_id: str, page_number: int, status: str, *, next_page_token: str | None = None, expected_total: int = 0, raw_records: int = 0, canonical_records: int = 0, noncanonical_records: int = 0, duplicate_records: int = 0, error: str | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE canonical_inventory_page SET status = %s, completed_at = %s, next_page_token = %s,
+                   expected_total = %s, raw_records = %s, canonical_records = %s,
+                   noncanonical_records = %s, duplicate_records = %s, error = %s
+            WHERE snapshot_id = %s AND page_number = %s
+            """,
+            (status, utc_now(), next_page_token, expected_total or None, raw_records, canonical_records, noncanonical_records, duplicate_records, error[:4000] if error else None, snapshot_id, page_number),
+        )
+        connection.commit()
+
+def inventory_page_progress(snapshot_id: str) -> dict[str, int]:
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) FILTER (WHERE status = 'completed'), COUNT(*) FILTER (WHERE status = 'failed'),
+                   COALESCE(MAX(expected_total), 0),
+                   COALESCE(SUM(raw_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(noncanonical_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(duplicate_records) FILTER (WHERE status = 'completed'), 0)
+            FROM canonical_inventory_page WHERE snapshot_id = %s
+            """, (snapshot_id,),
+        ).fetchone()
+    expected_total = int(row[2] or 0)
+    return {
+        'page_completed': int(row[0] or 0), 'page_failed': int(row[1] or 0),
+        'expected_total': expected_total, 'expected_pages': (expected_total + 999) // 1000 if expected_total else 0,
+        'raw_records': int(row[3] or 0), 'noncanonical_records': int(row[4] or 0),
+        'duplicate_records': int(row[5] or 0),
+    }
 
 def nested_value(payload: dict[str, Any], *paths: tuple[str, ...]) -> Any:
     for path in paths:

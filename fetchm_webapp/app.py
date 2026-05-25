@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-canonical-root-v0.4"
+APP_VERSION = "2026.05-canonical-root-v0.5"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -7762,18 +7762,23 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                     "SELECT COUNT(*) FROM bacterial_inventory_membership WHERE snapshot_id = %s",
                     (active_snapshot_id,),
                 ).fetchone()[0] or 0)
-                chunk_row = connection.execute(
+                page_row = connection.execute(
                     """
-                    SELECT COUNT(*), COUNT(*) FILTER (WHERE status = 'completed'),
-                           COUNT(*) FILTER (WHERE status = 'failed')
-                    FROM canonical_inventory_chunk WHERE snapshot_id = %s
+                    SELECT COUNT(*) FILTER (WHERE status = 'completed'),
+                           COUNT(*) FILTER (WHERE status = 'failed'),
+                           COALESCE(MAX(expected_total), 0),
+                           COALESCE(SUM(raw_records) FILTER (WHERE status = 'completed'), 0)
+                    FROM canonical_inventory_page WHERE snapshot_id = %s
                     """,
                     (active_snapshot_id,),
                 ).fetchone()
+                expected_total = int(page_row[2] or 0)
                 chunk_progress = {
-                    "total": int(chunk_row[0] or 0),
-                    "completed": int(chunk_row[1] or 0),
-                    "failed": int(chunk_row[2] or 0),
+                    "completed": int(page_row[0] or 0),
+                    "failed": int(page_row[1] or 0),
+                    "expected_total": expected_total,
+                    "expected_pages": (expected_total + 999) // 1000 if expected_total else 0,
+                    "records_processed": int(page_row[3] or 0),
                 }
     except Exception as exc:
         status["error"] = str(exc)[:160]
