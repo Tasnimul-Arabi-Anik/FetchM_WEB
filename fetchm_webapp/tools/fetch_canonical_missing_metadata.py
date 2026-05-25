@@ -12,7 +12,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -116,6 +116,7 @@ def main() -> int:
     parser.add_argument("--request-timeout", type=float, default=120.0)
     parser.add_argument("--request-sleep", type=float, default=None)
     parser.add_argument("--request-workers", type=int, default=0, help="Concurrent NCBI report requests; defaults to two requests per configured API key.")
+    parser.add_argument("--standardization-workers", type=int, default=0, help="CPU workers for metadata normalization; defaults to FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS or 10.")
     parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""), help="Fallback when no application key pool is configured.")
     args = parser.parse_args()
     if not 1 <= args.batch_size <= 100:
@@ -124,6 +125,8 @@ def main() -> int:
     request_sleep = args.request_sleep if args.request_sleep is not None else (0.05 if api_keys[0] else 0.4)
     worker_limit = min(10, max(1, len(api_keys) * 2)) if api_keys[0] else 2
     request_workers = min(worker_limit, max(1, args.request_workers or worker_limit))
+    standardization_default = int(os.environ.get("FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS", "10") or "10")
+    standardization_workers = min(32, max(1, args.standardization_workers or standardization_default))
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
     fetched = standardized = batches = 0
     while True:
@@ -148,7 +151,11 @@ def main() -> int:
             for future in as_completed(futures):
                 reports.extend(future.result())
         insert_inventory_batch(args.snapshot_id, reports)
-        rows = [standardizable_row(report) for report in reports]
+        if standardization_workers <= 1 or len(reports) <= 1:
+            rows = [standardizable_row(report) for report in reports]
+        else:
+            with ProcessPoolExecutor(max_workers=standardization_workers) as executor:
+                rows = list(executor.map(standardizable_row, reports, chunksize=max(1, len(reports) // (standardization_workers * 4))))
         seeded = seed_standardized_metadata_batch(
             args.snapshot_id, rows, rule_fingerprint=fingerprint, status="fetched_ncbi_full_report"
         )
@@ -158,7 +165,7 @@ def main() -> int:
         standardized += seeded["seeded"]
         batches += len(accession_batches)
         if batches % 20 == 0:
-            print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, "request_workers": request_workers, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
+            print(json.dumps({"batches_complete": batches, "fetched_rows": fetched, "request_workers": request_workers, "standardization_workers": standardization_workers, **standardized_metadata_coverage(args.snapshot_id)}, sort_keys=True), flush=True)
         if args.max_batches and batches >= args.max_batches:
             break
         if request_sleep > 0:
@@ -171,6 +178,7 @@ def main() -> int:
         "fetched_rows": fetched,
         "standardized_rows": standardized,
         "request_workers": request_workers,
+        "standardization_workers": standardization_workers,
         "configured_api_key_count": len([key for key in api_keys if key]),
         **standardized_metadata_coverage(args.snapshot_id),
     }
