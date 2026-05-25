@@ -744,44 +744,61 @@ def seed_standardized_metadata_batch(
         connection.commit()
     return {'total': total, 'seeded': seeded, 'skipped': skipped}
 
-def hydrate_master_taxonomy_from_standardization(snapshot_id: str) -> dict[str, int]:
-    """Backfill master taxonomy fields after an accession-only inventory seed."""
+def hydrate_master_taxonomy_from_standardization(snapshot_id: str, *, batch_size: int = 10000) -> dict[str, int]:
+    """Backfill master taxonomy fields from standardized metadata in bounded transactions."""
     bootstrap_schema()
-    now = utc_now()
+    hydrated = examined = 0
+    last_accession = ''
     with connect() as connection:
-        cursor = connection.execute(
-            """
-            UPDATE assembly_master AS m
-            SET organism_name = COALESCE(
-                    NULLIF(m.organism_name, ''),
-                    NULLIF(s.standardized_payload->>'Organism Name', '')
-                ),
-                biosample_accession = COALESCE(
-                    NULLIF(m.biosample_accession, ''),
-                    NULLIF(s.standardized_payload->>'Assembly BioSample Accession', ''),
-                    NULLIF(s.standardized_payload->>'BioSample Accession', '')
-                ),
-                updated_at = %s
-            FROM bacterial_inventory_membership AS i
-            JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
-            WHERE i.snapshot_id = %s
-              AND m.assembly_accession = i.assembly_accession
-              AND (
-                  (NULLIF(m.organism_name, '') IS NULL AND NULLIF(s.standardized_payload->>'Organism Name', '') IS NOT NULL)
-                  OR (
-                      NULLIF(m.biosample_accession, '') IS NULL
-                      AND COALESCE(
-                          NULLIF(s.standardized_payload->>'Assembly BioSample Accession', ''),
-                          NULLIF(s.standardized_payload->>'BioSample Accession', '')
-                      ) IS NOT NULL
+        while True:
+            rows = connection.execute(
+                """
+                SELECT i.assembly_accession
+                FROM bacterial_inventory_membership AS i
+                JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+                WHERE i.snapshot_id = %s AND i.assembly_accession > %s
+                ORDER BY i.assembly_accession
+                LIMIT %s
+                """,
+                (snapshot_id, last_accession, int(batch_size)),
+            ).fetchall()
+            if not rows:
+                break
+            accessions = [str(row[0]) for row in rows]
+            cursor = connection.execute(
+                """
+                UPDATE assembly_master AS m
+                SET organism_name = COALESCE(
+                        NULLIF(m.organism_name, ''),
+                        NULLIF(s.standardized_payload->>'Organism Name', '')
+                    ),
+                    biosample_accession = COALESCE(
+                        NULLIF(m.biosample_accession, ''),
+                        NULLIF(s.standardized_payload->>'Assembly BioSample Accession', ''),
+                        NULLIF(s.standardized_payload->>'BioSample Accession', '')
+                    ),
+                    updated_at = %s
+                FROM assembly_standardization AS s
+                WHERE m.assembly_accession = s.assembly_accession
+                  AND m.assembly_accession = ANY(%s)
+                  AND (
+                      (NULLIF(m.organism_name, '') IS NULL AND NULLIF(s.standardized_payload->>'Organism Name', '') IS NOT NULL)
+                      OR (
+                          NULLIF(m.biosample_accession, '') IS NULL
+                          AND COALESCE(
+                              NULLIF(s.standardized_payload->>'Assembly BioSample Accession', ''),
+                              NULLIF(s.standardized_payload->>'BioSample Accession', '')
+                          ) IS NOT NULL
+                      )
                   )
-              )
-            """,
-            (now, snapshot_id),
-        )
-        hydrated = int(cursor.rowcount or 0)
-        connection.commit()
-    return {'master_rows_hydrated': hydrated}
+                """,
+                (utc_now(), accessions),
+            )
+            hydrated += int(cursor.rowcount or 0)
+            examined += len(accessions)
+            last_accession = accessions[-1]
+            connection.commit()
+    return {'master_rows_examined': examined, 'master_rows_hydrated': hydrated}
 
 def standardized_metadata_coverage(snapshot_id: str) -> dict[str, int]:
     bootstrap_schema()
