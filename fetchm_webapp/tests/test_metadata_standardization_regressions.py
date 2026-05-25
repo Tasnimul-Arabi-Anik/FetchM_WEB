@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -99,6 +100,42 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                         fetchm_app.dataset_pipeline_step_keys().index("derive_species"),
                     )
                     self.assertIn("genus", fetchm_app.DATASET_PIPELINE_STEP_COPY["standardization"]["short"].lower())
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
+    def test_release_requires_canonical_genbank_root_reconciliation(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    version_id = "legacy-genus-first-staging"
+                    db.execute(
+                        "INSERT INTO dataset_versions (version_id, status, created_at, root_path, summary_json) VALUES (?, 'staging', ?, ?, '{}')",
+                        (version_id, fetchm_app.utc_now(), str(root / version_id)),
+                    )
+                    staged = {"staged_genus_metadata_ready": 1, "staged_species_metadata_ready": 1, "staged_unique_assemblies": 1}
+                    with patch.object(fetchm_app, "dataset_version_metadata_summary", return_value=staged), patch.object(fetchm_app, "current_live_dataset_summary", return_value={}), patch.object(fetchm_app, "staged_species_search_summary", return_value={}), patch.object(fetchm_app, "derived_species_metadata_task_progress", return_value={}), patch.object(fetchm_app, "staged_non_regression_blockers", return_value=[]):
+                        payload, blockers = fetchm_app.build_dataset_release_verification(db, version_id)
+                    self.assertFalse(payload["safe_to_replace"])
+                    self.assertTrue(any("Canonical GenBank root inventory reconciliation is missing" in blocker for blocker in blockers))
+                    root_gate = {
+                        "status": "pass", "source_database": "genbank",
+                        "canonical_accession_namespace": "GCA", "root_unique_assemblies": 7,
+                        "accounted_unique_assemblies": 7,
+                    }
+                    db.execute("UPDATE dataset_versions SET summary_json = ? WHERE version_id = ?", (json.dumps({"canonical_root_reconciliation": root_gate}), version_id))
+                    with patch.object(fetchm_app, "dataset_version_metadata_summary", return_value=staged), patch.object(fetchm_app, "current_live_dataset_summary", return_value={}), patch.object(fetchm_app, "staged_species_search_summary", return_value={}), patch.object(fetchm_app, "derived_species_metadata_task_progress", return_value={}), patch.object(fetchm_app, "staged_non_regression_blockers", return_value=[]):
+                        payload, blockers = fetchm_app.build_dataset_release_verification(db, version_id)
+                    self.assertTrue(payload["safe_to_replace"])
+                    self.assertFalse(any("Canonical" in blocker for blocker in blockers))
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 

@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-genus-v1.1"
+APP_VERSION = "2026.05-canonical-root-v0.1"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -6458,6 +6458,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_derive_species_sequential", "1"),
         ("dataset_pipeline_replace_sequential", "1"),
         ("dataset_pipeline_global_insights_sequential", "1"),
+        ("dataset_pipeline_require_canonical_root_reconciliation", "1"),
         ("active_dataset_version_id", "legacy-live"),
         ("previous_dataset_version_id", ""),
     ]:
@@ -7691,6 +7692,59 @@ def build_dataset_pipeline_step_cards(
     return cards
 
 
+def canonical_root_inventory_dashboard() -> dict[str, Any]:
+    """Return the latest canonical GenBank inventory state without blocking admin rendering."""
+    configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
+    status: dict[str, Any] = {
+        "configured": configured,
+        "available": False,
+        "status": "not configured" if not configured else "not generated",
+        "root_unique_assemblies": 0,
+        "source_database": "GenBank",
+        "canonical_accession_namespace": "GCA",
+        "replacement_requires_reconciliation": True,
+    }
+    if not configured:
+        return status
+    try:
+        from dataset_production_store import connect as connect_dataset_store
+        with connect_dataset_store() as connection:
+            task = connection.execute(
+                "SELECT snapshot_id, status, requested_at, completed_at, error FROM canonical_inventory_task ORDER BY requested_at DESC LIMIT 1"
+            ).fetchone()
+            row = connection.execute(
+                """
+                SELECT snapshot_id, status, completed_at, root_unique_assemblies,
+                       source_database, canonical_accession_namespace, error
+                FROM bacterial_inventory_snapshot
+                ORDER BY requested_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+    except Exception as exc:
+        status["error"] = str(exc)[:160]
+        return status
+    if task is not None:
+        status["task_snapshot_id"] = task[0]
+        status["task_status"] = task[1]
+        status["task_active"] = str(task[1]) in {"pending", "running"}
+        if status["task_active"]:
+            status["status"] = task[1]
+    if row is None:
+        return status
+    status.update({
+        "available": True,
+        "snapshot_id": row[0],
+        "status": status["status"] if status.get("task_active") else row[1],
+        "completed_at": row[2],
+        "root_unique_assemblies": int(row[3] or 0),
+        "source_database": row[4],
+        "canonical_accession_namespace": row[5],
+        "error": row[6],
+    })
+    return status
+
+
 def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
     connection = db or get_db()
     ensure_legacy_live_dataset_version(connection)
@@ -7762,6 +7816,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "can_rollback": bool(get_setting("previous_dataset_version_id", "", connection)),
         "retryable_derived_failures": retryable_derived_failures,
         "verification_summary": verification_summary,
+        "root_inventory": canonical_root_inventory_dashboard(),
     }
 
 
@@ -8780,6 +8835,44 @@ def build_dataset_release_verification(
     species_search = staged_species_search_summary(db, dataset_version_id)
     derive = derived_species_metadata_task_progress(db, dataset_version_id)
     blockers = staged_non_regression_blockers(staged, live)
+    version_row = db.execute(
+        "SELECT summary_json FROM dataset_versions WHERE version_id = ?",
+        (dataset_version_id,),
+    ).fetchone()
+    version_summary = parse_dataset_version_summary(version_row)
+    root_reconciliation = version_summary.get("canonical_root_reconciliation")
+    if os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        try:
+            from dataset_production_store import latest_reconciliation_for_dataset_version
+            stored_reconciliation = latest_reconciliation_for_dataset_version(dataset_version_id)
+        except Exception:
+            stored_reconciliation = None
+        if stored_reconciliation is not None:
+            root_reconciliation = stored_reconciliation
+    require_root_reconciliation = (
+        get_setting("dataset_pipeline_require_canonical_root_reconciliation", "1", db) == "1"
+    )
+
+    if require_root_reconciliation:
+        if not isinstance(root_reconciliation, dict):
+            blockers.append(
+                "Canonical GenBank root inventory reconciliation is missing; "
+                "legacy genus-first staging cannot replace live data."
+            )
+        else:
+            root_status = str(root_reconciliation.get("status") or "").lower()
+            source_database = str(root_reconciliation.get("source_database") or "").lower()
+            accession_namespace = str(root_reconciliation.get("canonical_accession_namespace") or "").upper()
+            root_total = int(root_reconciliation.get("root_unique_assemblies") or 0)
+            accounted_total = int(root_reconciliation.get("accounted_unique_assemblies") or 0)
+            if root_status != "pass":
+                blockers.append("Canonical GenBank root inventory reconciliation has not passed.")
+            if source_database != "genbank" or accession_namespace != "GCA":
+                blockers.append("Release denominator must be canonical GenBank GCA bacterial assemblies.")
+            if root_total <= 0 or accounted_total != root_total:
+                blockers.append(
+                    "Canonical root reconciliation does not account for every GenBank bacterial assembly."
+                )
 
     if int(staged.get("staged_genus_metadata_ready") or 0) <= 0:
         blockers.append("No staged genus metadata files are ready.")
@@ -8817,6 +8910,8 @@ def build_dataset_release_verification(
         "staged_candidate": staged,
         "staged_species_search": species_search,
         "species_derivation": derive,
+        "canonical_root_reconciliation_required": require_root_reconciliation,
+        "canonical_root_reconciliation": root_reconciliation if isinstance(root_reconciliation, dict) else None,
         "species_derivation_policy": "reuse unchanged species outputs; derive changed species outputs from standardized genus metadata",
         "step_statuses": step_statuses,
         "coverage_drop_policy": {
@@ -8854,6 +8949,12 @@ def write_dataset_release_verification(
         f"- Staged unique assemblies: {int(staged.get('staged_unique_assemblies') or 0):,}",
         f"- Live genus/species metadata files: {int(live.get('live_genus_metadata_ready') or 0):,} / {int(live.get('live_species_metadata_ready') or 0):,}",
         f"- Staged genus/species metadata files: {int(staged.get('staged_genus_metadata_ready') or 0):,} / {int(staged.get('staged_species_metadata_ready') or 0):,}",
+        "",
+        "## Canonical GenBank Root Reconciliation",
+        "",
+        f"- Required for replacement: {'yes' if payload.get('canonical_root_reconciliation_required') else 'no'}",
+        f"- Status: {(payload.get('canonical_root_reconciliation') or {}).get('status', 'not generated')}",
+        f"- Canonical denominator: {(payload.get('canonical_root_reconciliation') or {}).get('canonical_accession_namespace', 'GCA')} GenBank bacterial assemblies",
         "",
         "## Blockers",
         "",
@@ -21851,6 +21952,11 @@ def run_worker_loop() -> None:
                 last_heartbeat = now
             with get_sqlite_connection() as db:
                 reconcile_cancelled_running_jobs(worker_name, db)
+            if WORKER_MODE == "root-inventory":
+                if process_canonical_inventory_task(worker_name):
+                    continue
+                time.sleep(WORKER_POLL_INTERVAL)
+                continue
             if WORKER_MODE in {"all", "metadata", "global-insights"}:
                 schedule_due_dataset_pipeline_run()
                 advance_dataset_update_pipeline_runs()
@@ -22018,6 +22124,32 @@ def run_worker_loop() -> None:
                     continue
 
             time.sleep(WORKER_POLL_INTERVAL)
+
+
+def process_canonical_inventory_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_inventory_task, finish_inventory_task
+        task = claim_inventory_task(worker_name)
+    except Exception as exc:
+        logging.warning("Canonical inventory task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "build_canonical_root_inventory.py"),
+        "--snapshot-id", str(task["snapshot_id"]),
+        "--datasets-bin", os.environ.get("FETCHM_WEBAPP_DATASETS_BIN", "datasets"),
+    ]
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode == 0:
+        finish_inventory_task(int(task["id"]), "completed")
+    else:
+        error = (result.stderr or result.stdout or "Canonical inventory command failed.")[-4000:]
+        finish_inventory_task(int(task["id"]), "failed", error)
+        logging.error("Canonical inventory task %s failed: %s", task["snapshot_id"], error)
+    return True
 
 
 def collect_output_files(root: Path) -> list[str]:
@@ -24514,6 +24646,28 @@ def admin_run_dataset_pipeline() -> Any:
             metadata={"start_step": start_step},
         )
         flash(f"{dataset_pipeline_step_label(start_step)} queued: {run_id}. Sequentially enabled downstream steps will follow.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-inventory", methods=["POST"])
+def admin_run_canonical_inventory() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_inventory_task
+        snapshot_id, error = queue_inventory_task(str(user["username"]))
+    except Exception as exc:
+        flash(f"Canonical inventory could not be queued: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_canonical_inventory",
+            target_type="canonical_inventory",
+            target_id=snapshot_id,
+            metadata={"source_database": "genbank", "canonical_accession_namespace": "GCA", "taxon_id": 2},
+        )
+        flash(f"Canonical GenBank bacterial inventory queued: {snapshot_id}.", "success")
     return redirect(url_for("admin_dashboard"))
 
 

@@ -215,7 +215,28 @@
     </div>
     <div class="hint-block top-gap">
       <strong>Coverage principle</strong>
-      <p>Genus metadata is the comprehensive bacterial coverage layer. Species metadata is derived only for confident species assignments; ambiguous or provisional records remain available at genus level instead of being forced into incorrect species files.</p>
+      <p>The current live release uses genus-scoped metadata, with species files only for confident assignments. Future releases must reconcile those public views to the canonical GenBank bacterial root inventory before replacement.</p>
+    </div>
+    <div class="hint-block top-gap">
+      <strong>Canonical release denominator</strong>
+      <p>New global releases require a reconciled <strong>GenBank GCA bacterial inventory</strong>. Genus-first staging remains visible for audit but cannot replace live data without accounting for every canonical bacterial assembly.</p>
+      <div class="dataset-state-metrics top-gap">
+        <span>Root inventory: {{ dataset_pipeline.root_inventory.status }}</span>
+        {% if dataset_pipeline.root_inventory.available %}
+          <span>Snapshot: {{ dataset_pipeline.root_inventory.snapshot_id }}</span>
+          <span>{{ dataset_pipeline.root_inventory.root_unique_assemblies }} canonical GenBank GCA assemblies</span>
+        {% elif dataset_pipeline.root_inventory.configured %}
+          <span>No canonical snapshot generated yet.</span>
+        {% else %}
+          <span>Dataset production database is not configured yet.</span>
+        {% endif %}
+      </div>
+      <div class="pipeline-controls top-gap">
+        <form action="{{ url_for('admin_run_canonical_inventory') }}" method="post">
+          <button type="submit" {% if not dataset_pipeline.root_inventory.configured or dataset_pipeline.root_inventory.task_active %}disabled{% endif %}>Run canonical inventory</button>
+        </form>
+        {% if dataset_pipeline.root_inventory.error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.error }}</span>{% endif %}
+      </div>
     </div>
     <div class="admin-command-grid top-gap">
       <article class="dataset-state-card">
