@@ -619,11 +619,15 @@ def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) 
                     latest_snapshot_id, raw_fingerprint, raw_payload, updated_at
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (assembly_accession) DO UPDATE SET
-                    organism_name = EXCLUDED.organism_name, tax_id = EXCLUDED.tax_id,
-                    species_tax_id = EXCLUDED.species_tax_id, biosample_accession = EXCLUDED.biosample_accession,
-                    paired_refseq_accession = EXCLUDED.paired_refseq_accession,
-                    latest_snapshot_id = EXCLUDED.latest_snapshot_id, raw_fingerprint = EXCLUDED.raw_fingerprint,
-                    raw_payload = EXCLUDED.raw_payload, updated_at = EXCLUDED.updated_at
+                    organism_name = COALESCE(NULLIF(EXCLUDED.organism_name, ''), assembly_master.organism_name),
+                    tax_id = COALESCE(EXCLUDED.tax_id, assembly_master.tax_id),
+                    species_tax_id = COALESCE(EXCLUDED.species_tax_id, assembly_master.species_tax_id),
+                    biosample_accession = COALESCE(NULLIF(EXCLUDED.biosample_accession, ''), assembly_master.biosample_accession),
+                    paired_refseq_accession = COALESCE(NULLIF(EXCLUDED.paired_refseq_accession, ''), assembly_master.paired_refseq_accession),
+                    latest_snapshot_id = EXCLUDED.latest_snapshot_id,
+                    raw_fingerprint = CASE WHEN EXCLUDED.organism_name <> '' OR EXCLUDED.biosample_accession <> '' THEN EXCLUDED.raw_fingerprint ELSE assembly_master.raw_fingerprint END,
+                    raw_payload = CASE WHEN EXCLUDED.organism_name <> '' OR EXCLUDED.biosample_accession <> '' THEN EXCLUDED.raw_payload ELSE assembly_master.raw_payload END,
+                    updated_at = EXCLUDED.updated_at
                 """,
                 (accession, CANONICAL_ACCESSION_NAMESPACE, CANONICAL_SOURCE_DATABASE, record['organism_name'], record['tax_id'], record['species_tax_id'], record['biosample_accession'], record['paired_refseq_accession'], snapshot_id, snapshot_id, record['raw_fingerprint'], Jsonb(record['raw_payload']), now),
             )

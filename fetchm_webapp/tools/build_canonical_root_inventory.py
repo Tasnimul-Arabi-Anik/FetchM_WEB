@@ -36,6 +36,7 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
     params = {
         "filters.assembly_source": "GENBANK",
         "filters.assembly_version": "CURRENT",
+        "returned_content": "ASSM_ACC",
         "page_size": str(args.page_size),
     }
     if page_token:
@@ -74,7 +75,7 @@ def main() -> int:
     snapshot_id = args.snapshot_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ_genbank_bacteria_root")
     invocation = (
         f"GET {API_URL}?filters.assembly_source=GENBANK&filters.assembly_version=CURRENT"
-        f"&page_size={args.page_size}&page_token=<checkpoint>"
+        f"&returned_content=ASSM_ACC&page_size={args.page_size}&page_token=<checkpoint>"
     )
     start_inventory_snapshot(snapshot_id, invocation, "NCBI Datasets REST API v2")
     checkpoint = latest_inventory_page_checkpoint(snapshot_id)
