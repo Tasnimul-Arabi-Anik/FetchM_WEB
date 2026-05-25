@@ -14857,6 +14857,23 @@ def standardization_refresh_progress(
     }
 
 
+def standardization_work_available() -> bool:
+    """Check for actionable standardization work without obtaining a writer lock."""
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            """
+            SELECT EXISTS(
+                SELECT 1 FROM standardization_refresh_tasks
+                WHERE status IN ('pending', 'running', 'chunking', 'finalizing')
+            ) OR EXISTS(
+                SELECT 1 FROM standardization_refresh_chunks
+                WHERE status IN ('pending', 'running')
+            ) AS available
+            """
+        ).fetchone()
+    return bool(int(row["available"] or 0)) if row is not None else False
+
+
 def claim_next_standardization_refresh_task(worker_name: str) -> dict[str, Any] | None:
     now = utc_now()
     with get_sqlite_connection() as db:
@@ -17771,29 +17788,61 @@ def create_species(
             existing.updated_at = utc_now()
             return save_species(existing, connection)
         return existing
+    slug = species_slug(normalized)
+    slug_row = connection.execute("SELECT * FROM species WHERE slug = ?", (slug,)).fetchone()
+    if slug_row is not None:
+        existing = row_to_species(slug_row)
+        if existing.taxon_rank != normalized_rank:
+            raise ValueError(f"Taxon slug collision across ranks: {normalized} conflicts with {existing.species_name}.")
+        logging.info(
+            "Reusing taxon page %s for equivalent label %s (shared slug %s).",
+            existing.species_name,
+            normalized,
+            slug,
+        )
+        if staging_dataset_version_id and existing.staging_dataset_version_id != staging_dataset_version_id:
+            existing.staging_dataset_version_id = staging_dataset_version_id
+            existing.updated_at = utc_now()
+            return save_species(existing, connection)
+        return existing
     created_at = utc_now()
-    return save_species(
-        SpeciesRecord(
-            id=0,
-            species_name=normalized,
-            slug=species_slug(normalized),
-            taxon_rank=normalized_rank,
-            claim_token=0,
-            sync_attempt_count=0,
-            sync_first_claimed_at=None,
-            assembly_source=normalize_assembly_source(assembly_source),
-            status="pending" if queue_catalog else "missing",
-            created_at=created_at,
-            updated_at=created_at,
-            query_name=query_name or normalized,
-            taxon_id=taxon_id,
-            refresh_requested=queue_catalog,
-            metadata_status="missing",
-            is_live=False if staging_dataset_version_id else True,
-            staging_dataset_version_id=staging_dataset_version_id,
-        ),
-        connection,
+    candidate = SpeciesRecord(
+        id=0,
+        species_name=normalized,
+        slug=slug,
+        taxon_rank=normalized_rank,
+        claim_token=0,
+        sync_attempt_count=0,
+        sync_first_claimed_at=None,
+        assembly_source=normalize_assembly_source(assembly_source),
+        status="pending" if queue_catalog else "missing",
+        created_at=created_at,
+        updated_at=created_at,
+        query_name=query_name or normalized,
+        taxon_id=taxon_id,
+        refresh_requested=queue_catalog,
+        metadata_status="missing",
+        is_live=False if staging_dataset_version_id else True,
+        staging_dataset_version_id=staging_dataset_version_id,
     )
+    try:
+        return save_species(candidate, connection)
+    except sqlite3.IntegrityError as exc:
+        if "species.slug" not in str(exc):
+            raise
+        slug_row = connection.execute("SELECT * FROM species WHERE slug = ?", (slug,)).fetchone()
+        if slug_row is None:
+            raise
+        existing = row_to_species(slug_row)
+        if existing.taxon_rank != normalized_rank:
+            raise
+        logging.info(
+            "Resolved concurrent taxon alias %s to existing page %s (shared slug %s).",
+            normalized,
+            existing.species_name,
+            slug,
+        )
+        return existing
 
 
 def create_discovery_scope(
@@ -19614,6 +19663,30 @@ def process_derived_species_metadata_task(task: sqlite3.Row, worker_name: str) -
             if existing_label and existing_label in rows_by_candidate and existing_label not in candidates:
                 candidates[existing_label] = int(row["genome_count"] or len(rows_by_candidate[existing_label]))
 
+        # Different punctuation variants can map to the same public page slug. Merge them
+        # before writing so one source genus cannot attempt two records for one page.
+        with get_sqlite_connection() as db:
+            known_slug_labels = {
+                str(row["slug"]): normalize_species_name(str(row["species_name"] or ""))
+                for row in db.execute(
+                    "SELECT species_name, slug FROM species WHERE taxon_rank = 'species'"
+                ).fetchall()
+            }
+        collapsed_candidates: dict[str, int] = {}
+        selected_label_by_slug: dict[str, str] = {}
+        for candidate_name, genome_count in candidates.items():
+            slug = species_slug(candidate_name)
+            selected_label = known_slug_labels.get(slug) or selected_label_by_slug.setdefault(slug, candidate_name)
+            collapsed_candidates[selected_label] = collapsed_candidates.get(selected_label, 0) + genome_count
+            if selected_label != candidate_name and rows_by_candidate.get(candidate_name):
+                rows_by_candidate[selected_label].extend(rows_by_candidate[candidate_name])
+                logging.info(
+                    "Merged equivalent species label %s into %s (shared slug %s).",
+                    candidate_name,
+                    selected_label,
+                    slug,
+                )
+        candidates = collapsed_candidates
         ordered_candidates = sorted(candidates.items(), key=lambda item: (-item[1], item[0].lower()))
         candidate_count = len(ordered_candidates)
         if candidate_count == 0:
@@ -21896,7 +21969,7 @@ def run_worker_loop() -> None:
                         backfill_species_assembly_features(backfill_species)
                     continue
 
-            if WORKER_MODE in {"all", "standardization"}:
+            if WORKER_MODE in {"all", "standardization"} and standardization_work_available():
                 try:
                     standardization_chunk = claim_next_standardization_refresh_chunk(worker_name)
                 except sqlite3.OperationalError as exc:

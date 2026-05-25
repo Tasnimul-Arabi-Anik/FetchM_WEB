@@ -203,24 +203,28 @@ services:
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: sync
+      FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED: "0"
 
   fetchm-worker-9:
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: sync
+      FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED: "0"
 
   fetchm-worker-10:
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: sync
+      FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED: "0"
 
   fetchm-worker-11:
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: sync
+      FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED: "0"
 
   fetchm-worker-12:
     <<: *fetchm-worker-base
