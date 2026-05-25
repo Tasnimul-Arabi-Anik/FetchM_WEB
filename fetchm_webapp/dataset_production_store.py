@@ -64,6 +64,19 @@ CREATE TABLE IF NOT EXISTS canonical_metadata_seed_task (
     summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
+CREATE TABLE IF NOT EXISTS canonical_metadata_fetch_task (
+    id BIGSERIAL PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
 CREATE TABLE IF NOT EXISTS canonical_inventory_chunk (
     snapshot_id TEXT NOT NULL,
     chunk_key TEXT NOT NULL,
@@ -190,6 +203,8 @@ CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
 ON canonical_partition_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_canonical_metadata_seed_task_status
 ON canonical_metadata_seed_task (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_canonical_metadata_fetch_task_status
+ON canonical_metadata_fetch_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_assembly_standardization_status
 ON assembly_standardization (status, updated_at);
 """
@@ -313,6 +328,17 @@ def queue_partition_task(
         ).fetchone()
         if inventory is None or str(inventory[0]) != 'completed':
             return None, 'Canonical inventory snapshot is not completed.'
+        missing_standardized = int(connection.execute(
+            """
+            SELECT COUNT(*)
+            FROM bacterial_inventory_membership AS i
+            LEFT JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+            WHERE i.snapshot_id = %s AND s.assembly_accession IS NULL
+            """,
+            (snapshot_id,),
+        ).fetchone()[0] or 0)
+        if missing_standardized:
+            return None, f'Canonical metadata is incomplete: {missing_standardized:,} assemblies still require retrieval and standardization.'
         connection.execute(
             """
             INSERT INTO canonical_partition_task (snapshot_id, dataset_version_id, status, requested_by, requested_at)
@@ -441,6 +467,89 @@ def latest_metadata_seed_task() -> dict[str, Any] | None:
         'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'claimed_at': row[3],
         'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
     }
+
+def queue_metadata_fetch_task(
+    requested_by: str | None = None,
+    *,
+    snapshot_id: str | None = None,
+) -> tuple[str | None, str | None]:
+    bootstrap_schema()
+    if not snapshot_id:
+        latest = latest_completed_inventory_snapshot()
+        if latest is None:
+            return None, 'No completed canonical inventory snapshot is available.'
+        snapshot_id = str(latest['snapshot_id'])
+    coverage = standardized_metadata_coverage(snapshot_id)
+    if not coverage['missing_standardized_assemblies']:
+        return None, 'Canonical metadata coverage is already complete.'
+    with connect() as connection:
+        active = connection.execute(
+            "SELECT snapshot_id, status FROM canonical_metadata_fetch_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
+        ).fetchone()
+        if active is not None:
+            return None, f'Canonical missing-metadata fetch for {active[0]} is already {active[1]}.'
+        connection.execute(
+            "INSERT INTO canonical_metadata_fetch_task (snapshot_id, status, requested_by, requested_at) VALUES (%s, 'pending', %s, %s)",
+            (snapshot_id, requested_by, utc_now()),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+def claim_metadata_fetch_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, snapshot_id FROM canonical_metadata_fetch_task
+            WHERE status = 'pending' ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            "UPDATE canonical_metadata_fetch_task SET status = 'running', claimed_by = %s, claimed_at = %s WHERE id = %s",
+            (worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {'id': int(row[0]), 'snapshot_id': str(row[1])}
+
+def finish_metadata_fetch_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            'UPDATE canonical_metadata_fetch_task SET status = %s, completed_at = %s, error = %s, summary_json = %s WHERE id = %s',
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+def latest_metadata_fetch_task() -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            'SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error, summary_json FROM canonical_metadata_fetch_task ORDER BY requested_at DESC LIMIT 1'
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'claimed_at': row[3],
+        'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
+    }
+
+def missing_standardized_accession_batch(snapshot_id: str, *, limit: int = 100) -> list[str]:
+    bootstrap_schema()
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT i.assembly_accession
+            FROM bacterial_inventory_membership AS i
+            LEFT JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+            WHERE i.snapshot_id = %s AND s.assembly_accession IS NULL
+            ORDER BY i.assembly_accession
+            LIMIT %s
+            """,
+            (snapshot_id, min(100, max(1, int(limit)))),
+        ).fetchall()
+    return [str(row[0]) for row in rows]
 
 def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version: str | None) -> None:
     bootstrap_schema()
@@ -681,6 +790,7 @@ def seed_standardized_metadata_batch(
     rows: Iterable[dict[str, Any]],
     *,
     rule_fingerprint: str,
+    status: str = 'reused_existing',
 ) -> dict[str, int]:
     total = seeded = skipped = 0
     now = utc_now()
@@ -701,7 +811,7 @@ def seed_standardized_metadata_batch(
                         assembly_accession, input_fingerprint, rule_fingerprint,
                         standardized_payload, status, updated_at
                     )
-                    SELECT %s, %s, %s, %s, 'reused_existing', %s
+                    SELECT %s, %s, %s, %s, %s, %s
                     WHERE EXISTS (
                         SELECT 1 FROM bacterial_inventory_membership
                         WHERE snapshot_id = %s AND assembly_accession = %s
@@ -714,7 +824,7 @@ def seed_standardized_metadata_batch(
                         updated_at = EXCLUDED.updated_at
                     RETURNING assembly_accession
                     """,
-                    (accession, input_fingerprint, rule_fingerprint, Jsonb(payload), now, snapshot_id, accession),
+                    (accession, input_fingerprint, rule_fingerprint, Jsonb(payload), status, now, snapshot_id, accession),
                 ).fetchone()
                 if result is None:
                     skipped += 1
