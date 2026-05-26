@@ -40,6 +40,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(candidatus["genus_name"], "Liberibacter")
         genus_only = canonical_partition_from_organism_name("Morganella")
         self.assertEqual(genus_only["partition_type"], "genus_only")
+        uncultured_genus = canonical_partition_from_organism_name("uncultured Prevotella sp.")
+        self.assertEqual(uncultured_genus["partition_type"], "provisional_species")
+        self.assertEqual(uncultured_genus["genus_name"], "Prevotella")
+        self.assertEqual(uncultured_genus["assignment_reason"], "recoverable_uncultured_genus_label")
+        uncultured_family = canonical_partition_from_organism_name("uncultured Lachnospiraceae bacterium")
+        self.assertEqual(uncultured_family["partition_type"], "unresolved_genus")
 
     def test_taxonomy_label_classification_keeps_noncanonical_labels_honest(self) -> None:
         self.assertEqual(global_taxonomy_label_metadata("Escherichia coli")["key"], "canonical_species")

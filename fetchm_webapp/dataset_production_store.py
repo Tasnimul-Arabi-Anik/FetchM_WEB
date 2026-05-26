@@ -947,7 +947,21 @@ def canonical_partition_from_organism_name(value: Any) -> dict[str, str]:
             'assignment_confidence': 'none', 'assignment_reason': 'missing_organism_name',
         }
     parts = name.split()
+    lower_parts = [part.strip().rstrip('.,;:').casefold() for part in parts]
     offset = 1 if parts and parts[0].casefold() == 'candidatus' else 0
+    if (
+        len(parts) >= 3
+        and lower_parts[0] in {'uncultured', 'unclassified'}
+        and lower_parts[2] in {'sp', 'sp.', 'spp', 'spp.'}
+        and re.match(r'^[A-Z][A-Za-z0-9_-]*$', parts[1].strip().rstrip('.,;:'))
+    ):
+        return {
+            'genus_name': parts[1].strip().rstrip('.,;:'),
+            'species_label': name,
+            'partition_type': 'provisional_species',
+            'assignment_confidence': 'medium',
+            'assignment_reason': 'recoverable_uncultured_genus_label',
+        }
     if len(parts) <= offset:
         return {
             'genus_name': '', 'species_label': '', 'partition_type': 'unresolved_genus',
