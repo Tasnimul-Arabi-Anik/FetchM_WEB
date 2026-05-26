@@ -935,9 +935,27 @@ NON_CANONICAL_SPECIES_TOKENS = {
     'sp', 'sp.', 'spp', 'spp.', 'bacterium', 'archaeon', 'microorganism',
     'metagenome', 'uncultured', 'unclassified', 'endosymbiont', 'symbiont',
 }
+HIGH_RANK_PLACEHOLDER_TOKENS = {
+    # Common phylum/class labels that can appear in NCBI organism names as "<rank> bacterium".
+    # Keep these out of genus counts while preserving the assembly in unresolved accounting.
+    'acidobacteria', 'acidobacteriota', 'actinomycetes', 'actinomycetota', 'alphaproteobacteria',
+    'bacilli', 'bacillota', 'bacteroidetes', 'bacteroidota', 'chloroflexi', 'chloroflexota',
+    'clostridia', 'cyanobacteria', 'dehalococcoidia', 'deltaproteobacteria', 'firmicutes',
+    'gammaproteobacteria', 'patescibacteria', 'planctomycetes', 'planctomycetota',
+    'proteobacteria', 'pseudomonadota', 'verrucomicrobia', 'verrucomicrobiota',
+}
+HIGH_RANK_PLACEHOLDER_SUFFIXES = ('ota', 'ales', 'aceae')
 
 def normalize_taxon_label(value: Any) -> str:
     return re.sub(r'\s+', ' ', str(value or '').strip())
+
+def is_high_rank_placeholder_label(genus: str, epithet: str) -> bool:
+    cleaned_genus = genus.strip().rstrip('.,;:')
+    lower_genus = cleaned_genus.casefold()
+    lower_epithet = epithet.strip().rstrip('.,;:').casefold()
+    if lower_epithet not in {'bacterium', 'archaeon', 'microorganism'}:
+        return False
+    return lower_genus in HIGH_RANK_PLACEHOLDER_TOKENS or lower_genus.endswith(HIGH_RANK_PLACEHOLDER_SUFFIXES)
 
 def canonical_partition_from_organism_name(value: Any) -> dict[str, str]:
     name = normalize_taxon_label(value)
@@ -980,6 +998,11 @@ def canonical_partition_from_organism_name(value: Any) -> dict[str, str]:
         }
     lower = name.casefold()
     epithet = parts[offset + 1].strip().rstrip('.,;:')
+    if is_high_rank_placeholder_label(genus, epithet):
+        return {
+            'genus_name': '', 'species_label': name, 'partition_type': 'unresolved_genus',
+            'assignment_confidence': 'low', 'assignment_reason': 'higher_rank_placeholder_label',
+        }
     cleaned_epithet = epithet.casefold()
     provisional_marker = (
         offset == 1
