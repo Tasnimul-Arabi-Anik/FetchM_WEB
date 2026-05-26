@@ -24,7 +24,7 @@ from app import (
 )
 from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
-from dataset_production_store import canonical_partition_from_organism_name
+from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -53,6 +53,16 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         genus_like = canonical_partition_from_organism_name("Listeria bacterium")
         self.assertEqual(genus_like["partition_type"], "provisional_species")
         self.assertEqual(genus_like["genus_name"], "Listeria")
+
+    def test_canonical_taxonkit_lineage_keeps_higher_rank_labels_at_true_rank(self) -> None:
+        lineage = "1977087\tcellular organisms;Bacteria;Pseudomonadati;Pseudomonadota;Pseudomonadota bacterium\tspecies\n210\tcellular organisms;Bacteria;Campylobacterota;Helicobacter;Helicobacter pylori\tspecies\n"
+        reformatted = "1977087\tlineage\tspecies\t\tPseudomonadota\t\t\t\t\tPseudomonadota bacterium\n210\tlineage\tspecies\t\tCampylobacterota\tEpsilonproteobacteria\tCampylobacterales\tHelicobacteraceae\tHelicobacter\tHelicobacter pylori\n"
+        resolved = parse_taxonkit_taxonomy_lineages(lineage, reformatted)
+        self.assertEqual(resolved[1977087]["domain_name"], "Bacteria")
+        self.assertEqual(resolved[1977087]["phylum_name"], "Pseudomonadota")
+        self.assertEqual(resolved[1977087]["genus_name"], "")
+        self.assertEqual(resolved[210]["genus_name"], "Helicobacter")
+        self.assertEqual(resolved[210]["species_name"], "Helicobacter pylori")
 
     def test_taxonomy_label_classification_keeps_noncanonical_labels_honest(self) -> None:
         self.assertEqual(global_taxonomy_label_metadata("Escherichia coli")["key"], "canonical_species")

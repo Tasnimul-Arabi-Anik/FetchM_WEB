@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterable, Iterator
@@ -175,6 +176,45 @@ CREATE TABLE IF NOT EXISTS taxon_partition_membership (
     CHECK (partition_type IN ('named_species', 'provisional_species', 'genus_only', 'unresolved_genus', 'excluded'))
 );
 
+CREATE TABLE IF NOT EXISTS canonical_taxonomy_lineage_taxid (
+    tax_id BIGINT PRIMARY KEY,
+    reported_rank TEXT,
+    domain_name TEXT,
+    phylum_name TEXT,
+    class_name TEXT,
+    order_name TEXT,
+    family_name TEXT,
+    genus_name TEXT,
+    species_name TEXT,
+    lineage_text TEXT,
+    taxonomy_source TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS canonical_taxonomy_lineage_snapshot (
+    snapshot_id TEXT PRIMARY KEY REFERENCES bacterial_inventory_snapshot(snapshot_id) ON DELETE CASCADE,
+    generated_at TIMESTAMPTZ NOT NULL,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS assembly_taxonomy_lineage (
+    snapshot_id TEXT NOT NULL REFERENCES bacterial_inventory_snapshot(snapshot_id) ON DELETE CASCADE,
+    assembly_accession TEXT NOT NULL REFERENCES assembly_master(assembly_accession),
+    tax_id BIGINT,
+    reported_name TEXT,
+    reported_rank TEXT,
+    domain_name TEXT,
+    phylum_name TEXT,
+    class_name TEXT,
+    order_name TEXT,
+    family_name TEXT,
+    genus_name TEXT,
+    species_name TEXT,
+    taxonomy_source TEXT NOT NULL,
+    resolution_status TEXT NOT NULL,
+    PRIMARY KEY (snapshot_id, assembly_accession)
+);
+
 CREATE TABLE IF NOT EXISTS canonical_root_reconciliation (
     snapshot_id TEXT PRIMARY KEY REFERENCES bacterial_inventory_snapshot(snapshot_id),
     dataset_version_id TEXT NOT NULL,
@@ -199,6 +239,20 @@ CREATE INDEX IF NOT EXISTS idx_inventory_page_status
 ON canonical_inventory_page (snapshot_id, status, page_number);
 CREATE INDEX IF NOT EXISTS idx_partition_type
 ON taxon_partition_membership (snapshot_id, partition_type);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_domain
+ON assembly_taxonomy_lineage (snapshot_id, domain_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_phylum
+ON assembly_taxonomy_lineage (snapshot_id, phylum_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_class
+ON assembly_taxonomy_lineage (snapshot_id, class_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_order
+ON assembly_taxonomy_lineage (snapshot_id, order_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_family
+ON assembly_taxonomy_lineage (snapshot_id, family_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_genus
+ON assembly_taxonomy_lineage (snapshot_id, genus_name);
+CREATE INDEX IF NOT EXISTS idx_assembly_taxonomy_lineage_species
+ON assembly_taxonomy_lineage (snapshot_id, species_name);
 CREATE INDEX IF NOT EXISTS idx_canonical_partition_task_status
 ON canonical_partition_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_canonical_metadata_seed_task_status
@@ -1032,6 +1086,203 @@ def canonical_partition_from_organism_name(value: Any) -> dict[str, str]:
         'assignment_reason': 'provisional_or_noncanonical_species_label',
     }
 
+
+def parse_taxonkit_taxonomy_lineages(lineage_output: str, reformat_output: str) -> dict[int, dict[str, str]]:
+    ranks: dict[str, tuple[str, str]] = {}
+    for line in lineage_output.splitlines():
+        parts = line.split('\t')
+        if len(parts) >= 3 and parts[0].strip().isdigit():
+            ranks[parts[0].strip()] = (parts[1].strip(), parts[2].strip())
+    parsed: dict[int, dict[str, str]] = {}
+    for line in reformat_output.splitlines():
+        parts = line.split('\t')
+        if len(parts) < 3 or not parts[0].strip().isdigit():
+            continue
+        tax_id_text = parts[0].strip()
+        lineage_text, reported_rank = ranks.get(tax_id_text, ('', ''))
+        domain_name = 'Bacteria' if 'Bacteria' in lineage_text.split(';') else ''
+        parsed[int(tax_id_text)] = {
+            'reported_rank': reported_rank,
+            'domain_name': domain_name,
+            'phylum_name': parts[4].strip() if len(parts) > 4 else '',
+            'class_name': parts[5].strip() if len(parts) > 5 else '',
+            'order_name': parts[6].strip() if len(parts) > 6 else '',
+            'family_name': parts[7].strip() if len(parts) > 7 else '',
+            'genus_name': parts[8].strip() if len(parts) > 8 else '',
+            'species_name': parts[9].strip() if len(parts) > 9 else '',
+            'lineage_text': lineage_text,
+        }
+    return parsed
+
+
+def run_taxonkit_taxonomy_lineages(tax_ids: list[int]) -> dict[int, dict[str, str]]:
+    unique_ids = sorted({int(tax_id) for tax_id in tax_ids if tax_id is not None})
+    if not unique_ids:
+        return {}
+    input_text = '\n'.join(str(tax_id) for tax_id in unique_ids) + '\n'
+    lineage_result = subprocess.run(
+        ['taxonkit', 'lineage', '-r'], input=input_text, text=True,
+        capture_output=True, check=False, timeout=600,
+    )
+    if lineage_result.returncode != 0:
+        raise RuntimeError(f'TaxonKit lineage failed: {lineage_result.stderr[-1000:]}')
+    reformat_result = subprocess.run(
+        ['taxonkit', 'reformat', '-f', '{k}\t{p}\t{c}\t{o}\t{f}\t{g}\t{s}'],
+        input=lineage_result.stdout, text=True, capture_output=True, check=False, timeout=600,
+    )
+    if reformat_result.returncode != 0:
+        raise RuntimeError(f'TaxonKit reformat failed: {reformat_result.stderr[-1000:]}')
+    return parse_taxonkit_taxonomy_lineages(lineage_result.stdout, reformat_result.stdout)
+
+
+def materialize_taxonomy_lineage_from_inventory(snapshot_id: str) -> dict[str, Any]:
+    """Populate rank-aware canonical lineage in staging without altering public release views."""
+    bootstrap_schema()
+    with connect() as connection:
+        inventory = connection.execute(
+            'SELECT status, root_unique_assemblies FROM bacterial_inventory_snapshot WHERE snapshot_id = %s',
+            (snapshot_id,),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != 'completed':
+            raise RuntimeError('Canonical inventory snapshot is not completed.')
+        tax_ids = [int(row[0]) for row in connection.execute(
+            """
+            SELECT DISTINCT m.tax_id
+            FROM bacterial_inventory_membership i
+            JOIN assembly_master m ON m.assembly_accession = i.assembly_accession
+            WHERE i.snapshot_id = %s AND m.tax_id IS NOT NULL
+            ORDER BY m.tax_id
+            """,
+            (snapshot_id,),
+        ).fetchall()]
+    lineages = run_taxonkit_taxonomy_lineages(tax_ids)
+    now = utc_now()
+    with connect() as connection:
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                """
+                INSERT INTO canonical_taxonomy_lineage_taxid (
+                    tax_id, reported_rank, domain_name, phylum_name, class_name, order_name,
+                    family_name, genus_name, species_name, lineage_text, taxonomy_source, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'NCBI Taxonomy via TaxonKit', %s)
+                ON CONFLICT (tax_id) DO UPDATE SET
+                    reported_rank = EXCLUDED.reported_rank, domain_name = EXCLUDED.domain_name,
+                    phylum_name = EXCLUDED.phylum_name, class_name = EXCLUDED.class_name,
+                    order_name = EXCLUDED.order_name, family_name = EXCLUDED.family_name,
+                    genus_name = EXCLUDED.genus_name, species_name = EXCLUDED.species_name,
+                    lineage_text = EXCLUDED.lineage_text, taxonomy_source = EXCLUDED.taxonomy_source,
+                    updated_at = EXCLUDED.updated_at
+                """,
+                [(
+                    tax_id, row['reported_rank'], row['domain_name'], row['phylum_name'], row['class_name'],
+                    row['order_name'], row['family_name'], row['genus_name'], row['species_name'],
+                    row['lineage_text'], now,
+                ) for tax_id, row in lineages.items()],
+            )
+        connection.execute('DELETE FROM assembly_taxonomy_lineage WHERE snapshot_id = %s', (snapshot_id,))
+        connection.execute(
+            """
+            INSERT INTO assembly_taxonomy_lineage (
+                snapshot_id, assembly_accession, tax_id, reported_name, reported_rank,
+                domain_name, phylum_name, class_name, order_name, family_name, genus_name,
+                species_name, taxonomy_source, resolution_status
+            )
+            SELECT i.snapshot_id, i.assembly_accession, m.tax_id,
+                   COALESCE(NULLIF(m.organism_name, ''), NULLIF(s.standardized_payload->>'Organism Name', ''), ''),
+                   CASE
+                       WHEN l.tax_id IS NOT NULL THEN l.reported_rank
+                       WHEN p.partition_type IN ('named_species', 'provisional_species') THEN 'species_label'
+                       WHEN p.partition_type = 'genus_only' THEN 'genus_label'
+                       ELSE ''
+                   END,
+                   COALESCE(NULLIF(l.domain_name, ''), 'Bacteria'),
+                   COALESCE(l.phylum_name, ''), COALESCE(l.class_name, ''),
+                   COALESCE(l.order_name, ''), COALESCE(l.family_name, ''),
+                   CASE
+                       WHEN l.tax_id IS NOT NULL THEN COALESCE(l.genus_name, '')
+                       ELSE COALESCE(p.genus_name, '')
+                   END,
+                   CASE
+                       WHEN l.tax_id IS NOT NULL THEN COALESCE(l.species_name, '')
+                       WHEN p.partition_type IN ('named_species', 'provisional_species') THEN COALESCE(p.species_label, '')
+                       ELSE ''
+                   END,
+                   CASE WHEN l.tax_id IS NOT NULL THEN 'NCBI Taxonomy via TaxonKit' ELSE 'organism label fallback' END,
+                   CASE
+                       WHEN l.tax_id IS NOT NULL AND NULLIF(l.genus_name, '') IS NOT NULL THEN 'ncbi_genus_or_species_lineage'
+                       WHEN l.tax_id IS NOT NULL THEN 'ncbi_higher_rank_lineage'
+                       WHEN NULLIF(p.genus_name, '') IS NOT NULL THEN 'label_derived_genus_or_species'
+                       ELSE 'unresolved_below_domain'
+                   END
+            FROM bacterial_inventory_membership i
+            JOIN assembly_master m ON m.assembly_accession = i.assembly_accession
+            LEFT JOIN assembly_standardization s ON s.assembly_accession = i.assembly_accession
+            LEFT JOIN taxon_partition_membership p
+              ON p.snapshot_id = i.snapshot_id AND p.assembly_accession = i.assembly_accession
+            LEFT JOIN canonical_taxonomy_lineage_taxid l ON l.tax_id = m.tax_id
+            WHERE i.snapshot_id = %s
+            """,
+            (snapshot_id,),
+        )
+        counts = connection.execute(
+            """
+            SELECT COUNT(*), COUNT(tax_id),
+                   COUNT(*) FILTER (WHERE phylum_name <> ''),
+                   COUNT(*) FILTER (WHERE class_name <> ''),
+                   COUNT(*) FILTER (WHERE order_name <> ''),
+                   COUNT(*) FILTER (WHERE family_name <> ''),
+                   COUNT(*) FILTER (WHERE genus_name <> ''),
+                   COUNT(*) FILTER (WHERE species_name <> '')
+            FROM assembly_taxonomy_lineage WHERE snapshot_id = %s
+            """,
+            (snapshot_id,),
+        ).fetchone()
+        distinct_counts = connection.execute(
+            """
+            SELECT COUNT(DISTINCT phylum_name) FILTER (WHERE phylum_name <> ''),
+                   COUNT(DISTINCT class_name) FILTER (WHERE class_name <> ''),
+                   COUNT(DISTINCT order_name) FILTER (WHERE order_name <> ''),
+                   COUNT(DISTINCT family_name) FILTER (WHERE family_name <> ''),
+                   COUNT(DISTINCT genus_name) FILTER (WHERE genus_name <> ''),
+                   COUNT(DISTINCT species_name) FILTER (WHERE species_name <> '')
+            FROM assembly_taxonomy_lineage WHERE snapshot_id = %s
+            """,
+            (snapshot_id,),
+        ).fetchone()
+        status_counts = dict(connection.execute(
+            'SELECT resolution_status, COUNT(*) FROM assembly_taxonomy_lineage WHERE snapshot_id = %s GROUP BY resolution_status',
+            (snapshot_id,),
+        ).fetchall())
+        summary = {
+        'snapshot_id': snapshot_id,
+        'root_assemblies': int(counts[0] or 0),
+        'assemblies_with_ncbi_taxid': int(counts[1] or 0),
+        'taxids_requested': len(tax_ids),
+        'taxids_resolved': len(lineages),
+        'assembly_rank_coverage': {
+            'phylum': int(counts[2] or 0), 'class': int(counts[3] or 0), 'order': int(counts[4] or 0),
+            'family': int(counts[5] or 0), 'genus': int(counts[6] or 0), 'species': int(counts[7] or 0),
+        },
+        'distinct_rank_labels': {
+            'phylum': int(distinct_counts[0] or 0), 'class': int(distinct_counts[1] or 0),
+            'order': int(distinct_counts[2] or 0), 'family': int(distinct_counts[3] or 0),
+            'genus': int(distinct_counts[4] or 0), 'species': int(distinct_counts[5] or 0),
+        },
+        'resolution_status_counts': {str(key): int(value) for key, value in status_counts.items()},
+        'public_release_replaced': False,
+        }
+        connection.execute(
+            """
+            INSERT INTO canonical_taxonomy_lineage_snapshot (snapshot_id, generated_at, summary_json)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (snapshot_id) DO UPDATE SET
+                generated_at = EXCLUDED.generated_at, summary_json = EXCLUDED.summary_json
+            """,
+            (snapshot_id, now, Jsonb(summary)),
+        )
+        connection.commit()
+    return summary
+
 def materialize_partitions_from_inventory(
     snapshot_id: str,
     dataset_version_id: str,
@@ -1101,6 +1352,7 @@ def materialize_partitions_from_inventory(
             connection.commit()
             processed += len(rows)
             last_accession = str(rows[-1][0])
+    lineage_summary = materialize_taxonomy_lineage_from_inventory(snapshot_id)
     summary = reconcile_root_partitions(
         snapshot_id,
         dataset_version_id,
@@ -1109,6 +1361,7 @@ def materialize_partitions_from_inventory(
     summary.update({
         'processed_assemblies': processed,
         'partition_counts': counts,
+        'lineage_summary': lineage_summary,
         'release_views_materialized': bool(release_views_materialized),
     })
     return summary

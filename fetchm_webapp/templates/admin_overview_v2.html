@@ -246,6 +246,10 @@
           <span>Accounted: {{ dataset_pipeline.root_inventory.latest_reconciliation.accounted_unique_assemblies }} / {{ dataset_pipeline.root_inventory.latest_reconciliation.root_unique_assemblies }}</span>
           <span>Release views: {{ 'materialized' if dataset_pipeline.root_inventory.latest_reconciliation.release_views_materialized else 'preview only' }}</span>
         {% endif %}
+        {% if dataset_pipeline.root_inventory.taxonomy_lineage_summary %}
+          <span>Lineage staged: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.root_assemblies }} assemblies</span>
+          <span>Resolved rank labels: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.phylum }} phyla, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.class }} classes, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.order }} orders, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.family }} families, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.genus }} genera</span>
+        {% endif %}
       </div>
       <div class="pipeline-controls top-gap">
         <form action="{{ url_for('admin_run_canonical_inventory') }}" method="post">

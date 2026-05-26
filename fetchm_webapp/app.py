@@ -61,7 +61,7 @@ from global_insights import (
     run_standardization_simulator,
 )
 
-APP_VERSION = "2026.05-canonical-root-v0.15"
+APP_VERSION = "2026.05-canonical-root-v0.16"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
 BASE_DIR = Path(__file__).resolve().parent
 PLOTLY_PACKAGE_DATA_DIR = Path(pio.__file__).resolve().parents[1] / "package_data"
@@ -7714,6 +7714,7 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "metadata_fetch_summary": None,
         "standardized_metadata_coverage": None,
         "latest_reconciliation": None,
+        "taxonomy_lineage_summary": None,
     }
     if not configured:
         return status
@@ -7761,6 +7762,14 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                 """
                 SELECT summary_json
                 FROM canonical_root_reconciliation
+                ORDER BY generated_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+            lineage_row = connection.execute(
+                """
+                SELECT summary_json
+                FROM canonical_taxonomy_lineage_snapshot
                 ORDER BY generated_at DESC
                 LIMIT 1
                 """
@@ -7821,6 +7830,8 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["metadata_fetch_summary"] = dict(metadata_fetch_task[6] or {})
     if reconciliation_row is not None:
         status["latest_reconciliation"] = dict(reconciliation_row[0] or {})
+    if lineage_row is not None:
+        status["taxonomy_lineage_summary"] = dict(lineage_row[0] or {})
     if row is None:
         return status
     status.update({
