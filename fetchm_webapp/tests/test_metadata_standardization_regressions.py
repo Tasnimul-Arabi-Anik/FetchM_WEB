@@ -1616,6 +1616,34 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(simulator["rescued_count"], 1)
             self.assertEqual(simulator["examples"][0]["assembly_accession"], "GCA_000001.1")
 
+    def test_global_insights_canonical_root_scans_each_assembly_once_and_derives_taxa(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            canonical_csv = root / "canonical_root.csv"
+            canonical_csv.write_text(
+                "Assembly Accession,Organism Name,Taxonomy Genus,Taxonomy Species,Country,Host_SD,Isolation_Source_SD,Collection Date,Assembly BioProject Accession\n"
+                "GCA_000001.1,Prevotella copri strain A,Prevotella,Prevotella copri,India,Human,feces/stool,2020,PRJNA1\n"
+                "GCA_000002.1,Prevotella sp. isolate B,Prevotella,Prevotella sp.,India,Human,feces/stool,2021,PRJNA2\n",
+                encoding="utf-8",
+            )
+            summary = generate_global_insights_snapshot(
+                [{"id": 0, "species_name": "Bacteria", "taxon_rank": "canonical_root", "genome_count": 2, "metadata_clean_path": str(canonical_csv)}],
+                root / "global_insights",
+                app_version="test",
+                app_commit="unit",
+                snapshot_id="canonical_unit",
+                canonical_root_source=True,
+                source_snapshot_id="root_snapshot",
+            )
+            self.assertEqual(summary["overview"]["unique_assemblies"], 2)
+            self.assertEqual(summary["overview"]["duplicate_rows_skipped"], 0)
+            self.assertEqual(summary["methods"]["source_snapshot_id"], "root_snapshot")
+            self.assertTrue(summary["methods"]["canonical_root_source"])
+            self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["label"], "Prevotella")
+            quality_by_taxon = {row["taxon"]: row for row in summary["metadata_quality"]}
+            self.assertEqual(quality_by_taxon["Prevotella"]["assemblies"], 2)
+            self.assertEqual(quality_by_taxon["Prevotella copri"]["assemblies"], 1)
+
     def test_global_insights_page_and_summary_download_are_public(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

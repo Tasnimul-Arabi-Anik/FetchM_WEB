@@ -18,6 +18,7 @@
       <div class="job-meta">{{ analysis.row_total }} genomes · {{ analysis.column_total }} metadata columns</div>
       {% if is_canonical %}
         <div class="job-meta">Snapshot: {{ metadata_target.snapshot_id }} · {{ metadata_target.release_state }}</div>
+        <a class="button-like ghost" href="{{ metadata_target.sequence_url }}">{% if g.current_user %}Go to Sequence Download Page{% else %}Sign in for Sequence Download{% endif %}</a>
         <a class="button-like ghost" href="{{ metadata_target.download_url }}">Download metadata CSV</a>
       {% else %}
         <div class="job-meta">Last built: {{ (species.metadata_last_built_at or "unknown")[:10] if species.metadata_last_built_at else "unknown" }}</div>

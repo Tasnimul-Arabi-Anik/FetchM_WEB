@@ -8475,36 +8475,64 @@ def claim_next_global_insight_task(worker_name: str) -> sqlite3.Row | None:
         return task
 
 
+def canonical_global_insights_taxa() -> tuple[list[dict[str, Any]] | None, dict[str, Any] | None]:
+    """Return a single non-redundant canonical root metadata source when activated."""
+    snapshot = latest_canonical_snapshot()
+    if not snapshot or snapshot.get("release_state") != "active":
+        return None, None
+    snapshot_id = str(snapshot["snapshot_id"])
+    rule_fingerprint = str(snapshot.get("rule_fingerprint") or "unknown")
+    cache_key = canonical_report_cache_key(snapshot_id, rule_fingerprint, "domain", "Bacteria", True)
+    output_dir = canonical_report_output_dir(cache_key)
+    metadata_csv = canonical_report_paths(output_dir)["metadata_csv"]
+    if not metadata_csv.exists():
+        row_count = write_canonical_metadata_csv(snapshot_id, "domain", "Bacteria", metadata_csv)
+    else:
+        row_count = canonical_taxon_count(snapshot_id, "domain", "Bacteria")
+    return ([{
+        "id": 0,
+        "species_name": "Bacteria",
+        "taxon_rank": "canonical_root",
+        "genome_count": row_count,
+        "metadata_clean_path": str(metadata_csv),
+        "last_synced_at": str(snapshot.get("completed_at") or snapshot.get("generated_at") or ""),
+    }], snapshot)
+
+
 def process_global_insight_task(task: sqlite3.Row) -> None:
     task_id = int(task["id"])
     snapshot_id = str(task["snapshot_id"])
     is_demo = bool(task["is_demo"])
     try:
-        with get_sqlite_connection() as db:
-            rows = db.execute(
-                """
-                SELECT id, species_name, taxon_rank,
-                       live_genome_count AS genome_count,
-                       live_metadata_clean_path AS metadata_clean_path,
-                       live_last_synced_at AS last_synced_at
-                FROM species
-                WHERE is_live = 1
-                  AND live_metadata_status = 'ready'
-                  AND live_metadata_clean_path IS NOT NULL
-                """
-            ).fetchall()
-        taxa = [
-            {
-                "id": int(row["id"]),
-                "species_name": str(row["species_name"]),
-                "taxon_rank": str(row["taxon_rank"]),
-                "genome_count": row["genome_count"],
-                "metadata_clean_path": str(row["metadata_clean_path"] or ""),
-                "last_synced_at": str(row["last_synced_at"] or ""),
-            }
-            for row in rows
-            if row["metadata_clean_path"]
-        ]
+        canonical_taxa, canonical_snapshot = canonical_global_insights_taxa() if not is_demo else (None, None)
+        if canonical_taxa is not None:
+            taxa = canonical_taxa
+        else:
+            with get_sqlite_connection() as db:
+                rows = db.execute(
+                    """
+                    SELECT id, species_name, taxon_rank,
+                           live_genome_count AS genome_count,
+                           live_metadata_clean_path AS metadata_clean_path,
+                           live_last_synced_at AS last_synced_at
+                    FROM species
+                    WHERE is_live = 1
+                      AND live_metadata_status = 'ready'
+                      AND live_metadata_clean_path IS NOT NULL
+                    """
+                ).fetchall()
+            taxa = [
+                {
+                    "id": int(row["id"]),
+                    "species_name": str(row["species_name"]),
+                    "taxon_rank": str(row["taxon_rank"]),
+                    "genome_count": row["genome_count"],
+                    "metadata_clean_path": str(row["metadata_clean_path"] or ""),
+                    "last_synced_at": str(row["last_synced_at"] or ""),
+                }
+                for row in rows
+                if row["metadata_clean_path"]
+            ]
         if is_demo:
             summary = generate_demo_snapshot(
                 global_insights_root(),
@@ -8519,6 +8547,8 @@ def process_global_insight_task(task: sqlite3.Row) -> None:
                 app_version=APP_VERSION,
                 app_commit=APP_COMMIT,
                 snapshot_id=snapshot_id,
+                canonical_root_source=canonical_snapshot is not None,
+                source_snapshot_id=str(canonical_snapshot["snapshot_id"]) if canonical_snapshot else None,
             )
         output_dir = str(global_insights_root() / "snapshots" / snapshot_id)
         with get_sqlite_connection() as db:
@@ -11754,12 +11784,17 @@ def process_dataset_pipeline_step(step: sqlite3.Row) -> None:
             staging_root = global_insights_root()
             snapshot_id = f"{version_id}_global_insights"
             db.commit()
+            canonical_taxa, canonical_snapshot = canonical_global_insights_taxa()
+            if canonical_taxa is not None:
+                taxa = canonical_taxa
             summary = generate_global_insights_snapshot(
                 taxa,
                 staging_root,
                 app_version=APP_VERSION,
                 app_commit=APP_COMMIT,
                 snapshot_id=snapshot_id,
+                canonical_root_source=canonical_snapshot is not None,
+                source_snapshot_id=str(canonical_snapshot["snapshot_id"]) if canonical_snapshot else None,
             )
             with get_sqlite_connection() as update_db:
                 merge_dataset_version_summary(update_db, version_id, {"global_insights": summary})
@@ -18125,7 +18160,7 @@ def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, An
                         "assembly_source": "genbank",
                         "source": "canonical",
                         "metadata_url": canonical_taxon_url(rank, name),
-                        "sequence_url": "",
+                        "sequence_url": url_for("canonical_taxon_sequences", rank=rank, name=name),
                         "snapshot_id": snapshot["snapshot_id"],
                         "release_state": snapshot["release_state"],
                         "taxon_label_class": label_meta["key"],
@@ -26579,7 +26614,7 @@ def render_canonical_metadata_section(rank: str, name: str, section: str) -> str
         release_state=snapshot["release_state"],
         metadata_url=canonical_taxon_url(rank, name),
         download_url=url_for("download_canonical_metadata", rank=rank, name=name),
-        sequence_url="",
+        sequence_url=url_for("canonical_taxon_sequences", rank=rank, name=name),
     )
     record_audit_event(
         "metadata.view",
@@ -26733,6 +26768,202 @@ def download_taxon_metadata_bundle(species_id: int):
             "Content-Disposition": f"attachment; filename={species.slug}_metadata_bundle.zip",
         },
     )
+
+
+def canonical_workflow_species(rank: str, name: str) -> tuple[SpeciesRecord | None, Any | None]:
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    snapshot = latest_canonical_snapshot()
+    if not snapshot or snapshot.get("release_state") != "active" or rank not in CANONICAL_METADATA_RANKS or not name:
+        return None, None
+    row_count = canonical_taxon_count(snapshot["snapshot_id"], rank, name)
+    if row_count <= 0:
+        return None, None
+    cache_key = canonical_report_cache_key(snapshot["snapshot_id"], str(snapshot.get("rule_fingerprint") or "unknown"), rank, name, True)
+    task = canonical_report_task_row(cache_key)
+    if task is None:
+        queue_canonical_metadata_report(snapshot, rank, name, row_count)
+        return None, None
+    output_dir = Path(str(task["output_dir"] or canonical_report_output_dir(cache_key)))
+    csv_path = canonical_report_paths(output_dir)["metadata_csv"]
+    if str(task["status"]) != "completed" or not csv_path.exists():
+        return None, None
+    species = canonical_target_species_record(task, metadata_clean_path=str(csv_path))
+    species.genome_count = row_count
+    target = SimpleNamespace(
+        name=name,
+        rank=rank,
+        rank_label=CANONICAL_METADATA_RANKS[rank]["label"],
+        snapshot_id=str(snapshot["snapshot_id"]),
+        release_state="active",
+    )
+    return species, target
+
+
+def canonical_workflow_not_ready(rank: str, name: str) -> Any:
+    flash("Generate the canonical metadata report before launching sequence download or quality checks.", "error")
+    return redirect(url_for("canonical_metadata_analysis", rank=rank, name=name))
+
+
+@app.route("/metadata-analysis/<rank>/<name>/sequences")
+def canonical_taxon_sequences(rank: str, name: str) -> str:
+    assert g.current_user is not None
+    species, target = canonical_workflow_species(rank, name)
+    if species is None or target is None:
+        return canonical_workflow_not_ready(rank, name)
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.args)
+    return render_template(
+        "taxon_sequences.html",
+        species=species,
+        metadata_target=target,
+        canonical_target=True,
+        sequence_dashboard=sequence_dashboard,
+        preview_columns=sequence_dashboard["preview_columns"],
+        preview_rows=sequence_dashboard["preview_rows"],
+    )
+
+
+@app.route("/metadata-analysis/<rank>/<name>/quality-check")
+def canonical_taxon_quality_check(rank: str, name: str) -> str:
+    assert g.current_user is not None
+    species, target = canonical_workflow_species(rank, name)
+    if species is None or target is None:
+        return canonical_workflow_not_ready(rank, name)
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.args)
+    return render_template(
+        "taxon_quality_check.html",
+        species=species,
+        metadata_target=target,
+        canonical_target=True,
+        sequence_dashboard=sequence_dashboard,
+        preview_columns=sequence_dashboard["preview_columns"],
+        preview_rows=sequence_dashboard["preview_rows"],
+        quality_modules=list_quality_modules(),
+        quality_profiles=QUALITY_PROFILES,
+        quality_tool_status=quality_tool_status(),
+        external_module_keys=external_module_keys(),
+        filter_query_string=request.query_string.decode("utf-8"),
+    )
+
+
+@app.route("/metadata-analysis/<rank>/<name>/sequences/metadata.csv", methods=["POST"])
+def download_canonical_sequence_metadata_subset(rank: str, name: str) -> Any:
+    assert g.current_user is not None
+    species, _target = canonical_workflow_species(rank, name)
+    if species is None:
+        return canonical_workflow_not_ready(rank, name)
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
+    filtered_frame = sequence_dashboard["filtered_frame"]
+    if filtered_frame.empty:
+        flash("The current filters do not match any genomes.", "error")
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    record_audit_event(
+        "download.sequence_metadata_subset",
+        target_type="canonical_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={"rows": int(len(filtered_frame)), "snapshot_id": latest_canonical_snapshot()["snapshot_id"]},
+    )
+    return app.response_class(
+        filtered_frame.to_csv(index=False),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={species.slug}_sequence_subset.csv"},
+    )
+
+
+@app.route("/metadata-analysis/<rank>/<name>/sequences/jobs", methods=["POST"])
+def create_canonical_sequence_job(rank: str, name: str) -> Any:
+    user = g.current_user
+    assert user is not None
+    species, target = canonical_workflow_species(rank, name)
+    if species is None or target is None:
+        return canonical_workflow_not_ready(rank, name)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
+    filtered_frame = sequence_dashboard["filtered_frame"]
+    if filtered_frame.empty:
+        flash("The current filters do not match any genomes.", "error")
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    grouping_mode = normalize_metadata_value(request.form.get("grouping_mode")) or "single"
+    if grouping_mode not in {"single", "field"}:
+        grouping_mode = "single"
+    grouping_field = normalize_sequence_group_field(request.form.get("group_field"))
+    job_id = uuid.uuid4().hex[:12]
+    root = job_dir(job_id)
+    uploads_dir = root / UPLOADS_DIR_NAME
+    outputs_dir = root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    input_name = f"{species.species_name} canonical filtered metadata.csv"
+    input_path = uploads_dir / f"{species.slug}_sequence_subset.csv"
+    filtered_frame.to_csv(input_path, index=False)
+    class SequenceFormAdapter:
+        def __init__(self, source: Any): self.source = source
+        def get(self, key: str, default: Any = None) -> Any: return self.source.get(key, default)
+        def getlist(self, key: str) -> list[Any]: return self.source.getlist(key) if hasattr(self.source, "getlist") else ([self.source.get(key)] if self.source.get(key) is not None else [])
+    command, command_filters = build_command("seq", input_path, outputs_dir, SequenceFormAdapter(request.form))
+    filters = {
+        "input_source": "canonical_taxon_sequences", "taxon_id": None, "taxon_name": species.species_name,
+        "taxon_rank": species.taxon_rank, "canonical_snapshot_id": target.snapshot_id,
+        "matched_row_total": sequence_dashboard["matched_row_total"], "match_percent": sequence_dashboard["match_percent"],
+        "filter_logic": sequence_dashboard["filter_logic"], "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
+        "selected_filters": sequence_dashboard["filters"], "grouping_mode": grouping_mode, "group_field": grouping_field,
+    }
+    filters.update(command_filters)
+    record = JobRecord(id=job_id, mode="seq", status="queued", created_at=utc_now(), updated_at=utc_now(), input_name=input_name, input_path=str(input_path), output_dir=str(outputs_dir), log_path=str(root / LOG_FILE_NAME), command=command, owner_user_id=int(user["id"]), owner_username=str(user["username"]), filters=filters)
+    save_job(record)
+    record_audit_event("job.created", target_type="job", target_id=job_id, metadata={"mode": "seq", "input_source": "canonical_taxon_sequences", "canonical_snapshot_id": target.snapshot_id, "matched_row_total": sequence_dashboard["matched_row_total"]})
+    notify_job_event(record, "submitted")
+    flash(f"Sequence job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
+    return redirect(url_for("job_detail", job_id=job_id))
+
+
+@app.route("/metadata-analysis/<rank>/<name>/quality-check/jobs", methods=["POST"])
+def create_canonical_sequence_quality_job(rank: str, name: str) -> Any:
+    user = g.current_user
+    assert user is not None
+    species, target = canonical_workflow_species(rank, name)
+    if species is None or target is None:
+        return canonical_workflow_not_ready(rank, name)
+    if count_active_jobs_for_user(int(user["id"])) >= 1:
+        flash("You already have an active job. Wait for it to finish before submitting another.", "error")
+        return redirect(url_for("canonical_taxon_quality_check", rank=rank, name=name, **request.form))
+    sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
+    filtered_frame = sequence_dashboard["filtered_frame"]
+    if filtered_frame.empty:
+        flash("The current filters do not match any genomes.", "error")
+        return redirect(url_for("canonical_taxon_quality_check", rank=rank, name=name, **request.form))
+    quality_config = build_quality_config(request.form)
+    if (quality_config.get("profile") or {}).get("key") not in {"quick", "standard"}:
+        flash("Choose Quick QC or Standard QC before submitting the first quality-check stage.", "error")
+        return redirect(url_for("canonical_taxon_quality_check", rank=rank, name=name, **request.form))
+    resource_blockers = quality_submission_blockers()
+    if resource_blockers:
+        for blocker in resource_blockers: flash(blocker, "error")
+        return redirect(url_for("canonical_taxon_quality_check", rank=rank, name=name, **request.form))
+    runtime_errors = validate_quality_runtime(quality_config, quality_tool_status())
+    if runtime_errors:
+        for error in runtime_errors: flash(error, "error")
+        return redirect(url_for("canonical_taxon_quality_check", rank=rank, name=name, **request.form))
+    job_id = uuid.uuid4().hex[:12]
+    root = job_dir(job_id)
+    uploads_dir, outputs_dir = root / UPLOADS_DIR_NAME, root / OUTPUTS_DIR_NAME
+    uploads_dir.mkdir(parents=True, exist_ok=True); outputs_dir.mkdir(parents=True, exist_ok=True)
+    input_name = f"{species.species_name} canonical quality-check metadata.csv"
+    input_path = uploads_dir / f"{species.slug}_quality_subset.csv"
+    filtered_frame.to_csv(input_path, index=False)
+    thresholds = quality_config["thresholds"]
+    command = build_quality_display_command(input_path, outputs_dir, quality_config)
+    retries = (request.form.get("retries") or "3").strip(); retry_delay = (request.form.get("retry_delay") or "5").strip()
+    command.extend(["--retries", retries, "--retry-delay", retry_delay])
+    filters = {"input_source": "canonical_taxon_quality_check", "taxon_id": None, "taxon_name": species.species_name, "taxon_rank": species.taxon_rank, "canonical_snapshot_id": target.snapshot_id, "matched_row_total": sequence_dashboard["matched_row_total"], "match_percent": sequence_dashboard["match_percent"], "filter_logic": sequence_dashboard["filter_logic"], "sequence_filter_sentence": sequence_dashboard["filter_sentence"], "selected_filters": sequence_dashboard["filters"], "quality_config": quality_config, "quality_thresholds": thresholds, "retries": retries, "retry_delay": retry_delay}
+    record = JobRecord(id=job_id, mode="qc", status="queued", created_at=utc_now(), updated_at=utc_now(), input_name=input_name, input_path=str(input_path), output_dir=str(outputs_dir), log_path=str(root / LOG_FILE_NAME), command=command, owner_user_id=int(user["id"]), owner_username=str(user["username"]), filters=filters)
+    save_job(record)
+    record_audit_event("job.created", target_type="job", target_id=job_id, metadata={"mode": "qc", "input_source": "canonical_taxon_quality_check", "canonical_snapshot_id": target.snapshot_id, "matched_row_total": sequence_dashboard["matched_row_total"], "quality_profile": quality_config.get("profile", {}).get("label"), "selected_modules": quality_config.get("selected_modules"), "quality_thresholds": thresholds})
+    notify_job_event(record, "submitted")
+    flash(f"Quality-check job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
+    return redirect(url_for("job_detail", job_id=job_id))
 
 
 @app.route("/taxa/<int:species_id>/sequences")

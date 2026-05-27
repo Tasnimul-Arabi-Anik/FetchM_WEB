@@ -147,6 +147,9 @@
   }
 </style>
 
+{% set is_canonical = canonical_target|default(false) %}
+{% set sequence_page_url = url_for('canonical_taxon_sequences', rank=metadata_target.rank, name=metadata_target.name) if is_canonical else url_for('taxon_sequences', species_id=species.id) %}
+{% set quality_job_url = url_for('create_canonical_sequence_quality_job', rank=metadata_target.rank, name=metadata_target.name) if is_canonical else url_for('create_taxon_sequence_quality_job', species_id=species.id) %}
 <main class="layout quality-page">
   <section class="panel quality-hero">
     <p class="eyebrow">Quality Check</p>
@@ -155,7 +158,7 @@
         {% set taxon_label = taxonomy_label_metadata(species.species_name, species.taxon_rank) %}
         <h1>{{ species.species_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
       </div>
-      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
+      <a class="button-like ghost" href="{{ sequence_page_url }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Back to sequence filters</a>
     </div>
   </section>
 
@@ -198,7 +201,7 @@
       </div>
     </div>
 
-    <form class="job-form" method="post" action="{{ url_for('create_taxon_sequence_quality_job', species_id=species.id) }}">
+    <form class="job-form" method="post" action="{{ quality_job_url }}">
       {% for name, value in sequence_dashboard.filter_hidden_inputs %}
         <input type="hidden" name="{{ name }}" value="{{ value }}">
       {% endfor %}
@@ -356,7 +359,7 @@
 
       <div class="quality-actions top-gap">
         <button type="submit" {% if not sequence_dashboard.matched_row_total %}disabled{% endif %}>Start quality check</button>
-        <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Adjust filters</a>
+        <a class="button-like ghost" href="{{ sequence_page_url }}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}">Adjust filters</a>
       </div>
     </form>
   </section>

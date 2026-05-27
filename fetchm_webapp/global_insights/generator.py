@@ -1471,6 +1471,8 @@ def generate_global_insights_snapshot(
     app_commit: str,
     snapshot_id: str | None = None,
     demo: bool = False,
+    canonical_root_source: bool = False,
+    source_snapshot_id: str | None = None,
 ) -> dict[str, Any]:
     if demo:
         return generate_demo_snapshot(output_root, app_version=app_version, app_commit=app_commit, snapshot_id=snapshot_id)
@@ -1565,7 +1567,7 @@ def generate_global_insights_snapshot(
             if taxon.last_synced_at and taxon.last_synced_at > latest_taxon_synced_at:
                 latest_taxon_synced_at = taxon.last_synced_at
             taxon_key = f"{taxon.rank}:{taxon.name}"
-            stat = taxon_stats.setdefault(taxon_key, TaxonStats(name=taxon.name, rank=taxon.rank))
+            default_stat = None if canonical_root_source else taxon_stats.setdefault(taxon_key, TaxonStats(name=taxon.name, rank=taxon.rank))
             with path.open(newline="", encoding="utf-8", errors="replace") as handle:
                 reader = csv.DictReader(handle)
                 for row in reader:
@@ -1578,10 +1580,20 @@ def generate_global_insights_snapshot(
                         continue
                     seen_accessions.add(accession)
                     unique_total += 1
-                    stat.rows += 1
 
                     organism = row_value(row, ORGANISM_FIELDS)
-                    genus, species = parse_taxonomy(organism, taxon.name)
+                    inferred_genus, inferred_species = parse_taxonomy(organism, taxon.name)
+                    genus = row_value(row, ("Taxonomy Genus",)) or inferred_genus
+                    species = row_value(row, ("Taxonomy Species",)) or inferred_species
+                    if canonical_root_source:
+                        row_stats = [
+                            taxon_stats.setdefault(f"genus:{genus}", TaxonStats(name=genus, rank="genus")),
+                            taxon_stats.setdefault(f"species:{species}", TaxonStats(name=species, rank="species")),
+                        ]
+                    else:
+                        row_stats = [default_stat]
+                    for stat in row_stats:
+                        stat.rows += 1
                     genus_counter[genus] += 1
                     species_counter[species] += 1
                     species_label_meta = taxonomy_label_metadata(species, "species")
@@ -1608,8 +1620,9 @@ def generate_global_insights_snapshot(
                     update_field_pair_stats(completeness_fields["Country"], raw_country, std_country)
                     if is_usable(std_country):
                         country_counter[std_country] += 1
-                        stat.country_usable += 1
-                        stat.countries[std_country] += 1
+                        for stat in row_stats:
+                            stat.country_usable += 1
+                            stat.countries[std_country] += 1
                     if is_usable(continent):
                         continent_counter[continent] += 1
                     if is_usable(subcontinent):
@@ -1617,18 +1630,21 @@ def generate_global_insights_snapshot(
                     update_field_pair_stats(completeness_fields["Host"], raw_host, std_host)
                     if is_usable(std_host):
                         host_counter[std_host] += 1
-                        stat.hosts[std_host] += 1
+                        for stat in row_stats:
+                            stat.hosts[std_host] += 1
                     update_field_pair_stats(completeness_fields["Isolation source"], raw_source, std_source)
                     if is_usable(std_source):
                         source_counter[std_source] += 1
-                        stat.isolation_usable += 1
-                        stat.sources[std_source] += 1
+                        for stat in row_stats:
+                            stat.isolation_usable += 1
+                            stat.sources[std_source] += 1
                     update_field_pair_stats(completeness_fields["Sample type"], raw_sample, std_sample)
                     update_field_pair_stats(completeness_fields["Environment"], raw_env, std_env)
                     if collection_year:
                         update_field_pair_stats(completeness_fields["Collection year"], collection_year, collection_year)
-                        stat.year_usable += 1
-                        stat.years[collection_year] += 1
+                        for stat in row_stats:
+                            stat.year_usable += 1
+                            stat.years[collection_year] += 1
                     if release_year:
                         year_counter[release_year] += 1
                     if collection_year:
@@ -1637,14 +1653,18 @@ def generate_global_insights_snapshot(
                         assembly_level_counter[assembly_level] += 1
                     if is_usable(bioproject):
                         bioproject_counter[bioproject] += 1
-                        stat.bioprojects[bioproject] += 1
-                        bioproject_taxon_counter[bioproject][taxon.name] += 1
+                        for stat in row_stats:
+                            stat.bioprojects[bioproject] += 1
+                        bioproject_taxon_counter[bioproject][species if canonical_root_source else taxon.name] += 1
                     if quality_available(row):
-                        stat.quality_available += 1
+                        for stat in row_stats:
+                            stat.quality_available += 1
                     if is_usable(std_host) or is_usable(std_source):
-                        stat.host_or_source_usable += 1
+                        for stat in row_stats:
+                            stat.host_or_source_usable += 1
                     if confidence_available(row):
-                        stat.confidence_available += 1
+                        for stat in row_stats:
+                            stat.confidence_available += 1
                     for field_name in (*COUNTRY_CONFIDENCE_FIELDS, *HOST_CONFIDENCE_FIELDS):
                         if is_usable(row.get(field_name)):
                             confidence_counter[f"{field_name}: {normalize(row[field_name])}"] += 1
@@ -1955,8 +1975,18 @@ def generate_global_insights_snapshot(
         "methods": {
             "app_version": app_version,
             "app_commit": app_commit,
-            "generation_scope": "Ready FetchM taxa with metadata_status='ready' and a metadata_clean_path were scanned after metadata update and standardization refresh completion.",
-            "duplicate_rule": "Unique assemblies are counted by Assembly Accession. Species-level metadata rows are preferred over genus-level rows; newer synced taxa are scanned first within each rank.",
+            "generation_scope": (
+                f"Activated canonical bacterial inventory snapshot {source_snapshot_id} was scanned once at assembly level after standardization and reconciliation."
+                if canonical_root_source
+                else "Ready FetchM taxa with metadata_status='ready' and a metadata_clean_path were scanned after metadata update and standardization refresh completion."
+            ),
+            "source_snapshot_id": source_snapshot_id or "legacy-managed-taxa",
+            "canonical_root_source": bool(canonical_root_source),
+            "duplicate_rule": (
+                "Unique assemblies are counted by Assembly Accession from the activated canonical root inventory; each assembly is scanned once."
+                if canonical_root_source
+                else "Unique assemblies are counted by Assembly Accession. Species-level metadata rows are preferred over genus-level rows; newer synced taxa are scanned first within each rank."
+            ),
             "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year: Collection Date; growth year: Assembly Release Date.",
             "missing_value_rule": "Empty, unknown, not collected, not applicable, unidentified, and similarly non-informative values are treated as unusable metadata.",
             "taxonomy_label_policy": "Species-level labels are retained comprehensively for search and metadata access, but classified as canonical species, unresolved species-level labels, provisional taxonomic labels, or non-canonical species labels for honest reporting.",
