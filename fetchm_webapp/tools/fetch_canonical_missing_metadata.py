@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app import NCBI_API_KEYS, build_species_tsv_row, normalize_managed_metadata_row
 from dataset_production_store import (
     insert_inventory_batch,
+    inventory_accession_batch,
     missing_standardized_accession_batch,
     seed_standardized_metadata_batch,
     standardized_metadata_coverage,
@@ -111,6 +112,7 @@ def main() -> int:
     parser.add_argument("--snapshot-id", required=True)
     parser.add_argument("--batch-size", type=int, default=20)
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for controlled validation only.")
+    parser.add_argument("--refetch-all", action="store_true", help="Refetch and re-standardize every accession in the canonical inventory, not only missing accessions.")
     parser.add_argument("--max-attempts", type=int, default=5)
     parser.add_argument("--retry-sleep", type=float, default=5.0)
     parser.add_argument("--request-timeout", type=float, default=120.0)
@@ -129,6 +131,7 @@ def main() -> int:
     standardization_workers = min(32, max(1, args.standardization_workers or standardization_default))
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
     fetched = standardized = batches = 0
+    last_accession = ""
     standardization_executor = ProcessPoolExecutor(max_workers=standardization_workers) if standardization_workers > 1 else None
     try:
         with ThreadPoolExecutor(max_workers=request_workers) as request_executor:
@@ -138,9 +141,16 @@ def main() -> int:
                     cycle_workers = min(cycle_workers, args.max_batches - batches)
                     if cycle_workers <= 0:
                         break
-                accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size * cycle_workers)
+                if args.refetch_all:
+                    accessions = inventory_accession_batch(
+                        args.snapshot_id, after_accession=last_accession, limit=args.batch_size * cycle_workers
+                    )
+                else:
+                    accessions = missing_standardized_accession_batch(args.snapshot_id, limit=args.batch_size * cycle_workers)
                 if not accessions:
                     break
+                if args.refetch_all:
+                    last_accession = accessions[-1]
                 accession_batches = [accessions[start:start + args.batch_size] for start in range(0, len(accessions), args.batch_size)]
                 reports: list[dict[str, Any]] = []
                 futures = [
@@ -179,7 +189,8 @@ def main() -> int:
     summary = {
         "snapshot_id": args.snapshot_id,
         "metadata_source": "NCBI Datasets REST API v2 full accession report",
-        "standardization_status": "fetched_ncbi_full_report",
+        "standardization_status": "refetched_all_ncbi_full_report" if args.refetch_all else "fetched_ncbi_full_report",
+        "refetch_all": bool(args.refetch_all),
         "batches_complete": batches,
         "fetched_rows": fetched,
         "standardized_rows": standardized,

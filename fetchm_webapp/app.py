@@ -7805,6 +7805,9 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "metadata_fetch_status": "not generated",
         "metadata_fetch_task_active": False,
         "metadata_fetch_summary": None,
+        "metadata_restandardization_status": "not generated",
+        "metadata_restandardization_task_active": False,
+        "metadata_restandardization_summary": None,
         "standardized_metadata_coverage": None,
         "latest_reconciliation": None,
         "taxonomy_lineage_summary": None,
@@ -7847,6 +7850,14 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                 """
                 SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error, summary_json
                 FROM canonical_metadata_fetch_task
+                ORDER BY requested_at DESC
+                LIMIT 1
+                """
+            ).fetchone()
+            metadata_restandardization_task = connection.execute(
+                """
+                SELECT snapshot_id, status, requested_at, claimed_at, completed_at, rule_fingerprint, error, summary_json
+                FROM canonical_metadata_restandardization_task
                 ORDER BY requested_at DESC
                 LIMIT 1
                 """
@@ -7921,6 +7932,13 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["metadata_fetch_task_active"] = str(metadata_fetch_task[1]) in {"pending", "running"}
         status["metadata_fetch_error"] = metadata_fetch_task[5]
         status["metadata_fetch_summary"] = dict(metadata_fetch_task[6] or {})
+    if metadata_restandardization_task is not None:
+        status["metadata_restandardization_snapshot_id"] = metadata_restandardization_task[0]
+        status["metadata_restandardization_status"] = metadata_restandardization_task[1]
+        status["metadata_restandardization_task_active"] = str(metadata_restandardization_task[1]) in {"pending", "running"}
+        status["metadata_restandardization_rule_fingerprint"] = metadata_restandardization_task[5]
+        status["metadata_restandardization_error"] = metadata_restandardization_task[6]
+        status["metadata_restandardization_summary"] = dict(metadata_restandardization_task[7] or {})
     if reconciliation_row is not None:
         status["latest_reconciliation"] = dict(reconciliation_row[0] or {})
     if lineage_row is not None:
@@ -8005,6 +8023,199 @@ def build_canonical_metadata_release_gate(db: sqlite3.Connection | None = None, 
     }
 
 
+def canonical_status_percent(status: Any, *, active: bool = False) -> int:
+    status_text = str(status or "idle")
+    if status_text in {"completed", "active", "ready", "pass"}:
+        return 100
+    if status_text == "running" or active:
+        return 45
+    if status_text == "pending":
+        return 10
+    return 0
+
+
+def build_canonical_pipeline_cards(
+    root_inventory: Mapping[str, Any],
+    canonical_release_gate: Mapping[str, Any],
+    latest_insight: Mapping[str, Any] | None,
+) -> list[dict[str, Any]]:
+    coverage = dict(root_inventory.get("standardized_metadata_coverage") or {})
+    reconciliation = dict(root_inventory.get("latest_reconciliation") or {})
+    lineage = dict(root_inventory.get("taxonomy_lineage_summary") or {})
+    root_total = int(root_inventory.get("root_unique_assemblies") or coverage.get("root_unique_assemblies") or 0)
+    standardized_total = int(coverage.get("standardized_assemblies") or 0)
+    missing_total = int(coverage.get("missing_standardized_assemblies") or 0)
+    active_insight = latest_insight and str(latest_insight.get("status")) in {"pending", "running"}
+    insight_status = str(latest_insight.get("status") if latest_insight else "not generated")
+    restandardization_status = str(root_inventory.get("metadata_restandardization_status") or "not generated")
+    standardization_display_status = (
+        "incremental ready"
+        if restandardization_status == "not generated" and standardized_total
+        else restandardization_status
+    )
+    canonical_pipeline_active = any(bool(root_inventory.get(key)) for key in (
+        "task_active", "metadata_seed_task_active", "metadata_fetch_task_active",
+        "metadata_restandardization_task_active", "partition_task_active",
+    ))
+    cards = [
+        {
+            "index": 1,
+            "key": "inventory",
+            "label": "Update bacterial inventory",
+            "short": "Refresh the canonical GenBank bacterial root inventory. Live users keep the current release.",
+            "status": root_inventory.get("status") or "not generated",
+            "percent": canonical_status_percent(root_inventory.get("status"), active=bool(root_inventory.get("task_active"))),
+            "metric_label": "Canonical inventory",
+            "details": [
+                f"Unique bacterial assemblies: {root_total:,}",
+                f"Snapshot: {root_inventory.get('snapshot_id') or 'none'}",
+                "Source: NCBI Bacteria / GenBank GCA assemblies",
+            ],
+            "endpoint": "admin_run_canonical_inventory",
+            "button": "Run inventory",
+            "disabled": (not root_inventory.get("configured")) or canonical_pipeline_active,
+            "continue_control": True,
+            "advanced_note": "Advanced: a new inventory snapshot is a full root scan; activation remains manual.",
+        },
+        {
+            "index": 2,
+            "key": "metadata_seed",
+            "label": "Reuse existing metadata",
+            "short": "Seed the canonical store from previously standardized rows by assembly accession.",
+            "status": root_inventory.get("metadata_seed_status") or "not generated",
+            "percent": canonical_status_percent(root_inventory.get("metadata_seed_status"), active=bool(root_inventory.get("metadata_seed_task_active"))),
+            "metric_label": "Reusable metadata",
+            "details": [
+                f"Standardized coverage: {standardized_total:,} / {root_total:,}",
+                f"Missing after reuse: {missing_total:,}",
+                "Does not fetch NCBI unless accessions remain uncovered.",
+            ],
+            "endpoint": "admin_seed_canonical_metadata",
+            "button": "Reuse metadata",
+            "disabled": (not root_inventory.get("available")) or str(root_inventory.get("status")) != "completed" or canonical_pipeline_active,
+            "continue_control": True,
+        },
+        {
+            "index": 3,
+            "key": "metadata_fetch",
+            "label": "Fetch missing metadata",
+            "short": "Retrieve only accessions that were not covered by reusable metadata.",
+            "status": root_inventory.get("metadata_fetch_status") or "not generated",
+            "percent": canonical_status_percent(root_inventory.get("metadata_fetch_status"), active=bool(root_inventory.get("metadata_fetch_task_active"))) if missing_total else 100 if standardized_total else 0,
+            "metric_label": "Missing metadata fetch",
+            "details": [
+                f"Still requiring retrieval: {missing_total:,}",
+                f"Standardized assemblies: {standardized_total:,}",
+                "Uses configured NCBI API key pool and parallel standardization workers.",
+            ],
+            "endpoint": "admin_fetch_missing_canonical_metadata",
+            "button": "Fetch missing",
+            "disabled": (not root_inventory.get("available")) or str(root_inventory.get("status")) != "completed" or canonical_pipeline_active or missing_total == 0,
+            "continue_control": True,
+        },
+        {
+            "index": 4,
+            "key": "metadata_restandardization",
+            "label": "Standardize metadata",
+            "short": "Newly fetched rows are standardized in step 3. Restart all rows only after changing rules.",
+            "status": standardization_display_status,
+            "percent": canonical_status_percent(restandardization_status, active=bool(root_inventory.get("metadata_restandardization_task_active"))) if restandardization_status != "not generated" else (100 if standardized_total else 0),
+            "metric_label": "Current-rule standardization",
+            "details": [
+                f"Standardized assemblies: {standardized_total:,} / {root_total:,}",
+                f"Last full restart: {restandardization_status if restandardization_status != 'not generated' else 'not run'}",
+                "Full restart reprocesses existing canonical metadata with current rules; it does not refetch NCBI.",
+            ],
+            "endpoint": "admin_restart_canonical_standardization",
+            "button": "Restart full standardization",
+            "disabled": (not root_inventory.get("available")) or standardized_total == 0 or canonical_pipeline_active,
+            "continue_control": True,
+            "confirm": "Restart canonical standardization for all currently standardized assemblies? Live users remain on the active snapshot.",
+        },
+        {
+            "index": 5,
+            "key": "partitions",
+            "label": "Build rank-aware views",
+            "short": "Create phylum, class, order, family, genus, canonical species, and provisional label views.",
+            "status": root_inventory.get("partition_status") or "not generated",
+            "percent": canonical_status_percent(root_inventory.get("partition_status"), active=bool(root_inventory.get("partition_task_active"))),
+            "metric_label": "Taxonomy partitions",
+            "details": [
+                f"Accounted assemblies: {int(reconciliation.get('accounted_unique_assemblies') or 0):,} / {int(reconciliation.get('root_unique_assemblies') or root_total):,}",
+                f"Canonical species: {int((lineage.get('distinct_rank_labels') or {}).get('species') or 0):,}",
+                f"Species-level/provisional labels retained: {int((lineage.get('distinct_rank_labels') or {}).get('species_level_labels') or 0):,}",
+            ],
+            "endpoint": "admin_materialize_canonical_partitions",
+            "button": "Build views",
+            "disabled": (not root_inventory.get("available")) or str(root_inventory.get("status")) != "completed" or canonical_pipeline_active or missing_total != 0,
+            "continue_control": False,
+        },
+        {
+            "index": 6,
+            "key": "verify",
+            "label": "Verify staged release",
+            "short": "Check coverage, accounting, lineage, and release blockers before activation.",
+            "status": canonical_release_gate.get("status") or "blocked",
+            "percent": 100 if canonical_release_gate.get("status") in {"ready", "active"} else 0,
+            "metric_label": "Verification gate",
+            "details": [
+                f"Standardized coverage: {int(canonical_release_gate.get('standardized_assemblies') or 0):,} / {int(canonical_release_gate.get('root_unique_assemblies') or 0):,}",
+                f"Accounted assemblies: {int(canonical_release_gate.get('accounted_unique_assemblies') or 0):,} / {int(canonical_release_gate.get('root_unique_assemblies') or 0):,}",
+                "Activation is blocked until this gate is clear.",
+            ],
+            "endpoint": "admin_validate_canonical_metadata_release",
+            "button": "Validate release",
+            "disabled": canonical_pipeline_active or not bool(canonical_release_gate.get("snapshot_id")),
+            "continue_control": False,
+        },
+        {
+            "index": 7,
+            "key": "activate",
+            "label": "Activate metadata snapshot",
+            "short": "Switch public metadata browsing to the verified canonical snapshot. Sequence/QC remains unchanged.",
+            "status": canonical_release_gate.get("status") or "blocked",
+            "percent": 100 if canonical_release_gate.get("is_active") else 0,
+            "metric_label": "Public metadata snapshot",
+            "details": [
+                f"Candidate: {canonical_release_gate.get('snapshot_id') or 'none'}",
+                f"Active: {canonical_release_gate.get('active_snapshot_id') or 'preview mode'}",
+                f"Retained without resolved genus: {int(canonical_release_gate.get('unresolved_genus_assemblies') or 0):,}",
+            ],
+            "endpoint": "admin_activate_canonical_metadata_release",
+            "button": "Activate metadata",
+            "disabled": canonical_pipeline_active or not bool(canonical_release_gate.get("can_activate")),
+            "continue_control": False,
+            "snapshot_id": canonical_release_gate.get("snapshot_id") or "",
+            "confirm": "Activate this canonical snapshot for public metadata browsing only? Sequence download and QC remain unchanged.",
+        },
+        {
+            "index": 8,
+            "key": "global_insights",
+            "label": "Generate Global Insights",
+            "short": "Rebuild the manuscript-grade global report from the active canonical snapshot.",
+            "status": insight_status,
+            "percent": canonical_status_percent(insight_status, active=bool(active_insight)),
+            "metric_label": "Global Insights snapshot",
+            "details": [
+                f"Latest task: {(latest_insight or {}).get('snapshot_id') or 'none'}",
+                f"Status: {insight_status}",
+                "Run after activation for public-facing results.",
+            ],
+            "endpoint": "admin_generate_global_insights",
+            "button": "Generate insights",
+            "disabled": canonical_pipeline_active or bool(active_insight),
+            "continue_control": False,
+            "extra_fields": {"next": "admin"},
+        },
+    ]
+    for card in cards:
+        card.setdefault("snapshot_id", "")
+        card.setdefault("extra_fields", {})
+        card.setdefault("confirm", "")
+        card.setdefault("advanced_note", "")
+    return cards
+
+
 def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
     connection = db or get_db()
     ensure_legacy_live_dataset_version(connection)
@@ -8060,6 +8271,9 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "schedule_hour_utc": schedule_hour_utc,
         "scope": get_setting("dataset_pipeline_scope", "2", connection),
         "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
+        "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
+        "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),
         "taxonomy": taxonomy_database_snapshot(),
         "sequential": {
             step_key: dataset_pipeline_sequential_enabled(step_key, connection)
@@ -8252,6 +8466,55 @@ def scheduled_dataset_pipeline_due_at(db: sqlite3.Connection | None = None) -> d
     if candidate > now:
         candidate -= timedelta(days=1)
     return candidate
+
+
+def schedule_due_canonical_pipeline_run() -> None:
+    """Queue a staged canonical refresh on cadence; publication remains manual."""
+    with get_sqlite_connection() as db:
+        if get_setting("canonical_pipeline_schedule_enabled", "0", db) != "1":
+            return
+        try:
+            interval_days = max(1, min(365, int(get_setting("canonical_pipeline_interval_days", "60", db) or "60")))
+        except ValueError:
+            interval_days = 60
+        try:
+            schedule_hour = max(0, min(23, int(get_setting("canonical_pipeline_schedule_hour_utc", "18", db) or "18")))
+        except ValueError:
+            schedule_hour = 18
+    try:
+        from dataset_production_store import active_canonical_pipeline_task, latest_inventory_task, queue_inventory_task
+        if active_canonical_pipeline_task() is not None:
+            return
+        latest = latest_inventory_task()
+    except Exception as exc:
+        logging.warning("Scheduled canonical inventory status could not be read: %s", exc)
+        return
+    if latest and str(latest.get("status")) in {"pending", "running"}:
+        return
+    now = datetime.now(timezone.utc)
+    last_requested = latest.get("requested_at") if latest else None
+    if isinstance(last_requested, str):
+        try:
+            last_requested = parse_utc(last_requested)
+        except ValueError:
+            last_requested = None
+    if last_requested is not None:
+        due_at = (last_requested + timedelta(days=interval_days)).replace(
+            hour=schedule_hour, minute=0, second=0, microsecond=0
+        )
+    else:
+        due_at = now.replace(hour=schedule_hour, minute=0, second=0, microsecond=0)
+    if now < due_at:
+        return
+    try:
+        snapshot_id, error = queue_inventory_task("scheduled-canonical-pipeline", continue_after=True)
+    except Exception as exc:
+        logging.warning("Scheduled canonical inventory could not be queued: %s", exc)
+        return
+    if error:
+        logging.info("Scheduled canonical inventory was not queued: %s", error)
+    elif snapshot_id:
+        logging.info("Scheduled canonical staged refresh queued: %s", snapshot_id)
 
 
 def schedule_due_dataset_pipeline_run() -> None:
@@ -22685,6 +22948,7 @@ def run_worker_loop() -> None:
     ensure_directories()
     worker_name = f"{os.uname().nodename}:{os.getpid()}"
     last_heartbeat = 0.0
+    last_canonical_schedule_check = 0.0
     recovery_lock = acquire_startup_recovery_lock()
     with app.app_context():
         init_db()
@@ -22710,11 +22974,16 @@ def run_worker_loop() -> None:
             with get_sqlite_connection() as db:
                 reconcile_cancelled_running_jobs(worker_name, db)
             if WORKER_MODE == "root-inventory":
+                if now - last_canonical_schedule_check >= 60:
+                    schedule_due_canonical_pipeline_run()
+                    last_canonical_schedule_check = now
                 if process_canonical_inventory_task(worker_name):
                     continue
                 if process_canonical_metadata_seed_task(worker_name):
                     continue
                 if process_canonical_metadata_fetch_task(worker_name):
+                    continue
+                if process_canonical_metadata_restandardization_task(worker_name):
                     continue
                 if process_canonical_partition_task(worker_name):
                     continue
@@ -22903,6 +23172,38 @@ def run_worker_loop() -> None:
             time.sleep(WORKER_POLL_INTERVAL)
 
 
+def canonical_continue_requested_from_form() -> bool:
+    return request.form.get("continue_after") == "1"
+
+
+def maybe_queue_next_canonical_pipeline_task(current_step: str, snapshot_id: str, continue_after: bool) -> None:
+    if not continue_after:
+        return
+    try:
+        from dataset_production_store import (
+            queue_metadata_fetch_task,
+            queue_metadata_seed_task,
+            queue_partition_task,
+            standardized_metadata_coverage,
+        )
+        if current_step == "inventory":
+            queue_metadata_seed_task("canonical-pipeline", snapshot_id=snapshot_id, sqlite_db_path=str(DB_PATH), continue_after=True)
+            return
+        if current_step == "metadata_seed":
+            coverage = standardized_metadata_coverage(snapshot_id)
+            if int(coverage.get("missing_standardized_assemblies") or 0):
+                queue_metadata_fetch_task("canonical-pipeline", snapshot_id=snapshot_id, continue_after=True)
+            else:
+                queue_partition_task("canonical-pipeline", snapshot_id=snapshot_id)
+            return
+        if current_step in {"metadata_fetch", "metadata_restandardization"}:
+            coverage = standardized_metadata_coverage(snapshot_id)
+            if int(coverage.get("missing_standardized_assemblies") or 0) == 0:
+                queue_partition_task("canonical-pipeline", snapshot_id=snapshot_id)
+    except Exception as exc:
+        logging.warning("Canonical pipeline follow-up could not be queued after %s for %s: %s", current_step, snapshot_id, exc)
+
+
 def process_canonical_inventory_task(worker_name: str) -> bool:
     if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
         return False
@@ -22922,6 +23223,7 @@ def process_canonical_inventory_task(worker_name: str) -> bool:
     result = subprocess.run(command, capture_output=True, text=True, check=False)
     if result.returncode == 0:
         finish_inventory_task(int(task["id"]), "completed")
+        maybe_queue_next_canonical_pipeline_task("inventory", str(task["snapshot_id"]), bool(task.get("continue_after")))
     else:
         error = (result.stderr or result.stdout or "Canonical inventory command failed.")[-4000:]
         finish_inventory_task(int(task["id"]), "failed", error)
@@ -22955,6 +23257,7 @@ def process_canonical_metadata_seed_task(worker_name: str) -> bool:
         except json.JSONDecodeError:
             summary = {"stdout": result.stdout[-1000:]}
         finish_metadata_seed_task(int(task["id"]), "completed", summary=summary)
+        maybe_queue_next_canonical_pipeline_task("metadata_seed", str(task["snapshot_id"]), bool(task.get("continue_after")))
     else:
         error = (result.stderr or result.stdout or "Canonical metadata seed command failed.")[-4000:]
         finish_metadata_seed_task(int(task["id"]), "failed", error)
@@ -22977,6 +23280,8 @@ def process_canonical_metadata_fetch_task(worker_name: str) -> bool:
         "python", str(BASE_DIR / "tools" / "fetch_canonical_missing_metadata.py"),
         "--snapshot-id", str(task["snapshot_id"]),
     ]
+    if task.get("refetch_all"):
+        command.append("--refetch-all")
     result = subprocess.run(command, capture_output=True, text=True, check=False)
     if result.returncode == 0:
         try:
@@ -22984,10 +23289,43 @@ def process_canonical_metadata_fetch_task(worker_name: str) -> bool:
         except json.JSONDecodeError:
             summary = {"stdout": result.stdout[-1000:]}
         finish_metadata_fetch_task(int(task["id"]), "completed", summary=summary)
+        maybe_queue_next_canonical_pipeline_task("metadata_fetch", str(task["snapshot_id"]), bool(task.get("continue_after")))
     else:
         error = (result.stderr or result.stdout or "Canonical metadata fetch command failed.")[-4000:]
         finish_metadata_fetch_task(int(task["id"]), "failed", error)
         logging.error("Canonical metadata fetch task %s failed: %s", task["snapshot_id"], error)
+    return True
+
+
+def process_canonical_metadata_restandardization_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_metadata_restandardization_task, finish_metadata_restandardization_task
+        task = claim_metadata_restandardization_task(worker_name)
+    except Exception as exc:
+        logging.warning("Canonical metadata re-standardization task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "restandardize_canonical_metadata.py"),
+        "--snapshot-id", str(task["snapshot_id"]),
+    ]
+    if task.get("rule_fingerprint"):
+        command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
+    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_metadata_restandardization_task(int(task["id"]), "completed", summary=summary)
+        maybe_queue_next_canonical_pipeline_task("metadata_restandardization", str(task["snapshot_id"]), bool(task.get("continue_after")))
+    else:
+        error = (result.stderr or result.stdout or "Canonical metadata re-standardization command failed.")[-4000:]
+        finish_metadata_restandardization_task(int(task["id"]), "failed", error)
+        logging.error("Canonical metadata re-standardization task %s failed: %s", task["snapshot_id"], error)
     return True
 
 
@@ -24839,15 +25177,22 @@ def admin_dashboard() -> str:
     db = get_db()
     admin_summary = build_admin_summary_dashboard(db)
     dataset_pipeline = build_dataset_pipeline_dashboard(db)
+    canonical_release_gate = build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"])
+    canonical_pipeline_cards = build_canonical_pipeline_cards(
+        dataset_pipeline["root_inventory"],
+        canonical_release_gate,
+        admin_summary.get("latest_insight"),
+    )
     return render_template(
         "admin_overview_v2.html",
         admin_summary=admin_summary,
         dataset_pipeline=dataset_pipeline,
+        canonical_pipeline_cards=canonical_pipeline_cards,
         observability=build_observability_dashboard(),
         storage=build_admin_storage_summary(),
         deployment=build_deployment_status(),
         release_gate=build_release_gate_summary(dataset_pipeline, admin_summary),
-        canonical_release_gate=build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"]),
+        canonical_release_gate=canonical_release_gate,
         system_monitor=build_system_monitor(db),
         security_posture=build_security_posture(),
         **admin_common_context("overview"),
@@ -25517,6 +25862,36 @@ def admin_set_dataset_pipeline_settings() -> Any:
     return redirect(url_for("admin_dashboard"))
 
 
+@app.route("/admin/dataset-pipeline/canonical-schedule", methods=["POST"])
+def admin_set_canonical_pipeline_schedule() -> Any:
+    require_admin()
+    enabled = "1" if request.form.get("canonical_pipeline_schedule_enabled") == "1" else "0"
+    try:
+        interval_days = max(1, min(365, int(request.form.get("canonical_pipeline_interval_days") or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(request.form.get("canonical_pipeline_schedule_hour_utc") or "18")))
+    except ValueError:
+        schedule_hour = 18
+    set_setting("canonical_pipeline_schedule_enabled", enabled)
+    set_setting("canonical_pipeline_interval_days", str(interval_days))
+    set_setting("canonical_pipeline_schedule_hour_utc", str(schedule_hour))
+    record_audit_event(
+        "admin.canonical_pipeline_schedule",
+        target_type="canonical_pipeline",
+        target_id="schedule",
+        metadata={
+            "enabled": enabled == "1",
+            "interval_days": interval_days,
+            "schedule_hour_utc": schedule_hour,
+            "publication_policy": "manual_activation",
+        },
+    )
+    flash("Canonical staged refresh schedule updated. Scheduled runs stop before manual verification and activation.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
 @app.route("/admin/dataset-pipeline/run", methods=["POST"])
 def admin_run_dataset_pipeline() -> Any:
     require_admin()
@@ -25544,7 +25919,7 @@ def admin_run_canonical_inventory() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_inventory_task
-        snapshot_id, error = queue_inventory_task(str(user["username"]))
+        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical inventory could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
@@ -25566,7 +25941,7 @@ def admin_seed_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_seed_task
-        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH))
+        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical metadata seeding could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
@@ -25588,7 +25963,7 @@ def admin_fetch_missing_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_fetch_task
-        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]))
+        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical missing-metadata retrieval could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
@@ -25602,6 +25977,63 @@ def admin_fetch_missing_canonical_metadata() -> Any:
             metadata={"source_database": "genbank", "canonical_accession_namespace": "GCA"},
         )
         flash(f"Missing canonical metadata retrieval queued for {snapshot_id}. Only uncovered accessions will be fetched and standardized.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-metadata-refetch-all", methods=["POST"])
+def admin_refetch_all_canonical_metadata() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_metadata_fetch_task
+        snapshot_id, error = queue_metadata_fetch_task(
+            str(user["username"]),
+            continue_after=canonical_continue_requested_from_form(),
+            refetch_all=True,
+        )
+    except Exception as exc:
+        flash(f"Canonical full metadata refetch could not be queued: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_canonical_metadata_refetch_all",
+            target_type="canonical_metadata_fetch",
+            target_id=snapshot_id,
+            metadata={"full_refetch": True},
+        )
+        flash(f"Canonical full metadata refetch queued for {snapshot_id}. Public users stay on the active snapshot until activation.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-restandardize", methods=["POST"])
+def admin_restart_canonical_standardization() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_metadata_restandardization_task
+        from global_insights.generator import standardization_rule_manifest
+        rule_fingerprint = str(standardization_rule_manifest().get("version") or "not available")
+        snapshot_id, error = queue_metadata_restandardization_task(
+            str(user["username"]),
+            rule_fingerprint=rule_fingerprint,
+            continue_after=canonical_continue_requested_from_form(),
+        )
+    except Exception as exc:
+        flash(f"Canonical metadata re-standardization could not be queued: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.dataset_pipeline_canonical_restandardize",
+            target_type="canonical_metadata_restandardization",
+            target_id=snapshot_id,
+            metadata={"rule_fingerprint": rule_fingerprint},
+        )
+        flash(
+            f"Canonical full re-standardization queued for {snapshot_id}. Existing metadata will be reprocessed with the current rules; public users stay on the active snapshot until activation.",
+            "success",
+        )
     return redirect(url_for("admin_dashboard"))
 
 
@@ -26290,6 +26722,7 @@ def admin_queue_standardization_refresh() -> Any:
 def admin_generate_global_insights() -> Any:
     require_admin()
     demo = request.form.get("demo") == "1"
+    redirect_endpoint = "admin_dashboard" if request.form.get("next") == "admin" else "admin_metadata"
     user_id = int(g.current_user["id"]) if g.current_user else None
     snapshot_id, blockers = queue_global_insights_generation(user_id, demo=demo)
     if blockers:
@@ -26305,7 +26738,7 @@ def admin_generate_global_insights() -> Any:
             target_id=snapshot_id,
             metadata={"demo": demo},
         )
-    return redirect(url_for("admin_metadata"))
+    return redirect(url_for(redirect_endpoint))
 
 
 @app.route("/admin/metadata/backfill-assembly-features", methods=["POST"])

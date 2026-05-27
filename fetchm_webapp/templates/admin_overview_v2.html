@@ -215,108 +215,9 @@
       </div>
     </div>
     <div class="hint-block top-gap">
-      <strong>Coverage principle</strong>
-      <p>The current live release uses genus-scoped metadata, with species files only for confident assignments. Future releases must reconcile those public views to the canonical GenBank bacterial root inventory before replacement.</p>
+      <strong>Production source</strong>
+      <p>Canonical releases use one non-redundant GenBank bacterial inventory. Legacy per-taxon counts remain available below for audit only and no longer define the normal update path.</p>
     </div>
-    <div class="hint-block top-gap">
-      <strong>Legacy per-taxon metadata backlog</strong>
-      <p>The old genus/species metadata builders are retired for normal operation. These counts are kept for audit only and do not block the canonical bacterial-root pipeline or Global Insights.</p>
-      <div class="dataset-state-metrics top-gap">
-        <span>{{ observability.legacy_metadata_backlog.pending or 0 }} pending</span>
-        <span>{{ observability.legacy_metadata_backlog.building or 0 }} previously building</span>
-        <span>{{ observability.legacy_metadata_backlog.missing or 0 }} missing</span>
-        <span>{{ observability.legacy_metadata_backlog.failed or 0 }} failed</span>
-      </div>
-    </div>
-    <div class="hint-block top-gap">
-      <strong>Canonical release denominator</strong>
-      <p>New global releases require a reconciled <strong>GenBank GCA bacterial inventory</strong>. Genus-first staging remains visible for audit but cannot replace live data without accounting for every canonical bacterial assembly.</p>
-      <div class="dataset-state-metrics top-gap">
-        <span>Root inventory: {{ dataset_pipeline.root_inventory.status }}</span>
-        <span>Metadata reuse: {{ dataset_pipeline.root_inventory.metadata_seed_status }}</span>
-        <span>Missing metadata fetch: {{ dataset_pipeline.root_inventory.metadata_fetch_status }}</span>
-        <span>Partitions: {{ dataset_pipeline.root_inventory.partition_status }}</span>
-        {% if dataset_pipeline.root_inventory.available %}
-          <span>Snapshot: {{ dataset_pipeline.root_inventory.snapshot_id }}</span>
-          {% if dataset_pipeline.root_inventory.status in ['pending', 'running'] %}
-            <span>{{ dataset_pipeline.root_inventory.inserted_membership_rows }} canonical assemblies retained so far</span>
-            {% if dataset_pipeline.root_inventory.chunk_progress and dataset_pipeline.root_inventory.chunk_progress.expected_total %}<span>NCBI total: {{ dataset_pipeline.root_inventory.chunk_progress.expected_total }} assemblies</span><span>Pages complete: {{ dataset_pipeline.root_inventory.chunk_progress.completed }} / {{ dataset_pipeline.root_inventory.chunk_progress.expected_pages }}</span>{% endif %}
-          {% else %}
-            <span>{{ dataset_pipeline.root_inventory.root_unique_assemblies }} canonical GenBank GCA assemblies</span>
-          {% endif %}
-        {% elif dataset_pipeline.root_inventory.configured %}
-          <span>No canonical snapshot generated yet.</span>
-        {% else %}
-          <span>Dataset production database is not configured yet.</span>
-        {% endif %}
-        {% if dataset_pipeline.root_inventory.standardized_metadata_coverage %}
-          <span>Standardized metadata: {{ dataset_pipeline.root_inventory.standardized_metadata_coverage.standardized_assemblies }} / {{ dataset_pipeline.root_inventory.standardized_metadata_coverage.root_unique_assemblies }}</span>
-          <span>Still requiring retrieval: {{ dataset_pipeline.root_inventory.standardized_metadata_coverage.missing_standardized_assemblies }}</span>
-        {% endif %}
-        {% if dataset_pipeline.root_inventory.latest_reconciliation %}
-          <span>Accounted: {{ dataset_pipeline.root_inventory.latest_reconciliation.accounted_unique_assemblies }} / {{ dataset_pipeline.root_inventory.latest_reconciliation.root_unique_assemblies }}</span>
-          <span>Release views: {{ 'materialized' if dataset_pipeline.root_inventory.latest_reconciliation.release_views_materialized else 'preview only' }}</span>
-        {% endif %}
-        {% if dataset_pipeline.root_inventory.taxonomy_lineage_summary %}
-          <span>Lineage staged: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.root_assemblies }} assemblies</span>
-          <span>Resolved rank labels: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.phylum }} phyla, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.class }} classes, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.order }} orders, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.family }} families, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.genus }} genera, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.species }} canonical species</span>
-          <span>Species-level/provisional labels retained: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.species_level_labels }}</span>
-        {% endif %}
-      </div>
-      <div class="pipeline-controls top-gap">
-        <form action="{{ url_for('admin_run_canonical_inventory') }}" method="post">
-          <button type="submit" {% if not dataset_pipeline.root_inventory.configured or dataset_pipeline.root_inventory.task_active %}disabled{% endif %}>Run canonical inventory</button>
-        </form>
-        <form action="{{ url_for('admin_seed_canonical_metadata') }}" method="post">
-          <button type="submit" {% if not dataset_pipeline.root_inventory.available or dataset_pipeline.root_inventory.status != 'completed' or dataset_pipeline.root_inventory.metadata_seed_task_active %}disabled{% endif %}>Reuse existing metadata</button>
-        </form>
-        <form action="{{ url_for('admin_fetch_missing_canonical_metadata') }}" method="post">
-          <button type="submit" {% if not dataset_pipeline.root_inventory.available or dataset_pipeline.root_inventory.status != 'completed' or dataset_pipeline.root_inventory.metadata_fetch_task_active or not dataset_pipeline.root_inventory.standardized_metadata_coverage or dataset_pipeline.root_inventory.standardized_metadata_coverage.missing_standardized_assemblies == 0 %}disabled{% endif %}>Fetch missing metadata</button>
-        </form>
-        <form action="{{ url_for('admin_materialize_canonical_partitions') }}" method="post">
-          <button type="submit" {% if not dataset_pipeline.root_inventory.available or dataset_pipeline.root_inventory.status != 'completed' or dataset_pipeline.root_inventory.partition_task_active or not dataset_pipeline.root_inventory.standardized_metadata_coverage or dataset_pipeline.root_inventory.standardized_metadata_coverage.missing_standardized_assemblies != 0 %}disabled{% endif %}>Build partition preview</button>
-        </form>
-        {% if dataset_pipeline.root_inventory.error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.error }}</span>{% endif %}
-        {% if dataset_pipeline.root_inventory.metadata_seed_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.metadata_seed_error }}</span>{% endif %}
-        {% if dataset_pipeline.root_inventory.metadata_fetch_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.metadata_fetch_error }}</span>{% endif %}
-        {% if dataset_pipeline.root_inventory.partition_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.partition_error }}</span>{% endif %}
-      </div>
-    </div>
-    <article class="dataset-state-card top-gap">
-      <div class="admin-group-head">
-        <div>
-          <p class="eyebrow">Canonical Metadata Release</p>
-          <h3>Public rank-aware metadata browsing</h3>
-        </div>
-        <span class="admin-chip {{ 'live' if canonical_release_gate.status == 'active' else 'running' if canonical_release_gate.status == 'ready' else 'failed' }}">{{ canonical_release_gate.status }}</span>
-      </div>
-      <p class="dataset-state-note">Activation switches metadata search and reports to the verified canonical bacterial snapshot. It does not replace sequence download or QC inputs.</p>
-      <div class="dataset-state-metrics top-gap">
-        <span>Candidate: {{ canonical_release_gate.snapshot_id or 'None' }}</span>
-        <span>Active metadata snapshot: {{ canonical_release_gate.active_snapshot_id or 'Preview mode' }}</span>
-        <span>Standardized coverage: {{ canonical_release_gate.standardized_assemblies }} / {{ canonical_release_gate.root_unique_assemblies }}</span>
-        <span>Accounted assemblies: {{ canonical_release_gate.accounted_unique_assemblies }} / {{ canonical_release_gate.root_unique_assemblies }}</span>
-        <span>Retained without resolved genus: {{ canonical_release_gate.unresolved_genus_assemblies }}</span>
-      </div>
-      {% if canonical_release_gate.blockers %}
-        <div class="pipeline-detail-list top-gap">{% for blocker in canonical_release_gate.blockers %}<span class="danger-text">{{ blocker }}</span>{% endfor %}</div>
-      {% endif %}
-      {% if canonical_release_gate.cautions %}
-        <div class="pipeline-detail-list top-gap">{% for caution in canonical_release_gate.cautions %}<span>{{ caution }}</span>{% endfor %}</div>
-      {% endif %}
-      <div class="pipeline-controls top-gap">
-        <form action="{{ url_for('admin_validate_canonical_metadata_release') }}" method="post">
-          <button type="submit" class="ghost" {% if not canonical_release_gate.snapshot_id %}disabled{% endif %}>Validate metadata release</button>
-        </form>
-        <form action="{{ url_for('admin_activate_canonical_metadata_release') }}" method="post" onsubmit="return confirm('Activate this canonical snapshot for public metadata browsing only? Sequence download and QC will remain unchanged.')">
-          <input type="hidden" name="snapshot_id" value="{{ canonical_release_gate.snapshot_id }}">
-          <button type="submit" {% if not canonical_release_gate.can_activate %}disabled{% endif %}>Activate metadata snapshot</button>
-        </form>
-        <form action="{{ url_for('admin_clear_canonical_metadata_release') }}" method="post" onsubmit="return confirm('Return canonical metadata browsing to latest preview mode?')">
-          <button type="submit" class="ghost" {% if not canonical_release_gate.can_clear_activation %}disabled{% endif %}>Return to preview mode</button>
-        </form>
-      </div>
-    </article>
     <div class="admin-command-grid top-gap">
       <article class="dataset-state-card">
         <div class="admin-group-head">
@@ -374,14 +275,94 @@
     </div>
   </section>
 
-  <section class="panel">
+  <section class="panel canonical-pipeline-panel">
     <div class="admin-group-head">
       <div>
-        <p class="eyebrow">Dataset Update Pipeline</p>
-        <h2>Sequential refresh controls</h2>
+        <p class="eyebrow">Canonical Database Pipeline</p>
+        <h2>Update or rebuild the bacterial database</h2>
       </div>
-      <p class="section-note">Run from any stage when idle. Enabled stages continue only after the previous step completes.</p>
+      <p class="section-note">Primary production workflow. New data is staged and verified first; public users keep the current active snapshot until you activate a verified release.</p>
     </div>
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.root_unique_assemblies or 0 }}</strong><span>Unique bacterial assemblies</span></div>
+      <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.standardized_metadata_coverage.standardized_assemblies if dataset_pipeline.root_inventory.standardized_metadata_coverage else 0 }}</strong><span>Standardized metadata rows</span></div>
+      <div class="health-card"><strong>{{ canonical_release_gate.active_snapshot_id or 'Preview' }}</strong><span>Active metadata snapshot</span></div>
+      <div class="health-card"><strong>{{ canonical_release_gate.status }}</strong><span>Release gate</span></div>
+      <div class="health-card"><strong>{{ admin_summary.latest_insight.snapshot_id if admin_summary.latest_insight else 'None' }}</strong><span>Latest Global Insights task</span></div>
+      <div class="health-card"><strong>{{ 'On' if dataset_pipeline.root_inventory.configured else 'Off' }}</strong><span>Canonical production database</span></div>
+    </div>
+    <div class="hint-block top-gap">
+      <strong>Safe update policy</strong>
+      <p>Inventory, metadata reuse/fetch, standardization, and rank-aware views run against staging. Activation is manual by default, so the website does not expose a partially rebuilt database.</p>
+    </div>
+    <form action="{{ url_for('admin_set_canonical_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
+      <label><span>Scheduled refresh</span><select name="canonical_pipeline_schedule_enabled"><option value="1" {% if dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Paused</option></select></label>
+      <label><span>Every N days</span><input type="number" name="canonical_pipeline_interval_days" min="1" max="365" value="{{ dataset_pipeline.canonical_interval_days }}" list="canonical-day-options"><datalist id="canonical-day-options"><option value="7"></option><option value="14"></option><option value="30"></option><option value="60"></option></datalist></label>
+      <label><span>UTC hour</span><input type="number" name="canonical_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.canonical_schedule_hour_utc }}"></label>
+      <button type="submit">Save schedule</button>
+      <span class="section-note">Scheduled runs update staging through rank-aware views, then wait for validation and activation.</span>
+    </form>
+    <div class="pipeline-board top-gap">
+      {% for stage in canonical_pipeline_cards %}
+        <article class="pipeline-step-card {% if stage.status in ['running', 'pending'] %}is-running{% endif %}">
+          <div class="pipeline-step-main">
+            <div class="pipeline-step-title">
+              <span class="pipeline-index">{{ stage.index }}</span>
+              <div>
+                <h3>{{ stage.label }}</h3>
+                <p class="section-note">{{ stage.short }}</p>
+              </div>
+            </div>
+            <div class="pipeline-controls">
+              <form action="{{ url_for(stage.endpoint) }}" method="post" {% if stage.confirm %}onsubmit="return confirm('{{ stage.confirm }}')"{% endif %}>
+                {% if stage.snapshot_id %}<input type="hidden" name="snapshot_id" value="{{ stage.snapshot_id }}">{% endif %}
+                {% for field_name, field_value in (stage.extra_fields or {}).items() %}<input type="hidden" name="{{ field_name }}" value="{{ field_value }}">{% endfor %}
+                <button type="submit" {% if stage.disabled %}disabled{% endif %}>{{ stage.button }}</button>
+                {% if stage.continue_control %}
+                  <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Run after previous</label>
+                {% endif %}
+              </form>
+            </div>
+            {% if stage.advanced_note %}<p class="dataset-state-note">{{ stage.advanced_note }}</p>{% endif %}
+          </div>
+          <div class="pipeline-progress-box">
+            <div class="pipeline-progress-top"><span>{{ stage.metric_label }}</span><span>{{ stage.percent }}%</span></div>
+            <div class="pipeline-bar" aria-hidden="true"><span style="width: {{ stage.percent }}%"></span></div>
+            <div class="pipeline-detail-list">
+              <span class="status-line">Status: {{ stage.status }}</span>
+              {% for detail in stage.details %}<span>{{ detail }}</span>{% endfor %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <details class="admin-advanced top-gap">
+      <summary>Advanced rebuild options and safety notes</summary>
+      <div class="pipeline-detail-list top-gap">
+        <span><strong>Full inventory rebuild:</strong> run step 1. It creates a new canonical root snapshot and does not replace public data.</span>
+        <span><strong>Metadata from scratch:</strong> refetches every canonical assembly from NCBI and re-standardizes it. Use only when upstream source fields must be refreshed.</span>
+        <span><strong>New standardization rules:</strong> use Restart full standardization, then rebuild rank-aware views and validate before activation.</span>
+        <span><strong>Rollback:</strong> use the release controls below; only one previous active version is retained.</span>
+      </div>
+      <div class="pipeline-controls top-gap">
+        <form action="{{ url_for('admin_refetch_all_canonical_metadata') }}" method="post" onsubmit="return confirm('Refetch metadata for every canonical bacterial assembly from NCBI? This is expensive but does not change public data until activation.')">
+          <button type="submit" class="ghost" {% if not dataset_pipeline.root_inventory.available or canonical_pipeline_cards[0].disabled %}disabled{% endif %}>Refetch all metadata</button>
+          <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Build views after fetch</label>
+        </form>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel legacy-pipeline-panel">
+    <details class="admin-advanced">
+      <summary>Legacy Per-taxon Pipeline</summary>
+      <div class="admin-group-head top-gap">
+        <div>
+          <p class="eyebrow">Legacy Per-taxon Pipeline</p>
+          <h2>Old genus/species sequential controls</h2>
+        </div>
+        <p class="section-note">Fallback and audit workflow only. Normal database updates should use the canonical pipeline above.</p>
+      </div>
     {% if dataset_pipeline.active_run %}
       <div class="pipeline-live-actions top-gap">
         <span class="job-meta">Active: {{ dataset_pipeline.active_run.run_id }}. Auto-refreshing every 30 seconds.</span>
@@ -460,6 +441,7 @@
       </div>
       <div class="job-meta top-gap">Failed/interrupted derivations: {{ dataset_pipeline.retryable_derived_failures.species_candidates }} affected candidates across {{ dataset_pipeline.retryable_derived_failures.source_genera }} source genera.</div>
     </div>
+    </details>
   </section>
 
   <section class="panel">
@@ -492,5 +474,5 @@
     <div class="metrics-grid"><div class="metric-card"><strong>{{ security_posture.app_version }}</strong><span>Application version</span></div><div class="metric-card metric-wide"><strong>Password policy</strong><span>{{ security_posture.password_policy }}</span></div><div class="metric-card"><strong>{{ security_posture.session_lifetime }}</strong><span>Session lifetime</span></div><div class="metric-card"><strong>{{ "on" if security_posture.cookie_httponly else "off" }}</strong><span>HttpOnly cookie</span></div><div class="metric-card"><strong>{{ "on" if security_posture.cookie_secure else "off" }}</strong><span>Secure cookie</span></div><div class="metric-card"><strong>{{ security_posture.csrf }}</strong><span>CSRF protection</span></div><div class="metric-card metric-wide"><strong>Admin model</strong><span>{{ security_posture.admin_model }}</span></div></div>
   </section>
 </main>
-{% if dataset_pipeline.active_run %}<script>window.setTimeout(() => { if (!document.hidden) window.location.reload(); }, 30000);</script>{% endif %}
+{% if dataset_pipeline.active_run or dataset_pipeline.root_inventory.task_active or dataset_pipeline.root_inventory.metadata_seed_task_active or dataset_pipeline.root_inventory.metadata_fetch_task_active or dataset_pipeline.root_inventory.metadata_restandardization_task_active or dataset_pipeline.root_inventory.partition_task_active or (admin_summary.latest_insight and admin_summary.latest_insight.status in ['pending', 'running']) %}<script>window.setTimeout(() => { if (!document.hidden) window.location.reload(); }, 30000);</script>{% endif %}
 {% endblock %}

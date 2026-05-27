@@ -54,6 +54,55 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(genus_like["partition_type"], "provisional_species")
         self.assertEqual(genus_like["genus_name"], "Listeria")
 
+    def test_canonical_admin_pipeline_exposes_staged_safe_workflow(self) -> None:
+        root = {
+            "configured": True,
+            "available": True,
+            "status": "completed",
+            "snapshot_id": "canonical-root-test",
+            "root_unique_assemblies": 3126169,
+            "metadata_seed_status": "completed",
+            "metadata_fetch_status": "completed",
+            "metadata_restandardization_status": "not generated",
+            "partition_status": "completed",
+            "standardized_metadata_coverage": {
+                "root_unique_assemblies": 3126169,
+                "standardized_assemblies": 3126169,
+                "missing_standardized_assemblies": 0,
+            },
+            "latest_reconciliation": {
+                "root_unique_assemblies": 3126169,
+                "accounted_unique_assemblies": 3126169,
+            },
+            "taxonomy_lineage_summary": {
+                "distinct_rank_labels": {"species": 25000, "species_level_labels": 33000}
+            },
+        }
+        gate = {
+            "status": "ready",
+            "snapshot_id": "canonical-root-test",
+            "active_snapshot_id": "canonical-root-live",
+            "can_activate": True,
+            "root_unique_assemblies": 3126169,
+            "standardized_assemblies": 3126169,
+            "accounted_unique_assemblies": 3126169,
+            "unresolved_genus_assemblies": 0,
+        }
+        cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
+        self.assertEqual([card["key"] for card in cards], [
+            "inventory", "metadata_seed", "metadata_fetch", "metadata_restandardization",
+            "partitions", "verify", "activate", "global_insights",
+        ])
+        standardization = cards[3]
+        self.assertEqual(standardization["status"], "incremental ready")
+        self.assertIn("step 3", standardization["short"])
+        self.assertEqual(cards[6]["endpoint"], "admin_activate_canonical_metadata_release")
+        self.assertEqual(cards[7]["extra_fields"], {"next": "admin"})
+        self.assertTrue(cards[2]["disabled"])
+        root["metadata_fetch_task_active"] = True
+        busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
+        self.assertTrue(all(card["disabled"] for card in busy_cards))
+
     def test_canonical_taxonkit_lineage_keeps_higher_rank_labels_at_true_rank(self) -> None:
         lineage = "1977087\tcellular organisms;Bacteria;Pseudomonadati;Pseudomonadota;Pseudomonadota bacterium\tspecies\n210\tcellular organisms;Bacteria;Campylobacterota;Helicobacter;Helicobacter pylori\tspecies\n"
         reformatted = "1977087\tlineage\tspecies\t\tPseudomonadota\t\t\t\t\tPseudomonadota bacterium\n210\tlineage\tspecies\t\tCampylobacterota\tEpsilonproteobacteria\tCampylobacterales\tHelicobacteraceae\tHelicobacter\tHelicobacter pylori\n"

@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS canonical_inventory_task (
     status TEXT NOT NULL,
     requested_by TEXT,
     requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
     claimed_by TEXT,
     claimed_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
@@ -56,6 +57,7 @@ CREATE TABLE IF NOT EXISTS canonical_metadata_seed_task (
     status TEXT NOT NULL,
     requested_by TEXT,
     requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
     claimed_by TEXT,
     claimed_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
@@ -71,9 +73,26 @@ CREATE TABLE IF NOT EXISTS canonical_metadata_fetch_task (
     status TEXT NOT NULL,
     requested_by TEXT,
     requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
+    refetch_all BOOLEAN NOT NULL DEFAULT FALSE,
     claimed_by TEXT,
     claimed_at TIMESTAMPTZ,
     completed_at TIMESTAMPTZ,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
+);
+
+CREATE TABLE IF NOT EXISTS canonical_metadata_restandardization_task (
+    id BIGSERIAL PRIMARY KEY,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    rule_fingerprint TEXT,
     error TEXT,
     summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
@@ -231,6 +250,12 @@ CREATE TABLE IF NOT EXISTS canonical_root_reconciliation (
     summary_json JSONB NOT NULL DEFAULT '{}'::jsonb
 );
 
+ALTER TABLE canonical_inventory_task ADD COLUMN IF NOT EXISTS continue_after BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE canonical_metadata_seed_task ADD COLUMN IF NOT EXISTS continue_after BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE canonical_metadata_fetch_task ADD COLUMN IF NOT EXISTS continue_after BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE canonical_metadata_fetch_task ADD COLUMN IF NOT EXISTS refetch_all BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE canonical_metadata_restandardization_task ADD COLUMN IF NOT EXISTS continue_after BOOLEAN NOT NULL DEFAULT FALSE;
+
 CREATE INDEX IF NOT EXISTS idx_inventory_membership_accession
 ON bacterial_inventory_membership (assembly_accession);
 CREATE INDEX IF NOT EXISTS idx_inventory_chunk_status
@@ -259,6 +284,8 @@ CREATE INDEX IF NOT EXISTS idx_canonical_metadata_seed_task_status
 ON canonical_metadata_seed_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_canonical_metadata_fetch_task_status
 ON canonical_metadata_fetch_task (status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_canonical_metadata_restandardization_task_status
+ON canonical_metadata_restandardization_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_assembly_standardization_status
 ON assembly_standardization (status, updated_at);
 """
@@ -284,18 +311,42 @@ def bootstrap_schema() -> None:
         connection.execute(SCHEMA_SQL)
         connection.commit()
 
-def queue_inventory_task(requested_by: str | None = None) -> tuple[str | None, str | None]:
+def active_canonical_pipeline_task(connection: Any | None = None) -> tuple[str, str, str] | None:
+    """Return the oldest staged canonical operation still in progress."""
+    query = """
+        SELECT snapshot_id, status, task_type FROM (
+            SELECT snapshot_id, status, requested_at, 'inventory' AS task_type FROM canonical_inventory_task WHERE status IN ('pending', 'running')
+            UNION ALL
+            SELECT snapshot_id, status, requested_at, 'metadata_seed' AS task_type FROM canonical_metadata_seed_task WHERE status IN ('pending', 'running')
+            UNION ALL
+            SELECT snapshot_id, status, requested_at, 'metadata_fetch' AS task_type FROM canonical_metadata_fetch_task WHERE status IN ('pending', 'running')
+            UNION ALL
+            SELECT snapshot_id, status, requested_at, 'metadata_restandardization' AS task_type FROM canonical_metadata_restandardization_task WHERE status IN ('pending', 'running')
+            UNION ALL
+            SELECT snapshot_id, status, requested_at, 'partitions' AS task_type FROM canonical_partition_task WHERE status IN ('pending', 'running')
+        ) active_tasks ORDER BY requested_at ASC LIMIT 1
+    """
+    if connection is not None:
+        row = connection.execute(query).fetchone()
+    else:
+        bootstrap_schema()
+        with connect() as owned_connection:
+            row = owned_connection.execute(query).fetchone()
+    if row is None:
+        return None
+    return str(row[0]), str(row[1]), str(row[2])
+
+
+def queue_inventory_task(requested_by: str | None = None, *, continue_after: bool = False) -> tuple[str | None, str | None]:
     bootstrap_schema()
     snapshot_id = utc_now().strftime('%Y%m%dT%H%M%SZ_genbank_bacteria_root')
     with connect() as connection:
-        active = connection.execute(
-            "SELECT snapshot_id, status FROM canonical_inventory_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
-        ).fetchone()
+        active = active_canonical_pipeline_task(connection)
         if active is not None:
             return None, f'Canonical inventory task {active[0]} is already {active[1]}.'
         connection.execute(
-            "INSERT INTO canonical_inventory_task (snapshot_id, status, requested_by, requested_at) VALUES (%s, 'pending', %s, %s)",
-            (snapshot_id, requested_by, utc_now()),
+            "INSERT INTO canonical_inventory_task (snapshot_id, status, requested_by, requested_at, continue_after) VALUES (%s, 'pending', %s, %s, %s)",
+            (snapshot_id, requested_by, utc_now(), bool(continue_after)),
         )
         connection.commit()
     return snapshot_id, None
@@ -305,7 +356,7 @@ def claim_inventory_task(worker_name: str) -> dict[str, Any] | None:
     with connect() as connection:
         row = connection.execute(
             """
-            SELECT id, snapshot_id FROM canonical_inventory_task
+            SELECT id, snapshot_id, continue_after FROM canonical_inventory_task
             WHERE status = 'pending' ORDER BY requested_at ASC
             FOR UPDATE SKIP LOCKED LIMIT 1
             """
@@ -317,7 +368,7 @@ def claim_inventory_task(worker_name: str) -> dict[str, Any] | None:
             (worker_name, utc_now(), row[0]),
         )
         connection.commit()
-        return {'id': int(row[0]), 'snapshot_id': str(row[1])}
+        return {'id': int(row[0]), 'snapshot_id': str(row[1]), 'continue_after': bool(row[2])}
 
 def finish_inventory_task(task_id: int, status: str, error: str | None = None) -> None:
     with connect() as connection:
@@ -371,9 +422,7 @@ def queue_partition_task(
     if not dataset_version_id:
         dataset_version_id = f'canonical-root-preview-{snapshot_id}'
     with connect() as connection:
-        active = connection.execute(
-            "SELECT snapshot_id, status FROM canonical_partition_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
-        ).fetchone()
+        active = active_canonical_pipeline_task(connection)
         if active is not None:
             return None, f'Canonical partition task for {active[0]} is already {active[1]}.'
         inventory = connection.execute(
@@ -449,6 +498,7 @@ def queue_metadata_seed_task(
     snapshot_id: str | None = None,
     sqlite_db_path: str | None = None,
     rule_fingerprint: str | None = None,
+    continue_after: bool = False,
 ) -> tuple[str | None, str | None]:
     bootstrap_schema()
     if not snapshot_id:
@@ -457,9 +507,7 @@ def queue_metadata_seed_task(
             return None, 'No completed canonical inventory snapshot is available.'
         snapshot_id = str(latest['snapshot_id'])
     with connect() as connection:
-        active = connection.execute(
-            "SELECT snapshot_id, status FROM canonical_metadata_seed_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
-        ).fetchone()
+        active = active_canonical_pipeline_task(connection)
         if active is not None:
             return None, f'Canonical metadata seed task for {active[0]} is already {active[1]}.'
         inventory = connection.execute(
@@ -471,10 +519,10 @@ def queue_metadata_seed_task(
         connection.execute(
             """
             INSERT INTO canonical_metadata_seed_task (
-                snapshot_id, status, requested_by, requested_at, sqlite_db_path, rule_fingerprint
-            ) VALUES (%s, 'pending', %s, %s, %s, %s)
+                snapshot_id, status, requested_by, requested_at, sqlite_db_path, rule_fingerprint, continue_after
+            ) VALUES (%s, 'pending', %s, %s, %s, %s, %s)
             """,
-            (snapshot_id, requested_by, utc_now(), sqlite_db_path, rule_fingerprint),
+            (snapshot_id, requested_by, utc_now(), sqlite_db_path, rule_fingerprint, bool(continue_after)),
         )
         connection.commit()
     return snapshot_id, None
@@ -484,7 +532,7 @@ def claim_metadata_seed_task(worker_name: str) -> dict[str, Any] | None:
     with connect() as connection:
         row = connection.execute(
             """
-            SELECT id, snapshot_id, sqlite_db_path, rule_fingerprint FROM canonical_metadata_seed_task
+            SELECT id, snapshot_id, sqlite_db_path, rule_fingerprint, continue_after FROM canonical_metadata_seed_task
             WHERE status = 'pending' ORDER BY requested_at ASC
             FOR UPDATE SKIP LOCKED LIMIT 1
             """
@@ -498,7 +546,7 @@ def claim_metadata_seed_task(worker_name: str) -> dict[str, Any] | None:
         connection.commit()
         return {
             'id': int(row[0]), 'snapshot_id': str(row[1]),
-            'sqlite_db_path': str(row[2] or ''), 'rule_fingerprint': str(row[3] or ''),
+            'sqlite_db_path': str(row[2] or ''), 'rule_fingerprint': str(row[3] or ''), 'continue_after': bool(row[4]),
         }
 
 def finish_metadata_seed_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
@@ -526,6 +574,8 @@ def queue_metadata_fetch_task(
     requested_by: str | None = None,
     *,
     snapshot_id: str | None = None,
+    continue_after: bool = False,
+    refetch_all: bool = False,
 ) -> tuple[str | None, str | None]:
     bootstrap_schema()
     if not snapshot_id:
@@ -534,17 +584,15 @@ def queue_metadata_fetch_task(
             return None, 'No completed canonical inventory snapshot is available.'
         snapshot_id = str(latest['snapshot_id'])
     coverage = standardized_metadata_coverage(snapshot_id)
-    if not coverage['missing_standardized_assemblies']:
+    if not refetch_all and not coverage['missing_standardized_assemblies']:
         return None, 'Canonical metadata coverage is already complete.'
     with connect() as connection:
-        active = connection.execute(
-            "SELECT snapshot_id, status FROM canonical_metadata_fetch_task WHERE status IN ('pending', 'running') ORDER BY requested_at ASC LIMIT 1"
-        ).fetchone()
+        active = active_canonical_pipeline_task(connection)
         if active is not None:
             return None, f'Canonical missing-metadata fetch for {active[0]} is already {active[1]}.'
         connection.execute(
-            "INSERT INTO canonical_metadata_fetch_task (snapshot_id, status, requested_by, requested_at) VALUES (%s, 'pending', %s, %s)",
-            (snapshot_id, requested_by, utc_now()),
+            "INSERT INTO canonical_metadata_fetch_task (snapshot_id, status, requested_by, requested_at, continue_after, refetch_all) VALUES (%s, 'pending', %s, %s, %s, %s)",
+            (snapshot_id, requested_by, utc_now(), bool(continue_after), bool(refetch_all)),
         )
         connection.commit()
     return snapshot_id, None
@@ -554,7 +602,7 @@ def claim_metadata_fetch_task(worker_name: str) -> dict[str, Any] | None:
     with connect() as connection:
         row = connection.execute(
             """
-            SELECT id, snapshot_id FROM canonical_metadata_fetch_task
+            SELECT id, snapshot_id, continue_after, refetch_all FROM canonical_metadata_fetch_task
             WHERE status = 'pending' ORDER BY requested_at ASC
             FOR UPDATE SKIP LOCKED LIMIT 1
             """
@@ -566,7 +614,7 @@ def claim_metadata_fetch_task(worker_name: str) -> dict[str, Any] | None:
             (worker_name, utc_now(), row[0]),
         )
         connection.commit()
-        return {'id': int(row[0]), 'snapshot_id': str(row[1])}
+        return {'id': int(row[0]), 'snapshot_id': str(row[1]), 'continue_after': bool(row[2]), 'refetch_all': bool(row[3])}
 
 def finish_metadata_fetch_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
     with connect() as connection:
@@ -588,6 +636,109 @@ def latest_metadata_fetch_task() -> dict[str, Any] | None:
         'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'claimed_at': row[3],
         'completed_at': row[4], 'error': row[5], 'summary': dict(row[6] or {}),
     }
+
+def queue_metadata_restandardization_task(
+    requested_by: str | None = None,
+    *,
+    snapshot_id: str | None = None,
+    rule_fingerprint: str | None = None,
+    continue_after: bool = False,
+) -> tuple[str | None, str | None]:
+    bootstrap_schema()
+    if not snapshot_id:
+        latest = latest_completed_inventory_snapshot()
+        if latest is None:
+            return None, 'No completed canonical inventory snapshot is available.'
+        snapshot_id = str(latest['snapshot_id'])
+    with connect() as connection:
+        active = active_canonical_pipeline_task(connection)
+        if active is not None:
+            return None, f'Canonical metadata re-standardization for {active[0]} is already {active[1]}.'
+        inventory = connection.execute(
+            'SELECT status FROM bacterial_inventory_snapshot WHERE snapshot_id = %s',
+            (snapshot_id,),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != 'completed':
+            return None, 'Canonical inventory snapshot is not completed.'
+        coverage = standardized_metadata_coverage(snapshot_id)
+        if not coverage['standardized_assemblies']:
+            return None, 'No standardized canonical metadata exists yet; fetch or seed metadata first.'
+        connection.execute(
+            """
+            INSERT INTO canonical_metadata_restandardization_task (
+                snapshot_id, status, requested_by, requested_at, rule_fingerprint, continue_after
+            ) VALUES (%s, 'pending', %s, %s, %s, %s)
+            """,
+            (snapshot_id, requested_by, utc_now(), rule_fingerprint, bool(continue_after)),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+
+def claim_metadata_restandardization_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, snapshot_id, rule_fingerprint, continue_after
+            FROM canonical_metadata_restandardization_task
+            WHERE status = 'pending'
+            ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            'UPDATE canonical_metadata_restandardization_task SET status = %s, claimed_by = %s, claimed_at = %s WHERE id = %s',
+            ('running', worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {'id': int(row[0]), 'snapshot_id': str(row[1]), 'rule_fingerprint': str(row[2] or ''), 'continue_after': bool(row[3])}
+
+
+def finish_metadata_restandardization_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            'UPDATE canonical_metadata_restandardization_task SET status = %s, completed_at = %s, error = %s, summary_json = %s WHERE id = %s',
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+
+def latest_metadata_restandardization_task() -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT snapshot_id, status, requested_at, claimed_at, completed_at, rule_fingerprint, error, summary_json
+            FROM canonical_metadata_restandardization_task
+            ORDER BY requested_at DESC LIMIT 1
+            """
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        'snapshot_id': row[0], 'status': row[1], 'requested_at': row[2], 'claimed_at': row[3],
+        'completed_at': row[4], 'rule_fingerprint': row[5], 'error': row[6], 'summary': dict(row[7] or {}),
+    }
+
+
+def inventory_accession_batch(snapshot_id: str, *, after_accession: str = "", limit: int = 100) -> list[str]:
+    bootstrap_schema()
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT assembly_accession
+            FROM bacterial_inventory_membership
+            WHERE snapshot_id = %s AND assembly_accession > %s
+            ORDER BY assembly_accession
+            LIMIT %s
+            """,
+            (snapshot_id, after_accession, min(1000, max(1, int(limit)))),
+        ).fetchall()
+    return [str(row[0]) for row in rows]
+
 
 def missing_standardized_accession_batch(snapshot_id: str, *, limit: int = 100) -> list[str]:
     bootstrap_schema()
