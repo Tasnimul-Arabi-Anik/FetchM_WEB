@@ -7947,6 +7947,64 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
     return status
 
 
+def build_canonical_metadata_release_gate(db: sqlite3.Connection | None = None, root_inventory: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Validate activation of rank-aware canonical metadata browsing only.
+
+    This gate does not replace legacy sequence-download or QC datasets. It
+    switches public metadata search/reporting to an explicitly approved
+    canonical snapshot after its coverage and accounting checks pass.
+    """
+    connection = db or get_db()
+    root = dict(root_inventory or canonical_root_inventory_dashboard())
+    snapshot_id = str(root.get("snapshot_id") or "")
+    active_snapshot_id = str(get_setting("canonical_active_snapshot_id", "", connection) or "")
+    previous_snapshot_id = str(get_setting("previous_canonical_active_snapshot_id", "", connection) or "")
+    blockers: list[str] = []
+    cautions: list[str] = []
+    if not root.get("configured"):
+        blockers.append("Dataset production database is not configured.")
+    elif not root.get("available") or not snapshot_id:
+        blockers.append("No canonical bacterial root snapshot is available.")
+    elif str(root.get("status")) != "completed":
+        blockers.append("Canonical bacterial root inventory is not completed.")
+    coverage = dict(root.get("standardized_metadata_coverage") or {})
+    root_total = int(root.get("root_unique_assemblies") or 0)
+    standardized_total = int(coverage.get("standardized_assemblies") or 0)
+    missing_total = int(coverage.get("missing_standardized_assemblies") or 0)
+    if snapshot_id and (not coverage or missing_total != 0 or standardized_total != root_total):
+        blockers.append("Standardized metadata does not cover every canonical bacterial assembly.")
+    reconciliation = dict(root.get("latest_reconciliation") or {})
+    if snapshot_id and str(reconciliation.get("snapshot_id") or "") != snapshot_id:
+        blockers.append("Reconciliation does not belong to the selected canonical snapshot.")
+    elif snapshot_id and (str(reconciliation.get("status") or "") != "pass" or int(reconciliation.get("unaccounted_assemblies") or 0) != 0 or int(reconciliation.get("accounted_unique_assemblies") or 0) != root_total):
+        blockers.append("Canonical root reconciliation does not account for every assembly.")
+    lineage = dict(root.get("taxonomy_lineage_summary") or {})
+    if snapshot_id and (str(lineage.get("snapshot_id") or "") != snapshot_id or int(lineage.get("root_assemblies") or 0) != root_total):
+        blockers.append("Rank-aware taxonomy lineage has not been generated for the full root snapshot.")
+    unresolved_genus = int(reconciliation.get("unresolved_genus_assemblies") or 0)
+    if unresolved_genus:
+        cautions.append(f"{unresolved_genus:,} assemblies remain retained without a resolved genus label; they are not silently discarded.")
+    if not bool(reconciliation.get("release_views_materialized")):
+        cautions.append("Sequence download and QC remain on the existing managed-dataset path until canonical release views are migrated.")
+    is_active = bool(snapshot_id and active_snapshot_id == snapshot_id)
+    return {
+        "snapshot_id": snapshot_id,
+        "active_snapshot_id": active_snapshot_id,
+        "previous_snapshot_id": previous_snapshot_id,
+        "status": "active" if is_active else "ready" if not blockers else "blocked",
+        "is_active": is_active,
+        "can_activate": bool(snapshot_id and not blockers and not is_active),
+        "can_clear_activation": bool(active_snapshot_id),
+        "blockers": blockers,
+        "cautions": cautions,
+        "root_unique_assemblies": root_total,
+        "standardized_assemblies": standardized_total,
+        "accounted_unique_assemblies": int(reconciliation.get("accounted_unique_assemblies") or 0),
+        "unresolved_genus_assemblies": unresolved_genus,
+        "metadata_only": True,
+    }
+
+
 def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> dict[str, Any]:
     connection = db or get_db()
     ensure_legacy_live_dataset_version(connection)
@@ -24695,6 +24753,7 @@ def admin_dashboard() -> str:
         storage=build_admin_storage_summary(),
         deployment=build_deployment_status(),
         release_gate=build_release_gate_summary(dataset_pipeline, admin_summary),
+        canonical_release_gate=build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"]),
         system_monitor=build_system_monitor(db),
         security_posture=build_security_posture(),
         **admin_common_context("overview"),
@@ -25474,6 +25533,68 @@ def admin_materialize_canonical_partitions() -> Any:
             f"Canonical partition preview queued for {snapshot_id}. Replacement still requires materialized release views.",
             "success",
         )
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-validate", methods=["POST"])
+def admin_validate_canonical_metadata_release() -> Any:
+    require_admin()
+    with get_sqlite_connection() as db:
+        gate = build_canonical_metadata_release_gate(db)
+    record_audit_event(
+        "admin.canonical_metadata_validate",
+        target_type="canonical_snapshot",
+        target_id=str(gate.get("snapshot_id") or "missing"),
+        metadata={"status": gate["status"], "blockers": gate["blockers"], "metadata_only": True},
+    )
+    if gate["blockers"]:
+        flash("Canonical metadata activation blocked: " + "; ".join(gate["blockers"][:5]), "error")
+    else:
+        flash(f"Canonical metadata snapshot {gate['snapshot_id']} passed activation checks. This validates metadata browsing only; sequence/QC remains unchanged.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-activate", methods=["POST"])
+def admin_activate_canonical_metadata_release() -> Any:
+    require_admin()
+    requested_snapshot = (request.form.get("snapshot_id") or "").strip()
+    with get_sqlite_connection() as db:
+        gate = build_canonical_metadata_release_gate(db)
+        if not requested_snapshot or requested_snapshot != gate["snapshot_id"]:
+            flash("Canonical metadata activation rejected because the selected snapshot is no longer current.", "error")
+            return redirect(url_for("admin_dashboard"))
+        if gate["blockers"]:
+            flash("Canonical metadata activation blocked: " + "; ".join(gate["blockers"][:5]), "error")
+            return redirect(url_for("admin_dashboard"))
+        previous = str(get_setting("canonical_active_snapshot_id", "", db) or "")
+        set_setting("previous_canonical_active_snapshot_id", previous, db)
+        set_setting("canonical_active_snapshot_id", requested_snapshot, db)
+        db.commit()
+    record_audit_event(
+        "admin.canonical_metadata_activate",
+        target_type="canonical_snapshot",
+        target_id=requested_snapshot,
+        metadata={"previous_snapshot_id": previous, "metadata_only": True},
+    )
+    flash(f"Canonical metadata snapshot {requested_snapshot} is active for public metadata browsing. Sequence download and QC inputs were not replaced.", "success")
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/admin/dataset-pipeline/canonical-clear-activation", methods=["POST"])
+def admin_clear_canonical_metadata_release() -> Any:
+    require_admin()
+    with get_sqlite_connection() as db:
+        active = str(get_setting("canonical_active_snapshot_id", "", db) or "")
+        set_setting("previous_canonical_active_snapshot_id", active, db)
+        set_setting("canonical_active_snapshot_id", "", db)
+        db.commit()
+    record_audit_event(
+        "admin.canonical_metadata_clear_activation",
+        target_type="canonical_snapshot",
+        target_id=active or "none",
+        metadata={"metadata_only": True},
+    )
+    flash("Canonical metadata activation cleared. Public metadata browsing returns to latest preview mode; sequence/QC remains unchanged.", "success")
     return redirect(url_for("admin_dashboard"))
 
 

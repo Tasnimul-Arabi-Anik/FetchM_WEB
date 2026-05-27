@@ -271,6 +271,41 @@
         {% if dataset_pipeline.root_inventory.partition_error %}<span class="danger-text">{{ dataset_pipeline.root_inventory.partition_error }}</span>{% endif %}
       </div>
     </div>
+    <article class="dataset-state-card top-gap">
+      <div class="admin-group-head">
+        <div>
+          <p class="eyebrow">Canonical Metadata Release</p>
+          <h3>Public rank-aware metadata browsing</h3>
+        </div>
+        <span class="admin-chip {{ 'live' if canonical_release_gate.status == 'active' else 'running' if canonical_release_gate.status == 'ready' else 'failed' }}">{{ canonical_release_gate.status }}</span>
+      </div>
+      <p class="dataset-state-note">Activation switches metadata search and reports to the verified canonical bacterial snapshot. It does not replace sequence download or QC inputs.</p>
+      <div class="dataset-state-metrics top-gap">
+        <span>Candidate: {{ canonical_release_gate.snapshot_id or 'None' }}</span>
+        <span>Active metadata snapshot: {{ canonical_release_gate.active_snapshot_id or 'Preview mode' }}</span>
+        <span>Standardized coverage: {{ canonical_release_gate.standardized_assemblies }} / {{ canonical_release_gate.root_unique_assemblies }}</span>
+        <span>Accounted assemblies: {{ canonical_release_gate.accounted_unique_assemblies }} / {{ canonical_release_gate.root_unique_assemblies }}</span>
+        <span>Retained without resolved genus: {{ canonical_release_gate.unresolved_genus_assemblies }}</span>
+      </div>
+      {% if canonical_release_gate.blockers %}
+        <div class="pipeline-detail-list top-gap">{% for blocker in canonical_release_gate.blockers %}<span class="danger-text">{{ blocker }}</span>{% endfor %}</div>
+      {% endif %}
+      {% if canonical_release_gate.cautions %}
+        <div class="pipeline-detail-list top-gap">{% for caution in canonical_release_gate.cautions %}<span>{{ caution }}</span>{% endfor %}</div>
+      {% endif %}
+      <div class="pipeline-controls top-gap">
+        <form action="{{ url_for('admin_validate_canonical_metadata_release') }}" method="post">
+          <button type="submit" class="ghost" {% if not canonical_release_gate.snapshot_id %}disabled{% endif %}>Validate metadata release</button>
+        </form>
+        <form action="{{ url_for('admin_activate_canonical_metadata_release') }}" method="post" onsubmit="return confirm('Activate this canonical snapshot for public metadata browsing only? Sequence download and QC will remain unchanged.')">
+          <input type="hidden" name="snapshot_id" value="{{ canonical_release_gate.snapshot_id }}">
+          <button type="submit" {% if not canonical_release_gate.can_activate %}disabled{% endif %}>Activate metadata snapshot</button>
+        </form>
+        <form action="{{ url_for('admin_clear_canonical_metadata_release') }}" method="post" onsubmit="return confirm('Return canonical metadata browsing to latest preview mode?')">
+          <button type="submit" class="ghost" {% if not canonical_release_gate.can_clear_activation %}disabled{% endif %}>Return to preview mode</button>
+        </form>
+      </div>
+    </article>
     <div class="admin-command-grid top-gap">
       <article class="dataset-state-card">
         <div class="admin-group-head">
