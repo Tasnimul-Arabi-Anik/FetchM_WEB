@@ -292,16 +292,24 @@
       <div class="health-card"><strong>{{ 'On' if dataset_pipeline.root_inventory.configured else 'Off' }}</strong><span>Canonical production database</span></div>
     </div>
     <div class="hint-block top-gap">
-      <strong>Safe update policy</strong>
-      <p>Inventory, metadata reuse/fetch, standardization, and rank-aware views run against staging. Activation is manual by default. Optional automatic publication activates only a snapshot that passes all release checks, then regenerates Global Insights.</p>
+      <strong>Safe full-update policy</strong>
+      <p>Run Full Update starts the whole staged workflow: inventory, metadata reuse/fetch, standardization, rank-aware views, validation, verified activation, and Global Insights. Validation still controls replacement; failed checks keep the existing public snapshot.</p>
     </div>
+    {% if dataset_pipeline.root_inventory.run_summary %}
+      <div class="health-strip top-gap compact">
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.previous_assemblies_label }}</strong><span>Previous released/ready assemblies</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.latest_assemblies_label }}</strong><span>Latest staged assemblies</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.delta_label }}</strong><span>Assembly change</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.total_time_label }}</strong><span>Latest update time</span></div>
+      </div>
+    {% endif %}
     <form action="{{ url_for('admin_set_canonical_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
       <label><span>Scheduled refresh</span><select name="canonical_pipeline_schedule_enabled"><option value="1" {% if dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Paused</option></select></label>
       <label><span>Every N days</span><input type="number" name="canonical_pipeline_interval_days" min="1" max="365" value="{{ dataset_pipeline.canonical_interval_days }}" list="canonical-day-options"><datalist id="canonical-day-options"><option value="7"></option><option value="14"></option><option value="30"></option><option value="60"></option></datalist></label>
       <label><span>UTC hour</span><input type="number" name="canonical_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.canonical_schedule_hour_utc }}"></label>
-      <label><span>After validation</span><select name="canonical_pipeline_auto_publish_verified"><option value="0" {% if not dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Wait for manual activation</option><option value="1" {% if dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Auto-publish if passed</option></select></label>
-      <button type="submit">Save schedule</button>
-      <span class="section-note">Auto-publish never bypasses verification; failed checks keep the existing public snapshot.</span>
+      <label><span>Workflow mode</span><select name="canonical_pipeline_auto_publish_verified"><option value="1" {% if dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Full automation after validation</option><option value="0" {% if not dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Stage only; activate manually</option></select></label>
+      <button type="submit">Save workflow</button>
+      <span class="section-note">The primary inventory button uses this mode and runs every downstream step automatically.</span>
     </form>
     <div class="pipeline-board top-gap">
       {% for stage in canonical_pipeline_cards %}
@@ -319,12 +327,6 @@
                 {% if stage.snapshot_id %}<input type="hidden" name="snapshot_id" value="{{ stage.snapshot_id }}">{% endif %}
                 {% for field_name, field_value in (stage.extra_fields or {}).items() %}<input type="hidden" name="{{ field_name }}" value="{{ field_value }}">{% endfor %}
                 <button type="submit" {% if stage.disabled %}disabled{% endif %}>{{ stage.button }}</button>
-                {% if stage.continue_control %}
-                  <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Run after previous</label>
-                {% endif %}
-                {% if stage.publish_control %}
-                  <label class="pipeline-check"><input type="checkbox" name="auto_publish_verified" value="1">Auto-publish if validation passes</label>
-                {% endif %}
               </form>
             </div>
             {% if stage.advanced_note %}<p class="dataset-state-note">{{ stage.advanced_note }}</p>{% endif %}
@@ -351,8 +353,7 @@
       <div class="pipeline-controls top-gap">
         <form action="{{ url_for('admin_refetch_all_canonical_metadata') }}" method="post" onsubmit="return confirm('Refetch metadata for every canonical bacterial assembly from NCBI? This is expensive but does not change public data until activation.')">
           <button type="submit" class="ghost" {% if not dataset_pipeline.root_inventory.available or canonical_pipeline_cards[0].disabled %}disabled{% endif %}>Refetch all metadata</button>
-          <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Build views after fetch</label>
-          <label class="pipeline-check"><input type="checkbox" name="auto_publish_verified" value="1">Auto-publish if validation passes</label>
+          <span class="section-note">Continues through the same workflow mode after refetch.</span>
         </form>
       </div>
     </details>

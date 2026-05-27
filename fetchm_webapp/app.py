@@ -7833,7 +7833,7 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
             ).fetchone()
             partition_task = connection.execute(
                 """
-                SELECT snapshot_id, dataset_version_id, status, requested_at, completed_at, error, summary_json
+                SELECT snapshot_id, dataset_version_id, status, requested_at, claimed_at, completed_at, error, summary_json
                 FROM canonical_partition_task
                 ORDER BY requested_at DESC
                 LIMIT 1
@@ -7905,6 +7905,21 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
                     "expected_pages": (expected_total + 999) // 1000 if expected_total else 0,
                     "records_processed": int(page_row[3] or 0),
                 }
+                previous_row = connection.execute(
+                    """
+                    SELECT snapshot_id, root_unique_assemblies, completed_at
+                    FROM bacterial_inventory_snapshot
+                    WHERE status = 'completed'
+                      AND snapshot_id <> %s
+                    ORDER BY completed_at DESC NULLS LAST, requested_at DESC
+                    LIMIT 1
+                    """,
+                    (active_snapshot_id,),
+                ).fetchone()
+                if previous_row is not None:
+                    status["previous_snapshot_id"] = previous_row[0]
+                    status["previous_root_unique_assemblies"] = int(previous_row[1] or 0)
+                    status["previous_completed_at"] = previous_row[2]
     except Exception as exc:
         status["error"] = str(exc)[:160]
         return status
@@ -7913,6 +7928,7 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["task_status"] = task[1]
         status["task_requested_at"] = task[2]
         status["task_claimed_at"] = task[3]
+        status["task_completed_at"] = task[4]
         status["task_active"] = str(task[1]) in {"pending", "running"}
         if status["task_active"]:
             status["status"] = task[1]
@@ -7920,24 +7936,36 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["partition_snapshot_id"] = partition_task[0]
         status["partition_dataset_version_id"] = partition_task[1]
         status["partition_status"] = partition_task[2]
+        status["partition_requested_at"] = partition_task[3]
+        status["partition_claimed_at"] = partition_task[4]
+        status["partition_completed_at"] = partition_task[5]
         status["partition_task_active"] = str(partition_task[2]) in {"pending", "running"}
-        status["partition_error"] = partition_task[5]
-        status["partition_summary"] = dict(partition_task[6] or {})
+        status["partition_error"] = partition_task[6]
+        status["partition_summary"] = dict(partition_task[7] or {})
     if metadata_seed_task is not None:
         status["metadata_seed_snapshot_id"] = metadata_seed_task[0]
         status["metadata_seed_status"] = metadata_seed_task[1]
+        status["metadata_seed_requested_at"] = metadata_seed_task[2]
+        status["metadata_seed_claimed_at"] = metadata_seed_task[3]
+        status["metadata_seed_completed_at"] = metadata_seed_task[4]
         status["metadata_seed_task_active"] = str(metadata_seed_task[1]) in {"pending", "running"}
         status["metadata_seed_error"] = metadata_seed_task[5]
         status["metadata_seed_summary"] = dict(metadata_seed_task[6] or {})
     if metadata_fetch_task is not None:
         status["metadata_fetch_snapshot_id"] = metadata_fetch_task[0]
         status["metadata_fetch_status"] = metadata_fetch_task[1]
+        status["metadata_fetch_requested_at"] = metadata_fetch_task[2]
+        status["metadata_fetch_claimed_at"] = metadata_fetch_task[3]
+        status["metadata_fetch_completed_at"] = metadata_fetch_task[4]
         status["metadata_fetch_task_active"] = str(metadata_fetch_task[1]) in {"pending", "running"}
         status["metadata_fetch_error"] = metadata_fetch_task[5]
         status["metadata_fetch_summary"] = dict(metadata_fetch_task[6] or {})
     if metadata_restandardization_task is not None:
         status["metadata_restandardization_snapshot_id"] = metadata_restandardization_task[0]
         status["metadata_restandardization_status"] = metadata_restandardization_task[1]
+        status["metadata_restandardization_requested_at"] = metadata_restandardization_task[2]
+        status["metadata_restandardization_claimed_at"] = metadata_restandardization_task[3]
+        status["metadata_restandardization_completed_at"] = metadata_restandardization_task[4]
         status["metadata_restandardization_task_active"] = str(metadata_restandardization_task[1]) in {"pending", "running"}
         status["metadata_restandardization_rule_fingerprint"] = metadata_restandardization_task[5]
         status["metadata_restandardization_error"] = metadata_restandardization_task[6]
@@ -7975,6 +8003,37 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "canonical_accession_namespace": row[7],
         "error": row[8],
     })
+    def _duration_seconds(start_at: Any, end_at: Any) -> float | None:
+        if not start_at or not end_at:
+            return None
+        try:
+            return max(0.0, (end_at - start_at).total_seconds())
+        except TypeError:
+            return None
+
+    stage_duration_seconds = {
+        "inventory": _duration_seconds(status.get("task_claimed_at") or status.get("started_at") or status.get("requested_at"), status.get("task_completed_at") or status.get("completed_at")),
+        "metadata_seed": _duration_seconds(status.get("metadata_seed_claimed_at") or status.get("metadata_seed_requested_at"), status.get("metadata_seed_completed_at")),
+        "metadata_fetch": _duration_seconds(status.get("metadata_fetch_claimed_at") or status.get("metadata_fetch_requested_at"), status.get("metadata_fetch_completed_at")),
+        "metadata_restandardization": _duration_seconds(status.get("metadata_restandardization_claimed_at") or status.get("metadata_restandardization_requested_at"), status.get("metadata_restandardization_completed_at")),
+        "partitions": _duration_seconds(status.get("partition_claimed_at") or status.get("partition_requested_at"), status.get("partition_completed_at")),
+    }
+    status["stage_duration_seconds"] = stage_duration_seconds
+    latest_snapshot_start = status.get("task_claimed_at") or status.get("started_at") or status.get("requested_at")
+    latest_snapshot_end = status.get("partition_completed_at") or status.get("metadata_restandardization_completed_at") or status.get("metadata_fetch_completed_at") or status.get("metadata_seed_completed_at") or status.get("task_completed_at") or status.get("completed_at")
+    total_run_seconds = _duration_seconds(latest_snapshot_start, latest_snapshot_end)
+    previous_total = int(status.get("previous_root_unique_assemblies") or 0)
+    delta = root_unique_assemblies - previous_total if previous_total else None
+    status["run_summary"] = {
+        "previous_assemblies": previous_total,
+        "latest_assemblies": root_unique_assemblies,
+        "assembly_delta": delta,
+        "previous_assemblies_label": f"{previous_total:,}" if previous_total else "unknown",
+        "latest_assemblies_label": f"{root_unique_assemblies:,}",
+        "delta_label": (f"{delta:+,}" if delta is not None else "unknown"),
+        "total_time_label": format_elapsed_brief(total_run_seconds),
+    }
+
     try:
         from dataset_production_store import standardized_metadata_coverage
         status["standardized_metadata_coverage"] = standardized_metadata_coverage(str(row[0]))
@@ -8079,6 +8138,8 @@ def build_canonical_pipeline_cards(
     inventory_pages_failed = int(inventory_progress.get("failed") or 0)
     inventory_expected_pages = int(inventory_progress.get("expected_pages") or 0)
     inventory_elapsed_seconds = root_inventory.get("inventory_elapsed_seconds")
+    stage_durations = dict(root_inventory.get("stage_duration_seconds") or {})
+    run_summary = dict(root_inventory.get("run_summary") or {})
     metadata_seed_summary = dict(root_inventory.get("metadata_seed_summary") or {})
     metadata_seed_matches_snapshot = str(root_inventory.get("metadata_seed_snapshot_id") or "") == str(root_inventory.get("snapshot_id") or "")
     metadata_seed_details = [
@@ -8094,10 +8155,13 @@ def build_canonical_pipeline_cards(
             f"Already in canonical cache: {cache_rows:,}",
             f"Written from legacy cache: {legacy_rows:,}",
             f"Remaining for NCBI retrieval: {remaining_rows:,}",
+            f"Time taken: {format_elapsed_brief(stage_durations.get('metadata_seed'))}",
         ]
     inventory_percent = canonical_status_percent(root_inventory.get("status"), active=inventory_active)
     inventory_details = [
         f"Unique bacterial assemblies: {root_total:,}",
+        f"Change from previous: {run_summary.get('delta_label') or 'unknown'}",
+        f"Time taken: {format_elapsed_brief(stage_durations.get('inventory'))}",
         f"Snapshot: {root_inventory.get('snapshot_id') or 'none'}",
         "Source: NCBI Bacteria / GenBank GCA assemblies",
     ]
@@ -8129,10 +8193,10 @@ def build_canonical_pipeline_cards(
             "metric_label": "Canonical inventory scan",
             "details": inventory_details,
             "endpoint": "admin_run_canonical_inventory",
-            "button": "Run inventory",
+            "button": "Run Full Update",
             "disabled": (not root_inventory.get("configured")) or canonical_pipeline_active,
             "continue_control": True,
-            "advanced_note": "Advanced: a new inventory snapshot is a full root scan; activation remains manual.",
+            "advanced_note": "Starts every downstream step automatically; publication follows the workflow mode above.",
         },
         {
             "index": 2,
@@ -8159,6 +8223,7 @@ def build_canonical_pipeline_cards(
             "details": [
                 f"Still requiring retrieval: {missing_total:,}",
                 f"Standardized assemblies: {standardized_total:,}",
+                f"Time taken: {format_elapsed_brief(stage_durations.get('metadata_fetch'))}",
                 "Uses configured NCBI API key pool and parallel standardization workers.",
             ],
             "endpoint": "admin_fetch_missing_canonical_metadata",
@@ -8177,6 +8242,7 @@ def build_canonical_pipeline_cards(
             "details": [
                 f"Standardized assemblies: {standardized_total:,} / {root_total:,}",
                 f"Last full restart: {restandardization_status if restandardization_status != 'not generated' else 'not run'}",
+                f"Time taken: {format_elapsed_brief(stage_durations.get('metadata_restandardization'))}",
                 "Full restart reprocesses existing canonical metadata with current rules; it does not refetch NCBI.",
             ],
             "endpoint": "admin_restart_canonical_standardization",
@@ -8197,6 +8263,7 @@ def build_canonical_pipeline_cards(
                 f"Accounted assemblies: {int(reconciliation.get('accounted_unique_assemblies') or 0):,} / {int(reconciliation.get('root_unique_assemblies') or root_total):,}",
                 f"Canonical species: {int((lineage.get('distinct_rank_labels') or {}).get('species') or 0):,}",
                 f"Species-level/provisional labels retained: {int((lineage.get('distinct_rank_labels') or {}).get('species_level_labels') or 0):,}",
+                f"Time taken: {format_elapsed_brief(stage_durations.get('partitions'))}",
             ],
             "endpoint": "admin_materialize_canonical_partitions",
             "button": "Build views",
@@ -8266,9 +8333,7 @@ def build_canonical_pipeline_cards(
         card.setdefault("extra_fields", {})
         card.setdefault("confirm", "")
         card.setdefault("advanced_note", "")
-        card["publish_control"] = card["key"] in {
-            "inventory", "metadata_seed", "metadata_fetch", "metadata_restandardization", "partitions"
-        }
+        card["publish_control"] = False
     return cards
 
 
@@ -8330,7 +8395,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
         "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
         "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),
-        "canonical_auto_publish_verified": get_setting("canonical_pipeline_auto_publish_verified", "0", connection) == "1",
+        "canonical_auto_publish_verified": get_setting("canonical_pipeline_auto_publish_verified", "1", connection) == "1",
         "taxonomy": taxonomy_database_snapshot(),
         "sequential": {
             step_key: dataset_pipeline_sequential_enabled(step_key, connection)
@@ -8573,7 +8638,7 @@ def schedule_due_canonical_pipeline_run() -> None:
     elif snapshot_id:
         auto_publish = False
         with get_sqlite_connection() as db:
-            auto_publish = get_setting("canonical_pipeline_auto_publish_verified", "0", db) == "1"
+            auto_publish = get_setting("canonical_pipeline_auto_publish_verified", "1", db) == "1"
         set_canonical_auto_publish_intent(snapshot_id, auto_publish)
         logging.info("Scheduled canonical staged refresh queued: %s (auto_publish=%s)", snapshot_id, auto_publish)
 
@@ -23241,8 +23306,13 @@ def canonical_auto_publish_requested_from_form() -> bool:
     return request.form.get("auto_publish_verified") == "1"
 
 
+def canonical_workflow_auto_publish_enabled() -> bool:
+    with get_sqlite_connection() as db:
+        return get_setting("canonical_pipeline_auto_publish_verified", "1", db) == "1"
+
+
 def canonical_continue_or_publish_requested_from_form() -> bool:
-    return canonical_continue_requested_from_form() or canonical_auto_publish_requested_from_form()
+    return True
 
 
 def canonical_auto_publish_setting_key(snapshot_id: str) -> str:
@@ -26061,14 +26131,14 @@ def admin_run_canonical_inventory() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_inventory_task
-        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=canonical_continue_or_publish_requested_from_form())
+        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=True)
     except Exception as exc:
         flash(f"Canonical inventory could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_inventory",
             target_type="canonical_inventory",
@@ -26084,14 +26154,14 @@ def admin_seed_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_seed_task
-        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=canonical_continue_or_publish_requested_from_form())
+        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=True)
     except Exception as exc:
         flash(f"Canonical metadata seeding could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_seed",
             target_type="canonical_metadata_seed",
@@ -26107,14 +26177,14 @@ def admin_fetch_missing_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_fetch_task
-        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=canonical_continue_or_publish_requested_from_form())
+        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=True)
     except Exception as exc:
         flash(f"Canonical missing-metadata retrieval could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_fetch",
             target_type="canonical_metadata_fetch",
@@ -26132,7 +26202,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
         from dataset_production_store import queue_metadata_fetch_task
         snapshot_id, error = queue_metadata_fetch_task(
             str(user["username"]),
-            continue_after=canonical_continue_or_publish_requested_from_form(),
+            continue_after=True,
             refetch_all=True,
         )
     except Exception as exc:
@@ -26141,7 +26211,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_refetch_all",
             target_type="canonical_metadata_fetch",
@@ -26162,7 +26232,7 @@ def admin_restart_canonical_standardization() -> Any:
         snapshot_id, error = queue_metadata_restandardization_task(
             str(user["username"]),
             rule_fingerprint=rule_fingerprint,
-            continue_after=canonical_continue_or_publish_requested_from_form(),
+            continue_after=True,
         )
     except Exception as exc:
         flash(f"Canonical metadata re-standardization could not be queued: {exc}", "error")
@@ -26170,7 +26240,7 @@ def admin_restart_canonical_standardization() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_restandardize",
             target_type="canonical_metadata_restandardization",
@@ -26196,7 +26266,7 @@ def admin_materialize_canonical_partitions() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
         record_audit_event(
             "admin.dataset_pipeline_canonical_partitions",
             target_type="canonical_partition",
