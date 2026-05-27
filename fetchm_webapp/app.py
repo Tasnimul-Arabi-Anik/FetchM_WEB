@@ -22836,6 +22836,9 @@ def run_worker_loop() -> None:
             if WORKER_MODE in {"all", "metadata", "global-insights"}:
                 if process_canonical_metadata_report_task(worker_name):
                     continue
+
+            # Global snapshots scan the full active inventory; reserve them for a dedicated worker.
+            if WORKER_MODE in {"all", "global-insights"}:
                 global_insight_task = claim_next_global_insight_task(worker_name)
                 if global_insight_task is not None:
                     with maintain_worker_heartbeat(worker_name):
