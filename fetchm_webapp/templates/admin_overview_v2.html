@@ -206,6 +206,7 @@
       </div>
       <div class="health-strip">
         <div class="health-card"><strong>{{ observability.live_worker_total }}</strong><span>Live workers</span></div>
+        <div class="health-card"><strong>{{ observability.legacy_metadata_backlog.total or 0 }}</strong><span>Legacy per-taxon backlog</span></div>
         <div class="health-card"><strong>{{ "%.1f"|format(system_monitor.cpu_percent) if system_monitor.cpu_percent is not none else "N/A" }}%</strong><span>CPU usage</span></div>
         <div class="health-card"><strong>{{ system_monitor.memory.used_label }}</strong><span>Memory used of {{ system_monitor.memory.total_label }}</span></div>
         <div class="health-card"><strong>{{ storage.disk_free_label }}</strong><span>System free space</span></div>
@@ -216,6 +217,16 @@
     <div class="hint-block top-gap">
       <strong>Coverage principle</strong>
       <p>The current live release uses genus-scoped metadata, with species files only for confident assignments. Future releases must reconcile those public views to the canonical GenBank bacterial root inventory before replacement.</p>
+    </div>
+    <div class="hint-block top-gap">
+      <strong>Legacy per-taxon metadata backlog</strong>
+      <p>The old genus/species metadata builders are retired for normal operation. These counts are kept for audit only and do not block the canonical bacterial-root pipeline or Global Insights.</p>
+      <div class="dataset-state-metrics top-gap">
+        <span>{{ observability.legacy_metadata_backlog.pending or 0 }} pending</span>
+        <span>{{ observability.legacy_metadata_backlog.building or 0 }} previously building</span>
+        <span>{{ observability.legacy_metadata_backlog.missing or 0 }} missing</span>
+        <span>{{ observability.legacy_metadata_backlog.failed or 0 }} failed</span>
+      </div>
     </div>
     <div class="hint-block top-gap">
       <strong>Canonical release denominator</strong>
@@ -466,7 +477,7 @@
       <summary>Workers and active claims</summary>
       <div class="grid admin-group-grid top-gap">
         <section><h3>Workers</h3>{% if observability.worker_snapshots %}<div class="admin-list">{% for item in observability.worker_snapshots %}<div class="admin-card"><div class="job-card-head"><strong>{{ item.worker_name }}</strong><span class="status {{ 'running' if item.alive else 'failed' }}">{{ 'live' if item.alive else 'stale' }}</span></div><div class="job-meta">Last heartbeat {{ item.age_label }} ago</div><div class="job-meta">{{ item.metadata_builds }} metadata builds • {{ item.running_jobs }} running jobs</div></div>{% endfor %}</div>{% else %}<p class="empty">No worker heartbeats found.</p>{% endif %}</section>
-        <section><h3>Active Metadata Builds</h3>{% if observability.metadata_claims %}<div class="admin-list">{% for item in observability.metadata_claims %}<div class="admin-card"><div class="job-card-head"><strong>{{ item.species_name }}</strong><span class="status {{ 'running' if item.worker_live else 'failed' }}">{{ item.status }}</span></div><div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div><div class="job-meta">{{ item.progress.headline }} ({{ item.progress.percent }}%)</div></div>{% endfor %}</div>{% else %}<p class="empty">No active metadata builds.</p>{% endif %}</section>
+        <section><h3>Legacy per-taxon metadata claims</h3>{% if observability.metadata_claims %}<p class="section-note">Audit-only remnants from the retired genus/species metadata builder.</p><div class="admin-list">{% for item in observability.metadata_claims %}<div class="admin-card"><div class="job-card-head"><strong>{{ item.species_name }}</strong><span class="status {{ 'running' if item.worker_live else 'failed' }}">{{ item.status }}</span></div><div class="job-meta">{{ item.worker_name or 'No worker recorded' }} • claimed {{ item.age_label }} ago</div><div class="job-meta">{{ item.progress.headline }} ({{ item.progress.percent }}%)</div></div>{% endfor %}</div>{% else %}<p class="empty">No legacy per-taxon metadata claims.</p>{% endif %}</section>
       </div>
     </details>
   </section>

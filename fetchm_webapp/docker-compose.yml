@@ -99,6 +99,7 @@ services:
     cpus: "8"
 
   fetchm-worker:
+    profiles: ["legacy-per-taxon"]
     build:
       context: ..
       dockerfile: fetchm_webapp/Dockerfile
@@ -117,6 +118,7 @@ services:
     restart: unless-stopped
 
   fetchm-worker-2:
+    profiles: ["legacy-per-taxon"]
     build:
       context: ..
       dockerfile: fetchm_webapp/Dockerfile
@@ -135,6 +137,7 @@ services:
     restart: unless-stopped
 
   fetchm-worker-3:
+    profiles: ["legacy-per-taxon"]
     build:
       context: ..
       dockerfile: fetchm_webapp/Dockerfile
@@ -153,6 +156,7 @@ services:
     restart: unless-stopped
 
   fetchm-worker-14:
+    profiles: ["legacy-per-taxon"]
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
@@ -162,6 +166,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
 
   fetchm-worker-15:
+    profiles: ["legacy-per-taxon"]
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"
@@ -171,6 +176,7 @@ services:
       FETCHM_WEBAPP_METADATA_FETCH_BATCH_SIZE: "8"
 
   fetchm-worker-16:
+    profiles: ["legacy-per-taxon"]
     <<: *fetchm-worker-base
     environment:
       FETCHM_WEBAPP_DEBUG: "0"

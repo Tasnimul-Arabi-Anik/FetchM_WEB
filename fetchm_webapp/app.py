@@ -24300,6 +24300,21 @@ def list_worker_snapshots(*, include_stale: bool = False) -> list[dict[str, Any]
     return snapshots
 
 
+def legacy_per_taxon_metadata_backlog(db: sqlite3.Connection | None = None) -> dict[str, int]:
+    connection = db or get_db()
+    rows = connection.execute(
+        """
+        SELECT metadata_status, COUNT(*) AS total
+        FROM species
+        WHERE metadata_status IN ('pending', 'building', 'failed', 'missing')
+        GROUP BY metadata_status
+        """
+    ).fetchall()
+    counts = {str(row["metadata_status"]): int(row["total"] or 0) for row in rows}
+    counts["total"] = sum(counts.get(key, 0) for key in ("pending", "building", "failed", "missing"))
+    return counts
+
+
 def build_observability_dashboard() -> dict[str, Any]:
     stale_heartbeat_files_removed = prune_stale_worker_heartbeats()
     jobs = list_all_jobs()
@@ -24323,6 +24338,7 @@ def build_observability_dashboard() -> dict[str, Any]:
         "stale_worker_total": max(0, len(stale_worker_snapshots) - len(worker_snapshots)),
         "stale_heartbeat_files_removed": stale_heartbeat_files_removed,
         "metadata_claims": metadata_claims,
+        "legacy_metadata_backlog": legacy_per_taxon_metadata_backlog(),
         "active_job_cards": active_job_cards,
         "stalled_job_cards": stalled_job_cards,
         "live_worker_total": sum(1 for item in worker_snapshots if item["alive"]),
