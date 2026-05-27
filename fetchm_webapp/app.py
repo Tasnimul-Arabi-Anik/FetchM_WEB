@@ -8563,7 +8563,8 @@ def process_global_insight_task(task: sqlite3.Row) -> None:
                 canonical_root_source=canonical_snapshot is not None,
                 source_snapshot_id=str(canonical_snapshot["snapshot_id"]) if canonical_snapshot else None,
             )
-        output_dir = str(global_insights_root() / "snapshots" / snapshot_id)
+        snapshot_dir_name = re.sub(r"[^a-zA-Z0-9._-]+", "-", snapshot_id.strip()).strip("-").lower() or "global-insights"
+        output_dir = str(global_insights_root() / "snapshots" / snapshot_dir_name)
         with get_sqlite_connection() as db:
             db.execute(
                 """
