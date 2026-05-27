@@ -8079,6 +8079,22 @@ def build_canonical_pipeline_cards(
     inventory_pages_failed = int(inventory_progress.get("failed") or 0)
     inventory_expected_pages = int(inventory_progress.get("expected_pages") or 0)
     inventory_elapsed_seconds = root_inventory.get("inventory_elapsed_seconds")
+    metadata_seed_summary = dict(root_inventory.get("metadata_seed_summary") or {})
+    metadata_seed_matches_snapshot = str(root_inventory.get("metadata_seed_snapshot_id") or "") == str(root_inventory.get("snapshot_id") or "")
+    metadata_seed_details = [
+        f"Canonical cache coverage: {standardized_total:,} / {root_total:,}",
+        f"Remaining for NCBI retrieval: {missing_total:,}",
+        "Existing accession-level standardized rows are reused without rewriting them.",
+    ]
+    if metadata_seed_matches_snapshot and metadata_seed_summary:
+        cache_rows = int(metadata_seed_summary.get("cached_standardized_rows_at_start") or 0)
+        legacy_rows = int(metadata_seed_summary.get("seeded_standardized_rows") or 0)
+        remaining_rows = int(metadata_seed_summary.get("missing_standardized_assemblies") or missing_total)
+        metadata_seed_details = [
+            f"Already in canonical cache: {cache_rows:,}",
+            f"Written from legacy cache: {legacy_rows:,}",
+            f"Remaining for NCBI retrieval: {remaining_rows:,}",
+        ]
     inventory_percent = canonical_status_percent(root_inventory.get("status"), active=inventory_active)
     inventory_details = [
         f"Unique bacterial assemblies: {root_total:,}",
@@ -8121,16 +8137,12 @@ def build_canonical_pipeline_cards(
         {
             "index": 2,
             "key": "metadata_seed",
-            "label": "Reuse existing metadata",
-            "short": "Seed the canonical store from previously standardized rows by assembly accession.",
+            "label": "Reuse cached metadata",
+            "short": "Reuse accession-level standardized rows already held in the canonical store; import legacy rows only for first-time bootstrap.",
             "status": root_inventory.get("metadata_seed_status") or "not generated",
             "percent": canonical_status_percent(root_inventory.get("metadata_seed_status"), active=bool(root_inventory.get("metadata_seed_task_active"))),
-            "metric_label": "Reusable metadata",
-            "details": [
-                f"Standardized coverage: {standardized_total:,} / {root_total:,}",
-                f"Missing after reuse: {missing_total:,}",
-                "Does not fetch NCBI unless accessions remain uncovered.",
-            ],
+            "metric_label": "Canonical metadata cache",
+            "details": metadata_seed_details,
             "endpoint": "admin_seed_canonical_metadata",
             "button": "Reuse metadata",
             "disabled": (not root_inventory.get("available")) or str(root_inventory.get("status")) != "completed" or canonical_pipeline_active,

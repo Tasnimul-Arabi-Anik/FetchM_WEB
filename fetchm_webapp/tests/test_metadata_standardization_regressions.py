@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import sys
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -25,6 +26,7 @@ from app import (
 from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
+from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -101,9 +103,50 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertTrue(cards[4]["publish_control"])
         self.assertFalse(cards[5]["publish_control"])
         self.assertTrue(cards[2]["disabled"])
+        self.assertEqual(cards[1]["label"], "Reuse cached metadata")
         root["metadata_fetch_task_active"] = True
         busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
         self.assertTrue(all(card["disabled"] for card in busy_cards))
+
+    def test_canonical_seed_skips_legacy_sqlite_when_accession_cache_exists(self) -> None:
+        coverage = {
+            "root_unique_assemblies": 1000,
+            "standardized_assemblies": 990,
+            "missing_standardized_assemblies": 10,
+        }
+        with patch.object(canonical_seed_tool, "standardized_metadata_coverage", side_effect=[coverage, coverage]), patch.object(
+            canonical_seed_tool, "iter_existing_metadata_rows"
+        ) as legacy_scan, patch.object(
+            sys, "argv", ["seed", "--snapshot-id", "cache-refresh", "--sqlite-db", "/does/not/exist.sqlite"]
+        ):
+            self.assertEqual(canonical_seed_tool.main(), 0)
+        legacy_scan.assert_not_called()
+
+    def test_canonical_metadata_cache_summary_reports_reuse_without_rewrite(self) -> None:
+        root = {
+            "configured": True,
+            "available": True,
+            "status": "completed",
+            "snapshot_id": "cache-refresh",
+            "root_unique_assemblies": 1000,
+            "metadata_seed_status": "completed",
+            "metadata_seed_snapshot_id": "cache-refresh",
+            "metadata_seed_summary": {
+                "cached_standardized_rows_at_start": 990,
+                "seeded_standardized_rows": 0,
+                "missing_standardized_assemblies": 10,
+            },
+            "standardized_metadata_coverage": {
+                "standardized_assemblies": 990,
+                "missing_standardized_assemblies": 10,
+            },
+        }
+        cards = fetchm_app.build_canonical_pipeline_cards(root, {"status": "blocked"}, None)
+        self.assertEqual(cards[1]["details"], [
+            "Already in canonical cache: 990",
+            "Written from legacy cache: 0",
+            "Remaining for NCBI retrieval: 10",
+        ])
 
     def test_canonical_inventory_card_shows_checkpoint_progress_and_eta(self) -> None:
         root = {

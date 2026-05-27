@@ -61,31 +61,45 @@ def main() -> int:
     parser.add_argument('--sqlite-db', required=True)
     parser.add_argument('--batch-size', type=int, default=5000)
     parser.add_argument('--rule-fingerprint', default=None)
+    parser.add_argument(
+        '--force-legacy-import', action='store_true',
+        help='Import reusable rows from the legacy SQLite store even when canonical standardized rows already exist.',
+    )
     args = parser.parse_args()
     sqlite_db = Path(args.sqlite_db)
-    if not sqlite_db.exists():
-        raise SystemExit(f'SQLite database not found: {sqlite_db}')
     fingerprint = rule_fingerprint(args.rule_fingerprint)
+    coverage_before = standardized_metadata_coverage(args.snapshot_id)
+    cached_rows = int(coverage_before.get('standardized_assemblies') or 0)
+    # Once the accession-level canonical cache exists, new root snapshots already reuse
+    # it through the coverage join. Re-importing millions of SQLite rows only rewrites
+    # unchanged data; newly uncovered accessions should be retrieved fresh from NCBI.
+    legacy_import = bool(args.force_legacy_import or cached_rows == 0)
+    if legacy_import and not sqlite_db.exists():
+        raise SystemExit(f'SQLite database not found for legacy bootstrap import: {sqlite_db}')
     batch: list[dict[str, Any]] = []
     scanned = unique_candidates = seeded = skipped = 0
-    for payload, scanned_count, yielded_count in iter_existing_metadata_rows(sqlite_db):
-        scanned = scanned_count
-        unique_candidates = yielded_count
-        batch.append(payload)
-        if len(batch) >= args.batch_size:
+    if legacy_import:
+        for payload, scanned_count, yielded_count in iter_existing_metadata_rows(sqlite_db):
+            scanned = scanned_count
+            unique_candidates = yielded_count
+            batch.append(payload)
+            if len(batch) >= args.batch_size:
+                result = seed_standardized_metadata_batch(args.snapshot_id, batch, rule_fingerprint=fingerprint)
+                seeded += result['seeded']
+                skipped += result['skipped']
+                batch.clear()
+        if batch:
             result = seed_standardized_metadata_batch(args.snapshot_id, batch, rule_fingerprint=fingerprint)
             seeded += result['seeded']
             skipped += result['skipped']
-            batch.clear()
-    if batch:
-        result = seed_standardized_metadata_batch(args.snapshot_id, batch, rule_fingerprint=fingerprint)
-        seeded += result['seeded']
-        skipped += result['skipped']
     coverage = standardized_metadata_coverage(args.snapshot_id)
     summary = {
         'snapshot_id': args.snapshot_id,
         'sqlite_db': str(sqlite_db),
         'rule_fingerprint': fingerprint,
+        'reuse_mode': 'legacy_bootstrap_import' if legacy_import else 'canonical_accession_cache',
+        'cached_standardized_rows_at_start': cached_rows,
+        'legacy_import_attempted': legacy_import,
         'sqlite_rows_scanned': scanned,
         'unique_sqlite_accessions_seen': unique_candidates,
         'seeded_standardized_rows': seeded,
