@@ -1249,6 +1249,19 @@ def materialize_taxonomy_lineage_from_inventory(snapshot_id: str) -> dict[str, A
             """,
             (snapshot_id,),
         ).fetchone()
+        canonical_species_counts = connection.execute(
+            """
+            SELECT COUNT(DISTINCT species_name), COUNT(*)
+            FROM assembly_taxonomy_lineage
+            WHERE snapshot_id = %s
+              AND species_name ~ '^[A-Z][A-Za-z0-9_-]+ [a-z][a-z0-9-]+$'
+              AND lower(split_part(species_name, ' ', 2)) NOT IN (
+                  'sp', 'sp.', 'spp', 'spp.', 'bacterium', 'archaeon', 'microorganism',
+                  'metagenome', 'uncultured', 'unclassified', 'endosymbiont', 'symbiont'
+              )
+            """,
+            (snapshot_id,),
+        ).fetchone()
         status_counts = dict(connection.execute(
             'SELECT resolution_status, COUNT(*) FROM assembly_taxonomy_lineage WHERE snapshot_id = %s GROUP BY resolution_status',
             (snapshot_id,),
@@ -1266,8 +1279,11 @@ def materialize_taxonomy_lineage_from_inventory(snapshot_id: str) -> dict[str, A
         'distinct_rank_labels': {
             'phylum': int(distinct_counts[0] or 0), 'class': int(distinct_counts[1] or 0),
             'order': int(distinct_counts[2] or 0), 'family': int(distinct_counts[3] or 0),
-            'genus': int(distinct_counts[4] or 0), 'species': int(distinct_counts[5] or 0),
+            'genus': int(distinct_counts[4] or 0),
+            'species': int(canonical_species_counts[0] or 0),
+            'species_level_labels': int(distinct_counts[5] or 0),
         },
+        'canonical_species_assembly_count': int(canonical_species_counts[1] or 0),
         'resolution_status_counts': {str(key): int(value) for key, value in status_counts.items()},
         'public_release_replaced': False,
         }

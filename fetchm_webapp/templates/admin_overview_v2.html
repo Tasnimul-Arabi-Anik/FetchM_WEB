@@ -248,7 +248,8 @@
         {% endif %}
         {% if dataset_pipeline.root_inventory.taxonomy_lineage_summary %}
           <span>Lineage staged: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.root_assemblies }} assemblies</span>
-          <span>Resolved rank labels: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.phylum }} phyla, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.class }} classes, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.order }} orders, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.family }} families, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.genus }} genera</span>
+          <span>Resolved rank labels: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.phylum }} phyla, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.class }} classes, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.order }} orders, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.family }} families, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.genus }} genera, {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.species }} canonical species</span>
+          <span>Species-level/provisional labels retained: {{ dataset_pipeline.root_inventory.taxonomy_lineage_summary.distinct_rank_labels.species_level_labels }}</span>
         {% endif %}
       </div>
       <div class="pipeline-controls top-gap">
