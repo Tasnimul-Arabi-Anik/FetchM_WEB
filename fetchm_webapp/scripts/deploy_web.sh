@@ -17,6 +17,13 @@ mkdir -p "$DATA_DIR"
 
 cd "$APP_DIR"
 export FETCHM_WEBAPP_GIT_COMMIT="$COMMIT"
+# env_file values are applied at container runtime and otherwise mask the
+# build-time commit stamp exposed through /healthz. Update only this key.
+if grep -q '^FETCHM_WEBAPP_GIT_COMMIT=' .env; then
+  sed -i "s/^FETCHM_WEBAPP_GIT_COMMIT=.*/FETCHM_WEBAPP_GIT_COMMIT=$COMMIT/" .env
+else
+  printf '\nFETCHM_WEBAPP_GIT_COMMIT=%s\n' "$COMMIT" >> .env
+fi
 
 docker compose -f docker-compose.yml config --quiet
 docker compose -f docker-compose.yml build "$SERVICE"
