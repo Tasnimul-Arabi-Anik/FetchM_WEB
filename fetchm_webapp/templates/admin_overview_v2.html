@@ -291,25 +291,25 @@
       <div class="health-card"><strong>{{ admin_summary.latest_insight.snapshot_id if admin_summary.latest_insight else 'None' }}</strong><span>Latest Global Insights task</span></div>
       <div class="health-card"><strong>{{ 'On' if dataset_pipeline.root_inventory.configured else 'Off' }}</strong><span>Canonical production database</span></div>
     </div>
-    <div class="hint-block top-gap">
-      <strong>Safe full-update policy</strong>
-      <p>Run Full Update starts the whole staged workflow: inventory, metadata reuse/fetch, standardization, rank-aware views, validation, verified activation, and Global Insights. Validation still controls replacement; failed checks keep the existing public snapshot.</p>
+    <div class="hint-block top-gap compact">
+      <strong>Safe update</strong>
+      <p>New data is staged first. Checked steps continue downstream; publication still requires validation.</p>
     </div>
     {% if dataset_pipeline.root_inventory.run_summary %}
       <div class="health-strip top-gap compact">
-        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.previous_assemblies_label }}</strong><span>Previous released/ready assemblies</span></div>
-        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.latest_assemblies_label }}</strong><span>Latest staged assemblies</span></div>
-        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.delta_label }}</strong><span>Assembly change</span></div>
-        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.total_time_label }}</strong><span>Latest update time</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.previous_assemblies_label }}</strong><span>Previous</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.latest_assemblies_label }}</strong><span>Latest</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.delta_label }}</strong><span>Increase</span></div>
+        <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.run_summary.total_time_label }}</strong><span>Time</span></div>
       </div>
     {% endif %}
     <form action="{{ url_for('admin_set_canonical_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
       <label><span>Scheduled refresh</span><select name="canonical_pipeline_schedule_enabled"><option value="1" {% if dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Paused</option></select></label>
       <label><span>Every N days</span><input type="number" name="canonical_pipeline_interval_days" min="1" max="365" value="{{ dataset_pipeline.canonical_interval_days }}" list="canonical-day-options"><datalist id="canonical-day-options"><option value="7"></option><option value="14"></option><option value="30"></option><option value="60"></option></datalist></label>
       <label><span>UTC hour</span><input type="number" name="canonical_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.canonical_schedule_hour_utc }}"></label>
-      <label><span>Workflow mode</span><select name="canonical_pipeline_auto_publish_verified"><option value="1" {% if dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Full automation after validation</option><option value="0" {% if not dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Stage only; activate manually</option></select></label>
+      <label><span>Workflow mode</span><select name="canonical_pipeline_auto_publish_verified"><option value="1" {% if dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Auto publish after validation</option><option value="0" {% if not dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Stage only</option></select></label>
       <button type="submit">Save workflow</button>
-      <span class="section-note">The primary inventory button uses this mode and runs every downstream step automatically.</span>
+      <span class="section-note">Use the checkbox on each step to continue or stop there.</span>
     </form>
     <div class="pipeline-board top-gap">
       {% for stage in canonical_pipeline_cards %}
@@ -327,6 +327,9 @@
                 {% if stage.snapshot_id %}<input type="hidden" name="snapshot_id" value="{{ stage.snapshot_id }}">{% endif %}
                 {% for field_name, field_value in (stage.extra_fields or {}).items() %}<input type="hidden" name="{{ field_name }}" value="{{ field_value }}">{% endfor %}
                 <button type="submit" {% if stage.disabled %}disabled{% endif %}>{{ stage.button }}</button>
+                {% if stage.continue_control %}
+                  <label class="pipeline-check compact"><input type="checkbox" name="continue_after" value="1" checked>Continue</label>
+                {% endif %}
               </form>
             </div>
             {% if stage.advanced_note %}<p class="dataset-state-note">{{ stage.advanced_note }}</p>{% endif %}
@@ -345,15 +348,15 @@
     <details class="admin-advanced top-gap">
       <summary>Advanced rebuild options and safety notes</summary>
       <div class="pipeline-detail-list top-gap">
-        <span><strong>Full inventory rebuild:</strong> run step 1. It creates a new canonical root snapshot and does not replace public data.</span>
-        <span><strong>Metadata from scratch:</strong> refetches every canonical assembly from NCBI and re-standardizes it. Use only when upstream source fields must be refreshed.</span>
-        <span><strong>New standardization rules:</strong> use Restart full standardization, then rebuild rank-aware views and validate before activation.</span>
-        <span><strong>Rollback:</strong> use the release controls below; only one previous active version is retained.</span>
+        <span><strong>Inventory:</strong> full bacterial root scan.</span>
+        <span><strong>Refetch all:</strong> expensive NCBI refresh for every assembly.</span>
+        <span><strong>Rules changed:</strong> restart standardization, then rebuild views.</span>
+        <span><strong>Rollback:</strong> one previous active version is retained.</span>
       </div>
       <div class="pipeline-controls top-gap">
         <form action="{{ url_for('admin_refetch_all_canonical_metadata') }}" method="post" onsubmit="return confirm('Refetch metadata for every canonical bacterial assembly from NCBI? This is expensive but does not change public data until activation.')">
           <button type="submit" class="ghost" {% if not dataset_pipeline.root_inventory.available or canonical_pipeline_cards[0].disabled %}disabled{% endif %}>Refetch all metadata</button>
-          <span class="section-note">Continues through the same workflow mode after refetch.</span>
+          <label class="pipeline-check compact"><input type="checkbox" name="continue_after" value="1" checked>Continue</label>
         </form>
       </div>
     </details>

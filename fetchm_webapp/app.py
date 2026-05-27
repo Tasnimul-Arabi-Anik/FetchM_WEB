@@ -8145,7 +8145,7 @@ def build_canonical_pipeline_cards(
     metadata_seed_details = [
         f"Canonical cache coverage: {standardized_total:,} / {root_total:,}",
         f"Remaining for NCBI retrieval: {missing_total:,}",
-        "Existing accession-level standardized rows are reused without rewriting them.",
+        "No rewrite for unchanged rows.",
     ]
     if metadata_seed_matches_snapshot and metadata_seed_summary:
         cache_rows = int(metadata_seed_summary.get("cached_standardized_rows_at_start") or 0)
@@ -8187,25 +8187,25 @@ def build_canonical_pipeline_cards(
             "index": 1,
             "key": "inventory",
             "label": "Update bacterial inventory",
-            "short": "Refresh the canonical GenBank bacterial root inventory. Live users keep the current release.",
+            "short": "Full bacterial root scan.",
             "status": root_inventory.get("status") or "not generated",
             "percent": inventory_percent,
-            "metric_label": "Canonical inventory scan",
+            "metric_label": "Inventory",
             "details": inventory_details,
             "endpoint": "admin_run_canonical_inventory",
-            "button": "Run Full Update",
+            "button": "Update inventory",
             "disabled": (not root_inventory.get("configured")) or canonical_pipeline_active,
             "continue_control": True,
-            "advanced_note": "Starts every downstream step automatically; publication follows the workflow mode above.",
+            "advanced_note": "Checked = continue to metadata.",
         },
         {
             "index": 2,
             "key": "metadata_seed",
             "label": "Reuse cached metadata",
-            "short": "Reuse accession-level standardized rows already held in the canonical store; import legacy rows only for first-time bootstrap.",
+            "short": "Reuse existing standardized rows.",
             "status": root_inventory.get("metadata_seed_status") or "not generated",
             "percent": canonical_status_percent(root_inventory.get("metadata_seed_status"), active=bool(root_inventory.get("metadata_seed_task_active"))),
-            "metric_label": "Canonical metadata cache",
+            "metric_label": "Cache",
             "details": metadata_seed_details,
             "endpoint": "admin_seed_canonical_metadata",
             "button": "Reuse metadata",
@@ -8216,15 +8216,15 @@ def build_canonical_pipeline_cards(
             "index": 3,
             "key": "metadata_fetch",
             "label": "Fetch missing metadata",
-            "short": "Retrieve only accessions that were not covered by reusable metadata.",
+            "short": "Fetch only missing accessions.",
             "status": root_inventory.get("metadata_fetch_status") or "not generated",
             "percent": canonical_status_percent(root_inventory.get("metadata_fetch_status"), active=bool(root_inventory.get("metadata_fetch_task_active"))) if missing_total else 100 if standardized_total else 0,
-            "metric_label": "Missing metadata fetch",
+            "metric_label": "Fetch",
             "details": [
                 f"Still requiring retrieval: {missing_total:,}",
                 f"Standardized assemblies: {standardized_total:,}",
                 f"Time taken: {format_elapsed_brief(stage_durations.get('metadata_fetch'))}",
-                "Uses configured NCBI API key pool and parallel standardization workers.",
+                "API key pool + parallel workers.",
             ],
             "endpoint": "admin_fetch_missing_canonical_metadata",
             "button": "Fetch missing",
@@ -8235,15 +8235,15 @@ def build_canonical_pipeline_cards(
             "index": 4,
             "key": "metadata_restandardization",
             "label": "Standardize metadata",
-            "short": "Newly fetched rows are standardized in step 3. Restart all rows only after changing rules.",
+            "short": "Incremental by default; full restart after rule changes.",
             "status": standardization_display_status,
             "percent": canonical_status_percent(restandardization_status, active=bool(root_inventory.get("metadata_restandardization_task_active"))) if restandardization_status != "not generated" else (100 if standardized_total else 0),
-            "metric_label": "Current-rule standardization",
+            "metric_label": "Standardization",
             "details": [
                 f"Standardized assemblies: {standardized_total:,} / {root_total:,}",
                 f"Last full restart: {restandardization_status if restandardization_status != 'not generated' else 'not run'}",
                 f"Time taken: {format_elapsed_brief(stage_durations.get('metadata_restandardization'))}",
-                "Full restart reprocesses existing canonical metadata with current rules; it does not refetch NCBI.",
+                "No NCBI refetch.",
             ],
             "endpoint": "admin_restart_canonical_standardization",
             "button": "Restart full standardization",
@@ -8255,10 +8255,10 @@ def build_canonical_pipeline_cards(
             "index": 5,
             "key": "partitions",
             "label": "Build rank-aware views",
-            "short": "Create phylum, class, order, family, genus, canonical species, and provisional label views.",
+            "short": "Build rank-aware metadata views.",
             "status": root_inventory.get("partition_status") or "not generated",
             "percent": canonical_status_percent(root_inventory.get("partition_status"), active=bool(root_inventory.get("partition_task_active"))),
-            "metric_label": "Taxonomy partitions",
+            "metric_label": "Views",
             "details": [
                 f"Accounted assemblies: {int(reconciliation.get('accounted_unique_assemblies') or 0):,} / {int(reconciliation.get('root_unique_assemblies') or root_total):,}",
                 f"Canonical species: {int((lineage.get('distinct_rank_labels') or {}).get('species') or 0):,}",
@@ -8268,20 +8268,20 @@ def build_canonical_pipeline_cards(
             "endpoint": "admin_materialize_canonical_partitions",
             "button": "Build views",
             "disabled": (not root_inventory.get("available")) or str(root_inventory.get("status")) != "completed" or canonical_pipeline_active or missing_total != 0,
-            "continue_control": False,
+            "continue_control": True,
         },
         {
             "index": 6,
             "key": "verify",
             "label": "Verify staged release",
-            "short": "Check coverage, accounting, lineage, and release blockers before activation.",
+            "short": "Check release blockers.",
             "status": canonical_release_gate.get("status") or "blocked",
             "percent": 100 if canonical_release_gate.get("status") in {"ready", "active"} else 0,
-            "metric_label": "Verification gate",
+            "metric_label": "Validation",
             "details": [
                 f"Standardized coverage: {int(canonical_release_gate.get('standardized_assemblies') or 0):,} / {int(canonical_release_gate.get('root_unique_assemblies') or 0):,}",
                 f"Accounted assemblies: {int(canonical_release_gate.get('accounted_unique_assemblies') or 0):,} / {int(canonical_release_gate.get('root_unique_assemblies') or 0):,}",
-                "Activation is blocked until this gate is clear.",
+                "Must pass before activation.",
             ],
             "endpoint": "admin_validate_canonical_metadata_release",
             "button": "Validate release",
@@ -8292,10 +8292,10 @@ def build_canonical_pipeline_cards(
             "index": 7,
             "key": "activate",
             "label": "Activate metadata snapshot",
-            "short": "Switch public metadata browsing to the verified canonical snapshot. Sequence/QC remains unchanged.",
+            "short": "Switch public metadata browsing.",
             "status": canonical_release_gate.get("status") or "blocked",
             "percent": 100 if canonical_release_gate.get("is_active") else 0,
-            "metric_label": "Public metadata snapshot",
+            "metric_label": "Active snapshot",
             "details": [
                 f"Candidate: {canonical_release_gate.get('snapshot_id') or 'none'}",
                 f"Active: {canonical_release_gate.get('active_snapshot_id') or 'preview mode'}",
@@ -8312,14 +8312,14 @@ def build_canonical_pipeline_cards(
             "index": 8,
             "key": "global_insights",
             "label": "Generate Global Insights",
-            "short": "Rebuild the manuscript-grade global report from the active canonical snapshot.",
+            "short": "Rebuild public insights report.",
             "status": insight_status,
             "percent": canonical_status_percent(insight_status, active=bool(active_insight)),
-            "metric_label": "Global Insights snapshot",
+            "metric_label": "Insights",
             "details": [
                 f"Latest task: {(latest_insight or {}).get('snapshot_id') or 'none'}",
                 f"Status: {insight_status}",
-                "Run after activation for public-facing results.",
+                "Run after activation.",
             ],
             "endpoint": "admin_generate_global_insights",
             "button": "Generate insights",
@@ -23312,7 +23312,11 @@ def canonical_workflow_auto_publish_enabled() -> bool:
 
 
 def canonical_continue_or_publish_requested_from_form() -> bool:
-    return True
+    return canonical_continue_requested_from_form()
+
+
+def canonical_auto_publish_for_continuing_form() -> bool:
+    return canonical_continue_requested_from_form() and canonical_workflow_auto_publish_enabled()
 
 
 def canonical_auto_publish_setting_key(snapshot_id: str) -> str:
@@ -26131,14 +26135,14 @@ def admin_run_canonical_inventory() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_inventory_task
-        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=True)
+        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical inventory could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_inventory",
             target_type="canonical_inventory",
@@ -26154,14 +26158,14 @@ def admin_seed_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_seed_task
-        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=True)
+        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical metadata seeding could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_seed",
             target_type="canonical_metadata_seed",
@@ -26177,14 +26181,14 @@ def admin_fetch_missing_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_fetch_task
-        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=True)
+        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
     except Exception as exc:
         flash(f"Canonical missing-metadata retrieval could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_fetch",
             target_type="canonical_metadata_fetch",
@@ -26202,7 +26206,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
         from dataset_production_store import queue_metadata_fetch_task
         snapshot_id, error = queue_metadata_fetch_task(
             str(user["username"]),
-            continue_after=True,
+            continue_after=canonical_continue_requested_from_form(),
             refetch_all=True,
         )
     except Exception as exc:
@@ -26211,7 +26215,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_refetch_all",
             target_type="canonical_metadata_fetch",
@@ -26232,7 +26236,7 @@ def admin_restart_canonical_standardization() -> Any:
         snapshot_id, error = queue_metadata_restandardization_task(
             str(user["username"]),
             rule_fingerprint=rule_fingerprint,
-            continue_after=True,
+            continue_after=canonical_continue_requested_from_form(),
         )
     except Exception as exc:
         flash(f"Canonical metadata re-standardization could not be queued: {exc}", "error")
@@ -26240,7 +26244,7 @@ def admin_restart_canonical_standardization() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_restandardize",
             target_type="canonical_metadata_restandardization",
@@ -26266,7 +26270,7 @@ def admin_materialize_canonical_partitions() -> Any:
     if error:
         flash(error, "error")
     else:
-        set_canonical_auto_publish_intent(str(snapshot_id), canonical_workflow_auto_publish_enabled())
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_for_continuing_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_partitions",
             target_type="canonical_partition",

@@ -101,7 +101,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(cards[6]["endpoint"], "admin_activate_canonical_metadata_release")
         self.assertEqual(cards[7]["extra_fields"], {"next": "admin"})
         self.assertFalse(any(card["publish_control"] for card in cards))
-        self.assertEqual(cards[0]["button"], "Run Full Update")
+        self.assertEqual(cards[0]["button"], "Update inventory")
         self.assertIn("Change from previous", cards[0]["details"][1])
         self.assertTrue(cards[2]["disabled"])
         self.assertEqual(cards[1]["label"], "Reuse cached metadata")
