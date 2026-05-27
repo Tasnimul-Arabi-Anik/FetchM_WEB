@@ -1,27 +1,40 @@
 {% extends "base.html" %}
 {% block content %}
 <script src="{{ url_for('plotly_js') }}"></script>
+{% set is_canonical = canonical_target|default(false) %}
+{% set target_name = metadata_target.name if is_canonical else species.species_name %}
+{% set target_rank = metadata_target.rank if is_canonical else species.taxon_rank %}
+{% set target_rank_label = metadata_target.rank_label if is_canonical else species.taxon_rank %}
 <main class="layout">
   <section class="panel detail-head">
     <div>
       <p class="eyebrow">Metadata Analysis</p>
-      {% set taxon_label = taxonomy_label_metadata(species.species_name, species.taxon_rank) %}
-      <h1>{{ species.species_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
-      <p class="lede">Metadata Analysis of your target taxon{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %}. This label is searchable and retained for completeness, but reported separately from canonical species.{% endif %}</p>
+      {% set taxon_label = taxonomy_label_metadata(target_name, target_rank) %}
+      <h1>{{ target_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] and target_rank in ["species", "genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
+      <p class="lede">Metadata Analysis of your target taxon{% if is_canonical %} from the canonical rank-aware bacterial inventory.{% elif taxon_label.key not in ["canonical_species", "canonical_genus"] %}. This label is searchable and retained for completeness, but reported separately from canonical species.{% endif %}</p>
     </div>
     <div class="status-box">
-      <span class="status running">{{ species.taxon_rank }}</span>
+      <span class="status running">{{ target_rank_label }}</span>
       <div class="job-meta">{{ analysis.row_total }} genomes · {{ analysis.column_total }} metadata columns</div>
-      <div class="job-meta">Last built: {{ (species.metadata_last_built_at or "unknown")[:10] if species.metadata_last_built_at else "unknown" }}</div>
-      <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}">
-        {% if g.current_user %}Go to Sequence Download Page{% else %}Sign in for Sequence Download{% endif %}
-      </a>
+      {% if is_canonical %}
+        <div class="job-meta">Snapshot: {{ metadata_target.snapshot_id }} · {{ metadata_target.release_state }}</div>
+        <a class="button-like ghost" href="{{ metadata_target.download_url }}">Download metadata CSV</a>
+      {% else %}
+        <div class="job-meta">Last built: {{ (species.metadata_last_built_at or "unknown")[:10] if species.metadata_last_built_at else "unknown" }}</div>
+        <a class="button-like ghost" href="{{ url_for('taxon_sequences', species_id=species.id) }}">
+          {% if g.current_user %}Go to Sequence Download Page{% else %}Sign in for Sequence Download{% endif %}
+        </a>
+      {% endif %}
     </div>
   </section>
 
   <nav class="metadata-tabbar">
     {% for key, item in metadata_sections.items() %}
-      <a class="{% if active_section == key %}active{% endif %}" href="{{ url_for('taxon_metadata_section', species_id=species.id, section=key) }}">{{ item.label }}</a>
+      {% if is_canonical %}
+        <a class="{% if active_section == key %}active{% endif %}" href="{{ url_for('canonical_metadata_analysis_section', rank=metadata_target.rank, name=metadata_target.name, section=key) }}">{{ item.label }}</a>
+      {% else %}
+        <a class="{% if active_section == key %}active{% endif %}" href="{{ url_for('taxon_metadata_section', species_id=species.id, section=key) }}">{{ item.label }}</a>
+      {% endif %}
     {% endfor %}
   </nav>
 
@@ -30,7 +43,7 @@
       <strong>{{ analysis.row_total }}</strong>
       <span>Genomes analyzed</span>
     </article>
-    {% if species.taxon_rank == "genus" %}
+    {% if target_rank != "species" %}
       <article class="metric-card">
         <strong>{{ analysis.distinct_species_count }}</strong>
         <span>Species represented</span>
@@ -49,7 +62,7 @@
       <strong>{% if analysis.year_start %}{{ analysis.year_start }}-{{ analysis.year_end }}{% else %}Unknown{% endif %}</strong>
       <span>Collection year span</span>
     </article>
-    {% if species.taxon_rank == "genus" %}
+    {% if target_rank != "species" %}
       <article class="metric-card">
         <strong>{{ analysis.distinct_host_count }}</strong>
         <span>Distinct hosts</span>

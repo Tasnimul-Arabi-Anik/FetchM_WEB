@@ -23,13 +23,13 @@
 
     <section class="fetchm-workflow-card">
       <div class="selection-copy fetchm-selection-head">
-        <strong>Select your target species or genus</strong>
+        <strong>Select your target species or genus, or any higher rank</strong>
       </div>
 
       <label class="taxon-search selection-search fetchm-search-field">
         <div class="search-shell">
           <span class="fetchm-search-icon" aria-hidden="true"></span>
-          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" placeholder="Type Escherichia, Salmonella, Bacillus...">
+          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
           <div class="search-results" id="taxon-search-results" hidden></div>
         </div>
       </label>
@@ -213,9 +213,11 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "search-result";
-      const sourceLabel = item.source === "genus_metadata" && item.source_taxon_name
-        ? `species in ${item.source_taxon_name} metadata`
-        : item.taxon_rank;
+      const sourceLabel = item.source === "canonical"
+        ? `${item.rank_label || item.taxon_rank} · canonical inventory`
+        : (item.source === "genus_metadata" && item.source_taxon_name
+          ? `species in ${item.source_taxon_name} metadata`
+          : item.taxon_rank);
       button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(sourceLabel)} · ${item.genome_count || 0} genomes</span>`;
       button.addEventListener("mousedown", (event) => {
         event.preventDefault();
@@ -251,13 +253,19 @@
   function refreshSelectionSummary() {
     const selected = taxaByName.get(taxonSearchInput.value.trim());
     if (selected) {
-      selectedTaxonId.value = selected.id;
-      metadataPageLink.href = `/taxa/${selected.id}/metadata`;
+      selectedTaxonId.value = selected.id || `${selected.taxon_rank}:${selected.species_name}`;
+      metadataPageLink.href = selected.metadata_url || `/taxa/${selected.id}/metadata`;
       metadataPageLink.classList.remove("is-disabled");
       metadataPageLink.setAttribute("aria-disabled", "false");
-      sequenceLink.href = `/taxa/${selected.id}/sequences`;
-      sequenceLink.classList.remove("is-disabled");
-      sequenceLink.setAttribute("aria-disabled", "false");
+      if (selected.sequence_url || (selected.id && selected.source !== "canonical")) {
+        sequenceLink.href = selected.sequence_url || `/taxa/${selected.id}/sequences`;
+        sequenceLink.classList.remove("is-disabled");
+        sequenceLink.setAttribute("aria-disabled", "false");
+      } else {
+        sequenceLink.href = "#";
+        sequenceLink.classList.add("is-disabled");
+        sequenceLink.setAttribute("aria-disabled", "true");
+      }
     } else {
       selectedTaxonId.value = "";
       metadataPageLink.href = "#";
@@ -280,7 +288,7 @@
   metadataPageLink.addEventListener("click", (event) => {
     if (metadataPageLink.classList.contains("is-disabled")) {
       event.preventDefault();
-      showWarning("No species or genus has been selected.");
+      showWarning("No taxon has been selected.");
       return;
     }
     hideWarning();
@@ -290,7 +298,7 @@
   sequenceLink.addEventListener("click", (event) => {
     if (sequenceLink.classList.contains("is-disabled")) {
       event.preventDefault();
-      showWarning("No species or genus has been selected.");
+      showWarning("No taxon has been selected.");
       return;
     }
     setActiveView("seq");

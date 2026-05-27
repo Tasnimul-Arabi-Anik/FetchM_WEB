@@ -26,6 +26,8 @@ import zipfile
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, replace as dataclass_replace
+from types import SimpleNamespace
+from urllib.parse import unquote
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
 from functools import lru_cache
@@ -114,6 +116,10 @@ PUBLIC_ENDPOINTS = {
     "static",
     "index",
     "api_taxa_search",
+    "canonical_metadata_analysis",
+    "canonical_metadata_analysis_section",
+    "canonical_metadata_report_status",
+    "download_canonical_metadata",
     "taxon_metadata",
     "taxon_metadata_section",
     "download_taxon_metadata",
@@ -534,6 +540,67 @@ ASSEMBLY_FEATURE_COLUMNS = [
 
 SEQUENCE_QC_DEFAULTS = DEFAULT_QUALITY_THRESHOLDS
 
+CANONICAL_METADATA_RANKS = {
+    "domain": {"label": "Domain", "column": "domain_name"},
+    "phylum": {"label": "Phylum", "column": "phylum_name"},
+    "class": {"label": "Class", "column": "class_name"},
+    "order": {"label": "Order", "column": "order_name"},
+    "family": {"label": "Family", "column": "family_name"},
+    "genus": {"label": "Genus", "column": "genus_name"},
+    "species": {"label": "Species", "column": "species_name"},
+}
+CANONICAL_METADATA_SYNC_ROW_LIMIT = int(os.environ.get("FETCHM_WEBAPP_CANONICAL_METADATA_SYNC_ROW_LIMIT", "5000"))
+CANONICAL_METADATA_REPORTS_DIR = DATA_DIR / "canonical_metadata_reports"
+CANONICAL_METADATA_EXTRA_COLUMNS = [
+    "Geographic Location",
+    "Country",
+    "Continent",
+    "Subcontinent",
+    "Host",
+    "Host_SD",
+    "Host_TaxID",
+    "Host_Rank",
+    "Host_Superkingdom",
+    "Host_Phylum",
+    "Host_Class",
+    "Host_Order",
+    "Host_Family",
+    "Host_Genus",
+    "Host_Species",
+    "Host_SD_Method",
+    "Host_SD_Confidence",
+    "Host Disease",
+    "Host_Disease_SD",
+    "Host Health State",
+    "Host_Health_State_SD",
+    "Isolation Source",
+    "Isolation_Source_SD",
+    "Sample Type",
+    "Sample_Type_SD",
+    "Isolation Site",
+    "Isolation_Site_SD",
+    "Environment (Broad Scale)",
+    "Environment_Broad_Scale_SD",
+    "Environment (Local Scale)",
+    "Environment_Local_Scale_SD",
+    "Environment Medium",
+    "Environment_Medium_SD",
+    "Collection Date",
+    "BioSample Accession",
+    "Assembly BioSample Accession",
+    "Assembly BioProject Accession",
+    "Taxonomy Domain",
+    "Taxonomy Phylum",
+    "Taxonomy Class",
+    "Taxonomy Order",
+    "Taxonomy Family",
+    "Taxonomy Genus",
+    "Taxonomy Species",
+    "Taxonomy Source",
+    "Taxonomy Resolution Status",
+]
+CANONICAL_METADATA_CSV_COLUMNS = list(dict.fromkeys(SPECIES_TSV_COLUMNS + CANONICAL_METADATA_EXTRA_COLUMNS))
+
 
 @dataclass
 class JobRecord:
@@ -678,6 +745,7 @@ def ensure_directories() -> None:
     (DATA_DIR / DATASET_VERSIONS_DIR_NAME).mkdir(parents=True, exist_ok=True)
     SPECIES_DIR.mkdir(parents=True, exist_ok=True)
     METADATA_DIR.mkdir(parents=True, exist_ok=True)
+    CANONICAL_METADATA_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def get_sqlite_connection() -> sqlite3.Connection:
@@ -959,6 +1027,31 @@ def init_db() -> None:
 
         CREATE INDEX IF NOT EXISTS idx_global_insight_tasks_status
         ON global_insight_tasks (status, requested_at);
+
+        CREATE TABLE IF NOT EXISTS canonical_metadata_report_tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            cache_key TEXT NOT NULL UNIQUE,
+            snapshot_id TEXT NOT NULL,
+            rule_fingerprint TEXT NOT NULL,
+            taxon_rank TEXT NOT NULL,
+            taxon_name TEXT NOT NULL,
+            slug TEXT NOT NULL,
+            include_provisional INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'pending',
+            row_count INTEGER NOT NULL DEFAULT 0,
+            requested_at TEXT NOT NULL,
+            claimed_by TEXT,
+            claimed_at TEXT,
+            completed_at TEXT,
+            output_dir TEXT,
+            error TEXT
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_canonical_metadata_report_tasks_status
+        ON canonical_metadata_report_tasks (status, requested_at);
+
+        CREATE INDEX IF NOT EXISTS idx_canonical_metadata_report_tasks_target
+        ON canonical_metadata_report_tasks (snapshot_id, rule_fingerprint, taxon_rank, taxon_name);
 
         CREATE TABLE IF NOT EXISTS taxon_sync_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16873,9 +16966,7 @@ def build_sequence_filter_groups(frame: pd.DataFrame, species: SpeciesRecord) ->
 
 
 def metadata_sections_for_species(species: SpeciesRecord) -> dict[str, dict[str, str]]:
-    if species.taxon_rank == "genus":
-        return METADATA_SECTIONS
-    return {key: value for key, value in METADATA_SECTIONS.items() if key != "species_diversity"}
+    return metadata_sections_for_rank(species.taxon_rank)
 
 
 def species_value_counts(frame: pd.DataFrame, *, limit: int | None = None) -> list[tuple[str, int]]:
@@ -17803,6 +17894,435 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
         "correlations": build_correlation_summaries(frame),
         "plots": build_plot_bundle(frame),
     }
+
+
+def metadata_sections_for_rank(rank: str) -> dict[str, dict[str, str]]:
+    return METADATA_SECTIONS if rank != "species" else {key: value for key, value in METADATA_SECTIONS.items() if key != "species_diversity"}
+
+
+def canonical_rank_column(rank: str) -> str:
+    rank_key = normalize_species_name(rank).lower()
+    config = CANONICAL_METADATA_RANKS.get(rank_key)
+    if not config:
+        abort(404)
+    return str(config["column"])
+
+
+def canonical_taxon_url(rank: str, name: str, section: str | None = None) -> str:
+    endpoint = "canonical_metadata_analysis_section" if section else "canonical_metadata_analysis"
+    kwargs = {"rank": rank, "name": name}
+    if section:
+        kwargs["section"] = section
+    return url_for(endpoint, **kwargs)
+
+
+def canonical_report_cache_key(snapshot_id: str, rule_fingerprint: str, rank: str, name: str, include_provisional: bool = True) -> str:
+    payload = json.dumps(
+        {
+            "snapshot_id": snapshot_id,
+            "rule_fingerprint": rule_fingerprint,
+            "rank": rank,
+            "name": normalize_species_name(name),
+            "include_provisional": bool(include_provisional),
+        },
+        sort_keys=True,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:24]
+
+
+def canonical_report_output_dir(cache_key: str) -> Path:
+    return CANONICAL_METADATA_REPORTS_DIR / cache_key
+
+
+def latest_canonical_snapshot() -> dict[str, Any] | None:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return None
+    try:
+        from dataset_production_store import connect as connect_dataset_store
+        with connect_dataset_store() as connection:
+            preferred = get_setting("canonical_active_snapshot_id", "").strip()
+            if preferred:
+                row = connection.execute(
+                    """
+                    SELECT l.snapshot_id, l.generated_at, l.summary_json, b.completed_at
+                    FROM canonical_taxonomy_lineage_snapshot l
+                    LEFT JOIN bacterial_inventory_snapshot b ON b.snapshot_id = l.snapshot_id
+                    WHERE l.snapshot_id = %s
+                    """,
+                    (preferred,),
+                ).fetchone()
+                if row:
+                    release_state = "active"
+                else:
+                    row = None
+                    release_state = "preview"
+            else:
+                row = None
+                release_state = "preview"
+            if row is None:
+                row = connection.execute(
+                    """
+                    SELECT l.snapshot_id, l.generated_at, l.summary_json, b.completed_at
+                    FROM canonical_taxonomy_lineage_snapshot l
+                    LEFT JOIN bacterial_inventory_snapshot b ON b.snapshot_id = l.snapshot_id
+                    ORDER BY l.generated_at DESC
+                    LIMIT 1
+                    """
+                ).fetchone()
+            if not row:
+                return None
+            snapshot_id = str(row[0])
+            rule_row = connection.execute(
+                """
+                SELECT s.rule_fingerprint, COUNT(*) AS rows
+                FROM bacterial_inventory_membership i
+                JOIN assembly_standardization s ON s.assembly_accession = i.assembly_accession
+                WHERE i.snapshot_id = %s
+                GROUP BY s.rule_fingerprint
+                ORDER BY rows DESC
+                LIMIT 1
+                """,
+                (snapshot_id,),
+            ).fetchone()
+            return {
+                "snapshot_id": snapshot_id,
+                "generated_at": str(row[1] or ""),
+                "completed_at": str(row[3] or ""),
+                "summary": row[2] or {},
+                "rule_fingerprint": str(rule_row[0] if rule_row else "unknown"),
+                "release_state": release_state,
+            }
+    except Exception as exc:
+        logging.warning("Canonical snapshot lookup failed: %s", exc)
+        return None
+
+
+def canonical_taxon_count(snapshot_id: str, rank: str, name: str) -> int:
+    column = canonical_rank_column(rank)
+    from dataset_production_store import connect as connect_dataset_store
+    with connect_dataset_store() as connection:
+        row = connection.execute(
+            f"SELECT COUNT(*) FROM assembly_taxonomy_lineage WHERE snapshot_id = %s AND {column} = %s",
+            (snapshot_id, normalize_species_name(name)),
+        ).fetchone()
+    return int(row[0] or 0) if row else 0
+
+
+def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, Any]]:
+    snapshot = latest_canonical_snapshot()
+    if not snapshot:
+        return []
+    cleaned = normalize_species_name(query)
+    if len(cleaned) < 2:
+        return []
+    like_value = f"%{cleaned.lower()}%"
+    starts_value = f"{cleaned.lower()}%"
+    results: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    from dataset_production_store import connect as connect_dataset_store
+    with connect_dataset_store() as connection:
+        # Prefer an exact genus selection over provisional species labels such
+        # as "Prevotella sp." when the user enters a genus name.
+        for rank in ["genus", "species", "family", "order", "class", "phylum"]:
+            column = canonical_rank_column(rank)
+            rows = connection.execute(
+                f"""
+                SELECT {column} AS name, COUNT(*) AS genome_count
+                FROM assembly_taxonomy_lineage
+                WHERE snapshot_id = %s
+                  AND {column} IS NOT NULL
+                  AND {column} <> ''
+                  AND lower({column}) LIKE %s
+                GROUP BY {column}
+                ORDER BY
+                  CASE WHEN lower({column}) LIKE %s THEN 0 ELSE 1 END,
+                  genome_count DESC,
+                  {column} ASC
+                LIMIT %s
+                """,
+                (snapshot["snapshot_id"], like_value, starts_value, max(limit, 8)),
+            ).fetchall()
+            for row in rows:
+                name = normalize_species_name(str(row[0] or ""))
+                if not name:
+                    continue
+                key = (rank, name.lower())
+                if key in seen:
+                    continue
+                seen.add(key)
+                label_meta = taxonomy_label_metadata(name, rank)
+                if rank not in {"species", "genus"}:
+                    label_meta = {
+                        "key": f"canonical_{rank}",
+                        "label": CANONICAL_METADATA_RANKS[rank]["label"],
+                        "description": f"{CANONICAL_METADATA_RANKS[rank]['label']}-level metadata analysis from the canonical bacterial inventory.",
+                    }
+                results.append(
+                    {
+                        "id": f"canonical:{rank}:{name}",
+                        "species_name": name,
+                        "taxon_rank": rank,
+                        "rank_label": CANONICAL_METADATA_RANKS[rank]["label"],
+                        "genome_count": int(row[1] or 0),
+                        "assembly_source": "genbank",
+                        "source": "canonical",
+                        "metadata_url": canonical_taxon_url(rank, name),
+                        "sequence_url": "",
+                        "snapshot_id": snapshot["snapshot_id"],
+                        "release_state": snapshot["release_state"],
+                        "taxon_label_class": label_meta["key"],
+                        "taxon_label": label_meta["label"],
+                        "taxon_label_description": label_meta["description"],
+                    }
+                )
+                if len(results) >= limit:
+                    return results
+    return results[:limit]
+
+
+def canonical_report_task_row(cache_key: str) -> sqlite3.Row | None:
+    with get_sqlite_connection() as db:
+        return db.execute("SELECT * FROM canonical_metadata_report_tasks WHERE cache_key = ?", (cache_key,)).fetchone()
+
+
+def queue_canonical_metadata_report(snapshot: dict[str, Any], rank: str, name: str, row_count: int, *, include_provisional: bool = True) -> sqlite3.Row:
+    now = utc_now()
+    rule_fingerprint = str(snapshot.get("rule_fingerprint") or "unknown")
+    cache_key = canonical_report_cache_key(snapshot["snapshot_id"], rule_fingerprint, rank, name, include_provisional)
+    output_dir = canonical_report_output_dir(cache_key)
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            INSERT INTO canonical_metadata_report_tasks (
+                cache_key, snapshot_id, rule_fingerprint, taxon_rank, taxon_name, slug,
+                include_provisional, status, row_count, requested_at, output_dir
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)
+            ON CONFLICT(cache_key) DO UPDATE SET
+                row_count = excluded.row_count,
+                requested_at = CASE
+                    WHEN canonical_metadata_report_tasks.status IN ('failed') THEN excluded.requested_at
+                    ELSE canonical_metadata_report_tasks.requested_at
+                END,
+                status = CASE
+                    WHEN canonical_metadata_report_tasks.status IN ('failed') THEN 'pending'
+                    ELSE canonical_metadata_report_tasks.status
+                END,
+                error = CASE
+                    WHEN canonical_metadata_report_tasks.status IN ('failed') THEN NULL
+                    ELSE canonical_metadata_report_tasks.error
+                END
+            """,
+            (
+                cache_key,
+                snapshot["snapshot_id"],
+                rule_fingerprint,
+                rank,
+                normalize_species_name(name),
+                f"{rank}-{species_slug(name)}",
+                1 if include_provisional else 0,
+                int(row_count or 0),
+                now,
+                str(output_dir),
+            ),
+        )
+        db.commit()
+        return db.execute("SELECT * FROM canonical_metadata_report_tasks WHERE cache_key = ?", (cache_key,)).fetchone()
+
+
+def claim_next_canonical_metadata_report_task(worker_name: str) -> sqlite3.Row | None:
+    now = utc_now()
+    with get_sqlite_connection() as db:
+        row = db.execute(
+            """
+            SELECT * FROM canonical_metadata_report_tasks
+            WHERE status = 'pending'
+            ORDER BY requested_at ASC
+            LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        db.execute(
+            """
+            UPDATE canonical_metadata_report_tasks
+            SET status = 'running', claimed_by = ?, claimed_at = ?, error = NULL
+            WHERE id = ? AND status = 'pending'
+            """,
+            (worker_name, now, row["id"]),
+        )
+        db.commit()
+        return db.execute("SELECT * FROM canonical_metadata_report_tasks WHERE id = ?", (row["id"],)).fetchone()
+
+
+def finish_canonical_metadata_report_task(task_id: int, status: str, *, error: str | None = None) -> None:
+    with get_sqlite_connection() as db:
+        db.execute(
+            """
+            UPDATE canonical_metadata_report_tasks
+            SET status = ?, completed_at = ?, claimed_by = NULL, claimed_at = NULL, error = ?
+            WHERE id = ?
+            """,
+            (status, utc_now(), error, task_id),
+        )
+        db.commit()
+
+
+def mapping_value(row: Mapping[str, Any], key: str, default: Any = None) -> Any:
+    try:
+        value = row[key]  # sqlite3.Row supports item access but not get().
+    except Exception:
+        value = row.get(key, default) if hasattr(row, "get") else default
+    return default if value is None else value
+
+
+def canonical_target_species_record(task_or_target: Mapping[str, Any], *, metadata_clean_path: str | None = None) -> SpeciesRecord:
+    rank = str(mapping_value(task_or_target, "taxon_rank", mapping_value(task_or_target, "rank", "species")))
+    name = normalize_species_name(str(mapping_value(task_or_target, "taxon_name", mapping_value(task_or_target, "name", ""))))
+    return SpeciesRecord(
+        id=0,
+        species_name=name,
+        slug=f"{rank}-{species_slug(name)}",
+        status="ready",
+        created_at=str(mapping_value(task_or_target, "requested_at", utc_now())),
+        updated_at=str(mapping_value(task_or_target, "completed_at", utc_now())),
+        query_name=name,
+        taxon_rank=rank,
+        genome_count=int(mapping_value(task_or_target, "row_count", 0) or 0),
+        assembly_source="genbank",
+        tsv_path=metadata_clean_path,
+        metadata_status="ready" if metadata_clean_path else "missing",
+        metadata_clean_path=metadata_clean_path,
+        metadata_path=metadata_clean_path,
+        metadata_last_built_at=str(mapping_value(task_or_target, "completed_at", "")),
+    )
+
+
+def canonical_report_paths(output_dir: Path) -> dict[str, Path]:
+    return {
+        "metadata_csv": output_dir / "metadata_clean.csv",
+        "analysis_json": output_dir / "analysis.json",
+        "summary_json": output_dir / "summary.json",
+    }
+
+
+def canonical_payload_row(payload: Mapping[str, Any], lineage: Mapping[str, Any]) -> dict[str, Any]:
+    row = {column: normalize_metadata_value(payload.get(column)) for column in CANONICAL_METADATA_CSV_COLUMNS}
+    row["Assembly Accession"] = normalize_metadata_value(payload.get("Assembly Accession") or lineage.get("assembly_accession"))
+    row["Organism Name"] = normalize_metadata_value(payload.get("Organism Name") or lineage.get("reported_name"))
+    row["Taxonomy Domain"] = normalize_metadata_value(lineage.get("domain_name"))
+    row["Taxonomy Phylum"] = normalize_metadata_value(lineage.get("phylum_name"))
+    row["Taxonomy Class"] = normalize_metadata_value(lineage.get("class_name"))
+    row["Taxonomy Order"] = normalize_metadata_value(lineage.get("order_name"))
+    row["Taxonomy Family"] = normalize_metadata_value(lineage.get("family_name"))
+    row["Taxonomy Genus"] = normalize_metadata_value(lineage.get("genus_name"))
+    row["Taxonomy Species"] = normalize_metadata_value(lineage.get("species_name"))
+    row["Taxonomy Source"] = normalize_metadata_value(lineage.get("taxonomy_source"))
+    row["Taxonomy Resolution Status"] = normalize_metadata_value(lineage.get("resolution_status"))
+    return row
+
+
+def write_canonical_metadata_csv(snapshot_id: str, rank: str, name: str, output_path: Path) -> int:
+    column = canonical_rank_column(rank)
+    from dataset_production_store import connect as connect_dataset_store
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = output_path.with_suffix(".tmp")
+    total = 0
+    with connect_dataset_store() as connection, temp_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=CANONICAL_METADATA_CSV_COLUMNS, extrasaction="ignore")
+        writer.writeheader()
+        cursor = connection.cursor()
+        cursor.execute(
+            f"""
+            SELECT l.assembly_accession, l.reported_name, l.domain_name, l.phylum_name, l.class_name,
+                   l.order_name, l.family_name, l.genus_name, l.species_name, l.taxonomy_source,
+                   l.resolution_status, s.standardized_payload
+            FROM assembly_taxonomy_lineage l
+            JOIN assembly_standardization s ON s.assembly_accession = l.assembly_accession
+            WHERE l.snapshot_id = %s AND l.{column} = %s
+            ORDER BY l.assembly_accession
+            """,
+            (snapshot_id, normalize_species_name(name)),
+        )
+        while True:
+            rows = cursor.fetchmany(5000)
+            if not rows:
+                break
+            for db_row in rows:
+                lineage = {
+                    "assembly_accession": db_row[0],
+                    "reported_name": db_row[1],
+                    "domain_name": db_row[2],
+                    "phylum_name": db_row[3],
+                    "class_name": db_row[4],
+                    "order_name": db_row[5],
+                    "family_name": db_row[6],
+                    "genus_name": db_row[7],
+                    "species_name": db_row[8],
+                    "taxonomy_source": db_row[9],
+                    "resolution_status": db_row[10],
+                }
+                writer.writerow(canonical_payload_row(db_row[11] or {}, lineage))
+                total += 1
+    temp_path.replace(output_path)
+    return total
+
+
+def serializable_metadata_analysis(analysis: dict[str, Any]) -> dict[str, Any]:
+    cleaned = dict(analysis)
+    cleaned["plots"] = {key: {"html": value.get("html", "")} for key, value in (analysis.get("plots") or {}).items()}
+    return json.loads(json.dumps(cleaned, default=str))
+
+
+def generate_canonical_metadata_report(task: Mapping[str, Any]) -> dict[str, Any]:
+    output_dir = Path(str(task["output_dir"] or canonical_report_output_dir(str(task["cache_key"]))))
+    paths = canonical_report_paths(output_dir)
+    row_count = write_canonical_metadata_csv(str(task["snapshot_id"]), str(task["taxon_rank"]), str(task["taxon_name"]), paths["metadata_csv"])
+    target = canonical_target_species_record(task, metadata_clean_path=str(paths["metadata_csv"]))
+    target.genome_count = row_count
+    analysis = serializable_metadata_analysis(load_taxon_metadata_analysis(target))
+    summary = {
+        "cache_key": str(task["cache_key"]),
+        "snapshot_id": str(task["snapshot_id"]),
+        "rule_fingerprint": str(task["rule_fingerprint"]),
+        "taxon_rank": str(task["taxon_rank"]),
+        "taxon_name": str(task["taxon_name"]),
+        "row_count": row_count,
+        "generated_at": utc_now(),
+        "metadata_csv": paths["metadata_csv"].name,
+        "analysis_json": paths["analysis_json"].name,
+    }
+    paths["analysis_json"].write_text(json.dumps(analysis, ensure_ascii=False), encoding="utf-8")
+    paths["summary_json"].write_text(json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
+    with get_sqlite_connection() as db:
+        db.execute(
+            "UPDATE canonical_metadata_report_tasks SET row_count = ?, output_dir = ? WHERE id = ?",
+            (row_count, str(output_dir), task["id"]),
+        )
+        db.commit()
+    return summary
+
+
+def process_canonical_metadata_report_task(worker_name: str) -> bool:
+    task = claim_next_canonical_metadata_report_task(worker_name)
+    if task is None:
+        return False
+    try:
+        generate_canonical_metadata_report(task)
+    except Exception as exc:
+        logging.exception("Canonical metadata report task failed for %s %s", task["taxon_rank"], task["taxon_name"])
+        finish_canonical_metadata_report_task(int(task["id"]), "failed", error=str(exc)[:4000])
+        return True
+    finish_canonical_metadata_report_task(int(task["id"]), "completed")
+    return True
+
+
+def load_canonical_report_analysis(task: Mapping[str, Any]) -> dict[str, Any] | None:
+    output_dir = Path(str(mapping_value(task, "output_dir", "") or ""))
+    paths = canonical_report_paths(output_dir)
+    if not paths["analysis_json"].exists() or not paths["metadata_csv"].exists():
+        return None
+    return json.loads(paths["analysis_json"].read_text(encoding="utf-8"))
+
 
 
 def write_species_tsv(rows: list[dict[str, Any]], output_path: Path) -> None:
@@ -20436,7 +20956,7 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
             latest.metadata_attempt_count = 0
             latest.metadata_error = "Metadata build lock was unavailable; claim reset."
             latest.updated_at = utc_now()
-            save_species(latest)
+            save_species_with_lock_retry(latest)
         return
     current = load_species(species.id)
     try:
@@ -20448,7 +20968,7 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
                 current.metadata_error = "Taxon TSV is not ready for metadata build."
                 current.metadata_claimed_by = None
                 current.metadata_claimed_at = None
-                save_species(current)
+                save_species_with_lock_retry(current)
                 return
             if current.taxon_rank == "species":
                 genus_name = species_parent_genus_name(current)
@@ -20469,7 +20989,7 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
                         current.metadata_attempt_count = 0
                         current.metadata_error = "Waiting for parent genus metadata to be ready."
                         current.updated_at = utc_now()
-                        save_species(current)
+                        save_species_with_lock_retry(current)
                         return
             try:
                 derived = derive_species_metadata_from_genus(current)
@@ -20493,7 +21013,7 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
                 latest.metadata_source_taxon_id = source_taxon_id
                 latest.genome_count = latest.genome_count or clean_count
                 latest.updated_at = latest.metadata_last_built_at
-                save_species(latest)
+                save_species_with_lock_retry(latest)
             except Exception as exc:
                 latest = load_species(species.id)
                 if latest.metadata_claim_token != species.metadata_claim_token:
@@ -20509,7 +21029,7 @@ def build_species_metadata_record(species: SpeciesRecord) -> None:
                 latest.metadata_refresh_requested = False
                 latest.metadata_claimed_by = None
                 latest.metadata_claimed_at = None
-                save_species(latest)
+                save_species_with_lock_retry(latest)
     finally:
         try:
             fcntl.flock(lock_handle.fileno(), fcntl.LOCK_UN)
@@ -22221,6 +22741,8 @@ def run_worker_loop() -> None:
                     continue
 
             if WORKER_MODE in {"all", "metadata", "global-insights"}:
+                if process_canonical_metadata_report_task(worker_name):
+                    continue
                 global_insight_task = claim_next_global_insight_task(worker_name)
                 if global_insight_task is not None:
                     with maintain_worker_heartbeat(worker_name):
@@ -23994,6 +24516,10 @@ def api_taxa_search() -> Any:
     query = normalize_species_name(request.args.get("q") or "")
     if len(query) < 2:
         return app.response_class(json.dumps({"results": []}), mimetype="application/json")
+
+    canonical_results = canonical_search_results(query)
+    if canonical_results:
+        return app.response_class(json.dumps({"results": canonical_results}), mimetype="application/json")
 
     search = species_search_name(query)
     like_value = f"%{search}%"
@@ -25865,6 +26391,144 @@ def job_detail(job_id: str) -> str:
     )
 
 
+def render_canonical_metadata_section(rank: str, name: str, section: str) -> str:
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in CANONICAL_METADATA_RANKS or not name:
+        abort(404)
+    snapshot = latest_canonical_snapshot()
+    if not snapshot:
+        flash("Canonical metadata inventory is not ready yet.", "error")
+        return redirect(url_for("index"))
+    row_count = canonical_taxon_count(snapshot["snapshot_id"], rank, name)
+    if row_count <= 0:
+        abort(404)
+    rule_fingerprint = str(snapshot.get("rule_fingerprint") or "unknown")
+    cache_key = canonical_report_cache_key(snapshot["snapshot_id"], rule_fingerprint, rank, name, True)
+    task = canonical_report_task_row(cache_key)
+    if task is None:
+        task = queue_canonical_metadata_report(snapshot, rank, name, row_count)
+    elif int(task["row_count"] or 0) != row_count:
+        task = queue_canonical_metadata_report(snapshot, rank, name, row_count)
+
+    analysis = load_canonical_report_analysis(task)
+    if analysis is None and row_count <= CANONICAL_METADATA_SYNC_ROW_LIMIT and str(task["status"]) in {"pending", "failed"}:
+        with get_sqlite_connection() as db:
+            db.execute(
+                "UPDATE canonical_metadata_report_tasks SET status = 'running', claimed_by = ?, claimed_at = ?, error = NULL WHERE id = ?",
+                ("web-request", utc_now(), task["id"]),
+            )
+            db.commit()
+            task = db.execute("SELECT * FROM canonical_metadata_report_tasks WHERE id = ?", (task["id"],)).fetchone()
+        try:
+            generate_canonical_metadata_report(task)
+            finish_canonical_metadata_report_task(int(task["id"]), "completed")
+        except Exception as exc:
+            finish_canonical_metadata_report_task(int(task["id"]), "failed", error=str(exc)[:4000])
+            raise
+        task = canonical_report_task_row(cache_key)
+        analysis = load_canonical_report_analysis(task) if task is not None else None
+
+    if analysis is None:
+        return render_template(
+            "canonical_metadata_pending.html",
+            task=task,
+            target={
+                "name": name,
+                "rank": rank,
+                "rank_label": CANONICAL_METADATA_RANKS[rank]["label"],
+                "row_count": row_count,
+                "snapshot_id": snapshot["snapshot_id"],
+                "release_state": snapshot["release_state"],
+                "status_url": canonical_taxon_url(rank, name),
+            },
+        )
+
+    if section not in metadata_sections_for_rank(rank):
+        abort(404)
+    output_dir = Path(str(task["output_dir"] or canonical_report_output_dir(cache_key)))
+    target_species = canonical_target_species_record(task, metadata_clean_path=str(canonical_report_paths(output_dir)["metadata_csv"]))
+    target_context = SimpleNamespace(
+        name=name,
+        rank=rank,
+        rank_label=CANONICAL_METADATA_RANKS[rank]["label"],
+        genome_count=row_count,
+        snapshot_id=snapshot["snapshot_id"],
+        rule_fingerprint=rule_fingerprint,
+        release_state=snapshot["release_state"],
+        metadata_url=canonical_taxon_url(rank, name),
+        download_url=url_for("download_canonical_metadata", rank=rank, name=name),
+        sequence_url="",
+    )
+    record_audit_event(
+        "metadata.view",
+        target_type="canonical_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={"section": section, "rank": rank, "snapshot_id": snapshot["snapshot_id"], "authenticated": bool(g.current_user)},
+    )
+    return render_template(
+        "taxon_metadata.html",
+        species=target_species,
+        metadata_target=target_context,
+        canonical_target=True,
+        analysis=analysis,
+        active_section=section,
+        metadata_sections=metadata_sections_for_rank(rank),
+    )
+
+
+@app.route("/metadata-analysis/<rank>/<name>")
+def canonical_metadata_analysis(rank: str, name: str) -> str:
+    return render_canonical_metadata_section(rank, name, "summary")
+
+
+@app.route("/metadata-analysis/<rank>/<name>/<section>")
+def canonical_metadata_analysis_section(rank: str, name: str, section: str) -> str:
+    return render_canonical_metadata_section(rank, name, section)
+
+
+@app.route("/api/metadata-analysis/<rank>/<name>/status")
+def canonical_metadata_report_status(rank: str, name: str) -> Any:
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    snapshot = latest_canonical_snapshot()
+    if not snapshot or rank not in CANONICAL_METADATA_RANKS:
+        abort(404)
+    cache_key = canonical_report_cache_key(snapshot["snapshot_id"], str(snapshot.get("rule_fingerprint") or "unknown"), rank, name, True)
+    task = canonical_report_task_row(cache_key)
+    return app.response_class(
+        json.dumps(
+            {
+                "status": str(task["status"] if task else "missing"),
+                "row_count": int(task["row_count"] or 0) if task else 0,
+                "error": str(task["error"] or "") if task else "",
+                "metadata_url": canonical_taxon_url(rank, name),
+            }
+        ),
+        mimetype="application/json",
+    )
+
+
+@app.route("/metadata-analysis-download/<rank>/<name>")
+def download_canonical_metadata(rank: str, name: str) -> Any:
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    snapshot = latest_canonical_snapshot()
+    if not snapshot or rank not in CANONICAL_METADATA_RANKS:
+        abort(404)
+    cache_key = canonical_report_cache_key(snapshot["snapshot_id"], str(snapshot.get("rule_fingerprint") or "unknown"), rank, name, True)
+    task = canonical_report_task_row(cache_key)
+    if task is None or str(task["status"]) != "completed":
+        abort(404)
+    output_dir = Path(str(task["output_dir"] or canonical_report_output_dir(cache_key)))
+    csv_path = canonical_report_paths(output_dir)["metadata_csv"]
+    if not csv_path.exists():
+        abort(404)
+    record_audit_event("download.metadata_csv", target_type="canonical_taxon", target_id=f"{rank}:{name}")
+    return send_from_directory(output_dir, csv_path.name, as_attachment=True)
+
+
+
 def render_taxon_metadata_section(species_id: int, section: str) -> str:
     try:
         species = require_public_species(species_id)
@@ -25895,6 +26559,8 @@ def render_taxon_metadata_section(species_id: int, section: str) -> str:
     return render_template(
         "taxon_metadata.html",
         species=species,
+        metadata_target=None,
+        canonical_target=False,
         analysis=analysis,
         active_section=section,
         metadata_sections=metadata_sections,
