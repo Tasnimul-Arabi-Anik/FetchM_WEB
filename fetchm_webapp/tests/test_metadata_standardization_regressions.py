@@ -98,10 +98,32 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn("step 3", standardization["short"])
         self.assertEqual(cards[6]["endpoint"], "admin_activate_canonical_metadata_release")
         self.assertEqual(cards[7]["extra_fields"], {"next": "admin"})
+        self.assertTrue(cards[4]["publish_control"])
+        self.assertFalse(cards[5]["publish_control"])
         self.assertTrue(cards[2]["disabled"])
         root["metadata_fetch_task_active"] = True
         busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
         self.assertTrue(all(card["disabled"] for card in busy_cards))
+
+    def test_canonical_auto_publish_stops_when_release_gate_blocks(self) -> None:
+        with patch.object(fetchm_app, "canonical_auto_publish_intended", return_value=True), patch.object(
+            fetchm_app, "activate_verified_canonical_snapshot", return_value=({"blockers": ["metadata incomplete"]}, "metadata incomplete")
+        ), patch.object(fetchm_app, "queue_global_insights_generation") as queue_insights, patch.object(
+            fetchm_app, "record_audit_event"
+        ):
+            fetchm_app.maybe_auto_publish_verified_canonical_snapshot("candidate")
+        queue_insights.assert_not_called()
+
+    def test_canonical_auto_publish_activates_then_queues_insights_only_after_pass(self) -> None:
+        with patch.object(fetchm_app, "canonical_auto_publish_intended", return_value=True), patch.object(
+            fetchm_app, "activate_verified_canonical_snapshot", return_value=({"blockers": []}, None)
+        ) as activate, patch.object(fetchm_app, "set_canonical_auto_publish_intent") as clear_intent, patch.object(
+            fetchm_app, "queue_global_insights_generation", return_value=("insight-id", [])
+        ) as queue_insights, patch.object(fetchm_app, "record_audit_event"):
+            fetchm_app.maybe_auto_publish_verified_canonical_snapshot("candidate")
+        activate.assert_called_once_with("candidate", automatic=True)
+        clear_intent.assert_called_once_with("candidate", False)
+        queue_insights.assert_called_once_with(None, demo=False)
 
     def test_canonical_taxonkit_lineage_keeps_higher_rank_labels_at_true_rank(self) -> None:
         lineage = "1977087\tcellular organisms;Bacteria;Pseudomonadati;Pseudomonadota;Pseudomonadota bacterium\tspecies\n210\tcellular organisms;Bacteria;Campylobacterota;Helicobacter;Helicobacter pylori\tspecies\n"

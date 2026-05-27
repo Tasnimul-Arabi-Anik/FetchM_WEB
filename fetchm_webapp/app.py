@@ -8213,6 +8213,9 @@ def build_canonical_pipeline_cards(
         card.setdefault("extra_fields", {})
         card.setdefault("confirm", "")
         card.setdefault("advanced_note", "")
+        card["publish_control"] = card["key"] in {
+            "inventory", "metadata_seed", "metadata_fetch", "metadata_restandardization", "partitions"
+        }
     return cards
 
 
@@ -8274,6 +8277,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
         "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
         "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),
+        "canonical_auto_publish_verified": get_setting("canonical_pipeline_auto_publish_verified", "0", connection) == "1",
         "taxonomy": taxonomy_database_snapshot(),
         "sequential": {
             step_key: dataset_pipeline_sequential_enabled(step_key, connection)
@@ -8514,7 +8518,11 @@ def schedule_due_canonical_pipeline_run() -> None:
     if error:
         logging.info("Scheduled canonical inventory was not queued: %s", error)
     elif snapshot_id:
-        logging.info("Scheduled canonical staged refresh queued: %s", snapshot_id)
+        auto_publish = False
+        with get_sqlite_connection() as db:
+            auto_publish = get_setting("canonical_pipeline_auto_publish_verified", "0", db) == "1"
+        set_canonical_auto_publish_intent(snapshot_id, auto_publish)
+        logging.info("Scheduled canonical staged refresh queued: %s (auto_publish=%s)", snapshot_id, auto_publish)
 
 
 def schedule_due_dataset_pipeline_run() -> None:
@@ -23176,6 +23184,83 @@ def canonical_continue_requested_from_form() -> bool:
     return request.form.get("continue_after") == "1"
 
 
+def canonical_auto_publish_requested_from_form() -> bool:
+    return request.form.get("auto_publish_verified") == "1"
+
+
+def canonical_continue_or_publish_requested_from_form() -> bool:
+    return canonical_continue_requested_from_form() or canonical_auto_publish_requested_from_form()
+
+
+def canonical_auto_publish_setting_key(snapshot_id: str) -> str:
+    return f"canonical_auto_publish_verified:{snapshot_id}"
+
+
+def set_canonical_auto_publish_intent(snapshot_id: str, enabled: bool) -> None:
+    with get_sqlite_connection() as db:
+        set_setting(canonical_auto_publish_setting_key(snapshot_id), "1" if enabled else "0", db)
+        db.commit()
+
+
+def canonical_auto_publish_intended(snapshot_id: str) -> bool:
+    with get_sqlite_connection() as db:
+        return get_setting(canonical_auto_publish_setting_key(snapshot_id), "0", db) == "1"
+
+
+def activate_verified_canonical_snapshot(snapshot_id: str, *, automatic: bool) -> tuple[dict[str, Any], str | None]:
+    with get_sqlite_connection() as db:
+        gate = build_canonical_metadata_release_gate(db)
+        if not snapshot_id or snapshot_id != gate["snapshot_id"]:
+            return gate, "The selected snapshot is no longer current."
+        if gate["blockers"]:
+            return gate, "; ".join(gate["blockers"][:5])
+        if gate.get("is_active"):
+            return gate, None
+        previous = str(get_setting("canonical_active_snapshot_id", "", db) or "")
+        set_setting("previous_canonical_active_snapshot_id", previous, db)
+        set_setting("canonical_active_snapshot_id", snapshot_id, db)
+        db.commit()
+    record_audit_event(
+        "admin.canonical_metadata_auto_activate" if automatic else "admin.canonical_metadata_activate",
+        target_type="canonical_snapshot",
+        target_id=snapshot_id,
+        metadata={"previous_snapshot_id": previous, "metadata_only": True, "automatic": automatic},
+    )
+    return gate, None
+
+
+def maybe_auto_publish_verified_canonical_snapshot(snapshot_id: str) -> None:
+    if not canonical_auto_publish_intended(snapshot_id):
+        return
+    gate, error = activate_verified_canonical_snapshot(snapshot_id, automatic=True)
+    if error:
+        record_audit_event(
+            "admin.canonical_metadata_auto_activate_blocked",
+            target_type="canonical_snapshot",
+            target_id=snapshot_id,
+            metadata={"blockers": gate.get("blockers", []), "error": error, "metadata_only": True},
+        )
+        logging.warning("Automatic canonical publication blocked for %s: %s", snapshot_id, error)
+        return
+    set_canonical_auto_publish_intent(snapshot_id, False)
+    insight_id, blockers = queue_global_insights_generation(None, demo=False)
+    if blockers:
+        record_audit_event(
+            "admin.canonical_metadata_auto_insights_blocked",
+            target_type="global_insights",
+            target_id=snapshot_id,
+            metadata={"canonical_snapshot_id": snapshot_id, "blockers": blockers, "automatic": True},
+        )
+        logging.warning("Canonical snapshot %s activated, but Global Insights could not be queued: %s", snapshot_id, "; ".join(blockers))
+    else:
+        record_audit_event(
+            "admin.canonical_metadata_auto_insights",
+            target_type="global_insights",
+            target_id=str(insight_id),
+            metadata={"canonical_snapshot_id": snapshot_id, "automatic": True},
+        )
+
+
 def maybe_queue_next_canonical_pipeline_task(current_step: str, snapshot_id: str, continue_after: bool) -> None:
     if not continue_after:
         return
@@ -23352,6 +23437,7 @@ def process_canonical_partition_task(worker_name: str) -> bool:
         except json.JSONDecodeError:
             summary = {"stdout": result.stdout[-1000:]}
         finish_partition_task(int(task["id"]), "completed", summary=summary)
+        maybe_auto_publish_verified_canonical_snapshot(str(task["snapshot_id"]))
     else:
         error = (result.stderr or result.stdout or "Canonical partition command failed.")[-4000:]
         finish_partition_task(int(task["id"]), "failed", error)
@@ -25876,7 +25962,9 @@ def admin_set_canonical_pipeline_schedule() -> Any:
         schedule_hour = 18
     set_setting("canonical_pipeline_schedule_enabled", enabled)
     set_setting("canonical_pipeline_interval_days", str(interval_days))
+    auto_publish_verified = "1" if request.form.get("canonical_pipeline_auto_publish_verified") == "1" else "0"
     set_setting("canonical_pipeline_schedule_hour_utc", str(schedule_hour))
+    set_setting("canonical_pipeline_auto_publish_verified", auto_publish_verified)
     record_audit_event(
         "admin.canonical_pipeline_schedule",
         target_type="canonical_pipeline",
@@ -25885,10 +25973,11 @@ def admin_set_canonical_pipeline_schedule() -> Any:
             "enabled": enabled == "1",
             "interval_days": interval_days,
             "schedule_hour_utc": schedule_hour,
-            "publication_policy": "manual_activation",
+            "publication_policy": "auto_publish_after_validation" if auto_publish_verified == "1" else "manual_activation",
         },
     )
-    flash("Canonical staged refresh schedule updated. Scheduled runs stop before manual verification and activation.", "success")
+    publication_label = "auto-publish after passing validation" if auto_publish_verified == "1" else "wait for manual validation and activation"
+    flash(f"Canonical refresh schedule updated: scheduled runs {publication_label}.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -25919,13 +26008,14 @@ def admin_run_canonical_inventory() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_inventory_task
-        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
+        snapshot_id, error = queue_inventory_task(str(user["username"]), continue_after=canonical_continue_or_publish_requested_from_form())
     except Exception as exc:
         flash(f"Canonical inventory could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_inventory",
             target_type="canonical_inventory",
@@ -25941,13 +26031,14 @@ def admin_seed_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_seed_task
-        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=canonical_continue_requested_from_form())
+        snapshot_id, error = queue_metadata_seed_task(str(user["username"]), sqlite_db_path=str(DB_PATH), continue_after=canonical_continue_or_publish_requested_from_form())
     except Exception as exc:
         flash(f"Canonical metadata seeding could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_seed",
             target_type="canonical_metadata_seed",
@@ -25963,13 +26054,14 @@ def admin_fetch_missing_canonical_metadata() -> Any:
     user = require_admin()
     try:
         from dataset_production_store import queue_metadata_fetch_task
-        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=canonical_continue_requested_from_form())
+        snapshot_id, error = queue_metadata_fetch_task(str(user["username"]), continue_after=canonical_continue_or_publish_requested_from_form())
     except Exception as exc:
         flash(f"Canonical missing-metadata retrieval could not be queued: {exc}", "error")
         return redirect(url_for("admin_dashboard"))
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_fetch",
             target_type="canonical_metadata_fetch",
@@ -25987,7 +26079,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
         from dataset_production_store import queue_metadata_fetch_task
         snapshot_id, error = queue_metadata_fetch_task(
             str(user["username"]),
-            continue_after=canonical_continue_requested_from_form(),
+            continue_after=canonical_continue_or_publish_requested_from_form(),
             refetch_all=True,
         )
     except Exception as exc:
@@ -25996,6 +26088,7 @@ def admin_refetch_all_canonical_metadata() -> Any:
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_metadata_refetch_all",
             target_type="canonical_metadata_fetch",
@@ -26016,7 +26109,7 @@ def admin_restart_canonical_standardization() -> Any:
         snapshot_id, error = queue_metadata_restandardization_task(
             str(user["username"]),
             rule_fingerprint=rule_fingerprint,
-            continue_after=canonical_continue_requested_from_form(),
+            continue_after=canonical_continue_or_publish_requested_from_form(),
         )
     except Exception as exc:
         flash(f"Canonical metadata re-standardization could not be queued: {exc}", "error")
@@ -26024,6 +26117,7 @@ def admin_restart_canonical_standardization() -> Any:
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_restandardize",
             target_type="canonical_metadata_restandardization",
@@ -26049,6 +26143,7 @@ def admin_materialize_canonical_partitions() -> Any:
     if error:
         flash(error, "error")
     else:
+        set_canonical_auto_publish_intent(str(snapshot_id), canonical_auto_publish_requested_from_form())
         record_audit_event(
             "admin.dataset_pipeline_canonical_partitions",
             target_type="canonical_partition",
@@ -26084,24 +26179,10 @@ def admin_validate_canonical_metadata_release() -> Any:
 def admin_activate_canonical_metadata_release() -> Any:
     require_admin()
     requested_snapshot = (request.form.get("snapshot_id") or "").strip()
-    with get_sqlite_connection() as db:
-        gate = build_canonical_metadata_release_gate(db)
-        if not requested_snapshot or requested_snapshot != gate["snapshot_id"]:
-            flash("Canonical metadata activation rejected because the selected snapshot is no longer current.", "error")
-            return redirect(url_for("admin_dashboard"))
-        if gate["blockers"]:
-            flash("Canonical metadata activation blocked: " + "; ".join(gate["blockers"][:5]), "error")
-            return redirect(url_for("admin_dashboard"))
-        previous = str(get_setting("canonical_active_snapshot_id", "", db) or "")
-        set_setting("previous_canonical_active_snapshot_id", previous, db)
-        set_setting("canonical_active_snapshot_id", requested_snapshot, db)
-        db.commit()
-    record_audit_event(
-        "admin.canonical_metadata_activate",
-        target_type="canonical_snapshot",
-        target_id=requested_snapshot,
-        metadata={"previous_snapshot_id": previous, "metadata_only": True},
-    )
+    gate, error = activate_verified_canonical_snapshot(requested_snapshot, automatic=False)
+    if error:
+        flash("Canonical metadata activation blocked: " + error, "error")
+        return redirect(url_for("admin_dashboard"))
     flash(f"Canonical metadata snapshot {requested_snapshot} is active for public metadata browsing. Sequence download and QC inputs were not replaced.", "success")
     return redirect(url_for("admin_dashboard"))
 

@@ -293,14 +293,15 @@
     </div>
     <div class="hint-block top-gap">
       <strong>Safe update policy</strong>
-      <p>Inventory, metadata reuse/fetch, standardization, and rank-aware views run against staging. Activation is manual by default, so the website does not expose a partially rebuilt database.</p>
+      <p>Inventory, metadata reuse/fetch, standardization, and rank-aware views run against staging. Activation is manual by default. Optional automatic publication activates only a snapshot that passes all release checks, then regenerates Global Insights.</p>
     </div>
     <form action="{{ url_for('admin_set_canonical_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
       <label><span>Scheduled refresh</span><select name="canonical_pipeline_schedule_enabled"><option value="1" {% if dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not dataset_pipeline.canonical_schedule_enabled %}selected{% endif %}>Paused</option></select></label>
       <label><span>Every N days</span><input type="number" name="canonical_pipeline_interval_days" min="1" max="365" value="{{ dataset_pipeline.canonical_interval_days }}" list="canonical-day-options"><datalist id="canonical-day-options"><option value="7"></option><option value="14"></option><option value="30"></option><option value="60"></option></datalist></label>
       <label><span>UTC hour</span><input type="number" name="canonical_pipeline_schedule_hour_utc" min="0" max="23" value="{{ dataset_pipeline.canonical_schedule_hour_utc }}"></label>
+      <label><span>After validation</span><select name="canonical_pipeline_auto_publish_verified"><option value="0" {% if not dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Wait for manual activation</option><option value="1" {% if dataset_pipeline.canonical_auto_publish_verified %}selected{% endif %}>Auto-publish if passed</option></select></label>
       <button type="submit">Save schedule</button>
-      <span class="section-note">Scheduled runs update staging through rank-aware views, then wait for validation and activation.</span>
+      <span class="section-note">Auto-publish never bypasses verification; failed checks keep the existing public snapshot.</span>
     </form>
     <div class="pipeline-board top-gap">
       {% for stage in canonical_pipeline_cards %}
@@ -320,6 +321,9 @@
                 <button type="submit" {% if stage.disabled %}disabled{% endif %}>{{ stage.button }}</button>
                 {% if stage.continue_control %}
                   <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Run after previous</label>
+                {% endif %}
+                {% if stage.publish_control %}
+                  <label class="pipeline-check"><input type="checkbox" name="auto_publish_verified" value="1">Auto-publish if validation passes</label>
                 {% endif %}
               </form>
             </div>
@@ -348,6 +352,7 @@
         <form action="{{ url_for('admin_refetch_all_canonical_metadata') }}" method="post" onsubmit="return confirm('Refetch metadata for every canonical bacterial assembly from NCBI? This is expensive but does not change public data until activation.')">
           <button type="submit" class="ghost" {% if not dataset_pipeline.root_inventory.available or canonical_pipeline_cards[0].disabled %}disabled{% endif %}>Refetch all metadata</button>
           <label class="pipeline-check"><input type="checkbox" name="continue_after" value="1" checked>Build views after fetch</label>
+          <label class="pipeline-check"><input type="checkbox" name="auto_publish_verified" value="1">Auto-publish if validation passes</label>
         </form>
       </div>
     </details>
