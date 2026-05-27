@@ -105,6 +105,30 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
         self.assertTrue(all(card["disabled"] for card in busy_cards))
 
+    def test_canonical_inventory_card_shows_checkpoint_progress_and_eta(self) -> None:
+        root = {
+            "configured": True,
+            "available": True,
+            "status": "running",
+            "task_active": True,
+            "snapshot_id": "active-scan",
+            "root_unique_assemblies": 0,
+            "inventory_elapsed_seconds": 3600,
+            "chunk_progress": {
+                "records_processed": 250000,
+                "expected_total": 1000000,
+                "completed": 250,
+                "expected_pages": 1000,
+                "failed": 0,
+            },
+        }
+        cards = fetchm_app.build_canonical_pipeline_cards(root, {"status": "blocked"}, None)
+        inventory = cards[0]
+        self.assertEqual(inventory["percent"], 25)
+        self.assertIn("Retrieved accessions: 250,000 / 1,000,000", inventory["details"])
+        self.assertIn("Pages completed: 250 / 1,000; failed: 0", inventory["details"])
+        self.assertIn("throughput: 250,000 accessions/hour; ETA: 3h 0m", inventory["details"][2])
+
     def test_canonical_auto_publish_stops_when_release_gate_blocks(self) -> None:
         with patch.object(fetchm_app, "canonical_auto_publish_intended", return_value=True), patch.object(
             fetchm_app, "activate_verified_canonical_snapshot", return_value=({"blockers": ["metadata incomplete"]}, "metadata incomplete")

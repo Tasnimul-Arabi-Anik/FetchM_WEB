@@ -7793,6 +7793,7 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "available": False,
         "status": "not configured" if not configured else "not generated",
         "root_unique_assemblies": 0,
+        "display_root_assemblies": 0,
         "source_database": "GenBank",
         "canonical_accession_namespace": "GCA",
         "replacement_requires_reconciliation": True,
@@ -7819,11 +7820,11 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         bootstrap_schema()
         with connect_dataset_store() as connection:
             task = connection.execute(
-                "SELECT snapshot_id, status, requested_at, completed_at, error FROM canonical_inventory_task ORDER BY requested_at DESC LIMIT 1"
+                "SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error FROM canonical_inventory_task ORDER BY requested_at DESC LIMIT 1"
             ).fetchone()
             row = connection.execute(
                 """
-                SELECT snapshot_id, status, completed_at, root_unique_assemblies,
+                SELECT snapshot_id, status, requested_at, started_at, completed_at, root_unique_assemblies,
                        source_database, canonical_accession_namespace, error
                 FROM bacterial_inventory_snapshot
                 ORDER BY requested_at DESC
@@ -7910,6 +7911,8 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
     if task is not None:
         status["task_snapshot_id"] = task[0]
         status["task_status"] = task[1]
+        status["task_requested_at"] = task[2]
+        status["task_claimed_at"] = task[3]
         status["task_active"] = str(task[1]) in {"pending", "running"}
         if status["task_active"]:
             status["status"] = task[1]
@@ -7945,17 +7948,32 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         status["taxonomy_lineage_summary"] = dict(lineage_row[0] or {})
     if row is None:
         return status
+    root_unique_assemblies = int(row[5] or 0)
+    expected_total = int((chunk_progress or {}).get("expected_total") or 0)
+    inventory_started_at = row[3] or row[2] or status.get("task_claimed_at") or status.get("task_requested_at")
+    inventory_completed_at = row[4]
+    inventory_elapsed_seconds = None
+    if inventory_started_at:
+        end_at = inventory_completed_at if not status.get("task_active") and inventory_completed_at else datetime.now(timezone.utc)
+        try:
+            inventory_elapsed_seconds = max(0.0, (end_at - inventory_started_at).total_seconds())
+        except TypeError:
+            inventory_elapsed_seconds = None
     status.update({
         "available": True,
         "snapshot_id": row[0],
         "status": status["status"] if status.get("task_active") else row[1],
-        "completed_at": row[2],
-        "root_unique_assemblies": int(row[3] or 0),
+        "requested_at": row[2],
+        "started_at": row[3],
+        "completed_at": row[4],
+        "root_unique_assemblies": root_unique_assemblies,
+        "display_root_assemblies": expected_total if status.get("task_active") and expected_total else root_unique_assemblies,
+        "inventory_elapsed_seconds": inventory_elapsed_seconds,
         "inserted_membership_rows": membership_count,
         "chunk_progress": chunk_progress,
-        "source_database": row[4],
-        "canonical_accession_namespace": row[5],
-        "error": row[6],
+        "source_database": row[6],
+        "canonical_accession_namespace": row[7],
+        "error": row[8],
     })
     try:
         from dataset_production_store import standardized_metadata_coverage
@@ -8053,6 +8071,33 @@ def build_canonical_pipeline_cards(
         if restandardization_status == "not generated" and standardized_total
         else restandardization_status
     )
+    inventory_active = bool(root_inventory.get("task_active"))
+    inventory_progress = dict(root_inventory.get("chunk_progress") or {})
+    inventory_expected_total = int(inventory_progress.get("expected_total") or 0)
+    inventory_records_processed = int(inventory_progress.get("records_processed") or 0)
+    inventory_pages_completed = int(inventory_progress.get("completed") or 0)
+    inventory_pages_failed = int(inventory_progress.get("failed") or 0)
+    inventory_expected_pages = int(inventory_progress.get("expected_pages") or 0)
+    inventory_elapsed_seconds = root_inventory.get("inventory_elapsed_seconds")
+    inventory_percent = canonical_status_percent(root_inventory.get("status"), active=inventory_active)
+    inventory_details = [
+        f"Unique bacterial assemblies: {root_total:,}",
+        f"Snapshot: {root_inventory.get('snapshot_id') or 'none'}",
+        "Source: NCBI Bacteria / GenBank GCA assemblies",
+    ]
+    if inventory_active and inventory_expected_total:
+        inventory_percent = min(99, int((inventory_records_processed / inventory_expected_total) * 100))
+        rate_per_hour = 0.0
+        if inventory_elapsed_seconds and float(inventory_elapsed_seconds) > 0:
+            rate_per_hour = inventory_records_processed / (float(inventory_elapsed_seconds) / 3600.0)
+        remaining_records = max(0, inventory_expected_total - inventory_records_processed)
+        eta_label = format_elapsed_brief((remaining_records / rate_per_hour) * 3600.0) if rate_per_hour else "calculating"
+        rate_label = f"{rate_per_hour:,.0f} accessions/hour" if rate_per_hour else "calculating"
+        inventory_details = [
+            f"Retrieved accessions: {inventory_records_processed:,} / {inventory_expected_total:,}",
+            f"Pages completed: {inventory_pages_completed:,} / {inventory_expected_pages:,}; failed: {inventory_pages_failed:,}",
+            f"Elapsed: {format_elapsed_brief(inventory_elapsed_seconds)}; throughput: {rate_label}; ETA: {eta_label}",
+        ]
     canonical_pipeline_active = any(bool(root_inventory.get(key)) for key in (
         "task_active", "metadata_seed_task_active", "metadata_fetch_task_active",
         "metadata_restandardization_task_active", "partition_task_active",
@@ -8064,13 +8109,9 @@ def build_canonical_pipeline_cards(
             "label": "Update bacterial inventory",
             "short": "Refresh the canonical GenBank bacterial root inventory. Live users keep the current release.",
             "status": root_inventory.get("status") or "not generated",
-            "percent": canonical_status_percent(root_inventory.get("status"), active=bool(root_inventory.get("task_active"))),
-            "metric_label": "Canonical inventory",
-            "details": [
-                f"Unique bacterial assemblies: {root_total:,}",
-                f"Snapshot: {root_inventory.get('snapshot_id') or 'none'}",
-                "Source: NCBI Bacteria / GenBank GCA assemblies",
-            ],
+            "percent": inventory_percent,
+            "metric_label": "Canonical inventory scan",
+            "details": inventory_details,
             "endpoint": "admin_run_canonical_inventory",
             "button": "Run inventory",
             "disabled": (not root_inventory.get("configured")) or canonical_pipeline_active,

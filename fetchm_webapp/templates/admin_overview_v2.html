@@ -284,7 +284,7 @@
       <p class="section-note">Primary production workflow. New data is staged and verified first; public users keep the current active snapshot until you activate a verified release.</p>
     </div>
     <div class="health-strip top-gap">
-      <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.root_unique_assemblies or 0 }}</strong><span>Unique bacterial assemblies</span></div>
+      <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.display_root_assemblies or dataset_pipeline.root_inventory.root_unique_assemblies or 0 }}</strong><span>{% if dataset_pipeline.root_inventory.task_active and dataset_pipeline.root_inventory.chunk_progress and dataset_pipeline.root_inventory.chunk_progress.expected_total %}Expected assemblies in scan{% else %}Unique bacterial assemblies{% endif %}</span></div>
       <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.standardized_metadata_coverage.standardized_assemblies if dataset_pipeline.root_inventory.standardized_metadata_coverage else 0 }}</strong><span>Standardized metadata rows</span></div>
       <div class="health-card"><strong>{{ canonical_release_gate.active_snapshot_id or 'Preview' }}</strong><span>Active metadata snapshot</span></div>
       <div class="health-card"><strong>{{ canonical_release_gate.status }}</strong><span>Release gate</span></div>
