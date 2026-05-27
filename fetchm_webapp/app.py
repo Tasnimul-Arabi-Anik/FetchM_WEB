@@ -8317,6 +8317,21 @@ def latest_global_insight_task(db: sqlite3.Connection | None = None) -> dict[str
 def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> list[str]:
     connection = db or get_db()
     blockers: list[str] = []
+    canonical_snapshot = latest_canonical_snapshot()
+    canonical_root_active = bool(canonical_snapshot and canonical_snapshot.get("release_state") == "active")
+    insight_active = connection.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM global_insight_tasks
+        WHERE status IN ('pending', 'running')
+        """
+    ).fetchone()
+
+    if int(insight_active["total"] or 0):
+        blockers.append("a Global Insights generation task is already queued or running")
+    if canonical_root_active:
+        return blockers
+
     discovery_active = connection.execute(
         """
         SELECT COUNT(*) AS total
@@ -8385,8 +8400,6 @@ def global_insight_generation_blockers(db: sqlite3.Connection | None = None) -> 
     ).fetchone()
     if int(derive_species_active["total"] or 0):
         blockers.append("species metadata derivation is still active")
-    if int(insight_active["total"] or 0):
-        blockers.append("a Global Insights generation task is already queued or running")
     return blockers
 
 
