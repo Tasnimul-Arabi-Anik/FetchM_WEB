@@ -219,6 +219,45 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
+    def test_global_insights_pipeline_step_is_reserved_for_dedicated_worker(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            old_paths = (fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH)
+            fetchm_app.DATA_DIR = root / "data"
+            fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+            fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+            fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+            fetchm_app.DATA_DIR.mkdir(parents=True, exist_ok=True)
+            try:
+                with fetchm_app.app.app_context():
+                    fetchm_app.init_db()
+                    db = fetchm_app.get_db()
+                    fetchm_app.set_setting("dataset_pipeline_auto_publish_insights", "1", db)
+                    run_id, error = fetchm_app.queue_dataset_update_pipeline_run("manual", start_step="verify")
+                    self.assertIsNone(error)
+                    db.execute(
+                        "UPDATE dataset_update_pipeline_steps SET status = 'completed' WHERE run_id = ? AND step_key IN ('verify', 'replace')",
+                        (run_id,),
+                    )
+                    db.execute(
+                        "UPDATE dataset_update_pipeline_steps SET status = 'pending' WHERE run_id = ? AND step_key = 'global_insights'",
+                        (run_id,),
+                    )
+                    db.execute("UPDATE dataset_update_pipeline_runs SET status = 'running' WHERE run_id = ?", (run_id,))
+                    db.commit()
+                    metadata_claim = fetchm_app.claim_next_dataset_pipeline_step(
+                        "metadata-worker", excluded_step_keys={"global_insights"}
+                    )
+                    self.assertIsNone(metadata_claim)
+                    with patch.object(fetchm_app, "global_insights_step_blockers", return_value=[]):
+                        insight_claim = fetchm_app.claim_next_dataset_pipeline_step(
+                            "insights-worker", allowed_step_keys={"global_insights"}
+                        )
+                    self.assertIsNotNone(insight_claim)
+                    self.assertEqual(str(insight_claim["step_key"]), "global_insights")
+            finally:
+                fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
+
     def test_derive_species_reuses_prior_live_species_when_source_genus_is_current(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)

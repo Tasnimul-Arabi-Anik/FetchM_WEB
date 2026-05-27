@@ -11447,16 +11447,32 @@ def advance_dataset_update_pipeline_runs() -> None:
         db.commit()
 
 
-def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
+def claim_next_dataset_pipeline_step(
+    worker_name: str,
+    *,
+    allowed_step_keys: set[str] | None = None,
+    excluded_step_keys: set[str] | None = None,
+) -> sqlite3.Row | None:
+    restrictions: list[str] = []
+    params: list[Any] = []
+    if allowed_step_keys:
+        placeholders = ", ".join("?" for _ in allowed_step_keys)
+        restrictions.append(f"s.step_key IN ({placeholders})")
+        params.extend(sorted(allowed_step_keys))
+    if excluded_step_keys:
+        placeholders = ", ".join("?" for _ in excluded_step_keys)
+        restrictions.append(f"s.step_key NOT IN ({placeholders})")
+        params.extend(sorted(excluded_step_keys))
+    restriction_sql = "".join(f"\n              AND {item}" for item in restrictions)
     with get_sqlite_connection() as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute(
-            """
+            f"""
             SELECT s.*, r.dataset_version_id, r.requested_at
             FROM dataset_update_pipeline_steps s
             JOIN dataset_update_pipeline_runs r ON r.run_id = s.run_id
             WHERE s.status = 'pending'
-              AND r.status IN ('pending', 'running')
+              AND r.status IN ('pending', 'running'){restriction_sql}
               AND NOT EXISTS (
                     SELECT 1
                     FROM dataset_update_pipeline_steps ps
@@ -11466,7 +11482,8 @@ def claim_next_dataset_pipeline_step(worker_name: str) -> sqlite3.Row | None:
               )
             ORDER BY r.requested_at ASC, s.step_order ASC
             LIMIT 1
-            """
+            """,
+            tuple(params),
         ).fetchone()
         if row is None:
             db.commit()
@@ -22689,10 +22706,19 @@ def run_worker_loop() -> None:
                     continue
                 time.sleep(WORKER_POLL_INTERVAL)
                 continue
-            if WORKER_MODE in {"all", "metadata", "global-insights"}:
+            if WORKER_MODE in {"all", "metadata"}:
                 schedule_due_dataset_pipeline_run()
                 advance_dataset_update_pipeline_runs()
-                pipeline_step = claim_next_dataset_pipeline_step(worker_name)
+                pipeline_step = claim_next_dataset_pipeline_step(
+                    worker_name,
+                    excluded_step_keys={"global_insights"} if WORKER_MODE == "metadata" else None,
+                )
+                if pipeline_step is not None:
+                    with maintain_worker_heartbeat(worker_name):
+                        process_dataset_pipeline_step(pipeline_step)
+                    continue
+            if WORKER_MODE == "global-insights":
+                pipeline_step = claim_next_dataset_pipeline_step(worker_name, allowed_step_keys={"global_insights"})
                 if pipeline_step is not None:
                     with maintain_worker_heartbeat(worker_name):
                         process_dataset_pipeline_step(pipeline_step)
