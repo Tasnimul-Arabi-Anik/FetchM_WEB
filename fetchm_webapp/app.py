@@ -7987,6 +7987,10 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
             inventory_elapsed_seconds = max(0.0, (end_at - inventory_started_at).total_seconds())
         except TypeError:
             inventory_elapsed_seconds = None
+    previous_total_for_display = int(status.get("previous_root_unique_assemblies") or 0)
+    display_root_assemblies = root_unique_assemblies
+    if status.get("task_active"):
+        display_root_assemblies = expected_total or previous_total_for_display or root_unique_assemblies
     status.update({
         "available": True,
         "snapshot_id": row[0],
@@ -7995,7 +7999,7 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
         "started_at": row[3],
         "completed_at": row[4],
         "root_unique_assemblies": root_unique_assemblies,
-        "display_root_assemblies": expected_total if status.get("task_active") and expected_total else root_unique_assemblies,
+        "display_root_assemblies": display_root_assemblies,
         "inventory_elapsed_seconds": inventory_elapsed_seconds,
         "inserted_membership_rows": membership_count,
         "chunk_progress": chunk_progress,
@@ -8023,14 +8027,22 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
     latest_snapshot_end = status.get("partition_completed_at") or status.get("metadata_restandardization_completed_at") or status.get("metadata_fetch_completed_at") or status.get("metadata_seed_completed_at") or status.get("task_completed_at") or status.get("completed_at")
     total_run_seconds = _duration_seconds(latest_snapshot_start, latest_snapshot_end)
     previous_total = int(status.get("previous_root_unique_assemblies") or 0)
+    summary_latest_total = root_unique_assemblies
+    latest_label = f"{root_unique_assemblies:,}"
     delta = root_unique_assemblies - previous_total if previous_total else None
+    delta_label = f"{delta:+,}" if delta is not None else "unknown"
+    if status.get("task_active") and root_unique_assemblies == 0:
+        summary_latest_total = expected_total or previous_total
+        latest_label = f"{expected_total:,} expected" if expected_total else "running"
+        delta = None
+        delta_label = "calculating"
     status["run_summary"] = {
         "previous_assemblies": previous_total,
-        "latest_assemblies": root_unique_assemblies,
+        "latest_assemblies": summary_latest_total,
         "assembly_delta": delta,
         "previous_assemblies_label": f"{previous_total:,}" if previous_total else "unknown",
-        "latest_assemblies_label": f"{root_unique_assemblies:,}",
-        "delta_label": (f"{delta:+,}" if delta is not None else "unknown"),
+        "latest_assemblies_label": latest_label,
+        "delta_label": delta_label,
         "total_time_label": format_elapsed_brief(total_run_seconds),
     }
 
@@ -23420,7 +23432,7 @@ def process_canonical_inventory_task(worker_name: str) -> bool:
     if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
         return False
     try:
-        from dataset_production_store import claim_inventory_task, finish_inventory_task
+        from dataset_production_store import claim_inventory_task, finish_inventory_task, requeue_inventory_task
         task = claim_inventory_task(worker_name)
     except Exception as exc:
         logging.warning("Canonical inventory task claim unavailable: %s", exc)
@@ -23432,7 +23444,18 @@ def process_canonical_inventory_task(worker_name: str) -> bool:
         "--snapshot-id", str(task["snapshot_id"]),
         "--datasets-bin", os.environ.get("FETCHM_WEBAPP_DATASETS_BIN", "datasets"),
     ]
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    except subprocess.TimeoutExpired:
+        requeue_inventory_task(
+            int(task["id"]),
+            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
+        )
+        logging.warning(
+            "Canonical inventory task %s timed out and was requeued from the last completed page.",
+            task["snapshot_id"],
+        )
+        return True
     if result.returncode == 0:
         finish_inventory_task(int(task["id"]), "completed")
         maybe_queue_next_canonical_pipeline_task("inventory", str(task["snapshot_id"]), bool(task.get("continue_after")))
@@ -23462,7 +23485,18 @@ def process_canonical_metadata_seed_task(worker_name: str) -> bool:
     ]
     if task.get("rule_fingerprint"):
         command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    except subprocess.TimeoutExpired:
+        requeue_inventory_task(
+            int(task["id"]),
+            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
+        )
+        logging.warning(
+            "Canonical inventory task %s timed out and was requeued from the last completed page.",
+            task["snapshot_id"],
+        )
+        return True
     if result.returncode == 0:
         try:
             summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
@@ -23494,7 +23528,18 @@ def process_canonical_metadata_fetch_task(worker_name: str) -> bool:
     ]
     if task.get("refetch_all"):
         command.append("--refetch-all")
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    except subprocess.TimeoutExpired:
+        requeue_inventory_task(
+            int(task["id"]),
+            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
+        )
+        logging.warning(
+            "Canonical inventory task %s timed out and was requeued from the last completed page.",
+            task["snapshot_id"],
+        )
+        return True
     if result.returncode == 0:
         try:
             summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
@@ -23526,7 +23571,18 @@ def process_canonical_metadata_restandardization_task(worker_name: str) -> bool:
     ]
     if task.get("rule_fingerprint"):
         command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    except subprocess.TimeoutExpired:
+        requeue_inventory_task(
+            int(task["id"]),
+            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
+        )
+        logging.warning(
+            "Canonical inventory task %s timed out and was requeued from the last completed page.",
+            task["snapshot_id"],
+        )
+        return True
     if result.returncode == 0:
         try:
             summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
@@ -23557,7 +23613,18 @@ def process_canonical_partition_task(worker_name: str) -> bool:
         "--snapshot-id", str(task["snapshot_id"]),
         "--dataset-version-id", str(task["dataset_version_id"]),
     ]
-    result = subprocess.run(command, capture_output=True, text=True, check=False)
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+    except subprocess.TimeoutExpired:
+        requeue_inventory_task(
+            int(task["id"]),
+            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
+        )
+        logging.warning(
+            "Canonical inventory task %s timed out and was requeued from the last completed page.",
+            task["snapshot_id"],
+        )
+        return True
     if result.returncode == 0:
         try:
             summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}

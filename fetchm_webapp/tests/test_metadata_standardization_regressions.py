@@ -97,7 +97,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         ])
         standardization = cards[3]
         self.assertEqual(standardization["status"], "incremental ready")
-        self.assertIn("step 3", standardization["short"])
+        self.assertIn("Incremental", standardization["short"])
         self.assertEqual(cards[6]["endpoint"], "admin_activate_canonical_metadata_release")
         self.assertEqual(cards[7]["extra_fields"], {"next": "admin"})
         self.assertFalse(any(card["publish_control"] for card in cards))

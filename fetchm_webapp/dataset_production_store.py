@@ -378,6 +378,19 @@ def finish_inventory_task(task_id: int, status: str, error: str | None = None) -
         )
         connection.commit()
 
+
+def requeue_inventory_task(task_id: int, error: str | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE canonical_inventory_task
+            SET status = 'pending', claimed_by = NULL, claimed_at = NULL, completed_at = NULL, error = %s
+            WHERE id = %s
+            """,
+            (error[:4000] if error else None, task_id),
+        )
+        connection.commit()
+
 def latest_inventory_task() -> dict[str, Any] | None:
     bootstrap_schema()
     with connect() as connection:
