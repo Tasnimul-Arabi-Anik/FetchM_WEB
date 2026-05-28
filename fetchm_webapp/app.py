@@ -23486,16 +23486,11 @@ def process_canonical_metadata_seed_task(worker_name: str) -> bool:
     if task.get("rule_fingerprint"):
         command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=7200)
     except subprocess.TimeoutExpired:
-        requeue_inventory_task(
-            int(task["id"]),
-            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
-        )
-        logging.warning(
-            "Canonical inventory task %s timed out and was requeued from the last completed page.",
-            task["snapshot_id"],
-        )
+        error = "Canonical metadata seed timed out after 2 hours."
+        finish_metadata_seed_task(int(task["id"]), "failed", error)
+        logging.error("Canonical metadata seed task %s timed out.", task["snapshot_id"])
         return True
     if result.returncode == 0:
         try:
@@ -23529,16 +23524,11 @@ def process_canonical_metadata_fetch_task(worker_name: str) -> bool:
     if task.get("refetch_all"):
         command.append("--refetch-all")
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=14400)
     except subprocess.TimeoutExpired:
-        requeue_inventory_task(
-            int(task["id"]),
-            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
-        )
-        logging.warning(
-            "Canonical inventory task %s timed out and was requeued from the last completed page.",
-            task["snapshot_id"],
-        )
+        error = "Canonical metadata fetch timed out after 4 hours."
+        finish_metadata_fetch_task(int(task["id"]), "failed", error)
+        logging.error("Canonical metadata fetch task %s timed out.", task["snapshot_id"])
         return True
     if result.returncode == 0:
         try:
@@ -23572,16 +23562,11 @@ def process_canonical_metadata_restandardization_task(worker_name: str) -> bool:
     if task.get("rule_fingerprint"):
         command.extend(["--rule-fingerprint", str(task["rule_fingerprint"])])
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=14400)
     except subprocess.TimeoutExpired:
-        requeue_inventory_task(
-            int(task["id"]),
-            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
-        )
-        logging.warning(
-            "Canonical inventory task %s timed out and was requeued from the last completed page.",
-            task["snapshot_id"],
-        )
+        error = "Canonical metadata re-standardization timed out after 4 hours."
+        finish_metadata_restandardization_task(int(task["id"]), "failed", error)
+        logging.error("Canonical metadata re-standardization task %s timed out.", task["snapshot_id"])
         return True
     if result.returncode == 0:
         try:
@@ -23614,16 +23599,11 @@ def process_canonical_partition_task(worker_name: str) -> bool:
         "--dataset-version-id", str(task["dataset_version_id"]),
     ]
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=1800)
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=7200)
     except subprocess.TimeoutExpired:
-        requeue_inventory_task(
-            int(task["id"]),
-            "Canonical inventory page scan timed out after 30 minutes; retrying from the last completed page.",
-        )
-        logging.warning(
-            "Canonical inventory task %s timed out and was requeued from the last completed page.",
-            task["snapshot_id"],
-        )
+        error = "Canonical partition materialization timed out after 2 hours."
+        finish_partition_task(int(task["id"]), "failed", error)
+        logging.error("Canonical partition task %s timed out.", task["snapshot_id"])
         return True
     if result.returncode == 0:
         try:
