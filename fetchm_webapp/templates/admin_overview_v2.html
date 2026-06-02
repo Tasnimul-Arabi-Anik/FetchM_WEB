@@ -474,6 +474,32 @@
   </section>
 
   <section class="panel">
+    <div class="admin-group-head">
+      <div>
+        <p class="eyebrow">Retention</p>
+        <h2>Generated artifact cleanup</h2>
+      </div>
+      <p class="section-note">Safe cleanup for regenerable outputs only. Active canonical data and Docker volumes are not removed.</p>
+    </div>
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ retention.reclaimable_bytes_label }}</strong><span>Estimated reclaimable</span></div>
+      <div class="health-card"><strong>{{ retention.removable_global_insight_snapshots }} / {{ retention.global_insight_snapshots }}</strong><span>Global Insights snapshots removable</span></div>
+      <div class="health-card"><strong>{{ retention.removable_canonical_reports }} / {{ retention.canonical_reports }}</strong><span>Canonical report caches removable</span></div>
+      <div class="health-card"><strong>{{ retention.old_jobs }}</strong><span>Old completed/failed/cancelled jobs</span></div>
+      <div class="health-card"><strong>{{ retention.removable_global_insight_bytes_label }}</strong><span>Insights snapshot space</span></div>
+      <div class="health-card"><strong>{{ retention.removable_canonical_report_bytes_label }}</strong><span>Report cache space</span></div>
+    </div>
+    <form action="{{ url_for('admin_cleanup_generated_artifacts') }}" method="post" class="pipeline-settings top-gap" onsubmit="return confirm('Clean generated artifacts using this retention policy? Active canonical data and Docker volumes will not be deleted.')">
+      <label><span>Keep Global Insights snapshots</span><input type="number" name="keep_global_insights" min="1" max="10" value="{{ retention.keep_global_insights }}"></label>
+      <label><span>Report cache older than days</span><input type="number" name="report_older_than_days" min="1" max="365" value="{{ retention.report_older_than_days }}"></label>
+      <label><span>Job output older than days</span><input type="number" name="job_older_than_days" min="1" max="365" value="{{ retention.job_older_than_days }}"></label>
+      <button type="submit" class="ghost" {% if retention.reclaimable_bytes == 0 %}disabled{% endif %}>Clean generated artifacts</button>
+    </form>
+    <p class="dataset-state-note top-gap">Canonical metadata reports are cache files and regenerate when a user opens that taxon again. Global Insights keeps the latest snapshot plus one archive by default.</p>
+  </section>
+
+
+  <section class="panel">
     <div class="admin-group-head"><div><p class="eyebrow">Audit</p><h2>Admin Audit Bundle</h2></div><a class="button-like ghost" href="{{ url_for('admin_audit_bundle') }}">Download audit bundle</a></div>
     <p class="section-note">Exports recent admin audit events, job analytics, and metadata standardization artifacts as a ZIP file.</p>
   </section>

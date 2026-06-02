@@ -8055,11 +8055,12 @@ def canonical_root_inventory_dashboard() -> dict[str, Any]:
 
 
 def build_canonical_metadata_release_gate(db: sqlite3.Connection | None = None, root_inventory: Mapping[str, Any] | None = None) -> dict[str, Any]:
-    """Validate activation of rank-aware canonical metadata browsing only.
+    """Validate activation of rank-aware canonical metadata workflows.
 
-    This gate does not replace legacy sequence-download or QC datasets. It
-    switches public metadata search/reporting to an explicitly approved
-    canonical snapshot after its coverage and accounting checks pass.
+    This switches public metadata search/reporting plus canonical sequence/QC
+    workflow entrypoints to an explicitly approved snapshot after coverage and
+    accounting checks pass. Legacy per-taxon routes remain available as a
+    fallback and for historical jobs.
     """
     connection = db or get_db()
     root = dict(root_inventory or canonical_root_inventory_dashboard())
@@ -8092,7 +8093,7 @@ def build_canonical_metadata_release_gate(db: sqlite3.Connection | None = None, 
     if unresolved_genus:
         cautions.append(f"{unresolved_genus:,} assemblies remain retained without a resolved genus label; they are not silently discarded.")
     if not bool(reconciliation.get("release_views_materialized")):
-        cautions.append("Sequence download and QC remain on the existing managed-dataset path until canonical release views are migrated.")
+        cautions.append("Legacy per-taxon sequence/QC routes remain available as fallback; canonical search results use the active snapshot workflow.")
     is_active = bool(snapshot_id and active_snapshot_id == snapshot_id)
     return {
         "snapshot_id": snapshot_id,
@@ -8108,7 +8109,8 @@ def build_canonical_metadata_release_gate(db: sqlite3.Connection | None = None, 
         "standardized_assemblies": standardized_total,
         "accounted_unique_assemblies": int(reconciliation.get("accounted_unique_assemblies") or 0),
         "unresolved_genus_assemblies": unresolved_genus,
-        "metadata_only": True,
+        "metadata_only": False,
+        "canonical_sequence_qc": True,
     }
 
 
@@ -8303,8 +8305,8 @@ def build_canonical_pipeline_cards(
         {
             "index": 7,
             "key": "activate",
-            "label": "Activate metadata snapshot",
-            "short": "Switch public metadata browsing.",
+            "label": "Activate canonical snapshot",
+            "short": "Switch metadata, sequence, and QC entrypoints.",
             "status": canonical_release_gate.get("status") or "blocked",
             "percent": 100 if canonical_release_gate.get("is_active") else 0,
             "metric_label": "Active snapshot",
@@ -8318,7 +8320,7 @@ def build_canonical_pipeline_cards(
             "disabled": canonical_pipeline_active or not bool(canonical_release_gate.get("can_activate")),
             "continue_control": False,
             "snapshot_id": canonical_release_gate.get("snapshot_id") or "",
-            "confirm": "Activate this canonical snapshot for public metadata browsing only? Sequence download and QC remain unchanged.",
+            "confirm": "Activate this canonical snapshot for public metadata, sequence download, and QC entrypoints?",
         },
         {
             "index": 8,
@@ -24795,6 +24797,171 @@ def cleanup_old_jobs(*, older_than_days: int) -> dict[str, Any]:
     return {"removed": removed, "skipped": skipped, "errors": errors}
 
 
+def _dir_mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return 0.0
+
+
+def _global_insight_snapshot_dirs() -> list[Path]:
+    snapshots_dir = global_insights_root() / "snapshots"
+    if not snapshots_dir.exists():
+        return []
+    return sorted(
+        [path for path in snapshots_dir.iterdir() if path.is_dir()],
+        key=_dir_mtime,
+        reverse=True,
+    )
+
+
+def _latest_global_insight_snapshot_dir() -> Path | None:
+    summary, snapshot_dir = load_latest_global_insights_summary()
+    if summary and snapshot_dir and snapshot_dir.exists():
+        return snapshot_dir.resolve()
+    return None
+
+
+def _retained_global_insight_dirs(*, keep_snapshots: int) -> set[Path]:
+    keep_total = max(1, int(keep_snapshots or 1))
+    retained: list[Path] = []
+    latest_dir = _latest_global_insight_snapshot_dir()
+    if latest_dir is not None:
+        retained.append(latest_dir)
+    for path in _global_insight_snapshot_dirs():
+        resolved = path.resolve()
+        if resolved not in retained:
+            retained.append(resolved)
+        if len(retained) >= keep_total:
+            break
+    return set(retained)
+
+
+def retention_cleanup_summary(*, keep_global_insights: int = 2, report_older_than_days: int = 14, job_older_than_days: int = 30) -> dict[str, Any]:
+    retained_insights = _retained_global_insight_dirs(keep_snapshots=keep_global_insights)
+    insight_dirs = _global_insight_snapshot_dirs()
+    removable_insight_dirs = [path for path in insight_dirs if path.resolve() not in retained_insights]
+    insight_bytes = sum(directory_size_bytes(path) for path in insight_dirs)
+    removable_insight_bytes = sum(directory_size_bytes(path) for path in removable_insight_dirs)
+
+    report_cutoff = utc_now_dt() - timedelta(days=max(1, int(report_older_than_days or 14)))
+    report_rows = get_db().execute(
+        """
+        SELECT id, output_dir, completed_at, requested_at, status
+        FROM canonical_metadata_report_tasks
+        WHERE output_dir IS NOT NULL AND output_dir <> ''
+        """
+    ).fetchall()
+    removable_reports: list[sqlite3.Row] = []
+    report_bytes = 0
+    removable_report_bytes = 0
+    for row in report_rows:
+        output_dir = Path(str(row["output_dir"]))
+        size = directory_size_bytes(output_dir)
+        report_bytes += size
+        timestamp = str(row["completed_at"] or row["requested_at"] or "")
+        try:
+            age_dt = parse_utc(timestamp)
+        except ValueError:
+            age_dt = datetime.fromtimestamp(_dir_mtime(output_dir), tz=timezone.utc) if output_dir.exists() else utc_now_dt()
+        if str(row["status"]) in {"completed", "failed"} and age_dt <= report_cutoff:
+            removable_reports.append(row)
+            removable_report_bytes += size
+
+    job_cutoff = utc_now_dt() - timedelta(days=max(1, int(job_older_than_days or 30)))
+    removable_statuses = {"completed", "failed", "cancelled"}
+    old_job_rows = []
+    old_job_bytes = 0
+    for row in get_db().execute("SELECT id, status, updated_at FROM jobs").fetchall():
+        if str(row["status"]) not in removable_statuses:
+            continue
+        try:
+            updated_at = parse_utc(str(row["updated_at"]))
+        except ValueError:
+            continue
+        if updated_at <= job_cutoff:
+            old_job_rows.append(row)
+            old_job_bytes += directory_size_bytes(job_dir(str(row["id"])))
+
+    reclaimable_bytes = removable_insight_bytes + removable_report_bytes + old_job_bytes
+    return {
+        "keep_global_insights": max(1, int(keep_global_insights or 1)),
+        "report_older_than_days": max(1, int(report_older_than_days or 14)),
+        "job_older_than_days": max(1, int(job_older_than_days or 30)),
+        "global_insight_snapshots": len(insight_dirs),
+        "removable_global_insight_snapshots": len(removable_insight_dirs),
+        "global_insight_bytes_label": format_bytes(insight_bytes),
+        "removable_global_insight_bytes_label": format_bytes(removable_insight_bytes),
+        "canonical_reports": len(report_rows),
+        "removable_canonical_reports": len(removable_reports),
+        "canonical_report_bytes_label": format_bytes(report_bytes),
+        "removable_canonical_report_bytes_label": format_bytes(removable_report_bytes),
+        "old_jobs": len(old_job_rows),
+        "old_job_bytes_label": format_bytes(old_job_bytes),
+        "reclaimable_bytes": reclaimable_bytes,
+        "reclaimable_bytes_label": format_bytes(reclaimable_bytes),
+    }
+
+
+def cleanup_generated_artifacts(*, keep_global_insights: int = 2, report_older_than_days: int = 14, job_older_than_days: int = 30) -> dict[str, Any]:
+    summary = retention_cleanup_summary(
+        keep_global_insights=keep_global_insights,
+        report_older_than_days=report_older_than_days,
+        job_older_than_days=job_older_than_days,
+    )
+    retained_insights = _retained_global_insight_dirs(keep_snapshots=keep_global_insights)
+    removed_insights = 0
+    skipped = 0
+    errors: list[str] = []
+    for path in _global_insight_snapshot_dirs():
+        if path.resolve() in retained_insights:
+            continue
+        try:
+            shutil.rmtree(path)
+            removed_insights += 1
+        except OSError as exc:
+            skipped += 1
+            errors.append(f"{path.name}: {exc}")
+
+    report_cutoff = utc_now_dt() - timedelta(days=max(1, int(report_older_than_days or 14)))
+    db = get_db()
+    removed_reports = 0
+    for row in db.execute(
+        """
+        SELECT id, output_dir, completed_at, requested_at, status
+        FROM canonical_metadata_report_tasks
+        WHERE output_dir IS NOT NULL AND output_dir <> ''
+        """
+    ).fetchall():
+        output_dir = Path(str(row["output_dir"]))
+        timestamp = str(row["completed_at"] or row["requested_at"] or "")
+        try:
+            age_dt = parse_utc(timestamp)
+        except ValueError:
+            age_dt = datetime.fromtimestamp(_dir_mtime(output_dir), tz=timezone.utc) if output_dir.exists() else utc_now_dt()
+        if str(row["status"]) not in {"completed", "failed"} or age_dt > report_cutoff:
+            continue
+        try:
+            if output_dir.exists():
+                shutil.rmtree(output_dir)
+            db.execute("DELETE FROM canonical_metadata_report_tasks WHERE id = ?", (row["id"],))
+            removed_reports += 1
+        except OSError as exc:
+            skipped += 1
+            errors.append(f"report {row['id']}: {exc}")
+    db.commit()
+
+    job_result = cleanup_old_jobs(older_than_days=max(1, int(job_older_than_days or 30)))
+    return {
+        "before": summary,
+        "removed_global_insight_snapshots": removed_insights,
+        "removed_canonical_reports": removed_reports,
+        "removed_jobs": int(job_result.get("removed") or 0),
+        "skipped": skipped + int(job_result.get("skipped") or 0),
+        "errors": errors + [str(item) for item in job_result.get("errors", [])],
+    }
+
+
 def list_metadata_claims(limit: int = 12) -> list[dict[str, Any]]:
     rows = get_db().execute(
         """
@@ -25450,6 +25617,7 @@ def admin_dashboard() -> str:
         canonical_pipeline_cards=canonical_pipeline_cards,
         observability=build_observability_dashboard(),
         storage=build_admin_storage_summary(),
+        retention=retention_cleanup_summary(),
         deployment=build_deployment_status(),
         release_gate=build_release_gate_summary(dataset_pipeline, admin_summary),
         canonical_release_gate=canonical_release_gate,
@@ -26325,7 +26493,7 @@ def admin_materialize_canonical_partitions() -> Any:
             metadata={"preview_only": True, "source_database": "genbank", "canonical_accession_namespace": "GCA"},
         )
         flash(
-            f"Canonical partition preview queued for {snapshot_id}. Replacement still requires materialized release views.",
+            f"Canonical rank-aware views queued for {snapshot_id}. Public users stay on the active snapshot until activation.",
             "success",
         )
     return redirect(url_for("admin_dashboard"))
@@ -26340,12 +26508,12 @@ def admin_validate_canonical_metadata_release() -> Any:
         "admin.canonical_metadata_validate",
         target_type="canonical_snapshot",
         target_id=str(gate.get("snapshot_id") or "missing"),
-        metadata={"status": gate["status"], "blockers": gate["blockers"], "metadata_only": True},
+        metadata={"status": gate["status"], "blockers": gate["blockers"], "metadata_only": False, "canonical_sequence_qc": True},
     )
     if gate["blockers"]:
         flash("Canonical metadata activation blocked: " + "; ".join(gate["blockers"][:5]), "error")
     else:
-        flash(f"Canonical metadata snapshot {gate['snapshot_id']} passed activation checks. This validates metadata browsing only; sequence/QC remains unchanged.", "success")
+        flash(f"Canonical snapshot {gate['snapshot_id']} passed activation checks for metadata browsing, sequence download, and QC entrypoints.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -26357,7 +26525,7 @@ def admin_activate_canonical_metadata_release() -> Any:
     if error:
         flash("Canonical metadata activation blocked: " + error, "error")
         return redirect(url_for("admin_dashboard"))
-    flash(f"Canonical metadata snapshot {requested_snapshot} is active for public metadata browsing. Sequence download and QC inputs were not replaced.", "success")
+    flash(f"Canonical snapshot {requested_snapshot} is active for public metadata browsing, sequence download, and QC entrypoints.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -26373,9 +26541,9 @@ def admin_clear_canonical_metadata_release() -> Any:
         "admin.canonical_metadata_clear_activation",
         target_type="canonical_snapshot",
         target_id=active or "none",
-        metadata={"metadata_only": True},
+        metadata={"metadata_only": False, "canonical_sequence_qc": True},
     )
-    flash("Canonical metadata activation cleared. Public metadata browsing returns to latest preview mode; sequence/QC remains unchanged.", "success")
+    flash("Canonical activation cleared. Public canonical metadata, sequence, and QC entrypoints return to latest preview mode.", "success")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -28431,6 +28599,57 @@ def admin_cleanup_jobs() -> Any:
             "error",
         )
     return redirect(url_for("admin_jobs"))
+
+
+@app.route("/admin/retention/cleanup", methods=["POST"])
+def admin_cleanup_generated_artifacts() -> Any:
+    require_admin()
+    try:
+        keep_global = max(1, min(10, int(request.form.get("keep_global_insights") or "2")))
+    except ValueError:
+        keep_global = 2
+    try:
+        report_days = max(1, min(365, int(request.form.get("report_older_than_days") or "14")))
+    except ValueError:
+        report_days = 14
+    try:
+        job_days = max(1, min(365, int(request.form.get("job_older_than_days") or "30")))
+    except ValueError:
+        job_days = 30
+    try:
+        result = cleanup_generated_artifacts(
+            keep_global_insights=keep_global,
+            report_older_than_days=report_days,
+            job_older_than_days=job_days,
+        )
+    except Exception as exc:
+        logging.exception("Generated artifact cleanup failed")
+        flash(f"Generated artifact cleanup failed before completion: {exc}", "error")
+        return redirect(url_for("admin_dashboard"))
+    record_audit_event(
+        "admin.generated_artifact_cleanup",
+        target_type="retention",
+        target_id="generated_artifacts",
+        metadata={
+            "keep_global_insights": keep_global,
+            "report_older_than_days": report_days,
+            "job_older_than_days": job_days,
+            "removed_global_insight_snapshots": result["removed_global_insight_snapshots"],
+            "removed_canonical_reports": result["removed_canonical_reports"],
+            "removed_jobs": result["removed_jobs"],
+            "skipped": result["skipped"],
+        },
+    )
+    flash(
+        "Cleaned generated artifacts: "
+        f"{result['removed_global_insight_snapshots']} Global Insights snapshots, "
+        f"{result['removed_canonical_reports']} canonical report caches, "
+        f"{result['removed_jobs']} old jobs.",
+        "success",
+    )
+    if result["skipped"]:
+        flash(f"Skipped {result['skipped']} items. Check logs or filesystem ownership.", "error")
+    return redirect(url_for("admin_dashboard"))
 
 
 @app.route("/jobs/<job_id>/files/<path:relative_path>")
