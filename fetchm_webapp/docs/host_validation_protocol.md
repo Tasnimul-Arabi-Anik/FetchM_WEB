@@ -30,6 +30,14 @@ A host assignment is `false_positive` when FetchM maps a source, sample material
 
 An unresolved host is `correct` if the available metadata do not support a biological host assignment. It is `false_positive` only if the reviewer identifies clear host evidence that FetchM missed.
 
-## Using Results
+## Publishing Reviewed Results
 
-After review, copy the completed rows to `global_insights/validation_records.csv` and regenerate Global Insights. The Validation Accuracy panel will summarize host precision, false-positive rate, unresolved rate, and common error types.
+After review, import the completed file with the guarded importer:
+
+```bash
+python tools/import_validation_records.py global_insights/host_validation_review_sample.csv
+```
+
+The importer refuses blank or partially reviewed rows and writes `global_insights/validation_records.csv` only after every row has `reviewer_label` and a valid `reviewer_decision`.
+
+Regenerate Global Insights after import. The Validation Accuracy panel will summarize host precision, false-positive rate, unresolved rate, and common error types.
