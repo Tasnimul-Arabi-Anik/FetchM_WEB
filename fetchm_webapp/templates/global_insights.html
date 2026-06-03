@@ -606,7 +606,12 @@
           <tbody>
             {% for row in summary.metadata_completeness %}
               <tr>
-                <td>{{ row.field }}</td>
+                <td>
+                  {{ row.field }}
+                  {% if row.field == "Collection year from collection-date metadata" or row.field == "Collection year" %}
+                    <small>Year-level value parsed from collection-date metadata; raw evidence is retained in exports when available.</small>
+                  {% endif %}
+                </td>
                 <td>{{ row.raw_usable_percent }}% <small>({{ row.raw_usable }})</small></td>
                 <td>{{ row.standardized_usable_percent }}% <small>({{ row.standardized_usable }})</small></td>
                 <td>{{ row.raw_only_records|default("not recorded") }}</td>

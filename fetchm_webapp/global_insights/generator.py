@@ -511,7 +511,7 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]) -> 
 def load_validation_accuracy(path: Path | None = None) -> tuple[list[dict[str, Any]], bool]:
     """Summarize optional manually reviewed validation records when available."""
     source = path or Path(__file__).with_name("validation_records.csv")
-    fields = ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year"]
+    fields = ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year from collection-date metadata"]
     if not source.exists():
         return [
             {
@@ -567,7 +567,7 @@ def load_validation_accuracy(path: Path | None = None) -> tuple[list[dict[str, A
 def build_field_confidence_summary(counters: dict[str, Counter[str]], denominator: int) -> list[dict[str, Any]]:
     statuses = ["high", "medium", "low", "review-needed", "unresolved", "secondary-evidence-recovered", "confidence-not-recorded"]
     rows: list[dict[str, Any]] = []
-    for field in ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year"]:
+    for field in ["Country", "Host", "Isolation source", "Sample type", "Environment", "Collection year from collection-date metadata"]:
         counter = counters.get(field, Counter())
         total = sum(counter.values()) or denominator
         for status in statuses:
@@ -910,7 +910,7 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
     source = completeness.get("Isolation source", {})
     sample = completeness.get("Sample type", {})
     env = completeness.get("Environment", {})
-    year = completeness.get("Collection year", {})
+    year = completeness.get("Collection year from collection-date metadata", {}) or completeness.get("Collection year", {})
     top10_share = summary["taxonomic_landscape"].get("top_10_genus_share_percent", 0)
     denominator = int(overview.get("unique_assemblies") or 0)
     top_genus_names = ", ".join(row["label"] for row in top_genera[:5]) or "the most represented genera"
@@ -946,7 +946,7 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         f"standardized isolation-source assignments for {source.get('standardized_usable', 0):,} ({source.get('standardized_usable_percent', 0)}%), "
         f"sample-type assignments for {sample.get('standardized_usable', 0):,} ({sample.get('standardized_usable_percent', 0)}%), "
         f"environment assignments for {env.get('standardized_usable', 0):,} ({env.get('standardized_usable_percent', 0)}%), and usable "
-        f"collection years for {year.get('standardized_usable', 0):,} ({year.get('standardized_usable_percent', 0)}%). Standardized-only recovered records included "
+        f"collection years standardized from collection-date metadata for {year.get('standardized_usable', 0):,} ({year.get('standardized_usable_percent', 0)}%). Standardized-only recovered records included "
         f"{country.get('standardized_only_rescued', country.get('rescued_records', 0)):,} country assignments, "
         f"{host.get('standardized_only_rescued', host.get('rescued_records', 0)):,} host assignments, and "
         f"{source.get('standardized_only_rescued', source.get('rescued_records', 0)):,} isolation-source assignments. Raw-field presence and "
@@ -1522,7 +1522,7 @@ def generate_global_insights_snapshot(
     completeness_fields = {
         "Country": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
         "Host": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
-        "Collection year": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
+        "Collection year from collection-date metadata": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
         "Isolation source": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
         "Sample type": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
         "Environment": {"raw_usable": 0, "standardized_usable": 0, "both_usable": 0, "standardized_only": 0, "raw_only": 0, "changed_mappings": 0},
@@ -1541,7 +1541,11 @@ def generate_global_insights_snapshot(
         "standardized_host",
         "raw_source",
         "standardized_source",
+        "raw_collection_date",
         "collection_year",
+        "collection_date_source",
+        "collection_date_evidence",
+        "collection_date_recovery_status",
         "assembly_level",
     ]
     taxon_inputs = sorted_taxa(taxa)
@@ -1610,6 +1614,7 @@ def generate_global_insights_snapshot(
                     std_sample = row_value(row, SAMPLE_STD_FIELDS)
                     raw_env = row_value(row, ENV_RAW_FIELDS)
                     std_env = row_value(row, ENV_STD_FIELDS)
+                    raw_collection_date = row_value(row, ("Collection_Date_Evidence", "BioSample Collection Date", "BioSample Specimen Collection Date", "BioSample Collection Date Remark", "Collection Date"))
                     release_year = parse_year(row_value(row, RELEASE_DATE_FIELDS))
                     collection_year = parse_year(row_value(row, COLLECTION_DATE_FIELDS))
                     assembly_level = row_value(row, ASSEMBLY_LEVEL_FIELDS)
@@ -1641,7 +1646,7 @@ def generate_global_insights_snapshot(
                     update_field_pair_stats(completeness_fields["Sample type"], raw_sample, std_sample)
                     update_field_pair_stats(completeness_fields["Environment"], raw_env, std_env)
                     if collection_year:
-                        update_field_pair_stats(completeness_fields["Collection year"], collection_year, collection_year)
+                        update_field_pair_stats(completeness_fields["Collection year from collection-date metadata"], collection_year, collection_year)
                         for stat in row_stats:
                             stat.year_usable += 1
                             stat.years[collection_year] += 1
@@ -1676,11 +1681,11 @@ def generate_global_insights_snapshot(
                         ("Isolation source", raw_source, std_source),
                         ("Sample type", raw_sample, std_sample),
                         ("Environment", raw_env, std_env),
-                        ("Collection year", collection_year, collection_year),
+                        ("Collection year from collection-date metadata", collection_year, collection_year),
                     ):
                         raw_display, evidence, confidence = correction_evidence(row, label, raw_value, std_value)
                         field_confidence_counters[label][confidence_bucket(raw_value, std_value, confidence, evidence)] += 1
-                        if label != "Collection year" and is_usable(std_value) and (not is_usable(raw_value) or normalized_key(raw_value) != normalized_key(std_value)):
+                        if not label.startswith("Collection year") and is_usable(std_value) and (not is_usable(raw_value) or normalized_key(raw_value) != normalized_key(std_value)):
                             ctype = correction_type(label, raw_value, std_value, evidence)
                             correction_counter[(label, raw_display, std_value[:120], evidence, confidence, ctype)] += 1
 
@@ -1697,7 +1702,11 @@ def generate_global_insights_snapshot(
                             "standardized_host": std_host,
                             "raw_source": raw_source,
                             "standardized_source": std_source,
+                            "raw_collection_date": raw_collection_date,
                             "collection_year": collection_year,
+                            "collection_date_source": row_value(row, ("Collection_Date_Source",)),
+                            "collection_date_evidence": row_value(row, ("Collection_Date_Evidence",)),
+                            "collection_date_recovery_status": row_value(row, ("Collection_Date_Recovery_Status",)),
                             "assembly_level": assembly_level,
                         }
                     )
@@ -1987,7 +1996,7 @@ def generate_global_insights_snapshot(
                 if canonical_root_source
                 else "Unique assemblies are counted by Assembly Accession. Species-level metadata rows are preferred over genus-level rows; newer synced taxa are scanned first within each rank."
             ),
-            "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year: Collection Date; growth year: Assembly Release Date.",
+            "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year from collection-date metadata: Collection Date standardized to a 4-digit year, with Collection_Date_Source/Evidence/Recovery_Status retained when available; growth year: Assembly Release Date.",
             "missing_value_rule": "Empty, unknown, not collected, not applicable, unidentified, and similarly non-informative values are treated as unusable metadata.",
             "taxonomy_label_policy": "Species-level labels are retained comprehensively for search and metadata access, but classified as canonical species, unresolved species-level labels, provisional taxonomic labels, or non-canonical species labels for honest reporting.",
             "qc_ready_rule": "At least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
