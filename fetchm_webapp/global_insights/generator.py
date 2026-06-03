@@ -65,6 +65,43 @@ GC_FIELDS = ("Assembly Stats GC Percent", "GC", "GC%")
 COUNTRY_CONFIDENCE_FIELDS = ("Country_Confidence", "Country_Evidence")
 HOST_CONFIDENCE_FIELDS = ("Host_SD_Confidence", "Host_SD_Method")
 
+POLITICAL_CONTINENTS = {
+    "Africa",
+    "Antarctica",
+    "Asia",
+    "Europe",
+    "North America",
+    "Oceania",
+    "South America",
+}
+
+POLITICAL_SUBCONTINENTS = {
+    "Australia and New Zealand",
+    "Caribbean",
+    "Central America",
+    "Central Asia",
+    "Eastern Africa",
+    "Eastern Asia",
+    "Eastern Europe",
+    "Melanesia",
+    "Micronesia",
+    "Middle Africa",
+    "Northern Africa",
+    "Northern America",
+    "Northern Asia",
+    "Northern Europe",
+    "Polynesia",
+    "South America",
+    "South-Eastern Asia",
+    "Southern Africa",
+    "Southern Asia",
+    "Southern Europe",
+    "Western Africa",
+    "Western Asia",
+    "Western Europe",
+    "Antarctica",
+}
+
 
 @dataclass
 class TaxonInput:
@@ -1507,6 +1544,7 @@ def generate_global_insights_snapshot(
     country_counter: Counter[str] = Counter()
     continent_counter: Counter[str] = Counter()
     subcontinent_counter: Counter[str] = Counter()
+    non_country_geography_counter: Counter[str] = Counter()
     host_counter: Counter[str] = Counter()
     source_counter: Counter[str] = Counter()
     host_category_counter: Counter[str] = Counter()
@@ -1629,9 +1667,15 @@ def generate_global_insights_snapshot(
                             stat.country_usable += 1
                             stat.countries[std_country] += 1
                     if is_usable(continent):
-                        continent_counter[continent] += 1
+                        if continent in POLITICAL_CONTINENTS:
+                            continent_counter[continent] += 1
+                        else:
+                            non_country_geography_counter[continent] += 1
                     if is_usable(subcontinent):
-                        subcontinent_counter[subcontinent] += 1
+                        if subcontinent in POLITICAL_SUBCONTINENTS:
+                            subcontinent_counter[subcontinent] += 1
+                        else:
+                            non_country_geography_counter[subcontinent] += 1
                     update_field_pair_stats(completeness_fields["Host"], raw_host, std_host)
                     if is_usable(std_host):
                         host_counter[std_host] += 1
@@ -2052,6 +2096,7 @@ def generate_global_insights_snapshot(
             "countries": top_rows(country_counter, unique_total, 50),
             "continents": top_rows(continent_counter, unique_total, 20),
             "subcontinents": top_rows(subcontinent_counter, unique_total, 30),
+            "non_country_geography": top_rows(non_country_geography_counter, unique_total, 20),
             "income_groups": [],
             "income_group_note": "World Bank income-group representation is not calculated until a versioned country-to-income lookup is configured.",
         },
@@ -2088,6 +2133,7 @@ def generate_global_insights_snapshot(
             "countries": "tables/countries.csv",
             "continents": "tables/continents.csv",
             "subcontinents": "tables/subcontinents.csv",
+            "non_country_geography": "tables/non_country_geography.csv",
             "host_categories": "tables/host_categories.csv",
             "metadata_completeness": "tables/metadata_completeness.csv",
             "metadata_quality": "tables/metadata_quality.csv",
@@ -2117,6 +2163,7 @@ def generate_global_insights_snapshot(
     write_csv(table_dir / "countries.csv", summary["geographic_bias"]["countries"], top_row_fields)
     write_csv(table_dir / "continents.csv", summary["geographic_bias"]["continents"], top_row_fields)
     write_csv(table_dir / "subcontinents.csv", summary["geographic_bias"]["subcontinents"], top_row_fields)
+    write_csv(table_dir / "non_country_geography.csv", summary["geographic_bias"].get("non_country_geography", []), top_row_fields)
     write_csv(table_dir / "host_categories.csv", summary["host_source_bias"]["host_categories"], top_row_fields)
     write_csv(
         table_dir / "metadata_completeness.csv",

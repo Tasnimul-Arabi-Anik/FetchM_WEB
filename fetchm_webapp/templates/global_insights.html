@@ -583,6 +583,23 @@
           {{ count_table(summary.host_source_bias.host_categories[:10], "Category") }}
         </div>
       </div>
+      <div class="grid three-column top-gap">
+        <div>
+          <h3>Continents</h3>
+          {{ count_table(summary.geographic_bias.continents[:8], "Continent") }}
+        </div>
+        <div>
+          <h3>Subcontinents</h3>
+          {{ count_table(summary.geographic_bias.subcontinents[:8], "Subcontinent") }}
+        </div>
+        {% if summary.geographic_bias.non_country_geography %}
+          <div>
+            <h3>Non-country Geography</h3>
+            <p class="insight-note">Marine and oceanic labels are reported separately so they are not treated as political continents or subcontinents.</p>
+            {{ count_table(summary.geographic_bias.non_country_geography[:8], "Category") }}
+          </div>
+        {% endif %}
+      </div>
       </div>
     </details>
 
