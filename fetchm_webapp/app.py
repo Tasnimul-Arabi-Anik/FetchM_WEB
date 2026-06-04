@@ -18556,21 +18556,21 @@ def canonical_taxon_count(snapshot_id: str, rank: str, name: str) -> int:
     return int(row[0] or 0) if row else 0
 
 
-def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, Any]]:
+def canonical_search_results(query: str, *, limit: int = 20) -> list[dict[str, Any]]:
     snapshot = latest_canonical_snapshot()
     if not snapshot:
         return []
     cleaned = normalize_species_name(query)
+    query_key = cleaned.lower()
     if len(cleaned) < 2:
         return []
-    like_value = f"%{cleaned.lower()}%"
-    starts_value = f"{cleaned.lower()}%"
+    like_value = f"%{query_key}%"
+    starts_value = f"{query_key}%"
     results: list[dict[str, Any]] = []
     seen: set[tuple[str, str]] = set()
+    rank_priority = {"genus": 0, "species": 1, "family": 2, "order": 3, "class": 4, "phylum": 5}
     from dataset_production_store import connect as connect_dataset_store
     with connect_dataset_store() as connection:
-        # Prefer an exact genus selection over provisional species labels such
-        # as "Prevotella sp." when the user enters a genus name.
         for rank in ["genus", "species", "family", "order", "class", "phylum"]:
             column = canonical_rank_column(rank)
             rows = connection.execute(
@@ -18588,7 +18588,7 @@ def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, An
                   {column} ASC
                 LIMIT %s
                 """,
-                (snapshot["snapshot_id"], like_value, starts_value, max(limit, 8)),
+                (snapshot["snapshot_id"], like_value, starts_value, max(limit, 12)),
             ).fetchall()
             for row in rows:
                 name = normalize_species_name(str(row[0] or ""))
@@ -18605,6 +18605,14 @@ def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, An
                         "label": CANONICAL_METADATA_RANKS[rank]["label"],
                         "description": f"{CANONICAL_METADATA_RANKS[rank]['label']}-level metadata analysis from the canonical bacterial inventory.",
                     }
+                name_key = name.lower()
+                if name_key == query_key:
+                    match_group = 0
+                elif name_key.startswith(query_key):
+                    match_group = 1
+                else:
+                    match_group = 2
+                placeholder_species = int(rank == "species" and label_meta.get("key") not in {"canonical_species"})
                 results.append(
                     {
                         "id": f"canonical:{rank}:{name}",
@@ -18621,10 +18629,12 @@ def canonical_search_results(query: str, *, limit: int = 8) -> list[dict[str, An
                         "taxon_label_class": label_meta["key"],
                         "taxon_label": label_meta["label"],
                         "taxon_label_description": label_meta["description"],
+                        "_sort": (match_group, placeholder_species, rank_priority.get(rank, 9), -int(row[1] or 0), name.lower()),
                     }
                 )
-                if len(results) >= limit:
-                    return results
+    results.sort(key=lambda item: item["_sort"])
+    for item in results:
+        item.pop("_sort", None)
     return results[:limit]
 
 
@@ -25455,7 +25465,7 @@ def api_taxa_search() -> Any:
     if len(query) < 2:
         return app.response_class(json.dumps({"results": []}), mimetype="application/json")
 
-    canonical_results = canonical_search_results(query)
+    canonical_results = canonical_search_results(query, limit=20)
     if canonical_results:
         return app.response_class(json.dumps({"results": canonical_results}), mimetype="application/json")
 
@@ -25474,7 +25484,7 @@ def api_taxa_search() -> Any:
             CASE WHEN lower(species_name) LIKE ? THEN 0 ELSE 1 END,
             COALESCE(genome_count, 0) DESC,
             species_name COLLATE NOCASE ASC
-        LIMIT 8
+        LIMIT 20
         """,
         (like_value, starts_value),
     ).fetchall()
@@ -25537,7 +25547,7 @@ def api_taxa_search() -> Any:
                 }
             )
             seen_names.add(key)
-            if len(results) >= 8:
+            if len(results) >= 20:
                 break
 
     return app.response_class(json.dumps({"results": results}), mimetype="application/json")

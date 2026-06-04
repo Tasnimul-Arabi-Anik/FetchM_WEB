@@ -99,7 +99,7 @@
   const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
 
   const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
-  const MAX_SEARCH_RESULTS = 8;
+  const MAX_SEARCH_RESULTS = 20;
   let latestSearchToken = 0;
   let searchDebounce = null;
 

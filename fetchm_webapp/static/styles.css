@@ -864,6 +864,9 @@ button.danger {
   z-index: 15;
   display: grid;
   gap: 8px;
+  max-height: min(520px, 58vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 10px;
   border-radius: 18px;
   border: 1px solid rgba(22, 92, 78, 0.14);
