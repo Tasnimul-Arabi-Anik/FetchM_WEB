@@ -347,8 +347,9 @@
         {% set taxon_label = taxonomy_label_metadata(species.species_name, species.taxon_rank) %}
         <h1>{{ species.species_name }}{% if taxon_label.key not in ["canonical_species", "canonical_genus"] %} <span class="taxonomy-badge {{ taxon_label.key }}" title="{{ taxon_label.description }}">{{ taxon_label.label }}</span>{% endif %}</h1>
         <p class="lede">
-          Build a download subset. Filters use <strong>OR</strong> within one field and <strong>AND</strong> across different fields.
-          To use <strong>OR</strong> across different fields select <strong>"Match Any Filters"</strong> in the Advanced setting.
+          Build a download subset. By default, values within one field are combined with <strong>OR</strong>, while different fields are combined with <strong>AND</strong>.
+          Example: selecting <strong>Host = human</strong> and <strong>Sample type = blood</strong> returns human blood samples only; select only <strong>Sample type = blood</strong> for blood samples from any host.
+          To use <strong>OR</strong> across different fields, select <strong>"Match Any Filters"</strong> in Advanced.
         </p>
       </div>
       <a class="button-like ghost" href="{{ metadata_back_url }}">Back to metadata analysis</a>
