@@ -1,29 +1,25 @@
 {% extends "base.html" %}
 {% block content %}
 <main class="layout">
-  <section class="panel detail-head">
-    <div>
-      <p class="eyebrow">Metadata Analysis</p>
-      <h1>{{ target.name }}</h1>
-      <p class="lede">This {{ target.rank_label|lower }} selection contains {{ target.row_count }} genomes. FetchM is generating a cached metadata analysis report from the canonical bacterial inventory.</p>
+  <section class="panel canonical-loading-panel">
+    <div class="canonical-loader" aria-hidden="true">
+      <span></span>
+      <span></span>
     </div>
-    <div class="status-box">
+    <p class="eyebrow">Metadata Analysis</p>
+    <h1>Preparing {{ target.name }}</h1>
+    <p class="lede">Generating a cached {{ target.rank_label|lower }} report for {{ target.row_count }} genomes.</p>
+    <div class="canonical-loading-meta">
       <span class="status running">{{ task.status if task else "queued" }}</span>
-      <div class="job-meta">Snapshot: {{ target.snapshot_id }} · {{ target.release_state }}</div>
-      {% if task and task.error %}<div class="job-meta">{{ task.error }}</div>{% endif %}
+      <span>Snapshot {{ target.snapshot_id }}</span>
     </div>
-  </section>
-
-  <section class="panel">
-    <h2>Report generation in progress</h2>
-    <p>Small taxa are generated immediately. Larger taxa are generated once in the background and then reused from cache for future users.</p>
-    <div class="coverage-bars">
-      <div class="coverage-bar-card">
-        <div class="coverage-bar-head"><strong>Status</strong><span>{{ task.status if task else "pending" }}</span></div>
-        <div class="coverage-caption">Refresh this page in a few minutes. Workers process canonical metadata reports with the same queue used for Global Insights.</div>
-      </div>
-    </div>
-    <a class="button-like" href="{{ target.status_url }}">Refresh report</a>
+    {% if task and task.error %}<p class="dashboard-inline-warning">{{ task.error }}</p>{% endif %}
+    <a class="button-like ghost" href="{{ target.status_url }}">Refresh now</a>
   </section>
 </main>
+<script>
+  window.setTimeout(() => {
+    if (!document.hidden) window.location.reload();
+  }, 6000);
+</script>
 {% endblock %}

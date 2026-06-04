@@ -2908,3 +2908,64 @@ a.button-like.ghost {
     grid-template-columns: 1fr;
   }
 }
+
+.canonical-loading-panel {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.canonical-loading-panel::before {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.16), transparent 66%);
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+.canonical-loader {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  z-index: 1;
+}
+
+.canonical-loader span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 6px solid transparent;
+  border-top-color: #0f8b64;
+  border-right-color: rgba(15, 139, 100, 0.3);
+  animation: canonical-spin 1.05s linear infinite;
+}
+
+.canonical-loader span + span {
+  inset: 16px;
+  border-width: 5px;
+  border-top-color: #edb756;
+  border-right-color: rgba(237, 183, 86, 0.35);
+  animation-duration: 1.45s;
+  animation-direction: reverse;
+}
+
+.canonical-loading-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  z-index: 1;
+}
+
+@keyframes canonical-spin {
+  to { transform: rotate(360deg); }
+}
