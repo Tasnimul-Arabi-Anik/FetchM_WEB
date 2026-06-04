@@ -13424,6 +13424,23 @@ def build_public_home_metrics() -> dict[str, Any]:
     genus_ready = int(counts["genus_ready"] or 0)
     genus_total = int(counts["genus_total"] or 0)
     genome_total = int(unique_assembly_counts["unique_assemblies"] or 0) if unique_assembly_counts is not None else 0
+    metrics_source = "legacy_catalog"
+
+    latest_summary, _snapshot_dir = load_latest_global_insights_summary()
+    overview = (latest_summary or {}).get("overview") or {}
+    canonical_species_total = int(overview.get("canonical_species_observed") or 0)
+    canonical_genus_total = int(overview.get("genera_observed") or 0)
+    canonical_genome_total = int(overview.get("unique_assemblies") or 0)
+    if canonical_genome_total:
+        # Public landing-page metrics should describe the active canonical root
+        # snapshot, not the legacy per-taxon catalog retained for fallback routes.
+        species_total = canonical_species_total or species_total
+        species_ready = species_total
+        genus_total = canonical_genus_total or genus_total
+        genus_ready = genus_total
+        genome_total = canonical_genome_total
+        metrics_source = "global_insights_canonical_root"
+
     metadata_genome_total = genome_total
     return {
         "species_total": species_total,
@@ -13435,6 +13452,7 @@ def build_public_home_metrics() -> dict[str, Any]:
         "genome_total": genome_total,
         "metadata_genome_total": metadata_genome_total,
         "genome_gauge": gauge(metadata_genome_total, genome_total),
+        "metrics_source": metrics_source,
         "metadata_taxa_ready": int(counts["metadata_taxa_ready"] or 0),
         "open_reports": int(report_counts["open_reports"] or 0),
         "total_reports": int(report_counts["total_reports"] or 0),
