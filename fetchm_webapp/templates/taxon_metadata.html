@@ -45,9 +45,15 @@
       <span>Genomes analyzed</span>
     </article>
     {% if target_rank != "species" %}
+      {% if target_rank not in ["genus", "species"] %}
+        <article class="metric-card">
+          <strong>{{ analysis.distinct_genus_count }}</strong>
+          <span>Genera represented</span>
+        </article>
+      {% endif %}
       <article class="metric-card">
         <strong>{{ analysis.distinct_species_count }}</strong>
-        <span>Species represented</span>
+        <span>Species-level labels</span>
       </article>
     {% else %}
     <article class="metric-card">
@@ -236,7 +242,7 @@
     <section class="metrics-grid">
       <article class="metric-card">
         <strong>{{ analysis.species_diversity.distinct_species_total }}</strong>
-        <span>Species represented</span>
+        <span>Species-level labels</span>
       </article>
       <article class="metric-card">
         <strong>{{ analysis.species_diversity.singleton_species_total }}</strong>
@@ -253,10 +259,10 @@
     </section>
 
     <section class="panel">
-      <h2>Ranked Species Distribution</h2>
+      <h2>Ranked Species-level Distribution</h2>
       {% if analysis.plots.species_diversity_bar %}
         <div class="plot-shell">{{ analysis.plots.species_diversity_bar.html|safe }}</div>
-        <p class="figure-caption">The most represented species in the selected genus, with lower-abundance taxa collapsed into an <strong>Other</strong> category when needed.</p>
+        <p class="figure-caption">The most represented species-level labels in the selected taxon, with lower-abundance labels collapsed into an <strong>Other</strong> category when needed.</p>
       {% else %}
         <p class="empty">Species diversity plots will appear once organism names are available in the metadata.</p>
       {% endif %}
@@ -266,15 +272,35 @@
       <h2>Cumulative Species Coverage</h2>
       {% if analysis.plots.species_cumulative_line %}
         <div class="plot-shell">{{ analysis.plots.species_cumulative_line.html|safe }}</div>
-        <p class="figure-caption">The cumulative curve shows how quickly the dominant species account for the total genus-wide genome set.</p>
+        <p class="figure-caption">The cumulative curve shows how quickly the dominant species-level labels account for the selected taxon.</p>
       {% else %}
         <p class="empty">Cumulative species coverage will appear once enough organism annotations are available.</p>
       {% endif %}
     </section>
 
+    {% if analysis.taxonomic_diversity.lower_ranks %}
+      <section class="panel">
+        <h2>Lower-rank Taxonomic Composition</h2>
+        <div class="metadata-summary-grid">
+          {% for rank_summary in analysis.taxonomic_diversity.lower_ranks if rank_summary.distinct_total %}
+            <article class="summary-box">
+              <h3>{{ rank_summary.rank_label }}</h3>
+              <div class="coverage-caption">{{ rank_summary.distinct_total }} {{ rank_summary.rank_plural_label }} · top five account for {{ rank_summary.top_five_share_percent }}%</div>
+              <div class="summary-list">
+                {% for value, count in rank_summary.counts[:8] %}
+                  <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
+                {% endfor %}
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+        <p class="figure-caption">Higher-rank selections are summarized across every available lower taxonomic rank in the canonical lineage table. Species-level labels include canonical, provisional, and unresolved labels retained for completeness.</p>
+      </section>
+    {% endif %}
+
     <section class="grid metadata-report-grid">
       <section class="panel">
-        <h2>Leading Species</h2>
+        <h2>Leading Species-level Labels</h2>
         <div class="summary-list">
           {% for value, count in analysis.species_diversity.species_counts[:20] %}
             <div><strong>{{ value }}</strong><span>{{ count }}</span></div>
@@ -285,13 +311,13 @@
         <h2>Diversity Highlights</h2>
         <div class="report-list">
           <article class="report-card">
-            <p><strong>{{ analysis.species_diversity.dominant_species or "No dominant species" }}</strong>{% if analysis.species_diversity.dominant_species_count %} contributes <strong>{{ analysis.species_diversity.dominant_species_count }}</strong> genomes to the current genus-wide dataset.{% else %} is not yet available from the current metadata.{% endif %}</p>
+            <p><strong>{{ analysis.species_diversity.dominant_species or "No dominant species" }}</strong>{% if analysis.species_diversity.dominant_species_count %} contributes <strong>{{ analysis.species_diversity.dominant_species_count }}</strong> genomes to the selected dataset.{% else %} is not yet available from the current metadata.{% endif %}</p>
           </article>
           <article class="report-card">
-            <p>The top <strong>five species</strong> account for <strong>{{ analysis.species_diversity.top_five_share_percent }}%</strong> of the genomes currently represented for this genus.</p>
+            <p>The top <strong>five species</strong> account for <strong>{{ analysis.species_diversity.top_five_share_percent }}%</strong> of the genomes currently represented for this selected taxon.</p>
           </article>
           <article class="report-card">
-            <p><strong>{{ analysis.species_diversity.singleton_species_total }}</strong> species are currently represented by a single genome, highlighting the long tail of low-abundance taxa in this genus.</p>
+            <p><strong>{{ analysis.species_diversity.singleton_species_total }}</strong> species-level labels are currently represented by a single genome, highlighting the long tail of low-abundance labels in this selected taxon.</p>
           </article>
         </div>
       </aside>

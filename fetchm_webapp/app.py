@@ -277,7 +277,7 @@ TAXON_RANKS = {
 METADATA_SECTIONS = {
     "summary": {"label": "Summary"},
     "geography": {"label": "Geography"},
-    "species_diversity": {"label": "Species Diversity"},
+    "species_diversity": {"label": "Taxonomic Diversity"},
     "host": {"label": "Host"},
     "environment": {"label": "Environment"},
     "temporal": {"label": "Temporal Analysis"},
@@ -349,7 +349,7 @@ SEQUENCE_FILTER_FIELDS = {
 SEQUENCE_FILTER_GROUPS = [
     {
         "key": "species_diversity",
-        "label": "Species Diversity",
+        "label": "Taxonomic Diversity",
         "fields": ["species_name"],
     },
     {
@@ -17517,10 +17517,26 @@ def metadata_sections_for_species(species: SpeciesRecord) -> dict[str, dict[str,
     return metadata_sections_for_rank(species.taxon_rank)
 
 
-def species_value_counts(frame: pd.DataFrame, *, limit: int | None = None) -> list[tuple[str, int]]:
-    if "Organism Name" not in frame.columns:
+TAXONOMY_DIVERSITY_RANKS = ["phylum", "class", "order", "family", "genus", "species"]
+TAXONOMY_DIVERSITY_COLUMNS = {
+    "phylum": "Taxonomy Phylum",
+    "class": "Taxonomy Class",
+    "order": "Taxonomy Order",
+    "family": "Taxonomy Family",
+    "genus": "Taxonomy Genus",
+    "species": "Taxonomy Species",
+}
+
+
+def taxonomy_value_counts(frame: pd.DataFrame, rank: str, *, limit: int | None = None) -> list[tuple[str, int]]:
+    column = TAXONOMY_DIVERSITY_COLUMNS.get(rank)
+    fallback_column = "Organism Name" if rank == "species" else ""
+    if column and column in frame.columns:
+        series = frame[column].astype(str).str.strip().map(normalize_species_name)
+    elif fallback_column and fallback_column in frame.columns:
+        series = frame[fallback_column].astype(str).str.strip().map(normalize_species_name)
+    else:
         return []
-    series = frame["Organism Name"].astype(str).str.strip().map(normalize_species_name)
     series = series[
         series.ne("")
         & ~series.str.lower().isin({"absent", "unknown", "not provided", "not applicable", "missing", "none", "nan"})
@@ -17531,31 +17547,70 @@ def species_value_counts(frame: pd.DataFrame, *, limit: int | None = None) -> li
     return [(str(index), int(value)) for index, value in counts.items()]
 
 
-def build_species_diversity_summary(frame: pd.DataFrame) -> dict[str, Any]:
-    counts = species_value_counts(frame)
+def species_value_counts(frame: pd.DataFrame, *, limit: int | None = None) -> list[tuple[str, int]]:
+    return taxonomy_value_counts(frame, "species", limit=limit)
+
+
+def build_rank_diversity_summary(frame: pd.DataFrame, rank: str) -> dict[str, Any]:
+    counts = taxonomy_value_counts(frame, rank)
+    label = CANONICAL_METADATA_RANKS.get(rank, {"label": rank.title()})["label"]
+    plural = f"{label.lower()} labels" if rank == "species" else f"{label.lower()} taxa"
     if not counts:
         return {
-            "distinct_species_total": 0,
-            "singleton_species_total": 0,
-            "dominant_species": None,
-            "dominant_species_count": 0,
+            "rank": rank,
+            "rank_label": label,
+            "rank_plural_label": plural,
+            "distinct_total": 0,
+            "singleton_total": 0,
+            "dominant_label": None,
+            "dominant_count": 0,
             "top_five_share_percent": 0.0,
-            "median_genomes_per_species": 0.0,
-            "species_counts": [],
+            "median_genomes_per_label": 0.0,
+            "counts": [],
         }
     values = [count for _, count in counts]
     total = sum(values)
-    dominant_species, dominant_count = counts[0]
+    dominant_label, dominant_count = counts[0]
     top_five_share = (sum(values[:5]) / total) * 100 if total else 0.0
-    singleton_total = sum(1 for value in values if value == 1)
     return {
-        "distinct_species_total": len(counts),
-        "singleton_species_total": singleton_total,
-        "dominant_species": dominant_species,
-        "dominant_species_count": dominant_count,
+        "rank": rank,
+        "rank_label": label,
+        "rank_plural_label": plural,
+        "distinct_total": len(counts),
+        "singleton_total": sum(1 for value in values if value == 1),
+        "dominant_label": dominant_label,
+        "dominant_count": dominant_count,
         "top_five_share_percent": round(top_five_share, 1),
-        "median_genomes_per_species": round(statistics.median(values), 1),
-        "species_counts": counts,
+        "median_genomes_per_label": round(statistics.median(values), 1),
+        "counts": counts,
+    }
+
+
+def build_taxonomic_diversity_summary(frame: pd.DataFrame, current_rank: str) -> dict[str, Any]:
+    if current_rank not in TAXONOMY_DIVERSITY_RANKS:
+        current_rank = "genus"
+    lower_ranks = TAXONOMY_DIVERSITY_RANKS[TAXONOMY_DIVERSITY_RANKS.index(current_rank) + 1:]
+    rank_summaries = [build_rank_diversity_summary(frame, rank) for rank in lower_ranks]
+    species_summary = next((item for item in rank_summaries if item["rank"] == "species"), build_rank_diversity_summary(frame, "species"))
+    genus_summary = next((item for item in rank_summaries if item["rank"] == "genus"), build_rank_diversity_summary(frame, "genus"))
+    return {
+        "current_rank": current_rank,
+        "lower_ranks": rank_summaries,
+        "genus_diversity": genus_summary,
+        "species_diversity": species_summary,
+    }
+
+
+def build_species_diversity_summary(frame: pd.DataFrame) -> dict[str, Any]:
+    summary = build_rank_diversity_summary(frame, "species")
+    return {
+        "distinct_species_total": summary["distinct_total"],
+        "singleton_species_total": summary["singleton_total"],
+        "dominant_species": summary["dominant_label"],
+        "dominant_species_count": summary["dominant_count"],
+        "top_five_share_percent": summary["top_five_share_percent"],
+        "median_genomes_per_species": summary["median_genomes_per_label"],
+        "species_counts": summary["counts"],
     }
 
 
@@ -17953,7 +18008,7 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
                 x="Genomes",
                 y="Species",
                 orientation="h",
-                title="Species diversity across the current genus",
+                title="Species distribution across the selected taxon",
                 color="Genomes",
                 color_continuous_scale="Tealgrn",
                 text="Genomes",
@@ -17972,7 +18027,7 @@ def build_plot_bundle(frame: pd.DataFrame) -> dict[str, dict[str, Any]]:
                 x="Rank",
                 y="Cumulative share",
                 markers=True,
-                title="Cumulative genus coverage by ranked species",
+                title="Cumulative coverage by ranked species",
                 labels={"Cumulative share": "Cumulative genome share (%)"},
             ).update_traces(line={"color": "#165c4e", "width": 4}, marker={"size": 8}).update_layout(
                 margin={"l": 20, "r": 20, "t": 60, "b": 20}
@@ -18308,6 +18363,7 @@ def build_analysis_bundle(species: SpeciesRecord, analysis: dict[str, Any]) -> b
 def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
     rows, fieldnames, frame = load_taxon_metadata_dataset(species)
     species_diversity = build_species_diversity_summary(frame)
+    taxonomic_diversity = build_taxonomic_diversity_summary(frame, species.taxon_rank)
     genome_lengths = [float(row["Assembly Stats Total Sequence Length"]) for row in rows if normalize_metadata_value(row.get("Assembly Stats Total Sequence Length")).replace(".", "", 1).isdigit()]
     completeness_values = [float(row["CheckM completeness"]) for row in rows if normalize_metadata_value(row.get("CheckM completeness")).replace(".", "", 1).isdigit()]
     contamination_values = [float(row["CheckM contamination"]) for row in rows if normalize_metadata_value(row.get("CheckM contamination")).replace(".", "", 1).isdigit()]
@@ -18386,6 +18442,7 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
         "distinct_country_count": metadata_distinct_count(frame, "Country"),
         "distinct_continent_count": metadata_distinct_count(frame, "Continent"),
         "distinct_species_count": species_diversity["distinct_species_total"],
+        "distinct_genus_count": taxonomic_diversity["genus_diversity"]["distinct_total"],
         "genome_length": numeric_summary(genome_lengths),
         "completeness": numeric_summary(completeness_values),
         "contamination": numeric_summary(contamination_values),
@@ -18425,6 +18482,7 @@ def load_taxon_metadata_analysis(species: SpeciesRecord) -> dict[str, Any]:
             metadata_standardized_coverage(frame, "Environment (Local Scale)", "Environment_Local_Scale_SD", "Local environment"),
         ],
         "species_diversity": species_diversity,
+        "taxonomic_diversity": taxonomic_diversity,
         "quality_bands": build_quality_bands(frame),
         "coverage": coverage,
         "completeness_rows": completeness_rows,
