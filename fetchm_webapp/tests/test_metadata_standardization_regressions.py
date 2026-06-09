@@ -35,6 +35,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("invertebrate", "invertebrate"),
             ("invertebrates", "invertebrate"),
             ("mudfish", "fish"),
+            ("algea", "algae"),
+            ("algae", "algae"),
+            ("lichen", "lichen"),
+            ("lichens", "lichen"),
         ]:
             standardized = fetchm_app.enrich_host_standardization(
                 raw_host,
