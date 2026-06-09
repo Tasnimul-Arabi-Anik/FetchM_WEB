@@ -16,6 +16,29 @@ from app import app, save_approved_standardization_rule
 
 APPROVED_TYPES = {"exact_host", "broad_host"}
 REJECTED_TYPES = {"ignore", "non_host_source", "missing"}
+RULE_TYPE_ALIASES = {
+    "exact_taxonomy_or_cleaned_scientific_name": "exact_host",
+    "broad_taxonomy_or_common_name": "broad_host",
+    "ignore_unsafe_ambiguous": "ignore",
+    "non_host_source_or_material": "non_host_source",
+}
+
+
+def first_value(row: dict[str, str], *keys: str) -> str:
+    for key in keys:
+        value = (row.get(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def normalize_row(row: dict[str, str]) -> None:
+    row["final_is_approved"] = first_value(row, "final_is_approved", "is_approved_final", "is_approved")
+    row["final_host"] = first_value(row, "final_host", "standardized_host", "proposed_host")
+    row["final_taxid"] = first_value(row, "final_taxid", "taxid_final", "taxid")
+    row["final_confidence"] = first_value(row, "final_confidence", "confidence_final", "confidence")
+    raw_rule_type = first_value(row, "rule_type").lower()
+    row["rule_type"] = RULE_TYPE_ALIASES.get(raw_rule_type, raw_rule_type)
 
 
 def taxonkit_name2taxid(name: str) -> tuple[str, str]:
@@ -33,6 +56,8 @@ def taxonkit_name2taxid(name: str) -> tuple[str, str]:
 
 
 def resolve_and_validate_taxids(rows: list[dict[str, str]]) -> str:
+    for row in rows:
+        normalize_row(row)
     names = [
         (row.get("final_host") or "").strip()
         for row in rows
@@ -58,12 +83,16 @@ def resolve_and_validate_taxids(rows: list[dict[str, str]]) -> str:
             lookup[fields[0].strip()] = fields[1].strip()
     for row in rows:
         name = (row.get("final_host") or "").strip()
+        if not (
+            parse_bool(row.get("final_is_approved") or "")
+            and (row.get("rule_type") or "").strip().lower() in APPROVED_TYPES
+        ):
+            continue
         supplied_taxid = (row.get("final_taxid") or "").strip()
         resolved_taxid = lookup.get(name, "")
-        if supplied_taxid and not resolved_taxid:
+        if not resolved_taxid:
             row["_taxonomy_error"] = (
-                f"{name}: supplied TaxID {supplied_taxid} cannot be validated "
-                "against local NCBI Taxonomy"
+                f"{name}: cannot be validated against local NCBI Taxonomy"
             )
         elif supplied_taxid and supplied_taxid != resolved_taxid:
             row["_taxonomy_error"] = (
@@ -100,7 +129,7 @@ def import_row(row: dict[str, str], approved_by: str, dry_run: bool) -> tuple[st
         if not taxid:
             return "unresolved", f"{raw_host}: no TaxID for {proposed_host}"
         method = "manual_host_curation" if rule_type == "exact_host" else "manual_broad_host_curation"
-        confidence = "high" if rule_type == "exact_host" else (confidence or "medium")
+        confidence = confidence or ("high" if rule_type == "exact_host" else "medium")
         if not dry_run:
             save_approved_standardization_rule(
                 source_column="Host",
@@ -141,6 +170,11 @@ def main() -> int:
     parser.add_argument("csv_path", type=Path)
     parser.add_argument("--approved-by", required=True)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--downgrade-unresolved",
+        action="store_true",
+        help="Persist approved but taxonomy-unresolved values as not identifiable.",
+    )
     args = parser.parse_args()
 
     counts: dict[str, int] = {}
@@ -155,6 +189,17 @@ def main() -> int:
 
     with app.app_context():
         for row in rows:
+            if row.get("_taxonomy_error") and args.downgrade_unresolved:
+                row["final_is_approved"] = "FALSE"
+                row["rule_type"] = "ignore"
+                row["reviewer_note"] = " ".join(
+                    part
+                    for part in [
+                        (row.get("reviewer_note") or "").strip(),
+                        f"Taxonomy validation downgrade: {row.pop('_taxonomy_error')}",
+                    ]
+                    if part
+                )
             status, message = import_row(row, args.approved_by, args.dry_run)
             counts[status] = counts.get(status, 0) + 1
             messages.append(f"{status}: {message}")

@@ -4160,6 +4160,9 @@ def load_external_standardization_rules() -> None:
 load_external_standardization_rules()
 
 
+HOST_APPROVED_RULE_CONFIDENCE: dict[str, str] = {}
+
+
 def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> None:
     destination = str(rule.get("destination") or "").strip()
     proposed_value = str(rule.get("proposed_value") or "").strip()
@@ -4182,8 +4185,12 @@ def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> No
             return
         if not ontology_id:
             return
-        target = HOST_SYNONYMS if confidence == "high" else HOST_BROAD_SYNONYMS
+        exact_rule = method in {"manual_host_curation", "exact_dictionary"} or confidence == "high"
+        target = HOST_SYNONYMS if exact_rule else HOST_BROAD_SYNONYMS
         target[normalized_value] = (proposed_value, ontology_id)
+        HOST_APPROVED_RULE_CONFIDENCE[normalized_value] = confidence or (
+            "high" if exact_rule else "medium"
+        )
         clear_standardization_runtime_caches()
         return
 
@@ -4261,6 +4268,10 @@ HOST_CONTEXT_PATTERNS = [
     (re.compile(r"\blichens?\b", re.IGNORECASE), "Host_Context_SD", "lichen"),
     (re.compile(r"\bpisces\b", re.IGNORECASE), "Host_Context_SD", "fish"),
     (re.compile(r"\b(zooplatnkon|zooplankton)\b", re.IGNORECASE), "Host_Context_SD", "zooplankton"),
+    (re.compile(r"\bbracket mold\b", re.IGNORECASE), "Host_Context_SD", "fungus"),
+    (re.compile(r"\bgreen alga\b", re.IGNORECASE), "Host_Context_SD", "green algae"),
+    (re.compile(r"\bbasunti mas\b", re.IGNORECASE), "Host_Context_SD", "fish"),
+    (re.compile(r"\bcrasosstrea\b.*\bfarfantepenaeus\b", re.IGNORECASE), "Host_Context_SD", "marine invertebrate"),
     (re.compile(r"\b(pet|pets|companion pet|companion animal)\b", re.IGNORECASE), "Host_Context_SD", "pet/companion animal"),
     (re.compile(r"\b(infant|neonate|newborn)\b", re.IGNORECASE), "Host_Age_Group_SD", "infant"),
     (re.compile(r"\b(child|children|pediatric|paediatric)\b", re.IGNORECASE), "Host_Age_Group_SD", "child"),
@@ -4481,7 +4492,7 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
                     "Host_SD": name,
                     "Host_TaxID": taxid,
                     "Host_SD_Method": "dictionary",
-                    "Host_SD_Confidence": "high",
+                    "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "high"),
                 }
             if candidate in HOST_BROAD_SYNONYMS:
                 name, taxid = HOST_BROAD_SYNONYMS[candidate]
@@ -4513,7 +4524,7 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
                 "Host_SD": name,
                 "Host_TaxID": taxid,
                 "Host_SD_Method": "dictionary",
-                "Host_SD_Confidence": "high",
+                "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "high"),
             }
     for key, (name, taxid) in HOST_SUBSTRING_SYNONYMS.items():
         pattern = rf"(^|\s){re.escape(key.replace('.', ''))}(\s|$)"

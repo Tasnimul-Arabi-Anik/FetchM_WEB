@@ -42,6 +42,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("lichens", "lichen"),
             ("Pisces", "fish"),
             ("Zooplatnkon", "zooplankton"),
+            ("bracket mold", "fungus"),
+            ("green alga", "green algae"),
+            ("Basunti mas", "fish"),
+            ("Crasosstrea spp., Farfantepenaeus spp.", "marine invertebrate"),
         ]:
             standardized = fetchm_app.enrich_host_standardization(
                 raw_host,
@@ -72,6 +76,25 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             error = host_review_importer.resolve_and_validate_taxids(rows)
         self.assertEqual(error, "")
         self.assertIn("does not match", rows[0]["_taxonomy_error"])
+
+    def test_medium_confidence_manual_exact_rule_remains_exact(self) -> None:
+        key = "reviewed exact medium host"
+        fetchm_app.HOST_SYNONYMS.pop(key, None)
+        fetchm_app.HOST_BROAD_SYNONYMS.pop(key, None)
+        fetchm_app.apply_approved_standardization_rule_to_memory({
+            "original_value": key,
+            "destination": "Host_SD",
+            "proposed_value": "Cervus nippon",
+            "ontology_id": "9863",
+            "method": "manual_host_curation",
+            "confidence": "medium",
+        })
+        self.assertEqual(fetchm_app.HOST_SYNONYMS[key], ("Cervus nippon", "9863"))
+        self.assertNotIn(key, fetchm_app.HOST_BROAD_SYNONYMS)
+        standardized = fetchm_app.standardize_host_metadata(key)
+        self.assertEqual(standardized["Host_SD_Confidence"], "medium")
+        fetchm_app.HOST_SYNONYMS.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_CONFIDENCE.pop(key, None)
 
     def test_host_curation_approval_overlay_avoids_full_cache_rebuild(self) -> None:
         rows = [
