@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .standardization-hero {
+    background: radial-gradient(circle at 92% 12%, rgba(28, 117, 92, .18), transparent 34%), linear-gradient(135deg, #f7fbf6 0%, #eef7f2 55%, #f8f4ea 100%);
+  }
+  .standardization-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .standardization-tabs a { border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; text-decoration: none; }
+  .standardization-tabs a.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .standardization-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr); gap: 18px; }
+  .coverage-list, .standardization-status { display: grid; gap: 12px; }
+  .coverage-row { display: grid; grid-template-columns: minmax(130px, .8fr) minmax(180px, 2fr) auto; gap: 12px; align-items: center; }
+  .coverage-track { height: 10px; overflow: hidden; border-radius: 999px; background: #dfe8e2; }
+  .coverage-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg, #176b55, #5aa57f); }
+  .status-line { display: flex; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .status-line:last-child { border-bottom: 0; padding-bottom: 0; }
+  .review-card { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+  @media (max-width: 850px) {
+    .standardization-grid { grid-template-columns: 1fr; }
+    .coverage-row { grid-template-columns: 1fr auto; }
+    .coverage-track { grid-column: 1 / -1; grid-row: 2; }
+  }
+</style>
+<main class="layout">
+  <section class="panel detail-head standardization-hero">
+    <div>
+      <p class="eyebrow">Admin · Standardization</p>
+      <h1>Standardization Control</h1>
+      <p class="lede">Review field coverage, unresolved metadata, rule health, QA evidence, and refresh state from one place.</p>
+      <div class="standardization-tabs">
+        <a href="{{ url_for('admin_standardization') }}" class="active">Overview</a>
+        <a href="{{ url_for('admin_refinement') }}">General refinement</a>
+        <a href="{{ url_for('admin_host_curation') }}">Host</a>
+        <a href="{{ url_for('admin_geography_curation') }}">Geography</a>
+        <a href="{{ url_for('admin_collection_date_curation') }}">Collection date</a>
+      </div>
+    </div>
+    <div class="status-box">
+      <span class="status {{ 'completed' if standardization.qa.status == 'pass' else 'running' if standardization.qa.status == 'warning' else 'failed' }}">QA {{ standardization.qa.status }}</span>
+      <div class="job-meta">{{ "{:,}".format(standardization.snapshot.unique_assemblies) }} assemblies evaluated</div>
+      <div class="job-meta">{{ standardization.rules.fingerprint }}</div>
+      <div class="job-meta">Snapshot {{ standardization.snapshot.snapshot_id }}</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="metrics-grid">
+    <div class="metric-card"><strong>{{ "{:,}".format(standardization.rules.file_rows) }}</strong><span>Versioned rule rows</span></div>
+    <div class="metric-card"><strong>{{ "{:,}".format(standardization.rules.database_approved) }}</strong><span>Admin-approved rules</span></div>
+    <div class="metric-card"><strong>{{ standardization.rules.conflicts }}</strong><span>Rule conflicts</span></div>
+    <div class="metric-card"><strong>{{ standardization.rules.suspicious }}</strong><span>Suspicious approved rules</span></div>
+    <div class="metric-card"><strong>{{ standardization.qa.counts.pass }}</strong><span>QA checks passed</span></div>
+    <div class="metric-card"><strong>{{ standardization.qa.counts.warning + standardization.qa.counts.fail }}</strong><span>QA checks needing attention</span></div>
+  </section>
+
+  <div class="standardization-grid">
+    <section class="panel">
+      <div class="section-head-row">
+        <div><p class="eyebrow">Latest global snapshot</p><h2>Field Coverage</h2><p class="muted">Standardized usable values among non-redundant bacterial assemblies.</p></div>
+        <a class="button-like ghost" href="{{ url_for('global_insights') }}">Open Global Insights</a>
+      </div>
+      <div class="coverage-list top-gap">
+        {% for row in standardization.coverage %}
+          <div class="coverage-row">
+            <div><strong>{{ row.field }}</strong><div class="job-meta">{{ "{:,}".format(row.standardized) }} usable</div></div>
+            <div class="coverage-track" title="{{ row.percent }}% standardized"><div class="coverage-fill" style="width: {{ row.percent }}%"></div></div>
+            <div><strong>{{ row.percent }}%</strong><div class="job-meta">{{ "{:,}".format(row.unresolved) }} unresolved</div></div>
+          </div>
+        {% else %}<p class="muted">Generate Global Insights to populate field-level coverage.</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Current operations</p><h2>Refresh State</h2>
+      <div class="standardization-status top-gap">
+        <div class="status-line"><span>Active tasks</span><strong>{{ standardization.refresh.active }}</strong></div>
+        <div class="status-line"><span>Finished tasks</span><strong>{{ standardization.refresh.finished }}</strong></div>
+        <div class="status-line"><span>Failed tasks</span><strong>{{ standardization.refresh.failed }}</strong></div>
+        <div class="status-line"><span>Rows processed</span><strong>{{ "{:,}".format(standardization.refresh.updated_rows) }}</strong></div>
+      </div>
+      <div class="action-row top-gap">
+        <a class="button-like ghost" href="{{ url_for('admin_metadata') }}">Open queue</a>
+        <form action="{{ url_for('admin_queue_standardization_refresh') }}" method="post"><input type="hidden" name="rank_scope" value="genus"><button type="submit">Apply current rules</button></form>
+      </div>
+      <details class="top-gap">
+        <summary>Full re-standardization</summary>
+        <p class="muted top-gap">Use after changing rules. Public users remain on the active canonical snapshot until the staged result is verified and promoted.</p>
+        <form action="{{ url_for('admin_restart_canonical_standardization') }}" method="post" class="top-gap"><input type="hidden" name="continue_after" value="0"><button type="submit" class="ghost">Re-standardize canonical metadata</button></form>
+      </details>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="section-head-row">
+      <div><p class="eyebrow">Human review</p><h2>Review Queues</h2><p class="muted">Prioritize by affected rows, not only by distinct values.</p></div>
+      <a class="button-like ghost" href="{{ url_for('admin_refinement') }}">Review all metadata fields</a>
+    </div>
+    <div class="metrics-grid top-gap">
+      {% for queue in standardization.review_queues %}
+        <div class="metric-card metric-wide review-card"><div><strong>{{ queue.label }}</strong><span>{{ "{:,}".format(queue.pending_values) }} pending values · {{ "{:,}".format(queue.affected_rows) }} affected rows</span></div><a href="{{ url_for(queue.endpoint) }}">Review</a></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <div class="standardization-grid">
+    <section class="panel">
+      <p class="eyebrow">Governance</p><h2>Rule Health</h2>
+      <div class="standardization-status top-gap">
+        <div class="status-line"><span>Rule fingerprint</span><strong>{{ standardization.rules.fingerprint }}</strong></div>
+        <div class="status-line"><span>Latest production audit</span><strong>{{ standardization.rules.latest_audit }}</strong></div>
+        <div class="status-line"><span>Production gate</span><strong>{{ standardization.rules.production_gate }}</strong></div>
+        <div class="status-line"><span>Duplicate approved rules</span><strong>{{ standardization.rules.duplicates }}</strong></div>
+        <div class="status-line"><span>Conflicting approved rules</span><strong>{{ standardization.rules.conflicts }}</strong></div>
+      </div>
+      {% if standardization.rules.by_destination %}
+        <details class="top-gap"><summary>Admin-approved rules by destination</summary><div class="table-scroll top-gap"><table><thead><tr><th>Destination</th><th>Rules</th></tr></thead><tbody>
+          {% for row in standardization.rules.by_destination %}<tr><td><code>{{ row.destination }}</code></td><td>{{ row.total }}</td></tr>{% endfor %}
+        </tbody></table></div></details>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">Latest snapshot</p><h2>QA Gate</h2>
+      <div class="metrics-grid top-gap">
+        <div class="metric-card"><strong>{{ standardization.qa.counts.pass }}</strong><span>Pass</span></div>
+        <div class="metric-card"><strong>{{ standardization.qa.counts.warning }}</strong><span>Warnings</span></div>
+        <div class="metric-card"><strong>{{ standardization.qa.counts.fail }}</strong><span>Failures</span></div>
+      </div>
+      <details class="top-gap"><summary>Show QA checks</summary><div class="standardization-status top-gap">
+        {% for check in standardization.qa.checks %}<div class="status-line"><span>{{ check.check.replace('_', ' ') }}</span><span class="status {{ 'completed' if check.status == 'pass' else 'running' if check.status == 'warning' else 'failed' }}">{{ check.status }}</span></div>
+        {% else %}<p class="muted">No snapshot QA report is available.</p>{% endfor %}
+      </div></details>
+    </section>
+  </div>
+</main>
+{% endblock %}

@@ -15398,6 +15398,113 @@ def build_collection_date_curation_dashboard(filters: Mapping[str, Any] | None =
     }
 
 
+
+def standardization_csv_row_count(path: Path) -> int:
+    if not path.exists():
+        return 0
+    try:
+        with path.open(newline="", encoding="utf-8", errors="replace") as handle:
+            return sum(1 for _row in csv.DictReader(handle))
+    except OSError:
+        return 0
+
+
+def build_standardization_overview() -> dict[str, Any]:
+    from global_insights.generator import standardization_rule_manifest
+
+    db = get_db()
+    latest_summary, _snapshot_dir = load_latest_global_insights_summary()
+    latest_summary = latest_summary or {}
+    overview = latest_summary.get("overview") or {}
+    coverage = []
+    for row in latest_summary.get("metadata_completeness") or []:
+        denominator = int(row.get("denominator") or overview.get("unique_assemblies") or 0)
+        standardized = int(row.get("standardized_usable") or row.get("standardized_records") or 0)
+        coverage.append({
+            "field": str(row.get("field") or ""),
+            "standardized": standardized,
+            "percent": float(row.get("standardized_usable_percent") or row.get("standardized_percent") or 0),
+            "unresolved": max(0, denominator - standardized),
+            "rescued": int(row.get("standardized_only_rescued") or row.get("rescued_records") or 0),
+            "changed": int(row.get("changed_mapping_count") or row.get("changed_mappings") or 0),
+            "denominator": denominator,
+        })
+
+    rule_rows = db.execute("""
+        SELECT destination, confidence, COUNT(*) AS total
+        FROM standardization_rules
+        WHERE status = 'approved'
+        GROUP BY destination, confidence
+        ORDER BY destination COLLATE NOCASE, confidence COLLATE NOCASE
+    """).fetchall()
+    approved_by_destination: dict[str, int] = {}
+    for row in rule_rows:
+        destination = str(row["destination"] or "Unspecified")
+        approved_by_destination[destination] = approved_by_destination.get(destination, 0) + int(row["total"] or 0)
+
+    refresh_rows = db.execute("""
+        SELECT status, COUNT(*) AS total, COALESCE(SUM(total_rows), 0) AS total_rows,
+               COALESCE(SUM(updated_rows), 0) AS updated_rows
+        FROM standardization_refresh_tasks
+        GROUP BY status
+    """).fetchall()
+    refresh = {
+        "pending": 0, "running": 0, "chunking": 0, "finalizing": 0,
+        "done": 0, "completed": 0, "failed": 0, "deferred": 0,
+        "total_rows": 0, "updated_rows": 0,
+    }
+    for row in refresh_rows:
+        status = str(row["status"] or "")
+        if status in refresh:
+            refresh[status] = int(row["total"] or 0)
+        refresh["total_rows"] += int(row["total_rows"] or 0)
+        refresh["updated_rows"] += int(row["updated_rows"] or 0)
+    refresh["active"] = refresh["pending"] + refresh["running"] + refresh["chunking"] + refresh["finalizing"]
+    refresh["finished"] = refresh["done"] + refresh["completed"]
+
+    host = build_host_curation_dashboard({"status": "pending", "limit": 25})
+    geography = build_geography_curation_dashboard({"status": "pending", "limit": 25})
+    collection_date = build_collection_date_curation_dashboard({"status": "pending", "limit": 25})
+    qa = latest_summary.get("qa") or {}
+    qa_checks = qa.get("checks") or []
+    qa_counts = {"pass": 0, "warning": 0, "fail": 0}
+    for check in qa_checks:
+        status = str(check.get("status") or "warning")
+        qa_counts[status if status in qa_counts else "warning"] += 1
+
+    audit_dir = STANDARDIZATION_DIR / "review" / "controlled_categories_audit"
+    rule_manifest = standardization_rule_manifest()
+    return {
+        "snapshot": {
+            "snapshot_id": latest_summary.get("snapshot_id") or "No snapshot",
+            "generated_at": latest_summary.get("generated_at") or "",
+            "unique_assemblies": int(overview.get("unique_assemblies") or 0),
+        },
+        "coverage": coverage,
+        "rules": {
+            "fingerprint": rule_manifest.get("version") or "not available",
+            "file_rows": int(rule_manifest.get("total_rule_rows") or 0),
+            "database_approved": sum(approved_by_destination.values()),
+            "by_destination": [
+                {"destination": destination, "total": total}
+                for destination, total in sorted(approved_by_destination.items())
+            ],
+            "duplicates": standardization_csv_row_count(audit_dir / "duplicate_approved_rules.csv"),
+            "conflicts": standardization_csv_row_count(audit_dir / "conflicting_approved_rules.csv"),
+            "suspicious": standardization_csv_row_count(audit_dir / "suspicious_approved_rules.csv"),
+            "latest_audit": rule_manifest.get("latest_audit_timestamp") or "not available",
+            "production_gate": "pass" if (rule_manifest.get("production_readiness_gate") or {}).get("production_ready") else "not ready",
+        },
+        "refresh": refresh,
+        "review_queues": [
+            {"label": "Host", "pending_values": int(host["summary"].get("total") or 0), "affected_rows": int(host["summary"].get("total_rows") or 0), "endpoint": "admin_host_curation"},
+            {"label": "Geography", "pending_values": int(geography["summary"].get("pending_total") or 0), "affected_rows": int(geography["summary"].get("pending_rows_represented") or 0), "endpoint": "admin_geography_curation"},
+            {"label": "Collection date", "pending_values": int(collection_date["summary"].get("pending_total") or 0), "affected_rows": int(collection_date["summary"].get("pending_rows_represented") or 0), "endpoint": "admin_collection_date_curation"},
+        ],
+        "qa": {"status": qa.get("status") or "not available", "counts": qa_counts, "checks": qa_checks},
+    }
+
+
 def save_geography_curation_rule(source_value: str, country: str, note: str) -> None:
     if not source_value.strip() or country not in COUNTRY_MAPPING:
         raise ValueError("Geography approval requires source value and a recognized country.")
@@ -25744,6 +25851,16 @@ def admin_metadata() -> str:
         taxa=list_recent_metadata_taxa(100),
         metadata_dashboard=build_metadata_dashboard(),
         **admin_common_context("metadata"),
+    )
+
+
+@app.route("/admin/standardization")
+def admin_standardization() -> str:
+    require_admin()
+    return render_template(
+        "admin_standardization.html",
+        standardization=build_standardization_overview(),
+        **admin_common_context("standardization"),
     )
 
 
