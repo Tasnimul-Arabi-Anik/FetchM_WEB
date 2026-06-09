@@ -30,6 +30,25 @@ from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_non_taxonomic_host_labels_preserve_broad_context(self) -> None:
+        for raw_host, expected_context in [
+            ("invertebrate", "invertebrate"),
+            ("invertebrates", "invertebrate"),
+            ("mudfish", "fish"),
+        ]:
+            standardized = fetchm_app.enrich_host_standardization(
+                raw_host,
+                {
+                    "Host_SD": "",
+                    "Host_TaxID": "",
+                    "Host_SD_Method": "not_identifiable",
+                    "Host_SD_Confidence": "none",
+                },
+            )
+            self.assertEqual(standardized["Host_Context_SD"], expected_context)
+            self.assertEqual(standardized["Host_Review_Status"], "not_identifiable")
+            self.assertEqual(standardized["Host_TaxID"], "")
+
     def test_host_curation_approval_overlay_avoids_full_cache_rebuild(self) -> None:
         rows = [
             {

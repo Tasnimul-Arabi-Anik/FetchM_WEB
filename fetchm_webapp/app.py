@@ -4255,6 +4255,8 @@ HOST_LINEAGE_CACHE: dict[str, dict[str, str]] | None = None
 
 
 HOST_CONTEXT_PATTERNS = [
+    (re.compile(r"\binvertebrates?\b", re.IGNORECASE), "Host_Context_SD", "invertebrate"),
+    (re.compile(r"\bmudfish\b", re.IGNORECASE), "Host_Context_SD", "fish"),
     (re.compile(r"\b(pet|pets|companion pet|companion animal)\b", re.IGNORECASE), "Host_Context_SD", "pet/companion animal"),
     (re.compile(r"\b(infant|neonate|newborn)\b", re.IGNORECASE), "Host_Age_Group_SD", "infant"),
     (re.compile(r"\b(child|children|pediatric|paediatric)\b", re.IGNORECASE), "Host_Age_Group_SD", "child"),
