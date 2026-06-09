@@ -30,6 +30,42 @@ from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_host_curation_approval_overlay_avoids_full_cache_rebuild(self) -> None:
+        rows = [
+            {
+                "raw_host": "human",
+                "display_decision": "ambiguous",
+                "live_status": "pending",
+                "needs_review": "1",
+            },
+            {
+                "raw_host": "soil",
+                "display_decision": "ambiguous",
+                "live_status": "pending",
+                "needs_review": "1",
+            },
+        ]
+        approved_rules = {
+            "human": {
+                "approved_by": "admin",
+                "approved_at": "2026-06-09T00:00:00+00:00",
+                "method": "manual_host_curation",
+                "proposed_value": "Homo sapiens",
+                "ontology_id": "9606",
+                "confidence": "high",
+            }
+        }
+
+        result = fetchm_app.apply_host_curation_approval_overlay(rows, approved_rules)
+
+        self.assertTrue(result[0]["is_approved"])
+        self.assertEqual(result[0]["live_status"], "resolved")
+        self.assertEqual(result[0]["live_host"], "Homo sapiens")
+        self.assertEqual(result[0]["live_taxid"], "9606")
+        self.assertEqual(result[0]["needs_review"], "0")
+        self.assertFalse(result[1]["is_approved"])
+        self.assertEqual(result[1]["live_status"], "pending")
+
     def test_canonical_partition_classification_keeps_root_inventory_honest(self) -> None:
         canonical = canonical_partition_from_organism_name("Morganella morganii strain ABC")
         self.assertEqual(canonical["partition_type"], "named_species")

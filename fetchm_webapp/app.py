@@ -14615,8 +14615,6 @@ def save_approved_standardization_rule(
             "confidence": confidence,
         }
     )
-    if source_column == "Host" and destination == "Host_SD":
-        clear_host_curation_cache()
 
 
 def refinement_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
@@ -14933,22 +14931,11 @@ def host_curation_cache_key(db: sqlite3.Connection, source_path: Path) -> dict[s
         if path.exists():
             stat = path.stat()
             rule_file_state.append({"path": path.name, "mtime_ns": stat.st_mtime_ns, "size": stat.st_size})
-    row = db.execute(
-        """
-        SELECT COUNT(*) AS total, COALESCE(MAX(approved_at), '') AS latest
-        FROM standardization_rules
-        WHERE source_column = 'Host'
-          AND destination = 'Host_SD'
-          AND status = 'approved'
-        """
-    ).fetchone()
     return {
         "source_path": str(source_path),
         "source_mtime_ns": source_stat.st_mtime_ns,
         "source_size": source_stat.st_size,
         "rule_files": rule_file_state,
-        "approved_rule_total": int(row["total"] or 0) if row else 0,
-        "approved_rule_latest": str(row["latest"] or "") if row else "",
     }
 
 
@@ -14981,17 +14968,53 @@ def clear_host_curation_cache() -> None:
     host_curation_cache_path().unlink(missing_ok=True)
 
 
+def apply_host_curation_approval_overlay(
+    rows: list[dict[str, Any]],
+    approved_rules: Mapping[str, sqlite3.Row],
+) -> list[dict[str, Any]]:
+    for row in rows:
+        approved_rule = approved_rules.get(normalize_standardization_lookup(row.get("raw_host")))
+        row["is_approved"] = approved_rule is not None
+        row["approved_by"] = approved_rule["approved_by"] if approved_rule else ""
+        row["approved_at"] = approved_rule["approved_at"] if approved_rule else ""
+        if approved_rule is None:
+            continue
+        method = str(approved_rule["method"] or "")
+        proposed_host = str(approved_rule["proposed_value"] or "")
+        taxid = str(approved_rule["ontology_id"] or "")
+        confidence = str(approved_rule["confidence"] or "")
+        if method in {"missing", "non_host_source", "not_identifiable"}:
+            decision = method
+        elif method == "manual_broad_host_curation" or confidence == "medium":
+            decision = "broad_host"
+        else:
+            decision = "taxonomy_candidate"
+        row.update(
+            {
+                "display_decision": decision,
+                "live_status": "resolved",
+                "live_decision": decision,
+                "live_host": proposed_host,
+                "live_taxid": taxid,
+                "live_method": method,
+                "live_confidence": confidence or "none",
+                "needs_review": "0",
+            }
+        )
+    return rows
+
+
 def host_curation_read_rows() -> list[dict[str, Any]]:
     source_path = host_curation_source_path()
     if source_path is None:
         return []
     db = get_db()
     cache_key = host_curation_cache_key(db, source_path)
+    approved_rules = approved_host_curation_rule_lookup(db)
     cached_rows = load_host_curation_cached_rows(cache_key)
     if cached_rows is not None:
-        return cached_rows
+        return apply_host_curation_approval_overlay(cached_rows, approved_rules)
     rows: list[dict[str, Any]] = []
-    approved_rules = approved_host_curation_rule_lookup(db)
     with source_path.open(newline="", encoding="utf-8") as handle:
         reader = csv.DictReader(handle)
         for raw in reader:
@@ -15030,7 +15053,7 @@ def host_curation_read_rows() -> list[dict[str, Any]]:
             )
     rows.sort(key=lambda item: (-int(item.get("count") or 0), str(item.get("raw_host") or "").lower()))
     save_host_curation_cached_rows(cache_key, rows)
-    return rows
+    return apply_host_curation_approval_overlay(rows, approved_rules)
 
 
 def host_curation_filters_from_mapping(values: Mapping[str, Any]) -> dict[str, Any]:
