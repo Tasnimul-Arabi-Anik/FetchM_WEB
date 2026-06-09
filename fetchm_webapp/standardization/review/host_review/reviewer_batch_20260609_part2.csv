@@ -1,0 +1,77 @@
+raw_host,final_is_approved,rule_type,final_host,final_taxid,final_confidence,reviewer_note
+F83026,FALSE,ignore,,,,Opaque accession or sample-like code
+orchids,TRUE,broad_host,Orchidaceae,4747,medium,Broad common-name plant host
+Ortrugo,TRUE,broad_host,Vitis vinifera,29760,medium,Grape cultivar mapped conservatively
+ostracean,TRUE,broad_host,Crustacea,197562,medium-low,Likely misspelled crustacean-like host
+ostrea,TRUE,exact_host,Ostrea,,medium,Genus-level oyster host
+P.falciparum,TRUE,exact_host,Plasmodium falciparum,5833,medium,Common abbreviation
+P024V1,FALSE,ignore,,,,Opaque strain or sample-like code
+Padding,FALSE,ignore,,,,UI or noise-like text
+Palythoa,TRUE,exact_host,Palythoa,,medium,Genus-level cnidarian host
+Parrotbill,TRUE,broad_host,Passeriformes,9126,medium,Common bird group
+Peony,TRUE,broad_host,Paeonia,,medium,Common plant host
+peony,TRUE,broad_host,Paeonia,,medium,Common plant host
+Periwinkle,FALSE,ignore,,,,Ambiguous plant or marine snail common name
+periwinkle,FALSE,ignore,,,,Ambiguous plant or marine snail common name
+Persicae,FALSE,ignore,,,,Specific epithet fragment only
+Phocidae,TRUE,broad_host,Phocidae,9709,high,Family-level seal host
+Pigeonpea,TRUE,exact_host,Cajanus cajan,3821,medium,Common crop name
+Pisces,FALSE,ignore,,,,Preserve fish context without obsolete taxonomy
+pneumoniae,FALSE,ignore,,,,Species epithet or bacterial label
+Polyblastidium,TRUE,exact_host,Polyblastidium,,medium,Genus-level fungal or lichen host
+Polygala,TRUE,exact_host,Polygala,,medium,Genus-level plant host
+Polytelis,TRUE,exact_host,Polytelis,,medium,Genus-level bird host
+Pomace,FALSE,non_host_source,,,,Processing or plant material source
+Porphyla,TRUE,broad_host,Porphyra,,medium-low,Likely misspelling of Porphyra
+Porqupine,TRUE,broad_host,Rodentia,9989,medium-low,Misspelling of porcupine
+PROTEOBACTERIA-BETA,FALSE,non_host_source,,,,Bacterial group label
+Pumkin,TRUE,broad_host,Cucurbita,,medium,Misspelling of pumpkin
+Pygathrix,TRUE,exact_host,Pygathrix,,medium,Genus-level primate host
+R. pseudoacacia L.,TRUE,exact_host,Robinia pseudoacacia,35938,high,Botanical abbreviation
+raccoondog,TRUE,exact_host,Nyctereutes procyonoides,34880,medium,Common name
+Rapeseed,TRUE,exact_host,Brassica napus,3708,medium,Common crop name
+red-billed woodhoopoe,TRUE,exact_host,Phoeniculus purpureus,,medium,Common bird name
+reed,TRUE,broad_host,Poaceae,4479,medium-low,Conservative grass-family mapping
+Rhodococcus,FALSE,non_host_source,,,,Bacterial genus label
+Rock,FALSE,non_host_source,,,,Environmental material
+Ryegrass,TRUE,broad_host,Lolium,,medium,Common grass genus
+S.paradoxus,TRUE,exact_host,Saccharomyces paradoxus,,medium,Common abbreviation
+Saccharum,TRUE,exact_host,Saccharum,,medium,Genus-level sugarcane host
+Saffron,TRUE,exact_host,Crocus sativus,82528,medium,Common crop name
+Salvelinus,TRUE,exact_host,Salvelinus,,medium,Genus-level fish host
+Sangiovese,TRUE,broad_host,Vitis vinifera,29760,medium,Wine grape cultivar
+Sanqi,TRUE,exact_host,Panax notoginseng,,medium,Common medicinal plant name
+scrub1a,FALSE,ignore,,,,Sample or code-like label
+scrub2,FALSE,ignore,,,,Sample or code-like label
+Serrasalmidae,TRUE,broad_host,Serrasalmidae,,high,Family-level fish host
+Sf1EP,FALSE,ignore,,,,Opaque strain or sample-like code
+shirasu,FALSE,non_host_source,,,,Fish or whitebait food/source material
+sika,TRUE,exact_host,Cervus nippon,9863,medium,Common name
+slender-horned gazella,TRUE,exact_host,Gazella leptoceros,69303,medium,Common name
+sofa,FALSE,non_host_source,,,,Built-environment material
+soldier,FALSE,non_host_source,,,,Caste or context label without organism identity
+Spaghnum,TRUE,exact_host,Sphagnum,,medium,Misspelling of Sphagnum
+Spheniscidae,TRUE,broad_host,Spheniscidae,9231,high,Family-level penguin host
+stag,TRUE,broad_host,Cervidae,9850,medium,Male deer common label
+Stegophylla,FALSE,ignore,,,,Unsupported taxon string
+straw,FALSE,non_host_source,,,,Plant material source
+Suricat,TRUE,exact_host,Suricata suricatta,37032,medium,Suricate or meerkat common name
+Tabaco,TRUE,exact_host,Nicotiana tabacum,4097,medium,Tobacco spelling variant
+tellus,FALSE,non_host_source,,,,Earth or soil-like source
+Three-lined grunt (Parapristipoma trilineatum),TRUE,exact_host,Parapristipoma trilineatum,,high,Scientific name supplied in parentheses
+Tomate,TRUE,exact_host,Solanum lycopersicum,4081,medium,Tomato common name variant
+Ulvan,FALSE,non_host_source,,,,Algal polysaccharide material
+USA:New York,FALSE,non_host_source,,,,Geographic location in host field
+Vectobac,FALSE,non_host_source,,,,Commercial product or biocontrol label
+vetch,TRUE,broad_host,Vicia,,medium,Common plant genus
+Vibrio,FALSE,non_host_source,,,,Bacterial genus label
+vine,TRUE,broad_host,Viridiplantae,33090,medium-low,Ambiguous vine retained as broad plant
+Weasel,TRUE,broad_host,Mustelidae,9655,medium,Common mustelid family
+weever,TRUE,broad_host,Trachinidae,,medium,Common fish family
+Weever,TRUE,broad_host,Trachinidae,,medium,Common fish family
+wenyujin,TRUE,exact_host,Curcuma wenyujin,,medium,Medicinal plant common name
+wheatgrass,TRUE,broad_host,Triticum,,medium,Common wheat genus
+White-Breasted Nuthatch,TRUE,exact_host,Sitta carolinensis,50250,medium,Common bird name
+White-faced saki,TRUE,exact_host,Pithecia pithecia,43777,medium,Common primate name
+wood-wren,TRUE,broad_host,Henicorhina,,medium,Common bird genus
+Zooplatnkon,FALSE,ignore,,,,Preserve zooplankton context without false taxonomy

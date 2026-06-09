@@ -27,6 +27,7 @@ from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
+from tools import import_host_review_decisions as host_review_importer
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -39,6 +40,8 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("algae", "algae"),
             ("lichen", "lichen"),
             ("lichens", "lichen"),
+            ("Pisces", "fish"),
+            ("Zooplatnkon", "zooplankton"),
         ]:
             standardized = fetchm_app.enrich_host_standardization(
                 raw_host,
@@ -52,6 +55,23 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(standardized["Host_Context_SD"], expected_context)
             self.assertEqual(standardized["Host_Review_Status"], "not_identifiable")
             self.assertEqual(standardized["Host_TaxID"], "")
+
+    def test_host_review_import_rejects_supplied_taxid_mismatch(self) -> None:
+        rows = [{
+            "final_is_approved": "TRUE",
+            "rule_type": "exact_host",
+            "final_host": "Cervus nippon",
+            "final_taxid": "9872",
+        }]
+        completed = type("Completed", (), {
+            "returncode": 0,
+            "stdout": "Cervus nippon\t9863\n",
+            "stderr": "",
+        })()
+        with patch.object(host_review_importer.subprocess, "run", return_value=completed):
+            error = host_review_importer.resolve_and_validate_taxids(rows)
+        self.assertEqual(error, "")
+        self.assertIn("does not match", rows[0]["_taxonomy_error"])
 
     def test_host_curation_approval_overlay_avoids_full_cache_rebuild(self) -> None:
         rows = [

@@ -4259,6 +4259,8 @@ HOST_CONTEXT_PATTERNS = [
     (re.compile(r"\bmudfish\b", re.IGNORECASE), "Host_Context_SD", "fish"),
     (re.compile(r"\b(algea|algae)\b", re.IGNORECASE), "Host_Context_SD", "algae"),
     (re.compile(r"\blichens?\b", re.IGNORECASE), "Host_Context_SD", "lichen"),
+    (re.compile(r"\bpisces\b", re.IGNORECASE), "Host_Context_SD", "fish"),
+    (re.compile(r"\b(zooplatnkon|zooplankton)\b", re.IGNORECASE), "Host_Context_SD", "zooplankton"),
     (re.compile(r"\b(pet|pets|companion pet|companion animal)\b", re.IGNORECASE), "Host_Context_SD", "pet/companion animal"),
     (re.compile(r"\b(infant|neonate|newborn)\b", re.IGNORECASE), "Host_Age_Group_SD", "infant"),
     (re.compile(r"\b(child|children|pediatric|paediatric)\b", re.IGNORECASE), "Host_Age_Group_SD", "child"),

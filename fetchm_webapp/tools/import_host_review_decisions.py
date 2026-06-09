@@ -32,13 +32,12 @@ def taxonkit_name2taxid(name: str) -> tuple[str, str]:
     return (fields[1].strip(), "") if len(fields) > 1 else ("", "")
 
 
-def resolve_missing_taxids(rows: list[dict[str, str]]) -> str:
+def resolve_and_validate_taxids(rows: list[dict[str, str]]) -> str:
     names = [
         (row.get("final_host") or "").strip()
         for row in rows
         if parse_bool(row.get("final_is_approved") or "")
         and (row.get("rule_type") or "").strip().lower() in APPROVED_TYPES
-        and not (row.get("final_taxid") or "").strip()
         and (row.get("final_host") or "").strip()
     ]
     if not names:
@@ -59,8 +58,20 @@ def resolve_missing_taxids(rows: list[dict[str, str]]) -> str:
             lookup[fields[0].strip()] = fields[1].strip()
     for row in rows:
         name = (row.get("final_host") or "").strip()
-        if name in lookup and not (row.get("final_taxid") or "").strip():
-            row["final_taxid"] = lookup[name]
+        supplied_taxid = (row.get("final_taxid") or "").strip()
+        resolved_taxid = lookup.get(name, "")
+        if supplied_taxid and not resolved_taxid:
+            row["_taxonomy_error"] = (
+                f"{name}: supplied TaxID {supplied_taxid} cannot be validated "
+                "against local NCBI Taxonomy"
+            )
+        elif supplied_taxid and supplied_taxid != resolved_taxid:
+            row["_taxonomy_error"] = (
+                f"{name}: supplied TaxID {supplied_taxid} does not match "
+                f"local NCBI Taxonomy TaxID {resolved_taxid}"
+            )
+        elif resolved_taxid and not supplied_taxid:
+            row["final_taxid"] = resolved_taxid
     return ""
 
 
@@ -76,6 +87,9 @@ def import_row(row: dict[str, str], approved_by: str, dry_run: bool) -> tuple[st
     taxid = (row.get("final_taxid") or "").strip()
     confidence = (row.get("final_confidence") or "").strip().lower()
     note = (row.get("reviewer_note") or "").strip()
+
+    if row.get("_taxonomy_error"):
+        return "invalid", f"{raw_host}: {row['_taxonomy_error']}"
 
     if not raw_host or rule_type not in APPROVED_TYPES | REJECTED_TYPES:
         return "invalid", f"{raw_host or '<blank>'}: unsupported or incomplete rule"
@@ -134,7 +148,7 @@ def main() -> int:
     with args.csv_path.open(newline="", encoding="utf-8") as handle:
         rows = list(csv.DictReader(handle))
 
-    lookup_error = resolve_missing_taxids(rows)
+    lookup_error = resolve_and_validate_taxids(rows)
     if lookup_error:
         print(f"TaxonKit error: {lookup_error}", file=sys.stderr)
         return 1
