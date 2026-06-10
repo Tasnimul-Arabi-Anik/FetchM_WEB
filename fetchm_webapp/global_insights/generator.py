@@ -800,6 +800,8 @@ def standardization_rule_manifest() -> dict[str, Any]:
     rule_files = [
         root / "host_synonyms.csv",
         root / "host_negative_rules.csv",
+        root / "host_context_rules.csv",
+        root / "host_microbial_allowlist.csv",
         root / "controlled_categories.csv",
         root / "approved_broad_categories.csv",
         root / "geography_reviewed_rules.csv",

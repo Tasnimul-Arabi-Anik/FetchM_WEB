@@ -4100,9 +4100,23 @@ def apply_core_standardization_overrides() -> None:
 
 
 HOST_REVIEWED_CONTEXT_RULES: dict[str, str] = {}
+HOST_MICROBIAL_ALLOWLIST_KEYS: set[str] = set()
+HOST_MICROBIAL_ALLOWLIST_TAXIDS: set[str] = set()
+HOST_MICROBIAL_SUPERKINGDOMS = {"Bacteria", "Archaea", "Viruses"}
 
 
 def load_external_standardization_rules() -> None:
+    for row in load_standardization_csv(STANDARDIZATION_DIR / "host_microbial_allowlist.csv"):
+        synonym = normalize_standardization_lookup(row.get("synonym"))
+        canonical = normalize_standardization_lookup(row.get("canonical"))
+        taxid = (row.get("taxid") or "").strip()
+        if synonym:
+            HOST_MICROBIAL_ALLOWLIST_KEYS.add(synonym)
+        if canonical:
+            HOST_MICROBIAL_ALLOWLIST_KEYS.add(canonical)
+        if taxid:
+            HOST_MICROBIAL_ALLOWLIST_TAXIDS.add(taxid)
+
     for row in load_standardization_csv(STANDARDIZATION_DIR / "host_synonyms.csv"):
         synonym = normalize_standardization_lookup(row.get("synonym"))
         canonical = (row.get("canonical") or "").strip()
@@ -4462,6 +4476,24 @@ def enrich_host_standardization(value: Any, host: Mapping[str, str]) -> dict[str
     enriched.update(extract_host_context_fields(original))
     if enriched["Host_TaxID"]:
         enriched.update(taxonkit_host_lineage(enriched["Host_TaxID"]))
+    allowlist_keys = {normalize_standardization_lookup(original), normalize_standardization_lookup(enriched["Host_SD"])}
+    microbial_allowlisted = (
+        bool(allowlist_keys & HOST_MICROBIAL_ALLOWLIST_KEYS)
+        or enriched["Host_TaxID"] in HOST_MICROBIAL_ALLOWLIST_TAXIDS
+    )
+    if enriched["Host_Superkingdom"] in HOST_MICROBIAL_SUPERKINGDOMS and not microbial_allowlisted:
+        enriched.update(empty_host_lineage())
+        enriched.update(
+            {
+                "Host_SD": "",
+                "Host_TaxID": "",
+                "Host_Match_Method": "non_host_source",
+                "Host_Confidence": "none",
+                "Host_Review_Status": "non_host_source",
+                "Host_SD_Method": "non_host_source",
+                "Host_SD_Confidence": "none",
+            }
+        )
     if not enriched["Host_Common_Name"] and cleaned and enriched["Host_SD"] and cleaned != clean_host_lookup_text(enriched["Host_SD"]):
         enriched["Host_Common_Name"] = cleaned
     return enriched

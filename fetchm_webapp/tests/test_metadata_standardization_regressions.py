@@ -112,6 +112,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             "Prochlorococcus",
             "Klebsiella pneumoniae",
             "Streptococcus agalactiae",
+            "Campylobacter jejuni",
+            "Salmonella enterica",
+            "Salmonella enterica subsp. enterica serovar Typhi",
+            "Streptococcus pneumoniae",
         ]:
             enriched = fetchm_app.enrich_host_standardization(
                 raw_host,
@@ -120,6 +124,20 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(enriched["Host_SD"], "")
             self.assertEqual(enriched["Host_TaxID"], "")
             self.assertEqual(enriched["Host_Review_Status"], "non_host_source")
+
+    def test_explicit_microbial_allowlist_preserves_intentional_host(self) -> None:
+        key = fetchm_app.normalize_standardization_lookup("Salmonella enterica")
+        fetchm_app.HOST_MICROBIAL_ALLOWLIST_KEYS.add(key)
+        try:
+            enriched = fetchm_app.enrich_host_standardization(
+                "Salmonella enterica",
+                fetchm_app.standardize_host_metadata("Salmonella enterica"),
+            )
+            self.assertEqual(enriched["Host_SD"], "Salmonella enterica")
+            self.assertEqual(enriched["Host_TaxID"], "28901")
+            self.assertEqual(enriched["Host_Superkingdom"], "Bacteria")
+        finally:
+            fetchm_app.HOST_MICROBIAL_ALLOWLIST_KEYS.discard(key)
 
     def test_reviewed_context_only_labels_do_not_force_host_sd(self) -> None:
         for raw_host, expected_context in [
