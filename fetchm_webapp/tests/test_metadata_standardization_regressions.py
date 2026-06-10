@@ -89,6 +89,52 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         else:
             fetchm_app.HOST_BROAD_SYNONYMS[key] = previous
 
+    def test_microbial_host_leakage_is_demoted_without_demoting_eukaryotic_algae(self) -> None:
+        for raw_host, expected_host, expected_taxid in [
+            ("Sargassum hemiphyllum", "Sargassum hemiphyllum", "127544"),
+            ("red marine alga", "Rhodophyta", "2763"),
+        ]:
+            enriched = fetchm_app.enrich_host_standardization(
+                raw_host,
+                fetchm_app.standardize_host_metadata(raw_host),
+            )
+            self.assertEqual(enriched["Host_SD"], expected_host)
+            self.assertEqual(enriched["Host_TaxID"], expected_taxid)
+            self.assertEqual(enriched["Host_Superkingdom"], "Eukaryota")
+
+        for raw_host in [
+            "Microcystis aeruginosa",
+            "Nostoc sp.",
+            "Prochlorococcus",
+            "Klebsiella pneumoniae",
+            "Streptococcus agalactiae",
+        ]:
+            enriched = fetchm_app.enrich_host_standardization(
+                raw_host,
+                fetchm_app.standardize_host_metadata(raw_host),
+            )
+            self.assertEqual(enriched["Host_SD"], "")
+            self.assertEqual(enriched["Host_TaxID"], "")
+            self.assertEqual(enriched["Host_Review_Status"], "non_host_source")
+
+    def test_reviewed_context_only_labels_do_not_force_host_sd(self) -> None:
+        for raw_host, expected_context in [
+            ("algae", "algae"),
+            ("algea", "algae"),
+            ("fish", "fish"),
+            ("Pisces", "fish"),
+            ("Zooplatnkon", "zooplankton"),
+            ("green alga", "green algae"),
+            ("marine invertebrate", "marine invertebrate"),
+        ]:
+            enriched = fetchm_app.enrich_host_standardization(
+                raw_host,
+                fetchm_app.standardize_host_metadata(raw_host),
+            )
+            self.assertEqual(enriched["Host_SD"], "")
+            self.assertEqual(enriched["Host_TaxID"], "")
+            self.assertEqual(enriched["Host_Context_SD"], expected_context)
+
     def test_reviewed_common_name_rule_overrides_broad_dictionary(self) -> None:
         key = "water lettuce"
         fetchm_app.HOST_SYNONYMS.pop(key, None)

@@ -33,3 +33,6 @@ Policy:
 - BGE should be used to reduce manual review effort, not to bypass review.
 
 Current remaining issues are low-frequency curation issues, not a reason to replace the deterministic pipeline with model classification.
+
+Host context-only rules are loaded from `host_context_rules.csv` and preserve broad labels such as `fish` or `marine invertebrate` without forcing a taxonomic `Host_SD`.
+Microbial host exceptions must be explicit in `host_microbial_allowlist.csv`; non-allowlisted Bacteria, Archaea, and Viruses are demoted from `Host_SD` by the host taxonomy audit while eukaryotic algae, fungi, protists, plants, and animals remain valid when TaxID lineage supports them.

@@ -1,4 +1,17 @@
 synonym,context,note
-marine invertebrate,marine invertebrate,Finalized by reviewer batch 4
-slime mold,slime mold,Finalized by reviewer batch 4
-white bream,fish,Finalized by reviewer batch 4
+marine invertebrate,marine invertebrate,Reviewed context-only broad host label.
+slime mold,slime mold,Reviewed context-only broad host label.
+white bream,fish,Ambiguous common fish name; preserve context only.
+invertebrate,invertebrate,Reviewed context-only broad host label.
+invertebrates,invertebrate,Reviewed context-only broad host label.
+mudfish,fish,Ambiguous common fish label; preserve context only.
+fish,fish,Reviewed broad biological context label.
+Pisces,fish,Reviewed broad/legacy fish context label.
+algea,algae,Reviewed typo for algae context; do not force Host_SD.
+algae,algae,Reviewed broad algal context; do not force Host_SD.
+lichen,lichen,Reviewed broad lichen context; do not force Host_SD.
+lichens,lichen,Reviewed broad lichen context; do not force Host_SD.
+Zooplatnkon,zooplankton,Reviewed typo for zooplankton context.
+zooplankton,zooplankton,Reviewed broad zooplankton context.
+bracket mold,fungus,Reviewed broad fungal context label.
+green alga,green algae,Reviewed broad green algae context label.
