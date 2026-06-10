@@ -27,6 +27,7 @@ from dataset_production_store import (
     standardized_metadata_coverage,
 )
 from global_insights.generator import standardization_rule_manifest
+from tools.host_standardization_monitoring import generate_host_monitoring
 
 API_BASE = "https://api.ncbi.nlm.nih.gov/datasets/v2/genome/accession"
 ATTRIBUTE_COLUMNS = {
@@ -199,6 +200,8 @@ def main() -> int:
         "configured_api_key_count": len([key for key in api_keys if key]),
         **standardized_metadata_coverage(args.snapshot_id),
     }
+    if not summary["missing_standardized_assemblies"]:
+        summary["host_standardization_monitoring"] = generate_host_monitoring(args.snapshot_id)
     print(json.dumps(summary, sort_keys=True))
     return 0
 

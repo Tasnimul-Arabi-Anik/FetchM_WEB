@@ -16,6 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app import normalize_managed_metadata_row
 from dataset_production_store import connect, seed_standardized_metadata_batch, standardized_metadata_coverage
 from global_insights.generator import standardization_rule_manifest
+from tools.host_standardization_monitoring import generate_host_monitoring
 
 
 def current_rule_fingerprint(default: str | None = None) -> str:
@@ -103,6 +104,7 @@ def main() -> int:
         "standardization_workers": workers,
         **standardized_metadata_coverage(args.snapshot_id),
     }
+    summary["host_standardization_monitoring"] = generate_host_monitoring(args.snapshot_id)
     print(json.dumps(summary, sort_keys=True))
     return 0
 

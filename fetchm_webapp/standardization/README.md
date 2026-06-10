@@ -36,3 +36,24 @@ Current remaining issues are low-frequency curation issues, not a reason to repl
 
 Host context-only rules are loaded from `host_context_rules.csv` and preserve broad labels such as `fish` or `marine invertebrate` without forcing a taxonomic `Host_SD`.
 Microbial host exceptions must be explicit in `host_microbial_allowlist.csv`; non-allowlisted Bacteria, Archaea, and Viruses are demoted from `Host_SD` by the host taxonomy audit while eukaryotic algae, fungi, protists, plants, and animals remain valid when TaxID lineage supports them.
+
+## Host Review Decisions
+
+- **Approve exact host**: use when the submitted value resolves to a specific
+  reviewed NCBI taxon. Populate `Host_SD` and `Host_TaxID`.
+- **Approve broad host**: use when a defensible higher-rank NCBI taxon is the
+  most specific safe assignment. Populate `Host_SD` and its higher-rank TaxID.
+- **Context-only host**: use for biological descriptions such as `fish`,
+  `algae`, or `zooplankton` that are useful but not defensible taxonomic
+  assignments. Populate `Host_Context_SD` only.
+- **Mark non-host source**: use for material, environment, person, institution,
+  microbial taxon leakage, or other source text that is not the host organism.
+- **Mark missing**: use only for explicit missing-value statements.
+- **Ignore / not identifiable**: use when the text is present but no defensible
+  host or context assignment can be made.
+
+Production QA is available with:
+
+```bash
+python tools/qa_host_standardization.py --fail-on-leakage
+```

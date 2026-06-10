@@ -24,13 +24,38 @@ from app import (
     standardize_host_metadata,
 )
 from external_tools.quality_check.runner import validate_quality_runtime
-from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_host_standardization_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import import_host_review_decisions as host_review_importer
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_host_provenance_loader_reads_latest_monitoring_summary(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            monitoring = root / "data" / "host_standardization_monitoring"
+            snapshot_dir = monitoring / "snapshot"
+            snapshot_dir.mkdir(parents=True)
+            (snapshot_dir / "qa.json").write_text(json.dumps({
+                "rule_row_counts": {"host_synonyms": 10},
+                "host_rule_version": "sha256:test",
+                "host_rule_commit": "b92a591",
+                "microbial_leakage_count": 0,
+                "generated_at": "2026-06-10T00:00:00+00:00",
+                "validation_sample_filename": "host_validation_sample_600.csv",
+                "validation_sample_sha256": "abc",
+            }), encoding="utf-8")
+            (monitoring / "latest.json").write_text(json.dumps({
+                "summary": "snapshot/qa.json",
+            }), encoding="utf-8")
+            provenance = latest_host_standardization_provenance(root)
+            self.assertEqual(provenance["host_rule_commit"], "b92a591")
+            self.assertEqual(provenance["host_rule_version"], "sha256:test")
+            self.assertEqual(provenance["host_synonyms_row_count"], 10)
+            self.assertEqual(provenance["host_sd_microbial_leakage_count"], 0)
+            self.assertEqual(provenance["validation_sample_sha256"], "abc")
+
     def test_non_taxonomic_host_labels_preserve_broad_context(self) -> None:
         for raw_host, expected_context in [
             ("invertebrate", "invertebrate"),

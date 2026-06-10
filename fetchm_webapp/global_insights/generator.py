@@ -765,6 +765,7 @@ def write_snapshot_manifest(summary: dict[str, Any], snapshot_dir: Path) -> None
         "latest_standardization_audit_timestamp": methods.get("latest_standardization_audit_timestamp"),
         "latest_standardization_audit_git_commit": methods.get("latest_standardization_audit_git_commit"),
         "latest_standardization_audit_code_version": methods.get("latest_standardization_audit_code_version"),
+        "host_standardization_provenance": methods.get("host_standardization_provenance") or {},
     })
     write_json(provenance_dir / "qa_report.json", summary.get("qa") or {})
 
@@ -780,6 +781,33 @@ def command_version(command: list[str]) -> str:
 
 def standardization_root() -> Path:
     return Path(__file__).resolve().parents[1] / "standardization"
+
+
+def latest_host_standardization_provenance(root: Path | None = None) -> dict[str, Any]:
+    root = root or Path(__file__).resolve().parents[1]
+    monitoring_root = root / "data" / "host_standardization_monitoring"
+    latest_path = monitoring_root / "latest.json"
+    if not latest_path.exists():
+        return {}
+    try:
+        latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        summary_path = monitoring_root / str(latest.get("summary") or "")
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    row_counts = summary.get("rule_row_counts") or {}
+    return {
+        "host_rule_version": summary.get("host_rule_version") or "not available",
+        "host_rule_commit": summary.get("host_rule_commit") or "b92a591",
+        "host_synonyms_row_count": int(row_counts.get("host_synonyms") or 0),
+        "host_negative_rules_row_count": int(row_counts.get("host_negative_rules") or 0),
+        "host_context_rules_row_count": int(row_counts.get("host_context_rules") or 0),
+        "host_microbial_allowlist_row_count": int(row_counts.get("host_microbial_allowlist") or 0),
+        "host_sd_microbial_leakage_count": int(summary.get("microbial_leakage_count") or 0),
+        "latest_host_qa_timestamp": summary.get("generated_at") or "not available",
+        "validation_sample_filename": summary.get("validation_sample_filename") or "",
+        "validation_sample_sha256": summary.get("validation_sample_sha256") or "",
+    }
 
 
 def latest_production_readiness_gate() -> dict[str, Any] | None:
@@ -1945,6 +1973,7 @@ def generate_global_insights_snapshot(
 
     app_commit_available = bool(app_commit and app_commit != "unknown")
     rule_manifest = standardization_rule_manifest()
+    host_provenance = latest_host_standardization_provenance()
     tool_versions = tool_version_manifest()
     production_gate = rule_manifest.get("production_readiness_gate") or {}
     production_metrics = production_gate.get("metrics") or {}
@@ -2062,6 +2091,7 @@ def generate_global_insights_snapshot(
             "standardization_approved_rule_rows": rule_manifest.get("approved_rule_rows", 0),
             "standardization_review_or_nonapproved_rule_rows": rule_manifest.get("review_or_nonapproved_rule_rows", 0),
             "standardization_rule_files": rule_manifest.get("files", []),
+            "host_standardization_provenance": host_provenance,
             "latest_standardization_audit_timestamp": rule_manifest.get("latest_audit_timestamp", "not available"),
             "latest_standardization_audit_git_commit": rule_manifest.get("latest_audit_git_commit", "not available"),
             "latest_standardization_audit_code_version": rule_manifest.get("latest_audit_code_version", "not available"),
