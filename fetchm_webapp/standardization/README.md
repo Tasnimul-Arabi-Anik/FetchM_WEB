@@ -6,6 +6,7 @@ FetchM metadata standardization is deterministic by design. Production outputs m
 
 - `host_synonyms.csv` stores reviewed host synonym and taxonomy mappings.
 - `host_negative_rules.csv` stores reviewed values that must not become `Host_SD`.
+- `host_context_rules.csv` stores reviewed non-taxonomic host-context labels that remain outside `Host_SD`.
 - `controlled_categories.csv` stores reviewed source, sample, environment, disease, health-state, and site mappings.
 - `approved_broad_categories.csv` defines the controlled broad vocabulary used by final QA gates.
 - `geography_reviewed_rules.csv` and `collection_date_reviewed_rules.csv` store reviewed recovery rules for geography and collection date.

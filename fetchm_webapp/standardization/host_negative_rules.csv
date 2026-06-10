@@ -2,7 +2,6 @@ synonym,decision,note
 sea,non_host_source,Post-audit correction 2026-04-30: ambiguous marine/source word was over-mapped to a Lepidoptera genus; keep out of Host_SD unless manually curated with stronger context.
 sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
 seawater,non_host_source,Post-audit correction 2026-04-30: marine water/source material
-deep sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
 deep-sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
 brackish water,non_host_source,Post-audit correction 2026-04-30: water/source material
 baltic sea water,non_host_source,Post-audit correction 2026-04-30: marine water/source material
@@ -407,3 +406,252 @@ Hainan,non_host_source,Long-tail host curation 2026-05-05: geography/location to
 Sichuan,non_host_source,Long-tail host curation 2026-05-05: geography/location token found in Host field; keep out of Host_SD.
 Shanxi,non_host_source,Long-tail host curation 2026-05-05: geography/location token found in Host field; keep out of Host_SD.
 "Bootsock, Great Harewood",non_host_source,Long-tail host curation 2026-05-05: boot sock/sample-location descriptor, not Host_SD.
+'Dasytes' lineellus,not_identifiable,NCBI taxonomy has no supported exact mapping
+'Dasytes' seminudus,not_identifiable,NCBI taxonomy has no supported exact mapping
+algea,not_identifiable,Preserve algae context without false taxonomy
+Amphisylla,not_identifiable,NCBI taxonomy has no supported exact mapping
+Crypticerya_multicicatrices,not_identifiable,NCBI taxonomy has no supported exact mapping
+D. daghestanicus,not_identifiable,NCBI taxonomy has no supported exact mapping
+D. dagistanicus,not_identifiable,NCBI taxonomy has no supported exact mapping
+dhalia,not_identifiable,Typo reviewed dahlia TaxonKit could not validate the reviewed host.
+fig,not_identifiable,Common plant genus TaxonKit could not validate the reviewed host.
+ivy,not_identifiable,Common plant genus TaxonKit could not validate the reviewed host.
+lichens,not_identifiable,Preserve lichen context without false taxonomy
+Mullberry,not_identifiable,Typo reviewed mulberry TaxonKit could not validate the reviewed host.
+Clinic,non_host_source,Clinical or source descriptor
+ESP174,not_identifiable,Opaque sample or strain code
+Lampine,not_identifiable,Unresolved unsafe value
+Dillman,not_identifiable,Person location or institution-like value
+ESP161,not_identifiable,Opaque sample or strain code
+F11005,not_identifiable,Opaque sample or strain code
+B. minor,not_identifiable,Unsafe abbreviated species
+kiwi,not_identifiable,Ambiguous fruit or bird
+N. haleakala,not_identifiable,Unsafe abbreviated species
+N. kanawao,not_identifiable,Unsafe abbreviated species
+N. makaihe,not_identifiable,Unsafe abbreviated species
+N. ogradyi,not_identifiable,Unsafe abbreviated species
+N. ponapona,not_identifiable,Unsafe abbreviated species
+N. sp. 126,not_identifiable,Unsafe abbreviated species
+N. sp. 15,not_identifiable,Unsafe abbreviated species
+N. sp. 17,not_identifiable,Unsafe abbreviated species
+N. sp. 21,not_identifiable,Unsafe abbreviated species
+N. sp. 23,not_identifiable,Unsafe abbreviated species
+N. sp. 242,not_identifiable,Unsafe abbreviated species
+N. sp. 246,not_identifiable,Unsafe abbreviated species
+N. sp. 281,not_identifiable,Unsafe abbreviated species
+N. sp. 29,not_identifiable,Unsafe abbreviated species
+N. sp. 295,not_identifiable,Unsafe abbreviated species
+N. sp. 302,not_identifiable,Unsafe abbreviated species
+N. sp. 48,not_identifiable,Unsafe abbreviated species
+N. sp. 58,not_identifiable,Unsafe abbreviated species
+Pieris,not_identifiable,Homonymous or ambiguous
+rhodolith,non_host_source,Environmental substrate descriptor
+wangyaru,not_identifiable,Unresolved value
+Yunnan,non_host_source,Geographic location
+16S52,not_identifiable,Opaque sample code
+16S67,not_identifiable,Opaque sample code
+16S90,not_identifiable,Opaque sample code
+A. swainsoni,not_identifiable,Unsafe abbreviated species
+bath1a,not_identifiable,Opaque sample code
+bath1b,not_identifiable,Opaque sample code
+Bedding,non_host_source,Source material
+"Biochemistry, Chemistry Study Program, Faculty Faculty of Mathematics and Natural Sciences, Universitas Syiah Kuala, Banda Aceh, Indonesia.",non_host_source,Institution or address
+BREEDER,non_host_source,Production descriptor
+capricorn,not_identifiable,Ambiguous descriptor
+Carrageenan,non_host_source,Material not host
+Comscasia,not_identifiable,Unresolved value
+CSIR-IHBT,non_host_source,Institution name
+Danica,not_identifiable,Unsafe fragment
+Duli,not_identifiable,Unresolved value
+Enveronmental,non_host_source,Environmental descriptor
+F12Indl,not_identifiable,Opaque code
+F20043,not_identifiable,Opaque code
+F20093,not_identifiable,Opaque code
+F21Forl,not_identifiable,Opaque code
+F34Frhd,not_identifiable,Opaque code
+F34Tong,not_identifiable,Opaque code
+F66009,not_identifiable,Opaque code
+frass,non_host_source,Insect fecal material
+Fungi2_78,not_identifiable,Sample group code
+Fungi2_8,not_identifiable,Sample group code
+Fungi2_81,not_identifiable,Sample group code
+Fungi2_90,not_identifiable,Sample group code
+Fungi2_98,not_identifiable,Sample group code
+Fungi3,not_identifiable,Sample group code
+Fungi63,not_identifiable,Sample group code
+Landolita,not_identifiable,Unresolved value
+LM-UGent,non_host_source,Institution code
+M21Kner,not_identifiable,Opaque code
+M22Ewxr,not_identifiable,Opaque code
+M32Plmr,not_identifiable,Opaque code
+M41Glns,not_identifiable,Opaque code
+M422A2,not_identifiable,Opaque code
+M43Fcsw,not_identifiable,Opaque code
+M43Plmr,not_identifiable,Opaque code
+M64Tong,not_identifiable,Opaque code
+"MBT, Institute of Biology Leiden, Universiteit Leiden",non_host_source,Institution name
+"Microbiology, MGS University, Bikaner",non_host_source,Institution name
+missinhg,missing,Typo reviewed missing value
+N. montium,not_identifiable,Unsafe abbreviated species
+nature,non_host_source,Vague source descriptor
+Neonates,non_host_source,Age or clinical descriptor
+Noli,not_identifiable,Unresolved value
+O. stricta,not_identifiable,Unsafe abbreviated species
+F83026,not_identifiable,Opaque accession or sample-like code
+P024V1,not_identifiable,Opaque strain or sample-like code
+Padding,not_identifiable,UI or noise-like text
+periwinkle,not_identifiable,Ambiguous plant or marine snail common name
+Persicae,not_identifiable,Specific epithet fragment only
+Pisces,not_identifiable,Preserve fish context without obsolete taxonomy
+pneumoniae,not_identifiable,Species epithet or bacterial label
+Pomace,non_host_source,Processing or plant material source
+PROTEOBACTERIA-BETA,non_host_source,Bacterial group label
+Rhodococcus,non_host_source,Bacterial genus label
+Rock,non_host_source,Environmental material
+scrub1a,not_identifiable,Sample or code-like label
+scrub2,not_identifiable,Sample or code-like label
+Sf1EP,not_identifiable,Opaque strain or sample-like code
+shirasu,non_host_source,Fish or whitebait food/source material
+sofa,non_host_source,Built-environment material
+soldier,non_host_source,Caste or context label without organism identity
+Stegophylla,not_identifiable,Unsupported taxon string
+straw,non_host_source,Plant material source
+tellus,non_host_source,Earth or soil-like source
+Ulvan,non_host_source,Algal polysaccharide material
+USA:New York,non_host_source,Geographic location in host field
+Vectobac,non_host_source,Commercial product or biocontrol label
+Vibrio,non_host_source,Bacterial genus label
+Zooplatnkon,not_identifiable,Preserve zooplankton context without false taxonomy
+Poephagus grunniens,not_identifiable,historical yak label TaxonKit could not validate the reviewed host.
+Antho dichotoma,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Aellenia lancifolia,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Lissodendoryx nobilis,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Anoxycalyx joubini,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Ceratius sp.,not_identifiable,unsafe ambiguous taxonomy candidate
+Discodermia calyx,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Siphamia cephalotes,not_identifiable,fish species TaxonKit could not validate the reviewed host.
+Carpobrotus rossii,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+"Crasosstrea spp., Farfantepenaeus spp.",not_identifiable,multiple host context without controlled taxonomy
+Oryctes gigas,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Perognathus penicillatus,not_identifiable,mammal species TaxonKit could not validate the reviewed host.
+Trididemnum orbiculatum,not_identifiable,tunicate species TaxonKit could not validate the reviewed host.
+uncultured Desulfovibrio sp.,non_host_source,microbial taxon in host field
+Amphilectus digitatus,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Bombax costatum,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+bracket mold,not_identifiable,broad fungal context without controlled taxonomy
+Capsella sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Citellus musticus,not_identifiable,spelling normalized if taxonomy validates TaxonKit could not validate the reviewed host.
+Dercitus (Stoeba) latex,not_identifiable,subgenus removed TaxonKit could not validate the reviewed host.
+Diestrammena coreana (camel cricket),not_identifiable,parenthetical removed TaxonKit could not validate the reviewed host.
+Haliclonissa verrucosa (sponge),not_identifiable,parenthetical removed TaxonKit could not validate the reviewed host.
+Neopsylla setosa,not_identifiable,flea species TaxonKit could not validate the reviewed host.
+Ocimum lamiifolium,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Picochlorum sp. 122,not_identifiable,culture code and uncertain host status
+Pittosporum phillyreoides,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Sertella sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Stichoplastoris elusinus,not_identifiable,submitted taxonomy candidate TaxonKit could not validate the reviewed host.
+uncultured Alistipes sp.,non_host_source,microbial taxon in host field
+uncultured Clostridiales bacterium,non_host_source,microbial taxon in host field
+uncultured Lachnobacterium sp.,non_host_source,microbial taxon in host field
+uncultured Lachnospiraceae bacterium,non_host_source,microbial taxon in host field
+Waltherarndtia caliculatum,not_identifiable,gender normalized if taxonomy validates TaxonKit could not validate the reviewed host.
+Acanthococcus aceris,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Actinomyces sp. strain F0337,non_host_source,bacterial taxon in host field
+Alydus tomentosus,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Amata sperbius,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Amitermes hastatus,not_identifiable,termite species TaxonKit could not validate the reviewed host.
+Amphiblestrum auritum,not_identifiable,bryozoan species TaxonKit could not validate the reviewed host.
+Anoecia oenotherae,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Aquatic products,non_host_source,commodity source
+Basunti mas,not_identifiable,vernacular fish label too ambiguous
+Blandfordimys juldaschi carruthersi,not_identifiable,subspecies collapsed TaxonKit could not validate the reviewed host.
+Bonamia sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Boraras naevus,not_identifiable,fish species TaxonKit could not validate the reviewed host.
+Borellia bruneri,not_identifiable,submitted taxonomy candidate TaxonKit could not validate the reviewed host.
+Brasillia sp.,not_identifiable,unsafe ambiguous genus label
+Bryobia graminum,not_identifiable,mite species TaxonKit could not validate the reviewed host.
+Callysponga elegans,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Calytrix glaberrima,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Chamaecytisus albus,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Citellus fulvus,not_identifiable,synonym-resolvable label TaxonKit could not validate the reviewed host.
+Coleophora tesquorum,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Concentrated platelets mixture,non_host_source,blood product
+Concentrated platelets mixture-Preservative solution,non_host_source,blood product
+Corbicula aurea,not_identifiable,bivalve species TaxonKit could not validate the reviewed host.
+Costelytra giveni,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+Crambe sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Craugastor taurus,not_identifiable,amphibian species TaxonKit could not validate the reviewed host.
+Ctenophthalmus orientalis,not_identifiable,flea species TaxonKit could not validate the reviewed host.
+Ctenophthalmus teres,not_identifiable,flea species TaxonKit could not validate the reviewed host.
+culturing pond,non_host_source,environment location
+Cyanobacterium Lyngbya cf. aestuarii,non_host_source,genus-level microbial host candidate Blocked from Host_SD because TaxonKit lineage is Bacteria.
+Dasytastes bicolor,not_identifiable,submitted taxonomy candidate TaxonKit could not validate the reviewed host.
+Dasytastes sp. 01,not_identifiable,suffix removed TaxonKit could not validate the reviewed host.
+Dasytastes sp. 02,not_identifiable,suffix removed TaxonKit could not validate the reviewed host.
+Decaying wood,non_host_source,substrate material
+Departamento de Engenharia de Bioprocessos e Biotecnologia UFPR,non_host_source,institution
+Desmodium pulchellum,not_identifiable,plant species TaxonKit could not validate the reviewed host.
+Empoasca mexicana,not_identifiable,insect species TaxonKit could not validate the reviewed host.
+fermented foods Jiaosu,non_host_source,food product
+ferr living,not_identifiable,uninterpretable text
+flumen aquae,non_host_source,water environment descriptor
+Goniopora fruticosa,not_identifiable,coral species TaxonKit could not validate the reviewed host.
+green alga,not_identifiable,broad algae context without controlled taxonomy
+Haliclona cribricutis,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Haliclona perlucida,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Hamacantha esperioides,not_identifiable,sponge species TaxonKit could not validate the reviewed host.
+Helconica sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Heterostera chilensis,not_identifiable,submitted taxonomy candidate TaxonKit could not validate the reviewed host.
+Iris sp.,not_identifiable,genus-level sp label TaxonKit could not validate the reviewed host.
+Jason Stajich,non_host_source,person name
+Justicia subcoriacea,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lagria grenieri,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lagria okinawana,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lasioglossum apopkense,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Leobordea lanceolata,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Leobordea pulchra,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+LEPM 108,not_identifiable,Finalized by reviewer batch 4
+Linaria sp.,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lissodendoryx diversichela,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lucinoma atalantae,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Lyonycteris spurrelli,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Malawi cichlid (Auloncara maleri),not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+marine invertebrate,not_identifiable,Finalized by reviewer batch 4
+Melobium obcordatum,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Microxistyla sp.,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Mineral hydromagnesite,non_host_source,Finalized by reviewer batch 4
+Parachiridia subirrorata,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Paradoxopsyllus scorodumovi,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Paramyelois transitella,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Penares incrustans,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Psychotria schumanniana,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Rhynchosia ferulifolia,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Rhynchosia totta,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Rostrolucina anterorostrata,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Scleritoderma cyanea,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Sebdenia dichotoma,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Sevilla affinis,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+silk worm litter,non_host_source,Finalized by reviewer batch 4
+slime mold,not_identifiable,Finalized by reviewer batch 4
+Spheciospongia confoederata,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Spirastrella abata,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Stiralius aporus rectodigitus,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Streptomyes sp.HNM0140,non_host_source,Finalized by reviewer batch 4
+tenophyllus hirticrus,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Tetragonula biroi,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Trichonympha paraspiralis,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+Troendleina suluensis,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+uncultured Alphaproteobacteria bacterium,non_host_source,Finalized by reviewer batch 4
+uncultured Bacteroides sp.,non_host_source,Finalized by reviewer batch 4
+uncultured Bifidobacterium sp.,non_host_source,Finalized by reviewer batch 4
+uncultured Porphyromonadaceae bacterium,non_host_source,Finalized by reviewer batch 4
+uncultured Prevotella sp.,non_host_source,Finalized by reviewer batch 4
+uncultured Prevotellaceae bacterium,non_host_source,Finalized by reviewer batch 4
+uncultured Ruminococcaceae bacterium,non_host_source,Finalized by reviewer batch 4
+uncultured Ruminococcus sp.,non_host_source,Finalized by reviewer batch 4
+uncultured Sutterella sp.,non_host_source,Finalized by reviewer batch 4
+Ustalcina ferruginea,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.
+white bream,not_identifiable,Finalized by reviewer batch 4
+Xinjiang nor,non_host_source,Finalized by reviewer batch 4
+Zhihong Ren,non_host_source,Finalized by reviewer batch 4
+Zostera chilensis,not_identifiable,Finalized by reviewer batch 4 TaxonKit could not validate the reviewed host.

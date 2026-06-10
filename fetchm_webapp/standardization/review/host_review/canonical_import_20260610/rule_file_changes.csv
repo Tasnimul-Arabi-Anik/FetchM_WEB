@@ -1,0 +1,639 @@
+rule_file,action,normalized_synonym,before_value,after_value,before_taxid,after_taxid
+host_synonyms,added,abyssinian ground hornbill,,Bucorvus abyssinicus,,153643
+host_synonyms,added,acanthaphora specifera,,Acanthophora spicifera,,385024
+host_synonyms,added,achillia millefolium,,Achillea millefolium,,13329
+host_synonyms,added,adelaide rosella,,Platycercus,,35541
+host_synonyms,added,african spoonbiil,,Platalea alba,,33578
+host_synonyms,added,agapostemon sp.,,Agapostemon,,88590
+host_synonyms,added,akashiwo sangruia,,Akashiwo sanguinea,,143672
+host_synonyms,added,allomyria dichotoma,,Allomyrina dichotoma,,273928
+host_synonyms,added,alyscotermes sp.,,Alyscotermes,,377663
+host_synonyms,added,amaranthaceae,,Amaranthaceae,,3563
+host_synonyms,added,anaerameoba flamelloides busselton2,,Anaeramoeba flamelloides,,1746091
+host_synonyms,added,ananeramoeba flamelloides schooner1,,Anaeramoeba flamelloides,,1746091
+host_synonyms,added,anastrepha ludens black pupae genetic sexing strain guatemala 10,,Anastrepha ludens,,28586
+host_synonyms,added,anatine,,Anatidae,,8830
+host_synonyms,added,anopheles gambiae g3 strain,,Anopheles gambiae,,7165
+host_synonyms,added,anopheles gambiae strain g3,,Anopheles gambiae,,7165
+host_synonyms,added,anopheline albitarsis,,Anopheles albitarsis,,58236
+host_synonyms,added,aphidus ervi,,Aphidius ervi,,37627
+host_synonyms,added,aplysina fulva,,Aplysina fulva,,289401
+host_synonyms,added,apoidea,,Apoidea,,34735
+host_synonyms,added,apsterostigma,,Apterostigma,,34696
+host_synonyms,added,aquatic mosses,,Bryophyta,,3208
+host_synonyms,added,arctic char,,Salvelinus alpinus,,8036
+host_synonyms,added,arctium lappa l.,,Arctium lappa,,4217
+host_synonyms,added,arthrocaulon sp.,,Arthrocaulon,,2116365
+host_synonyms,added,asteriscus sp.,,Asteriscus,,56520
+host_synonyms,added,athyrium wallichianum ching,,Athyrium wallichianum,,2055122
+host_synonyms,added,augochlorella sp.,,Augochlorella,,178017
+host_synonyms,added,aulonothroscus sp. aus03,,Aulonothroscus,,445462
+host_synonyms,added,avain,,Aves,,8782
+host_synonyms,added,axinellida sp.,,Axinellida,,1779152
+host_synonyms,added,b. oleracea var. alba,,Brassica oleracea,,3712
+host_synonyms,added,b. oleracea var. sabauda,,Brassica oleracea,,3712
+host_synonyms,added,barberry,,Berberis,,22774
+host_synonyms,added,beilhmielda manni,,Beilschmiedia mannii,,2708731
+host_synonyms,added,bembidion lapponicum osac drmaddison dna3974,,Bembidion lapponicum,,447293
+host_synonyms,added,bembidion nr. transversale osac drmaddison dna3205,,Bembidion transversale,,528238
+host_synonyms,added,berseem,,Trifolium alexandrinum,,97006
+host_synonyms,added,birch,,Betula,,3504
+host_synonyms,added,bluefox,,Vulpes lagopus,,494514
+host_synonyms,added,boxwood,,Buxus,,4001
+host_synonyms,added,bradysia coprophila holo2,,Bradysia coprophila,,38358
+host_synonyms,added,branta,,Branta,,8852
+host_synonyms,added,branta canadensis parvipes,,Branta canadensis,,8853
+host_synonyms,added,brolier,,Gallus gallus,,9031
+host_synonyms,added,bromeliads,,Bromeliaceae,,4613
+host_synonyms,added,bsfl,,Hermetia illucens,,343691
+host_synonyms,added,buahinia variegata,,Bauhinia variegata,,167791
+host_synonyms,added,budworm,,Lepidoptera,,7088
+host_synonyms,added,c. elegans,,Caenorhabditis elegans,,6239
+host_synonyms,added,c57bl 6j,,Mus musculus,,10090
+host_synonyms,added,caenorhabditis,,Caenorhabditis,,6237
+host_synonyms,added,cage cultured red drum,,Sciaenops ocellatus,,76340
+host_synonyms,added,camponotus obliquus,,Camponotus obliquus,,3058748
+host_synonyms,added,camponotus pennsylvanicus antoinette 7,,Camponotus pennsylvanicus,,104422
+host_synonyms,added,canarium ovatum engl.,,Canarium ovatum,,43691
+host_synonyms,added,canthopagrus schlegeli,,Acanthopagrus schlegelii,,72011
+host_synonyms,added,capercailie grouse,,Tetrao urogallus,,100830
+host_synonyms,added,casava,,Manihot esculenta,,3983
+host_synonyms,added,cba,,Mus musculus,,10090
+host_synonyms,added,centroscyllium fabricii,,Centroscyllium fabricii,,170813
+host_synonyms,added,cephalopoda,,Cephalopoda,,6605
+host_synonyms,added,ceratitis capitata genetic sexing strain strain vienna 8 toliman 99,,Ceratitis capitata,,7213
+host_synonyms,added,ceratitis capitata line ccap10.3,,Ceratitis capitata,,7213
+host_synonyms,added,cervus nippon mandarinus,,Cervus nippon,,9863
+host_synonyms,added,cetacean,,Cetacea,,9721
+host_synonyms,added,chaenophryne sp.,,Chaenophryne,,412638
+host_synonyms,added,chaeonophryne sp.,,Chaenophryne,,412638
+host_synonyms,added,chambourcin sp.,,Vitis,,3603
+host_synonyms,added,chestnut,,Castanea,,21019
+host_synonyms,added,chiehqua,,Benincasa hispida,,102211
+host_synonyms,added,chili,,Capsicum,,4071
+host_synonyms,added,chinese chive,,Allium tuberosum,,4683
+host_synonyms,added,chinese chives,,Allium tuberosum,,4683
+host_synonyms,added,chinese okra,,Luffa acutangula,,56866
+host_synonyms,added,chinese silvergrass,,Miscanthus sinensis,,62337
+host_synonyms,added,chrysomya megacephala,,Chrysomya megacephala,,115424
+host_synonyms,added,cicadidae sp. c,,Cicadidae,,7033
+host_synonyms,added,cichlid,,Cichlidae,,8113
+host_synonyms,added,ciliate,,Ciliophora,,5878
+host_synonyms,added,class hexactinellida,,Hexactinellida,,60882
+host_synonyms,added,cleopatra sp.,,Cleopatra,,223730
+host_synonyms,added,cobia,,Rachycentron canadum,,141264
+host_synonyms,added,coccorella sp.,,Coccorella,,172146
+host_synonyms,added,cockatoo,,Cacatuidae,,35549
+host_synonyms,added,codonopsis,,Codonopsis,,16399
+host_synonyms,added,coleus,,Coleus,,587658
+host_synonyms,added,comb pen shell,,Bivalvia,,6544
+host_synonyms,added,common redpoll,,Acanthis flammea,,54769
+host_synonyms,added,contoneaster amiguus,,Cotoneaster ambiguus,,1143214
+host_synonyms,added,cottonwood,,Populus,,3689
+host_synonyms,added,crape myrtle,,Lagerstroemia,,122809
+host_synonyms,added,crategus cuneata,,Crataegus cuneata,,2741994
+host_synonyms,added,crella incrustans levis,,Crella incrustans,,1114232
+host_synonyms,added,cucurbit,,Cucurbitaceae,,3650
+host_synonyms,added,cuttloefish,,Sepiidae,,6608
+host_synonyms,added,d. marginatus,,Dermacentor marginatus,,49202
+host_synonyms,added,damaliscus pygargus phillips,,Damaliscus pygargus,,9931
+host_synonyms,added,desmonium incanum,,Desmodium incanum,,564662
+host_synonyms,added,dialictus sp.,,Dialictus,,88475
+host_synonyms,added,diaphorina citri kuwayama,,Diaphorina citri,,121845
+host_synonyms,added,dictyonema sp. 2651,,Dictyonema,,39673
+host_synonyms,added,dictyonema sp. 3644,,Dictyonema,,39673
+host_synonyms,added,dictyonema sp. 3668,,Dictyonema,,39673
+host_synonyms,added,dipodomys sp.,,Dipodomys,,10016
+host_synonyms,added,dirinaria,,Dirinaria,,205616
+host_synonyms,added,dirofilaria immitis,,Dirofilaria immitis,,6287
+host_synonyms,added,diseased yellow croaker,,Larimichthys crocea,,215358
+host_synonyms,added,doe,,Cervidae,,9850
+host_synonyms,added,dolphinfish,,Coryphaena hippurus,,34814
+host_synonyms,added,dragonfruit,,Selenicereus,,83431
+host_synonyms,added,dune marsh elder iva imbricata,,Iva imbricata,,913330
+host_synonyms,added,eastern boxelder,,Acer negundo,,4023
+host_synonyms,added,echinochloa crusgalli beauv.,,Echinochloa crus-galli,,90397
+host_synonyms,added,egret,,Ardeidae,,8899
+host_synonyms,added,enarsia hispida,,Encarsia hispida,,119697
+host_synonyms,added,encephalarto,,Encephalartos,,3299
+host_synonyms,added,epalzeothynchos frenatum,,Epalzeorhynchos frenatum,,2848748
+host_synonyms,added,ephestia qularis,,Aphomia gularis,,1915117
+host_synonyms,added,ephistia cautella,,Ephestia cautella,,12985
+host_synonyms,added,epiponini,,Epiponini,,76992
+host_synonyms,added,erodium sp.,,Erodium,,21555
+host_synonyms,added,euphausiacea,,Euphausiacea,,6816
+host_synonyms,added,european roe,,Capreolus capreolus,,9858
+host_synonyms,added,felis,,Felis,,9682
+host_synonyms,added,fetuca,,Festuca,,4605
+host_synonyms,added,filago sp.,,Filago,,261771
+host_synonyms,added,focha andina,,Fulica ardesiaca,,555253
+host_synonyms,added,forage rape,,Brassica napus,,3708
+host_synonyms,added,fritillariae cirrhosae,,Fritillaria cirrhosa,,108544
+host_synonyms,added,fulmars,,Fulmarus,,30454
+host_synonyms,added,gallas gallas domesticus,,Gallus gallus domesticus,,9031
+host_synonyms,added,gander,,Anser,,8842
+host_synonyms,added,gans,,Anser,,8842
+host_synonyms,added,geophilidae myriapod,,Geophilidae,,60155
+host_synonyms,added,giant seaperch,,Lates calcarifer,,8187
+host_synonyms,added,gingsen,,Panax,,4053
+host_synonyms,added,gosling,,Anser,,8842
+host_synonyms,added,greek oregano,,Origanum vulgare,,39352
+host_synonyms,added,green eggplant,,Solanum melongena,,4111
+host_synonyms,added,green spruce,,Picea,,3328
+host_synonyms,added,groundnut,,Arachis hypogaea,,3818
+host_synonyms,added,guang chen pi,,Citrus reticulata,,85571
+host_synonyms,added,guar pulse,,Cyamopsis tetragonoloba,,3832
+host_synonyms,added,guinea multimammate,,Mastomys,,30639
+host_synonyms,added,guineapig,,Cavia porcellus,,10141
+host_synonyms,added,h. concina,,Haemaphysalis concinna,,523089
+host_synonyms,added,haemophisalus,,Haemaphysalis,,34622
+host_synonyms,added,halophytes,,Viridiplantae,,33090
+host_synonyms,added,hexactinellida,,Hexactinellida,,60882
+host_synonyms,added,hibiscus,,Hibiscus,,47605
+host_synonyms,added,hime yuzuriha,,Daphniphyllum,,4387
+host_synonyms,added,hipocampus ingens,,Hippocampus ingens,,109285
+host_synonyms,added,hippocampus,,Hippocampus,,72046
+host_synonyms,added,holothurian,,Holothuroidea,,7705
+host_synonyms,added,homalodisca coagulata,,Homalodisca vitripennis,,197043
+host_synonyms,added,honeysuckle,,Lonicera,,49606
+host_synonyms,added,howardula sp.,,Howardula,,209929
+host_synonyms,added,hyacint,,Hyacinthus,,82024
+host_synonyms,added,hyacinth,,Hyacinthus,,82024
+host_synonyms,added,hyacynth,,Hyacinthus,,82024
+host_synonyms,added,i. ricinus,,Ixodes ricinus,,34613
+host_synonyms,added,iophon,,Iophon,,1336928
+host_synonyms,added,iophon sp.,,Iophon,,1336928
+host_synonyms,added,ipomea obscura,,Ipomoea obscura,,89652
+host_synonyms,added,ipomoea aquatic,,Ipomoea aquatica,,89636
+host_synonyms,added,ircinia cf. reteplana jbk 2021,,Ircinia,,275431
+host_synonyms,added,isolated from cauliflower,,Brassica oleracea,,3712
+host_synonyms,added,ixodes aulacodi str. akure,,Ixodes aulacodi,,1790017
+host_synonyms,added,ixodes frontalis str. montpellier,,Ixodes frontalis,,213683
+host_synonyms,added,ixodes ricinus str. naples,,Ixodes ricinus,,34613
+host_synonyms,added,ixodes ricinus str. viterbo,,Ixodes ricinus,,34613
+host_synonyms,added,ixodes stilesi collected from oligoryzomys longicaudatus,,Ixodes stilesi,,330945
+host_synonyms,added,jujube,,Ziziphus,,72171
+host_synonyms,added,kestrel,,Falco,,8952
+host_synonyms,added,king palm,,Arecaceae,,4710
+host_synonyms,added,kroswia sp. s13,,Kroswia,,1344011
+host_synonyms,added,lampropeltis,,Lampropeltis,,94873
+host_synonyms,added,latuca sp.,,Lactuca,,4235
+host_synonyms,added,leiodermatium,,Leiodermatium,,1090547
+host_synonyms,added,lemna,,Lemna,,4469
+host_synonyms,added,lemuroidea,,Lemuriformes,,376915
+host_synonyms,added,lepidocollema sp. s4,,Lepidocollema,,1618045
+host_synonyms,added,leptosemia sp. g,,Leptosemia,,179420
+host_synonyms,added,lichi,,Litchi chinensis,,151069
+host_synonyms,added,listrus sp. 00,,Listrus,,1710671
+host_synonyms,added,listrus sp. 01,,Listrus,,1710671
+host_synonyms,added,listrus sp. 02,,Listrus,,1710671
+host_synonyms,added,listrus sp. 04,,Listrus,,1710671
+host_synonyms,added,listrus sp. 06,,Listrus,,1710671
+host_synonyms,added,listrus sp. 07,,Listrus,,1710671
+host_synonyms,added,listrus sp. 09,,Listrus,,1710671
+host_synonyms,added,lobaria pulmonaria thallus,,Lobaria pulmonaria,,86794
+host_synonyms,added,longicorn,,Cerambycidae,,34667
+host_synonyms,added,lophophysema sp. rt 2015,,Poecilosclerida,,27925
+host_synonyms,added,luffae sp.,,Luffa,,3669
+host_synonyms,added,macherium nyctitans,,Machaerium nyctitans,,450035
+host_synonyms,added,mantidactylus aff. curtus 19,,Mantidactylus curtus,,143435
+host_synonyms,added,maoctra veneriformis,,Mactra veneriformis,,120570
+host_synonyms,added,maple,,Acer,,4022
+host_synonyms,added,marantha leuconeura,,Maranta leuconeura,,34203
+host_synonyms,added,marcelaria sp.,,Marcelaria,,1562556
+host_synonyms,added,marine ciliate,,Ciliophora,,5878
+host_synonyms,added,marmosa camescens,,Marmosa canescens,,225728
+host_synonyms,added,marten,,Martes,,9658
+host_synonyms,added,marter,,Martes,,9658
+host_synonyms,added,meenoplinae sp.,,Meenoplinae,,1401837
+host_synonyms,added,megaspora,,Megaspora,,88750
+host_synonyms,added,mephitiade sp.,,Mephitidae,,119825
+host_synonyms,added,merlot sp.,,Vitis vinifera,,29760
+host_synonyms,added,mexican lime,,Citrus aurantiifolia,,159033
+host_synonyms,added,microcerotermes,,Microcerotermes,,139992
+host_synonyms,added,micromys,,Micromys,,13150
+host_synonyms,added,micromys sp,,Micromys,,13150
+host_synonyms,added,microtus,,Microtus,,10053
+host_synonyms,added,microtus sp,,Microtus,,10053
+host_synonyms,added,millet,,Poaceae,,4479
+host_synonyms,added,minipig,,Sus scrofa,,9823
+host_synonyms,added,monkeys,,Simiiformes,,314293
+host_synonyms,added,muntiacus,,Muntiacus,,9885
+host_synonyms,added,mustard,,Brassicaceae,,3700
+host_synonyms,added,myodes,,Myodes,,447134
+host_synonyms,added,myodes sp,,Myodes,,447134
+host_synonyms,added,myrtea sp. scaly one kf741663,,Myrtea,,183491
+host_synonyms,added,myxilla sp. 4,,Myxilla,,118320
+host_synonyms,added,nasonia sp. vxg hybrid,,Nasonia,,7424
+host_synonyms,added,nasutitermes voeltzkowi,,Nasutitermes voeltzkowi,,377956
+host_synonyms,added,neotyphloceras sp.,,Neotyphloceras,,507071
+host_synonyms,added,nephrolepsis exaltata,,Nephrolepis exaltata,,34165
+host_synonyms,added,newzealand rabbits,,Oryctolagus cuniculus,,9986
+host_synonyms,added,nightshade,,Solanum nigrum,,4112
+host_synonyms,added,nippon ibis,,Nipponia nippon,,128390
+host_synonyms,added,o. sativa,,Oryza sativa,,4530
+host_synonyms,added,olive,,Olea europaea,,4146
+host_synonyms,added,olive knot,,Olea europaea,,4146
+host_synonyms,added,onchorhynchus apache,,Oncorhynchus apache,,209197
+host_synonyms,added,orchid,,Orchidaceae,,4747
+host_synonyms,added,orchids,,Orchidaceae,,4747
+host_synonyms,added,orizae sativa l.,,Oryza sativa,,4530
+host_synonyms,added,ornithdoros turicata,,Ornithodoros turicata,,34597
+host_synonyms,added,ornithdoros turicatae,,Ornithodoros turicata,,34597
+host_synonyms,added,ortrugo,,Vitis vinifera,,29760
+host_synonyms,added,ostracean,,Crustacea,,197562
+host_synonyms,added,ostrea,,Ostrea,,37858
+host_synonyms,added,others heterodon platrhinos,,Heterodon platirhinos,,8597
+host_synonyms,added,others oxycirrhites typus,,Oxycirrhites typus,,587059
+host_synonyms,added,otis tarde,,Otis tarda,,73107
+host_synonyms,added,oxytropis,,Oxytropis,,20802
+host_synonyms,added,p.falciparum,,Plasmodium falciparum,,5833
+host_synonyms,added,pallasiomys meridianus,,Meriones meridianus,,261754
+host_synonyms,added,palythoa,,Palythoa,,86596
+host_synonyms,added,parrotbill,,Passeriformes,,9126
+host_synonyms,added,passerculus sandwichensis beldingi,,Passerculus sandwichensis,,161624
+host_synonyms,added,pasture gramineae,,Poaceae,,4479
+host_synonyms,added,peanuts,,Arachis hypogaea,,3818
+host_synonyms,added,pelican,,Pelecanidae,,30444
+host_synonyms,added,pelicanus rufescens,,Pelecanus rufescens,,1243782
+host_synonyms,added,peony,,Paeonia,,13625
+host_synonyms,added,phaecochoerus aethipicus,,Phacochoerus aethiopicus,,85517
+host_synonyms,added,phgllotreta striolaea,,Phyllotreta striolata,,444603
+host_synonyms,added,phocidae,,Phocidae,,9709
+host_synonyms,added,photos sp.,,Pothos,,174212
+host_synonyms,added,phyllanthus urinaria l,,Phyllanthus urinaria,,296035
+host_synonyms,added,phyton sp.,,Python,,37579
+host_synonyms,added,picochloruma sp. 122,,Picochlorum,,249344
+host_synonyms,added,pigeonpea,,Cajanus cajan,,3821
+host_synonyms,added,pinot noir,,Vitis vinifera,,29760
+host_synonyms,added,planarians flatworm,,Tricladida,,6159
+host_synonyms,added,plantanus sp.,,Platanus,,4402
+host_synonyms,added,poecilosclerida sp.,,Poecilosclerida,,27925
+host_synonyms,added,polyalae radix,,Polygala,,4275
+host_synonyms,added,polyblastidium,,Polyblastidium,,2884779
+host_synonyms,added,polychachis laevissima,,Polyrhachis laevissima,,616287
+host_synonyms,added,polygala,,Polygala,,4275
+host_synonyms,added,polyrhachis turneri,,Polyrhachis turneri,,111087
+host_synonyms,added,polytelis,,Polytelis,,35544
+host_synonyms,added,porities sp.,,Porites,,46719
+host_synonyms,added,porphyla,,Porphyra,,2784
+host_synonyms,added,porphyrae yezoensis,,Porphyra yezoensis,,2788
+host_synonyms,added,porqupine,,Rodentia,,9989
+host_synonyms,added,pullet carpet shell,,Veneridae,,6592
+host_synonyms,added,pumkin,,Cucurbita,,3660
+host_synonyms,added,pumpkin,,Cucurbita,,3660
+host_synonyms,added,putative tunicate,,Tunicata,,7712
+host_synonyms,added,pygathrix,,Pygathrix,,54132
+host_synonyms,added,q. agrifolia x q. wislizeni,,Quercus,,3511
+host_synonyms,added,r. pseudoacacia l.,,Robinia pseudoacacia,,35938
+host_synonyms,added,raccoondog,,Nyctereutes procyonoides,,34880
+host_synonyms,added,rapeseed,,Brassica napus,,3708
+host_synonyms,added,red billed woodhoopoe,,Phoeniculus purpureus,,113189
+host_synonyms,added,red cocoyam,,Araceae,,4454
+host_synonyms,added,red marine alga,,Rhodophyta,,2763
+host_synonyms,added,reed,,Poaceae,,4479
+host_synonyms,added,rheum palmatum l.,,Rheum palmatum,,137221
+host_synonyms,added,rhizoma kaempferiae,,Kaempferia galanga,,97750
+host_synonyms,added,rhynchosiae phaseoloides,,Rhynchosia phaseoloides,,2730134
+host_synonyms,added,ridgea piscesae,,Ridgeia piscesae,,27915
+host_synonyms,added,roe buck,,Capreolus capreolus,,9858
+host_synonyms,added,rubus caesius,,Rubus caesius,,75065
+host_synonyms,added,ruby grapefruit,,Citrus paradisi,,37656
+host_synonyms,added,russian sage,,Perovskia atriplicifolia,,268885
+host_synonyms,added,ryegrass,,Lolium,,4520
+host_synonyms,added,s.paradoxus,,Saccharomyces paradoxus,,27291
+host_synonyms,added,saccharum,,Saccharum,,4546
+host_synonyms,added,saffron,,Crocus sativus,,82528
+host_synonyms,added,salp sp.,,Salpidae,,34759
+host_synonyms,added,salvelinus,,Salvelinus,,8033
+host_synonyms,added,sander vitreus and perca sp.,,Percidae,,8165
+host_synonyms,added,sangiovese,,Vitis vinifera,,29760
+host_synonyms,added,sanqi,,Panax notoginseng,,44586
+host_synonyms,added,sarcophagidae,,Sarcophagidae,,7381
+host_synonyms,added,sarracenia,,Sarracenia,,4358
+host_synonyms,added,saurania reinwardti,,Saurauia reinwardtiana,,2945189
+host_synonyms,added,sayornic nigricans,,Sayornis nigricans,,183530
+host_synonyms,added,schizaphis graminum biotype i,,Schizaphis graminum,,13262
+host_synonyms,added,scomber japonicus peruanus,,Scomber japonicus,,13676
+host_synonyms,added,serrasalmidae,,Serrasalmidae,,42495
+host_synonyms,added,sesame seedling,,Sesamum indicum,,4182
+host_synonyms,added,shore bird,,Charadriiformes,,8906
+host_synonyms,added,shorebird,,Charadriiformes,,8906
+host_synonyms,added,shorebirds,,Charadriiformes,,8906
+host_synonyms,added,siberian jerboa,,Allactaga sibirica,,234626
+host_synonyms,added,sika,,Cervus nippon,,9863
+host_synonyms,added,sinapsis avensis,,Sinapis arvensis,,2982281
+host_synonyms,added,slender horned gazella,,Gazella leptoceros,,69303
+host_synonyms,added,small cardamom,,Elettaria cardamomum,,105181
+host_synonyms,added,smooth vetch,,Vicia villosa,,3911
+host_synonyms,added,south american tapirus terrestris,,Tapirus terrestris,,9801
+host_synonyms,added,spaghnum,,Sphagnum,,13804
+host_synonyms,added,spheniscidae,,Spheniscidae,,9231
+host_synonyms,added,spongia sp.,,Spongia,,121489
+host_synonyms,added,spotted hyena,,Crocuta crocuta,,9678
+host_synonyms,added,sprouted soy,,Glycine max,,3847
+host_synonyms,added,stag,,Cervidae,,9850
+host_synonyms,added,steirnernema unicornum,,Steinernema unicornum,,759381
+host_synonyms,added,string beans,,Phaseolus vulgaris,,3885
+host_synonyms,added,sugar cane yz08 1095,,Saccharum,,4546
+host_synonyms,added,sula nebouxi,,Sula nebouxii,,37087
+host_synonyms,added,suricat,,Suricata suricatta,,37032
+host_synonyms,added,swallow,,Hirundinidae,,43148
+host_synonyms,added,tabaco,,Nicotiana tabacum,,4097
+host_synonyms,added,thai silk cocoon,,Bombyx mori,,7091
+host_synonyms,added,thalictrum simplex l,,Thalictrum simplex,,495765
+host_synonyms,added,thamnidium elegans wa0000018081,,Thamnidium elegans,,101142
+host_synonyms,added,three lined grunt,,Parapristipoma trilineatum,,360507
+host_synonyms,added,tichocarpus crinitus,,Tichocarpus crinitus,,38364
+host_synonyms,added,tinamu major,,Tinamus major,,30468
+host_synonyms,added,tomate,,Solanum lycopersicum,,4081
+host_synonyms,added,trachemys scripta callirostris,,Trachemys scripta,,34903
+host_synonyms,added,tryonyx sinensis,,Pelodiscus sinensis,,13735
+host_synonyms,added,tubeworm trophosome,,Annelida,,6340
+host_synonyms,added,turbinaria peltata,,Turbinaria peltata,,2971088
+host_synonyms,added,ursidae,,Ursidae,,9632
+host_synonyms,added,ursidae sp.,,Ursidae,,9632
+host_synonyms,added,valerianella locusta laterr.,,Valerianella locusta,,59166
+host_synonyms,added,verdot sp.,,Vitis vinifera,,29760
+host_synonyms,added,vetch,,Vicia,,3904
+host_synonyms,added,vibernum davidii,,Viburnum davidii,,237932
+host_synonyms,added,vine,,Viridiplantae,,33090
+host_synonyms,added,water lettuce,,Pistia stratiotes,,4477
+host_synonyms,added,waterlettuce,,Pistia stratiotes,,4477
+host_synonyms,added,weaned rex rabbits,,Oryctolagus cuniculus,,9986
+host_synonyms,added,weasel,,Mustelidae,,9655
+host_synonyms,added,weever,,Trachinidae,,56735
+host_synonyms,added,wenyujin,,Curcuma wenyujin,,136221
+host_synonyms,added,westrigia fruticosa,,Westringia fruticosa,,664412
+host_synonyms,added,wheatgrass,,Triticum,,4564
+host_synonyms,added,white breasted nuthatch,,Sitta carolinensis,,50250
+host_synonyms,added,white elm,,Ulmus americana,,29740
+host_synonyms,added,white faced saki,,Pithecia pithecia,,43777
+host_synonyms,added,white pelican,,Pelecanus,,33617
+host_synonyms,added,white radish,,Raphanus sativus,,3726
+host_synonyms,added,whole panna microdon,,Panna microdon,,588791
+host_synonyms,added,wild chukar,,Alectoris chukar,,9078
+host_synonyms,added,wild orchid,,Orchidaceae,,4747
+host_synonyms,added,wild rabbits,,Oryctolagus cuniculus,,9986
+host_synonyms,added,wildpig,,Sus scrofa,,9823
+host_synonyms,added,winterberry holly,,Ilex verticillata,,185559
+host_synonyms,added,wohrlfartia sp.,,Wohlfahrtia,,128961
+host_synonyms,added,wood wren,,Henicorhina,,109453
+host_synonyms,added,xestospongia sp. sym12,,Xestospongia,,178550
+host_synonyms,added,xestosponiga sp. qyp07,,Xestospongia,,178550
+host_synonyms,added,yellow legged gulls,,Larus michahellis,,119627
+host_synonyms,added,yellowfin seabream,,Acanthopagrus latus,,8177
+host_synonyms,added,ziziphus mauritiana lam,,Ziziphus mauritiana,,157914
+host_synonyms,added,zoanthid palythoa caribaeorum,,Palythoa caribaeorum,,134933
+host_negative_rules,added,16s52,,not_identifiable,,
+host_negative_rules,added,16s67,,not_identifiable,,
+host_negative_rules,added,16s90,,not_identifiable,,
+host_negative_rules,added,a. swainsoni,,not_identifiable,,
+host_negative_rules,added,acanthococcus aceris,,not_identifiable,,
+host_negative_rules,added,actinomyces sp. strain f0337,,non_host_source,,
+host_negative_rules,added,aellenia lancifolia,,not_identifiable,,
+host_negative_rules,added,algea,,not_identifiable,,
+host_negative_rules,added,alydus tomentosus,,not_identifiable,,
+host_negative_rules,added,amata sperbius,,not_identifiable,,
+host_negative_rules,added,amitermes hastatus,,not_identifiable,,
+host_negative_rules,added,amphiblestrum auritum,,not_identifiable,,
+host_negative_rules,added,amphilectus digitatus,,not_identifiable,,
+host_negative_rules,added,amphisylla,,not_identifiable,,
+host_negative_rules,added,anoecia oenotherae,,not_identifiable,,
+host_negative_rules,added,anoxycalyx joubini,,not_identifiable,,
+host_negative_rules,added,antho dichotoma,,not_identifiable,,
+host_negative_rules,added,aquatic products,,non_host_source,,
+host_negative_rules,added,b. minor,,not_identifiable,,
+host_negative_rules,added,basunti mas,,not_identifiable,,
+host_negative_rules,added,bath1a,,not_identifiable,,
+host_negative_rules,added,bath1b,,not_identifiable,,
+host_negative_rules,added,bedding,,non_host_source,,
+host_negative_rules,added,biochemistry chemistry study program faculty faculty of mathematics and natural sciences universitas syiah kuala banda aceh indonesia.,,non_host_source,,
+host_negative_rules,added,blandfordimys juldaschi carruthersi,,not_identifiable,,
+host_negative_rules,added,bombax costatum,,not_identifiable,,
+host_negative_rules,added,bonamia sp.,,not_identifiable,,
+host_negative_rules,added,boraras naevus,,not_identifiable,,
+host_negative_rules,added,borellia bruneri,,not_identifiable,,
+host_negative_rules,added,bracket mold,,not_identifiable,,
+host_negative_rules,added,brasillia sp.,,not_identifiable,,
+host_negative_rules,added,breeder,,non_host_source,,
+host_negative_rules,added,bryobia graminum,,not_identifiable,,
+host_negative_rules,added,callysponga elegans,,not_identifiable,,
+host_negative_rules,added,calytrix glaberrima,,not_identifiable,,
+host_negative_rules,added,capricorn,,not_identifiable,,
+host_negative_rules,added,capsella sp.,,not_identifiable,,
+host_negative_rules,added,carpobrotus rossii,,not_identifiable,,
+host_negative_rules,added,carrageenan,,non_host_source,,
+host_negative_rules,added,ceratius sp.,,not_identifiable,,
+host_negative_rules,added,chamaecytisus albus,,not_identifiable,,
+host_negative_rules,added,citellus fulvus,,not_identifiable,,
+host_negative_rules,added,citellus musticus,,not_identifiable,,
+host_negative_rules,added,clinic,,non_host_source,,
+host_negative_rules,added,coleophora tesquorum,,not_identifiable,,
+host_negative_rules,added,comscasia,,not_identifiable,,
+host_negative_rules,added,concentrated platelets mixture,,non_host_source,,
+host_negative_rules,added,concentrated platelets mixture preservative solution,,non_host_source,,
+host_negative_rules,added,corbicula aurea,,not_identifiable,,
+host_negative_rules,added,costelytra giveni,,not_identifiable,,
+host_negative_rules,added,crambe sp.,,not_identifiable,,
+host_negative_rules,added,crasosstrea spp. farfantepenaeus spp.,,not_identifiable,,
+host_negative_rules,added,craugastor taurus,,not_identifiable,,
+host_negative_rules,added,crypticerya multicicatrices,,not_identifiable,,
+host_negative_rules,added,csir ihbt,,non_host_source,,
+host_negative_rules,added,ctenophthalmus orientalis,,not_identifiable,,
+host_negative_rules,added,ctenophthalmus teres,,not_identifiable,,
+host_negative_rules,added,culturing pond,,non_host_source,,
+host_negative_rules,added,cyanobacterium lyngbya cf. aestuarii,,non_host_source,,
+host_negative_rules,added,d. daghestanicus,,not_identifiable,,
+host_negative_rules,added,d. dagistanicus,,not_identifiable,,
+host_negative_rules,added,danica,,not_identifiable,,
+host_negative_rules,added,dasytastes bicolor,,not_identifiable,,
+host_negative_rules,added,dasytastes sp. 01,,not_identifiable,,
+host_negative_rules,added,dasytastes sp. 02,,not_identifiable,,
+host_negative_rules,added,dasytes lineellus,,not_identifiable,,
+host_negative_rules,added,dasytes seminudus,,not_identifiable,,
+host_negative_rules,added,decaying wood,,non_host_source,,
+host_negative_rules,added,departamento de engenharia de bioprocessos e biotecnologia ufpr,,non_host_source,,
+host_negative_rules,added,dercitus latex,,not_identifiable,,
+host_negative_rules,added,desmodium pulchellum,,not_identifiable,,
+host_negative_rules,added,dhalia,,not_identifiable,,
+host_negative_rules,added,diestrammena coreana,,not_identifiable,,
+host_negative_rules,added,dillman,,not_identifiable,,
+host_negative_rules,added,discodermia calyx,,not_identifiable,,
+host_negative_rules,added,duli,,not_identifiable,,
+host_negative_rules,added,empoasca mexicana,,not_identifiable,,
+host_negative_rules,added,enveronmental,,non_host_source,,
+host_negative_rules,added,esp161,,not_identifiable,,
+host_negative_rules,added,esp174,,not_identifiable,,
+host_negative_rules,added,f11005,,not_identifiable,,
+host_negative_rules,added,f12indl,,not_identifiable,,
+host_negative_rules,added,f20043,,not_identifiable,,
+host_negative_rules,added,f20093,,not_identifiable,,
+host_negative_rules,added,f21forl,,not_identifiable,,
+host_negative_rules,added,f34frhd,,not_identifiable,,
+host_negative_rules,added,f34tong,,not_identifiable,,
+host_negative_rules,added,f66009,,not_identifiable,,
+host_negative_rules,added,f83026,,not_identifiable,,
+host_negative_rules,added,fermented foods jiaosu,,non_host_source,,
+host_negative_rules,added,ferr living,,not_identifiable,,
+host_negative_rules,added,fig,,not_identifiable,,
+host_negative_rules,added,flumen aquae,,non_host_source,,
+host_negative_rules,added,frass,,non_host_source,,
+host_negative_rules,added,fungi2 78,,not_identifiable,,
+host_negative_rules,added,fungi2 8,,not_identifiable,,
+host_negative_rules,added,fungi2 81,,not_identifiable,,
+host_negative_rules,added,fungi2 90,,not_identifiable,,
+host_negative_rules,added,fungi2 98,,not_identifiable,,
+host_negative_rules,added,fungi3,,not_identifiable,,
+host_negative_rules,added,fungi63,,not_identifiable,,
+host_negative_rules,added,goniopora fruticosa,,not_identifiable,,
+host_negative_rules,added,green alga,,not_identifiable,,
+host_negative_rules,added,haliclona cribricutis,,not_identifiable,,
+host_negative_rules,added,haliclona perlucida,,not_identifiable,,
+host_negative_rules,added,haliclonissa verrucosa,,not_identifiable,,
+host_negative_rules,added,hamacantha esperioides,,not_identifiable,,
+host_negative_rules,added,helconica sp.,,not_identifiable,,
+host_negative_rules,added,heterostera chilensis,,not_identifiable,,
+host_negative_rules,added,iris sp.,,not_identifiable,,
+host_negative_rules,added,ivy,,not_identifiable,,
+host_negative_rules,added,jason stajich,,non_host_source,,
+host_negative_rules,added,justicia subcoriacea,,not_identifiable,,
+host_negative_rules,added,kiwi,,not_identifiable,,
+host_negative_rules,added,lagria grenieri,,not_identifiable,,
+host_negative_rules,added,lagria okinawana,,not_identifiable,,
+host_negative_rules,added,lampine,,not_identifiable,,
+host_negative_rules,added,landolita,,not_identifiable,,
+host_negative_rules,added,lasioglossum apopkense,,not_identifiable,,
+host_negative_rules,added,leobordea lanceolata,,not_identifiable,,
+host_negative_rules,added,leobordea pulchra,,not_identifiable,,
+host_negative_rules,added,lepm 108,,not_identifiable,,
+host_negative_rules,added,lichens,,not_identifiable,,
+host_negative_rules,added,linaria sp.,,not_identifiable,,
+host_negative_rules,added,lissodendoryx diversichela,,not_identifiable,,
+host_negative_rules,added,lissodendoryx nobilis,,not_identifiable,,
+host_negative_rules,added,lm ugent,,non_host_source,,
+host_negative_rules,added,lucinoma atalantae,,not_identifiable,,
+host_negative_rules,added,lyonycteris spurrelli,,not_identifiable,,
+host_negative_rules,added,m21kner,,not_identifiable,,
+host_negative_rules,added,m22ewxr,,not_identifiable,,
+host_negative_rules,added,m32plmr,,not_identifiable,,
+host_negative_rules,added,m41glns,,not_identifiable,,
+host_negative_rules,added,m422a2,,not_identifiable,,
+host_negative_rules,added,m43fcsw,,not_identifiable,,
+host_negative_rules,added,m43plmr,,not_identifiable,,
+host_negative_rules,added,m64tong,,not_identifiable,,
+host_negative_rules,added,malawi cichlid,,not_identifiable,,
+host_negative_rules,added,marine invertebrate,,not_identifiable,,
+host_negative_rules,added,mbt institute of biology leiden universiteit leiden,,non_host_source,,
+host_negative_rules,added,melobium obcordatum,,not_identifiable,,
+host_negative_rules,added,microbiology mgs university bikaner,,non_host_source,,
+host_negative_rules,added,microxistyla sp.,,not_identifiable,,
+host_negative_rules,added,mineral hydromagnesite,,non_host_source,,
+host_negative_rules,added,missinhg,,missing,,
+host_negative_rules,added,mullberry,,not_identifiable,,
+host_negative_rules,added,n. haleakala,,not_identifiable,,
+host_negative_rules,added,n. kanawao,,not_identifiable,,
+host_negative_rules,added,n. makaihe,,not_identifiable,,
+host_negative_rules,added,n. montium,,not_identifiable,,
+host_negative_rules,added,n. ogradyi,,not_identifiable,,
+host_negative_rules,added,n. ponapona,,not_identifiable,,
+host_negative_rules,added,n. sp. 126,,not_identifiable,,
+host_negative_rules,added,n. sp. 15,,not_identifiable,,
+host_negative_rules,added,n. sp. 17,,not_identifiable,,
+host_negative_rules,added,n. sp. 21,,not_identifiable,,
+host_negative_rules,added,n. sp. 23,,not_identifiable,,
+host_negative_rules,added,n. sp. 242,,not_identifiable,,
+host_negative_rules,added,n. sp. 246,,not_identifiable,,
+host_negative_rules,added,n. sp. 281,,not_identifiable,,
+host_negative_rules,added,n. sp. 29,,not_identifiable,,
+host_negative_rules,added,n. sp. 295,,not_identifiable,,
+host_negative_rules,added,n. sp. 302,,not_identifiable,,
+host_negative_rules,added,n. sp. 48,,not_identifiable,,
+host_negative_rules,added,n. sp. 58,,not_identifiable,,
+host_negative_rules,added,nature,,non_host_source,,
+host_negative_rules,added,neonates,,non_host_source,,
+host_negative_rules,added,neopsylla setosa,,not_identifiable,,
+host_negative_rules,added,noli,,not_identifiable,,
+host_negative_rules,added,o. stricta,,not_identifiable,,
+host_negative_rules,added,ocimum lamiifolium,,not_identifiable,,
+host_negative_rules,added,oryctes gigas,,not_identifiable,,
+host_negative_rules,added,p024v1,,not_identifiable,,
+host_negative_rules,added,padding,,not_identifiable,,
+host_negative_rules,added,parachiridia subirrorata,,not_identifiable,,
+host_negative_rules,added,paradoxopsyllus scorodumovi,,not_identifiable,,
+host_negative_rules,added,paramyelois transitella,,not_identifiable,,
+host_negative_rules,added,penares incrustans,,not_identifiable,,
+host_negative_rules,added,periwinkle,,not_identifiable,,
+host_negative_rules,added,perognathus penicillatus,,not_identifiable,,
+host_negative_rules,added,persicae,,not_identifiable,,
+host_negative_rules,added,picochlorum sp. 122,,not_identifiable,,
+host_negative_rules,added,pieris,,not_identifiable,,
+host_negative_rules,added,pisces,,not_identifiable,,
+host_negative_rules,added,pittosporum phillyreoides,,not_identifiable,,
+host_negative_rules,added,pneumoniae,,not_identifiable,,
+host_negative_rules,added,poephagus grunniens,,not_identifiable,,
+host_negative_rules,added,pomace,,non_host_source,,
+host_negative_rules,added,proteobacteria beta,,non_host_source,,
+host_negative_rules,added,psychotria schumanniana,,not_identifiable,,
+host_negative_rules,added,rhodococcus,,non_host_source,,
+host_negative_rules,added,rhodolith,,non_host_source,,
+host_negative_rules,added,rhynchosia ferulifolia,,not_identifiable,,
+host_negative_rules,added,rhynchosia totta,,not_identifiable,,
+host_negative_rules,added,rock,,non_host_source,,
+host_negative_rules,added,rostrolucina anterorostrata,,not_identifiable,,
+host_negative_rules,added,scleritoderma cyanea,,not_identifiable,,
+host_negative_rules,added,scrub1a,,not_identifiable,,
+host_negative_rules,added,scrub2,,not_identifiable,,
+host_negative_rules,added,sebdenia dichotoma,,not_identifiable,,
+host_negative_rules,added,sertella sp.,,not_identifiable,,
+host_negative_rules,added,sevilla affinis,,not_identifiable,,
+host_negative_rules,added,sf1ep,,not_identifiable,,
+host_negative_rules,added,shirasu,,non_host_source,,
+host_negative_rules,added,silk worm litter,,non_host_source,,
+host_negative_rules,added,siphamia cephalotes,,not_identifiable,,
+host_negative_rules,added,slime mold,,not_identifiable,,
+host_negative_rules,added,sofa,,non_host_source,,
+host_negative_rules,added,soldier,,non_host_source,,
+host_negative_rules,added,spheciospongia confoederata,,not_identifiable,,
+host_negative_rules,added,spirastrella abata,,not_identifiable,,
+host_negative_rules,added,stegophylla,,not_identifiable,,
+host_negative_rules,added,stichoplastoris elusinus,,not_identifiable,,
+host_negative_rules,added,stiralius aporus rectodigitus,,not_identifiable,,
+host_negative_rules,added,straw,,non_host_source,,
+host_negative_rules,added,streptomyes sp.hnm0140,,non_host_source,,
+host_negative_rules,added,tellus,,non_host_source,,
+host_negative_rules,added,tenophyllus hirticrus,,not_identifiable,,
+host_negative_rules,added,tetragonula biroi,,not_identifiable,,
+host_negative_rules,added,trichonympha paraspiralis,,not_identifiable,,
+host_negative_rules,added,trididemnum orbiculatum,,not_identifiable,,
+host_negative_rules,added,troendleina suluensis,,not_identifiable,,
+host_negative_rules,added,ulvan,,non_host_source,,
+host_negative_rules,added,uncultured alistipes sp.,,non_host_source,,
+host_negative_rules,added,uncultured alphaproteobacteria bacterium,,non_host_source,,
+host_negative_rules,added,uncultured bacteroides sp.,,non_host_source,,
+host_negative_rules,added,uncultured bifidobacterium sp.,,non_host_source,,
+host_negative_rules,added,uncultured clostridiales bacterium,,non_host_source,,
+host_negative_rules,added,uncultured desulfovibrio sp.,,non_host_source,,
+host_negative_rules,added,uncultured lachnobacterium sp.,,non_host_source,,
+host_negative_rules,added,uncultured lachnospiraceae bacterium,,non_host_source,,
+host_negative_rules,added,uncultured porphyromonadaceae bacterium,,non_host_source,,
+host_negative_rules,added,uncultured prevotella sp.,,non_host_source,,
+host_negative_rules,added,uncultured prevotellaceae bacterium,,non_host_source,,
+host_negative_rules,added,uncultured ruminococcaceae bacterium,,non_host_source,,
+host_negative_rules,added,uncultured ruminococcus sp.,,non_host_source,,
+host_negative_rules,added,uncultured sutterella sp.,,non_host_source,,
+host_negative_rules,added,usa new york,,non_host_source,,
+host_negative_rules,added,ustalcina ferruginea,,not_identifiable,,
+host_negative_rules,added,vectobac,,non_host_source,,
+host_negative_rules,added,vibrio,,non_host_source,,
+host_negative_rules,added,waltherarndtia caliculatum,,not_identifiable,,
+host_negative_rules,added,wangyaru,,not_identifiable,,
+host_negative_rules,added,white bream,,not_identifiable,,
+host_negative_rules,added,xinjiang nor,,non_host_source,,
+host_negative_rules,added,yunnan,,non_host_source,,
+host_negative_rules,added,zhihong ren,,non_host_source,,
+host_negative_rules,added,zooplatnkon,,not_identifiable,,
+host_negative_rules,added,zostera chilensis,,not_identifiable,,
+host_context_rules,added,marine invertebrate,,marine invertebrate,,
+host_context_rules,added,slime mold,,slime mold,,
+host_context_rules,added,white bream,,fish,,

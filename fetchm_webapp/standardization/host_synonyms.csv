@@ -6,29 +6,15 @@ sus scofa,Sus scrofa,9823,high,common typo
 sus scofa domesticus,Sus scrofa domesticus,9825,high,common typo
 oysters,Ostreidae,6563,medium,broad host group
 shellfish,Mollusca,6447,medium,broad host/source group
-wild bird,Aves,8782,medium,reviewed broad host group
 Wild bird,Aves,8782,medium,capitalization variant
-wild birds,Aves,8782,medium,reviewed broad host group
 Wild birds,Aves,8782,medium,capitalization variant
-bird,Aves,8782,medium,reviewed broad host group
-Bird,Aves,8782,medium,capitalization variant
-Birds,Aves,8782,medium,reviewed broad host group
-Birds (Fowl),Aves,8782,medium,broad fowl/bird group
-bird (Haussperling),Aves,8782,medium,broad bird with unresolved common name detail
-Bird (Chicken),Gallus gallus,9031,medium,broad bird with chicken detail
 Bird (Chicks),Gallus gallus,9031,medium,broad bird with chick detail
-plant,Viridiplantae,33090,medium,reviewed broad host group
+Birds (Fowl),Aves,8782,medium,broad fowl/bird group
 Plant,Viridiplantae,33090,medium,capitalization variant
-plants,Viridiplantae,33090,medium,plural variant
 Plants,Viridiplantae,33090,medium,capitalization variant
-animals,Metazoa,33208,medium,reviewed broad host group
 Animals,Metazoa,33208,medium,capitalization variant
-reptile,Reptilia,8457,medium,reviewed broad host group
 Reptile,Reptilia,8457,medium,capitalization variant
-insect,Insecta,50557,medium,reviewed broad host group
 Insect,Insecta,50557,medium,capitalization variant
-Mammal,Mammalia,40674,medium,reviewed broad host group
-mammal,Mammalia,40674,medium,capitalization variant
 Mammal (Monkey),Primates,9443,medium,broad mammal with monkey detail
 rodents,Rodentia,9989,medium,plural broad host group
 Sporobolus alterniflorus,Sporobolus alterniflorus,29706,high,NCBI Taxonomy name2taxid reviewed import
@@ -5200,16 +5186,12 @@ Odorrana margaretae,Odorrana margaretae,121156,high,NCBI Taxonomy name2taxid rev
 Ixodes ovatus,Ixodes ovatus,59652,high,NCBI Taxonomy name2taxid reviewed import
 Rhipicephalus linnaei,Rhipicephalus linnaei,2138177,high,NCBI Taxonomy name2taxid reviewed import
 Fragaria vesca,Fragaria vesca,57918,high,NCBI Taxonomy name2taxid reviewed import
-zebrafish,Danio rerio,7955,high,ChatGPT suggestion reviewed; common name resolved to NCBI Taxonomy
 Zebrafish,Danio rerio,7955,high,capitalization variant
-cows,Bos taurus,9913,high,ChatGPT suggestion reviewed; plural common name
 Cows,Bos taurus,9913,high,capitalization variant
 Rattus,Rattus,10114,medium,ChatGPT suggestion reviewed; genus-level host
 Rats,Rattus,10114,medium,ChatGPT suggestion reviewed; broad common name
-frog,Anura,8342,medium,ChatGPT suggestion reviewed; broad amphibian host
 Frog,Anura,8342,medium,capitalization variant
 bullfrog,Anura,8342,medium,broad common frog host
-catfish,Siluriformes,7997,medium,ChatGPT suggestion reviewed; broad fish host
 Catfish,Siluriformes,7997,medium,capitalization variant
 Vertebrata,Vertebrata,7742,medium,ChatGPT suggestion reviewed; broad host group
 Plantae,Viridiplantae,33090,medium,ChatGPT suggestion reviewed; broad plant host group
@@ -5243,7 +5225,7 @@ Columbia livia,Columba livia,8932,high,manual fuzzy review 2026-04-28
 allus gallus,Gallus gallus,9031,high,manual fuzzy review 2026-04-28
 Protaetia brevitarsis seulensis larva,Protaetia brevitarsis seulensis,438893,high,manual fuzzy review 2026-04-28
 Crocus sativus L.,Crocus sativus,82528,high,manual fuzzy review 2026-04-28
-Helianthus annuus L.,Helianthus annuus,4232,high,manual fuzzy review 2026-04-28
+Helianthus annuus L. (sunflower),Helianthus annuus,4232,high,manual fuzzy review 2026-04-28
 Sargssum spp.,Sargassum sp.,74090,high,manual fuzzy review 2026-04-28
 Drosophila simulans STC,Drosophila simulans,7240,high,manual fuzzy review 2026-04-28
 Jatropha curcas L.,Jatropha curcas,180498,high,manual fuzzy review 2026-04-28
@@ -5270,7 +5252,6 @@ Perca fluviatilis L.,Perca fluviatilis,8168,high,manual fuzzy review 2026-04-28
 Actinidia chinensis var. deliciosa 'Hayward',Actinidia chinensis var. deliciosa,3627,high,manual fuzzy review 2026-04-28
 Chicorium endivia,Cichorium endivia,114280,high,manual fuzzy review 2026-04-28
 Camellia sinensis L.,Camellia sinensis,4442,high,manual fuzzy review 2026-04-28
-Helianthus annuus L. (sunflower),Helianthus annuus,4232,high,manual fuzzy review 2026-04-28
 Triticum turgidum ssp. durum,Triticum turgidum subsp. durum,4567,high,manual fuzzy review 2026-04-28
 Arachis hypogaea L.,Arachis hypogaea,3818,high,manual fuzzy review 2026-04-28
 Himo sapiens,Homo sapiens,9606,high,manual fuzzy review 2026-04-28
@@ -5421,20 +5402,15 @@ Chroicocephalus,Chroicocephalus,1129741,high,post-audit TaxonKit genus-level rev
 Hordeum vulgare Golden Promise,Hordeum vulgare,4513,high,post-audit cultivar mapped to species 2026-04-28
 domesticated barley,Hordeum vulgare,4513,medium,post-audit common crop host mapping 2026-04-28
 barley,Hordeum vulgare,4513,medium,post-audit common crop host mapping 2026-04-28
-Mink,Neogale vison,452646,medium,post-audit common host mapping 2026-04-28
 mink,Neogale vison,452646,medium,post-audit common host mapping 2026-04-28
-Marmot,Marmota,9992,medium,post-audit broad genus-level host mapping 2026-04-28
 marmot,Marmota,9992,medium,post-audit broad genus-level host mapping 2026-04-28
 turtle,Testudines,8459,medium,post-audit broad host group mapping 2026-04-28
-Primate,Primates,9443,medium,post-audit broad host group mapping 2026-04-28
 primate,Primates,9443,medium,post-audit broad host group mapping 2026-04-28
 Anatidae,Anatidae,8830,medium,post-audit family-level host mapping 2026-04-28
 three-spined stickleback,Gasterosteus aculeatus,69293,high,post-audit common species mapping 2026-04-28
-bison,Bison,9900,medium,post-audit genus-level common host mapping 2026-04-28
 Bison,Bison,9900,medium,post-audit genus-level common host mapping 2026-04-28
 seagull,Laridae,8910,medium,post-audit broad gull family host mapping 2026-04-28
 egg laying hen,Gallus gallus,9031,medium,post-audit poultry host mapping 2026-04-28
-laying hen,Gallus gallus,9031,medium,post-audit poultry host mapping 2026-04-28
 Laying hen,Gallus gallus,9031,medium,post-audit poultry host mapping 2026-04-28
 Laying hens,Gallus gallus,9031,medium,post-audit poultry host mapping 2026-04-28
 malaria parasite P. falciparum,Plasmodium falciparum,5833,medium,post-audit parasite host/source mapping 2026-04-28
@@ -5443,12 +5419,10 @@ Sus,Sus,9822,medium,post-audit genus-level host mapping 2026-04-28
 Wild ungulates,Cetartiodactyla,91561,medium,post-audit broad ungulate host mapping 2026-04-28
 Caprinae,Caprinae,9963,medium,post-audit subfamily-level host mapping 2026-04-28
 Anthurium,Anthurium,78377,medium,post-audit plant genus-level host mapping 2026-04-28
-Mallard,Anas platyrhynchos,8839,medium,post-audit common bird host mapping 2026-04-28
 mallard,Anas platyrhynchos,8839,medium,post-audit common bird host mapping 2026-04-28
 Meleagris sp.,Meleagris,9102,medium,post-audit genus-level poultry host mapping 2026-04-28
 Meleagris,Meleagris,9102,medium,post-audit genus-level poultry host mapping 2026-04-28
 Charadriiformes,Charadriiformes,8906,medium,post-audit order-level bird host mapping 2026-04-28
-Monkey,Simiiformes,314293,medium,post-audit broad monkey host mapping 2026-04-28
 monkey,Simiiformes,314293,medium,post-audit broad monkey host mapping 2026-04-28
 Macaca,Macaca,9539,medium,post-audit genus-level primate host mapping 2026-04-28
 Chrysomya sp. (blowfly),Chrysomya,45449,medium,post-audit genus-level insect host mapping 2026-04-28
@@ -5462,9 +5436,7 @@ great cormorant,Phalacrocorax carbo,9209,medium,post-audit common bird host mapp
 kiwifruit,Actinidia,3624,medium,post-audit crop host genus mapping 2026-04-28
 Reptilia,Reptilia,8457,medium,post-audit class-level host mapping 2026-04-28
 baboon,Papio,9554,medium,post-audit genus-level primate host mapping 2026-04-28
-Snake,Serpentes,8570,medium,post-audit order-level host mapping 2026-04-28
 snake,Serpentes,8570,medium,post-audit order-level host mapping 2026-04-28
-Buffalo,Bubalus bubalis,89462,medium,post-audit common livestock host mapping 2026-04-28
 buffalo,Bubalus bubalis,89462,medium,post-audit common livestock host mapping 2026-04-28
 Brassica,Brassica,3705,medium,post-audit plant genus-level host mapping 2026-04-28
 Milvus lineatus lineatus,Milvus lineatus,329121,high,post-audit subspecies-like bird host mapping 2026-04-28
@@ -5480,9 +5452,7 @@ equidae,Equidae,9788,medium,post-audit family-level host mapping 2026-04-28
 pea,Pisum sativum,3888,medium,post-audit crop host mapping 2026-04-28
 Medicago,Medicago,3877,medium,post-audit plant genus-level host mapping 2026-04-28
 Prochlorococcus,Prochlorococcus,1218,medium,post-audit cyanobacterial host/source mapping 2026-04-28
-walnut,Juglans regia,51240,medium,post-audit crop host mapping 2026-04-28
 Walnut,Juglans regia,51240,medium,post-audit crop host mapping 2026-04-28
-livestock,Mammalia,40674,medium,post-audit broad livestock host mapping 2026-04-28
 Livestock,Mammalia,40674,medium,post-audit broad livestock host mapping 2026-04-28
 Drosophila,Drosophila,7215,medium,post-audit genus-level insect host mapping 2026-04-28
 Waterfowl,Anseriformes,8826,medium,post-audit broad waterfowl host mapping 2026-04-28
@@ -5506,7 +5476,6 @@ Bar-tailed Godwit,Limosa lapponica,161683,medium,post-audit common bird host map
 Canis,Canis,9611,medium,post-audit genus-level host mapping 2026-04-28
 lichen,Fungi,4751,medium,post-audit broad lichen fungal partner mapping 2026-04-28
 Martes sp.,Martes,9658,medium,post-audit genus-level host mapping 2026-04-28
-Banana,Musa,4640,medium,post-audit crop host mapping 2026-04-28
 banana,Musa,4640,medium,post-audit crop host mapping 2026-04-28
 Raphanus sativus var. Flamboyant 5,Raphanus sativus,3726,high,post-audit cultivar mapped to species 2026-04-28
 Pisum sativum L.,Pisum sativum,3888,high,post-audit crop host mapping 2026-04-28
@@ -5539,7 +5508,6 @@ Hymenoptera,Hymenoptera,7399,medium,post-audit order-level insect host mapping 2
 bee,Anthophila,2867191,medium,post-audit broad bee host mapping 2026-04-28
 opossum,Didelphidae,9265,medium,post-audit broad opossum host mapping 2026-04-28
 piglet,Sus scrofa,9823,medium,post-audit juvenile pig host mapping 2026-04-28
-Lettuce,Lactuca sativa,4236,medium,post-audit crop host mapping 2026-04-28
 lettuce,Lactuca sativa,4236,medium,post-audit crop host mapping 2026-04-28
 mare,Equus caballus,9796,medium,post-audit horse host mapping 2026-04-28
 Muridae,Muridae,10066,medium,post-audit family-level rodent host mapping 2026-04-28
@@ -5635,44 +5603,33 @@ Notothenia coriiceps (black rock cod),Notothenia coriiceps,8208,high,conservativ
 Vitis rotundifolia cv Carlos,Vitis rotundifolia,103349,high,conservative remaining-host review; bucket=taxonomy_lookup_candidate; rows=2; rank=species
 Saccharina sp. (B),Saccharina sp.,2044565,high,conservative remaining-host review; bucket=taxonomy_lookup_candidate; rows=2; rank=species
 Clastoptera arizonana (Arizona spittlebug),Clastoptera arizonana,38151,high,conservative remaining-host review; bucket=taxonomy_lookup_candidate; rows=2; rank=species
-Wolf,Canis lupus,9612,medium,broad/common host review 2026-04-29; rank=species
 wolf,Canis lupus,9612,medium,broad/common host review 2026-04-29; rank=species
 gray wolf,Canis lupus,9612,medium,broad/common host review 2026-04-29; rank=species
 water deer,Hydropotes inermis,9883,medium,common host review 2026-04-29; rank=species
-water buffalo,Bubalus bubalis,89462,medium,common host review 2026-04-29; rank=species
 Water Buffalo,Bubalus bubalis,89462,medium,capitalization variant; common host review 2026-04-29
-Bacteria,Bacteria,2,medium,broad host/symbiont group review 2026-04-29; rank=superkingdom
 bacteria,Bacteria,2,medium,broad host/symbiont group review 2026-04-29; rank=superkingdom
 Actinobacteria,Actinomycetota,201174,medium,broad bacterial host/symbiont group review 2026-04-29; rank=phylum
-Fungi,Fungi,4751,medium,broad host group review 2026-04-29; rank=kingdom
 fungi,Fungi,4751,medium,broad host group review 2026-04-29; rank=kingdom
 bracket fungi,Fungi,4751,medium,broad fungal host group review 2026-04-29; rank=kingdom
 cup fungi,Fungi,4751,medium,broad fungal host group review 2026-04-29; rank=kingdom
-coral,Anthozoa,6101,medium,broad cnidarian host group review 2026-04-29; rank=class
 Coral,Anthozoa,6101,medium,broad cnidarian host group review 2026-04-29; rank=class
 Anthoza,Anthozoa,6101,medium,spelling variant; broad cnidarian host group review 2026-04-29
 Hexacorallia,Hexacorallia,6102,medium,broad cnidarian host group review 2026-04-29; rank=subclass
 Jellyfish,Cnidaria,6073,medium,broad cnidarian host group review 2026-04-29; rank=phylum
-crab,Brachyura,6752,medium,broad crustacean host group review 2026-04-29; rank=infraorder
-crabs,Brachyura,6752,medium,broad crustacean host group review 2026-04-29; rank=infraorder
 Crab,Brachyura,6752,medium,broad crustacean host group review 2026-04-29; rank=infraorder
+crabs,Brachyura,6752,medium,broad crustacean host group review 2026-04-29; rank=infraorder
 crawfish,Astacidea,6724,medium,broad crustacean host group review 2026-04-29; rank=infraorder
 crayfish,Astacidea,6724,medium,broad crustacean host group review 2026-04-29; rank=infraorder
 horseshoe crab,Xiphosura,6845,medium,broad chelicerate host group review 2026-04-29; rank=order
 prawn,Dendrobranchiata,6684,medium,broad crustacean host group review 2026-04-29; rank=suborder
 Prawns,Dendrobranchiata,6684,medium,broad crustacean host group review 2026-04-29; rank=suborder
 cockroach,Blattodea,85823,medium,broad insect host group review 2026-04-29; rank=order
-salmon,Salmonidae,8015,medium,broad fish host group review 2026-04-29; rank=family
 Salmon,Salmonidae,8015,medium,broad fish host group review 2026-04-29; rank=family
-eel,Anguilliformes,7933,medium,broad fish host group review 2026-04-29; rank=order
 Eel,Anguilliformes,7933,medium,broad fish host group review 2026-04-29; rank=order
-dolphin,Delphinidae,9726,medium,broad mammal host group review 2026-04-29; rank=family
 Dolphin,Delphinidae,9726,medium,broad mammal host group review 2026-04-29; rank=family
-flounder,Pleuronectiformes,8252,medium,broad fish host group review 2026-04-29; rank=order
 Flounder,Pleuronectiformes,8252,medium,broad fish host group review 2026-04-29; rank=order
 marine bivalve,Bivalvia,6544,medium,broad mollusc host group review 2026-04-29; rank=class
 marine bivalves,Bivalvia,6544,medium,broad mollusc host group review 2026-04-29; rank=class
-bivalve,Bivalvia,6544,medium,broad mollusc host group review 2026-04-29; rank=class
 Bivalve,Bivalvia,6544,medium,broad mollusc host group review 2026-04-29; rank=class
 Bivalve mollusk,Bivalvia,6544,medium,broad mollusc host group review 2026-04-29; rank=class
 Mussels,Mytilidae,6547,medium,broad mollusc host group review 2026-04-29; rank=family
@@ -5687,7 +5644,6 @@ douglas fir,Pseudotsuga menziesii,3357,medium,common plant host review 2026-04-2
 B. oleracea var. botrytis,Brassica oleracea,3712,medium,crop host abbreviation review 2026-04-29; rank=species
 Atriplex sp.,Atriplex,3550,medium,genus-level plant host review 2026-04-29; rank=genus
 bearded dragon,Pogona vitticeps,103695,medium,common reptile host review 2026-04-29; rank=species
-hamster,Cricetinae,10026,medium,broad rodent host review 2026-04-29; rank=subfamily
 Hamster,Cricetinae,10026,medium,broad rodent host review 2026-04-29; rank=subfamily
 Kangaroo,Macropodidae,9307,medium,broad marsupial host review 2026-04-29; rank=family
 bear,Ursidae,9632,medium,broad carnivore host review 2026-04-29; rank=family
@@ -5720,7 +5676,6 @@ coffee,Coffea,13442,medium,broad plant host review 2026-04-29; rank=genus
 Himalayan blackberry,Rubus armeniacus,926038,medium,common plant host review 2026-04-29; rank=species
 Raspberry,Rubus idaeus,32247,medium,common plant host review 2026-04-29; rank=species
 Ibex,Capra ibex,72542,medium,common mammal host review 2026-04-29; rank=species
-gorilla,Gorilla,9592,medium,broad primate host review 2026-04-29; rank=genus
 Gorilla,Gorilla,9592,medium,broad primate host review 2026-04-29; rank=genus
 lion,Panthera leo,9689,medium,common mammal host review 2026-04-29; rank=species
 Bubaline,Bubalus bubalis,89462,medium,buffalo-related host review 2026-04-29; rank=species
@@ -5755,8 +5710,7 @@ Leontopodium alpinum,Leontopodium alpinum,49078,medium,plant host review 2026-04
 Lepidochyelys olivacea,Lepidochelys olivacea,27788,medium,spelling variant; turtle host review 2026-04-29; rank=species
 Thraupis gaucocolpa,Thraupis glaucocolpa,2986140,medium,spelling variant; bird host review 2026-04-29; rank=species
 cliff swallow,Petrochelidon pyrrhonota,72884,medium,common bird host review 2026-04-29; rank=species
-plum,Prunus domestica,3758,medium,common plant host review 2026-04-29; rank=species
-termite,Termitoidae,1912919,medium,broad termite host review 2026-04-29; rank=epifamily
+Plum,Prunus domestica,3758,medium,common plant host review 2026-04-29; rank=species
 Termite,Termitoidae,1912919,medium,broad termite host review 2026-04-29; rank=epifamily
 D. labrax,Dicentrarchus labrax,13489,medium,fish abbreviation review 2026-04-29; rank=species
 Euclayptus,Eucalyptus,3932,medium,spelling variant; plant host review 2026-04-29; rank=genus
@@ -5767,13 +5721,10 @@ moss,Bryophyta,3208,medium,broad plant host review 2026-04-29; rank=phylum
 Mud Dauber Wasp,Sphecidae,7485,medium,broad wasp host review 2026-04-29; rank=family
 red alga,Rhodophyta,2763,medium,broad algal host review 2026-04-29; rank=phylum
 Amphidinium carterae CCMP2400,Amphidinium carterae,2961,medium,strain suffix removed; dinoflagellate host review 2026-04-29; rank=species
-ruminant,Ruminantia,9845,medium,broad mammal host review 2026-04-29; rank=infraorder
 Ruminant,Ruminantia,9845,medium,broad mammal host review 2026-04-29; rank=infraorder
-Flea,Siphonaptera,7509,medium,broad insect host review 2026-04-29; rank=order
 flea,Siphonaptera,7509,medium,broad insect host review 2026-04-29; rank=order
 toad,Bufonidae,8382,medium,broad amphibian host review 2026-04-29; rank=family
 albatross,Diomedeidae,37067,medium,broad bird host review 2026-04-29; rank=family
-Seaweed,Viridiplantae,33090,medium,broad plant/algal host review 2026-04-29; rank=kingdom
 seaweed,Viridiplantae,33090,medium,broad plant/algal host review 2026-04-29; rank=kingdom
 demoiselle crane,Gruidae,9109,medium,broad bird host review 2026-04-29; rank=family
 spectacled eider,Somateria fischeri,50367,medium,common bird host review 2026-04-29; rank=species
@@ -5793,7 +5744,6 @@ testudinate,Testudines,8459,medium,broad turtle/tortoise host review 2026-04-29;
 Rhinoceros,Rhinocerotidae,9803,medium,broad mammal host review 2026-04-29; rank=family
 carp,Cyprinus carpio,7962,medium,common fish host review 2026-04-29; rank=species
 brown-headed cowbird,Molothrus ater,84834,medium,common bird host review 2026-04-29; rank=species
-kite,Milvus,43517,medium,broad bird host review 2026-04-29; rank=genus
 Kite,Milvus,43517,medium,broad bird host review 2026-04-29; rank=genus
 Leopard,Panthera pardus,9691,medium,common mammal host review 2026-04-29; rank=species
 antelope,Antilopinae,9948,medium,broad mammal host review 2026-04-29; rank=subfamily
@@ -5807,9 +5757,7 @@ Buzzard,Accipitridae,56259,medium,broad bird host review 2026-04-29; rank=family
 squirrel,Sciuridae,55153,medium,broad mammal host review 2026-04-29; rank=family
 Zebra,Equus zebra,9791,medium,common mammal host review 2026-04-29; rank=species
 pheasant,Phasianidae,9005,medium,broad bird host review 2026-04-29; rank=family
-giraffe,Giraffa camelopardalis,9894,medium,common mammal host review 2026-04-29; rank=species
 Giraffe,Giraffa camelopardalis,9894,medium,common mammal host review 2026-04-29; rank=species
-Otter,Lutrinae,169417,medium,broad mammal host review 2026-04-29; rank=subfamily
 otter,Lutrinae,169417,medium,broad mammal host review 2026-04-29; rank=subfamily
 cinereous vulture,Aegypius monachus,8959,medium,common bird host review 2026-04-29; rank=species
 snail,Gastropoda,6448,medium,broad mollusc host review 2026-04-29; rank=class
@@ -5835,7 +5783,6 @@ seahorse,Hippocampus,72046,medium,broad fish host review 2026-04-29; rank=genus
 Vole,Arvicolinae,39087,medium,broad rodent host review 2026-04-29; rank=subfamily
 perch,Perca,8166,medium,broad fish host review 2026-04-29; rank=genus
 Mandrill,Mandrillus sphinx,9561,medium,common primate host review 2026-04-29; rank=species
-Plum,Prunus domestica,3758,medium,common plant host review 2026-04-29; rank=species
 Vaccinium,Vaccinium,13749,medium,broad plant host review 2026-04-29; rank=genus
 Hawthorn,Crataegus,23159,medium,broad plant host review 2026-04-29; rank=genus
 Digitaria sp.,Digitaria,66017,medium,genus-level plant host review 2026-04-29; rank=genus
@@ -6121,7 +6068,6 @@ Elaeagnus sp.,elaeagnus,36776,medium,AI reviewed approve_genus_level: Eukaryotic
 Paulownia,paulownia,39251,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Phoenix,phoenix,4719,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Planchonia careya (Cocky Apple),planchonia careya,1382142,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
-Melaleuca sp.,melaleuca,164925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Melaleuca sp. (Weeping Teatree),melaleuca,164925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Cleome sp.,cleome,25782,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 "Bemisia tabaci (Mediterranean species), strain QHC-VLC",bemisia tabaci,7038,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
@@ -6288,7 +6234,7 @@ tapioca,tapioca,3983,high,AI reviewed approve_direct: Eukaryotic taxon at specie
 Raphanus,raphanus,3725,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Cannabis,cannabis,3482,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 ''Penicillium bilaiae,penicillium bilaiae,69765,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
-Trachurus japonicus,trachurus japonicus,83875,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
+Trachurus japonicus (Japanese horse mackerel),trachurus japonicus,83875,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
 melanothamnus,melanothamnus,1917068,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Spatoglossum,spatoglossum,157006,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Padina,padina,157004,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
@@ -6392,7 +6338,6 @@ Toxotes,toxotes,270536,medium,AI reviewed approve_genus_level: Eukaryotic genus-
 fugu,fugu,31032,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Bunodactis sp. (Actiniaria),bunodactis,200526,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 pollack,pollack,185739,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
-Trachurus japonicus (Japanese horse mackerel),trachurus japonicus,83875,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
 Holocentrus sp.,holocentrus,94925,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Tethya,tethya,34493,medium,AI reviewed approve_genus_level: Eukaryotic genus-level host; acceptable but mark confidence medium unless value explicitly says sp.
 Manilkara zapota (Sapodilla),manilkara zapota,3741,high,AI reviewed approve_direct: Eukaryotic taxon at species/subspecies/variety level.
@@ -6467,7 +6412,7 @@ Chamaeleonidae,chamaeleonidae,40248,medium,Broad eukaryotic host group. Import o
 millipede,millipede,7553,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Arecaceae,arecaceae,4710,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Gorgonacea,gorgonacea,6132,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
-Ticks (H.marginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
+Ticks (Hyalommamarginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Pythonidae,pythonidae,34984,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Salmonidae,salmonidae,8015,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Crassulaceae,crassulaceae,3781,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
@@ -6517,8 +6462,6 @@ lobster,lobster,6704,medium,Broad eukaryotic host group. Import only as broad/me
 Tetraodontidae,tetraodontidae,31031,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Gerbillinae,gerbillinae,10045,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Siphonaptera,siphonaptera,7509,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
-Ticks,ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
-Ticks (Hyalommamarginatus),ticks,6935,medium,Broad eukaryotic host group. Import only as broad/medium-or-low confidence; do not treat as species-level host.
 Children,Homo sapiens,9606,high,Curated mapping from cluster instruction/common host name.
 cystic fibrosis (CF) patients,Homo sapiens,9606,high,Curated mapping from cluster instruction/common host name.
 Argus Pheasent,Aves,8782,medium,No exact TaxonKit match; cluster permits broad host fallback at medium confidence.
@@ -6841,7 +6784,6 @@ Tapir,Tapiridae,9788,medium,targeted refinement batch 9-12 2026-05-01; reviewed 
 Short-beaked echidna,Tachyglossus aculeatus,9261,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
 Platypus,Ornithorhynchus anatinus,9258,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
 aardvark,Orycteropus afer,9818,high,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
-kudu,Tragelaphus,9945,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
 kudu (antelope),Tragelaphus,9945,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
 Eland,Taurotragus,9946,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
 Shrew,Soricidae,9376,medium,targeted refinement batch 9-12 2026-05-01; reviewed common-name host mapping
@@ -6943,24 +6885,23 @@ uncultured eukaryote,Eukaryota,2759,medium,Batch 2 host curation 2026-05-05: rev
 flower,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
 Sprague Dawley,Rattus norvegicus,10116,high,Batch 2 host curation 2026-05-05: reviewed laboratory rat strain host; rank=species
 protist,Eukaryota,2759,medium,Batch 2 host curation 2026-05-05: reviewed broad eukaryote/protist host; rank=superkingdom
-marine macroalgae,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad algal/plant host; rank=kingdom
+Marine macroalgae,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad algal/plant host; rank=kingdom
 macroalgae,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad algal/plant host; rank=kingdom
 Hexactinellid,Hexactinellida,60882,medium,Batch 2 host curation 2026-05-05: reviewed sponge class host; rank=class
 clover,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
 Chacoan mara,Dolichotis salinicola,210422,high,Batch 2 host curation 2026-05-05: reviewed common animal host; rank=species
 Aachener Minipig,Sus scrofa,9823,high,Batch 2 host curation 2026-05-05: reviewed domestic minipig host; rank=species
-celery,celery,117781,medium,Batch 2 host curation 2026-05-05: reviewed plant host/common name; rank=no rank
+Celery,celery,117781,medium,Batch 2 host curation 2026-05-05: reviewed plant host/common name; rank=no rank
 blackberry,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
 Cryptomonas gyropyrenoidosa SAG 25.80,Cryptomonas gyropyrenoidosa,233257,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Cryptomonas gyropyrenoidosa`; lineage superkingdom Eukaryota.; rank=species
 Diplonema japonicum YPF1604,Diplonema japonicum,2508216,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Diplonema japonicum`; lineage superkingdom Eukaryota.; rank=species
 Gynura pseudochina L.DC.,Gynura pseudochina,2654270,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Gynura pseudochina`; lineage superkingdom Eukaryota.; rank=species
-Celery,celery,117781,medium,Batch 2 host curation 2026-05-05: reviewed plant host/common name; rank=no rank
 Morone chrysops X M. saxatilis,Morone chrysops,46259,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Morone chrysops`; lineage superkingdom Eukaryota.; rank=species
 Arvicolinae sp.,Arvicolinae,39087,medium,Batch 2 host curation 2026-05-05: reviewed broad vole/lemming/related rodent host; rank=subfamily
 Panax ginseng Meyer,Panax ginseng,4054,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Panax ginseng`; lineage superkingdom Eukaryota.; rank=species
 Stevia rebaudiana Bertoni,Stevia rebaudiana,55670,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Stevia rebaudiana`; lineage superkingdom Eukaryota.; rank=species
 sponges,Porifera,6040,medium,Batch 2 host curation 2026-05-05: reviewed broad sponge host; rank=phylum
-melon,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
+Melon,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
 Broussonetia kazinoki Sieb. X Broussonetia papyrifa Vent.,Broussonetia kazinoki,66380,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Broussonetia kazinoki`; lineage superkingdom Eukaryota.; rank=species
 Morone saxatilis x M. chrysops,Morone saxatilis,34816,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Morone saxatilis`; lineage superkingdom Eukaryota.; rank=species
 Aplysina aerophoba SAPs10,Aplysina aerophoba,289389,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Aplysina aerophoba`; lineage superkingdom Eukaryota.; rank=species
@@ -7015,7 +6956,6 @@ Ustilago maydis YZZF202006,Ustilago maydis,5270,medium,Batch 2 host curation 202
 Pogostemon cablin (Blanco) Benth.,Pogostemon cablin,28511,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Pogostemon cablin`; lineage superkingdom Eukaryota.; rank=species
 Scrippsiella trochoidea CCAP 1134/1,Scrippsiella trochoidea,71861,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Scrippsiella trochoidea`; lineage superkingdom Eukaryota.; rank=species
 Hedysarum zundukii Peschkova,Hedysarum zundukii,2419557,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Hedysarum zundukii`; lineage superkingdom Eukaryota.; rank=species
-Marine macroalgae,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad algal/plant host; rank=kingdom
 Symbiochlorum hainanensis sp. X1,Symbiochlorum hainanensis,2448249,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Symbiochlorum hainanensis`; lineage superkingdom Eukaryota.; rank=species
 Thalassiosira rotula CCMP3264,Thalassiosira rotula,49265,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Thalassiosira rotula`; lineage superkingdom Eukaryota.; rank=species
 Hyaloperonospora arabidopsidis Noks1,Hyaloperonospora arabidopsidis,272952,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Hyaloperonospora arabidopsidis`; lineage superkingdom Eukaryota.; rank=species
@@ -7023,7 +6963,6 @@ Chiloschista parishii Seidenf.,Chiloschista parishii,339076,medium,Batch 2 host 
 Azadirachta indica A. Juss. var. siamensis Valenton,Azadirachta indica,124943,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Azadirachta indica`; lineage superkingdom Eukaryota.; rank=species
 Zophobas morio larvae,Zophobas morio,2755281,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Zophobas morio`; lineage superkingdom Eukaryota.; rank=species
 Melanaphis sacchari Zehntner,Melanaphis sacchari,742174,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Melanaphis sacchari`; lineage superkingdom Eukaryota.; rank=species
-Melon,Viridiplantae,33090,medium,Batch 2 host curation 2026-05-05: reviewed broad plant host/material; rank=kingdom
 Nasonia vitripennis x Nasonia giraulti hybrid,Nasonia vitripennis,7425,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Nasonia vitripennis`; lineage superkingdom Eukaryota.; rank=species
 Panthera tigris Amoyensis facel,Panthera tigris,9694,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Panthera tigris`; lineage superkingdom Eukaryota.; rank=species
 Pistacia chinensis Bunge,Pistacia chinensis,289741,medium,Batch 2 host curation 2026-05-05: Exact TaxonKit match from variant `Pistacia chinensis`; lineage superkingdom Eukaryota.; rank=species
@@ -7112,3 +7051,389 @@ Garlic bolt,Allium sativum,4682,medium,Long-tail host curation 2026-05-05: garli
 Pakchoi,Brassica rapa,3711,medium,Long-tail host curation 2026-05-05: reviewed pak choi crop value; canonical Brassica rapa with medium confidence.
 snipe,Aves,8782,medium,Long-tail host curation 2026-05-05: common bird group without exact species; keep broad Aves.
 Red tailed hawk,Buteo jamaicensis,56263,high,Long-tail host curation 2026-05-05: reviewed common bird name resolved by TaxonKit canonical.
+Myodes,Myodes,447134,high,Valid rodent genus
+avain,Aves,8782,medium,Typo reviewed avian
+Microtus,Microtus,10053,high,Valid rodent genus
+Sarracenia,Sarracenia,4358,high,Valid plant genus
+Iophon,Iophon,1336928,medium,Valid sponge genus
+lichi,Litchi chinensis,151069,medium,Lychee common name
+swallow,Hirundinidae,43148,medium,Broad common bird family
+Wildpig,Sus scrofa,9823,high,Wild pig or wild boar
+D. marginatus,Dermacentor marginatus,49202,medium,Reviewer resolved abbreviated tick
+hyacinth,Hyacinthus,82024,medium,Common plant genus
+Ursidae,Ursidae,9632,high,Valid bear family
+Branta,Branta,8852,high,Valid goose genus
+Caenorhabditis,Caenorhabditis,6237,high,Valid nematode genus
+Halophytes,Viridiplantae,33090,low,Ecological plant category
+Hexactinellida,Hexactinellida,60882,high,Valid sponge class
+Cephalopoda,Cephalopoda,6605,high,Valid mollusc class
+Chili,Capsicum,4071,medium,Common crop genus
+Epiponini,Epiponini,76992,high,Valid wasp tribe
+Euphausiacea,Euphausiacea,6816,high,Valid krill order
+Felis,Felis,9682,high,Valid cat genus
+Hyacint,Hyacinthus,82024,medium,Typo reviewed hyacinth
+Megaspora,Megaspora,88750,medium,Valid lichen or fungal genus
+Nasutitermes_voeltzkowi,Nasutitermes voeltzkowi,377956,medium,Underscore normalized
+Oxytropis,Oxytropis,20802,high,Valid plant genus
+Pelican,Pelecanidae,30444,medium,Broad common bird family
+pumpkin,Cucurbita,3660,medium,Common crop genus
+Q. agrifolia x Q. wislizeni,Quercus,3511,medium,Oak hybrid mapped to genus
+Sarcophagidae,Sarcophagidae,7381,high,Valid fly family
+"""Ipomoea aquatic""",Ipomoea aquatica,89636,medium,Typo and quoting reviewed
+Amaranthaceae,Amaranthaceae,3563,high,Valid plant family
+anatine,Anatidae,8830,medium,Duck-like family mapping
+Apoidea,Apoidea,34735,high,Valid superfamily
+Apsterostigma,Apterostigma,34696,medium,Typo reviewed ant genus
+B. oleracea var. alba,Brassica oleracea,3712,medium,Abbreviated crop resolved
+B. oleracea var. sabauda,Brassica oleracea,3712,medium,Abbreviated crop resolved
+Barberry,Berberis,22774,medium,Common plant genus
+Berseem,Trifolium alexandrinum,97006,medium,Berseem clover
+Birch,Betula,3504,medium,Common tree genus
+Bluefox,Vulpes lagopus,494514,medium,Arctic fox common name
+boxwood,Buxus,4001,medium,Common plant genus
+brolier,Gallus gallus,9031,medium,Typo reviewed broiler
+bromeliads,Bromeliaceae,4613,medium,Common plant family
+BSFL,Hermetia illucens,343691,medium,Black soldier fly larvae
+budworm,Lepidoptera,7088,low,Ambiguous larva mapped to order
+C. elegans,Caenorhabditis elegans,6239,high,Standard abbreviation
+C57BL/6J,Mus musculus,10090,high,Laboratory mouse strain
+cage-cultured red drum,Sciaenops ocellatus,76340,medium,Culture descriptor removed
+casava,Manihot esculenta,3983,medium,Typo reviewed cassava
+CBA,Mus musculus,10090,medium,Mouse strain
+cetacean,Cetacea,9721,medium,Broad mammal clade
+chestnut,Castanea,21019,medium,Common tree genus
+chiehqua,Benincasa hispida,102211,medium,Common vegetable
+Cichlid,Cichlidae,8113,medium,Common fish family
+ciliate,Ciliophora,5878,medium,Broad protozoan clade
+Cobia,Rachycentron canadum,141264,medium,Common fish name
+cockatoo,Cacatuidae,35549,medium,Common bird family
+codonopsis,Codonopsis,16399,high,Valid plant genus
+Coleus,Coleus,587658,medium,Common plant genus
+Cottonwood,Populus,3689,medium,Common tree genus
+Cucurbit,Cucurbitaceae,3650,medium,Common crop family
+Dirinaria,Dirinaria,205616,medium,Valid lichen genus
+doe,Cervidae,9850,low,Female deer mapped to family
+Dragonfruit,Selenicereus,83431,medium,Common crop genus
+egret,Ardeidae,8899,medium,Common bird family
+Encephalarto,Encephalartos,3299,medium,Typo reviewed cycad genus
+Fetuca,Festuca,4605,medium,Typo reviewed plant genus
+fulmars,Fulmarus,30454,medium,Common seabird genus
+gander,Anser,8842,medium,Male goose mapped to genus
+Gans,Anser,8842,medium,Goose common name
+Geophilidae_myriapod,Geophilidae,60155,medium,Family label normalized
+gingsen,Panax,4053,medium,Typo reviewed ginseng
+gosling,Anser,8842,medium,Young goose mapped to genus
+GROUNDNUT,Arachis hypogaea,3818,medium,Peanut common name
+GuineaPig,Cavia porcellus,10141,high,Guinea pig common name
+H. Concina,Haemaphysalis concinna,523089,medium,Case variant
+Haemophisalus,Haemaphysalis,34622,medium,Typo reviewed tick genus
+Hibiscus,Hibiscus,47605,high,Valid plant genus
+hime-yuzuriha,Daphniphyllum,4387,low,Japanese common plant name
+Hippocampus,Hippocampus,72046,high,Valid seahorse genus
+Holothurian,Holothuroidea,7705,medium,Sea cucumber class
+honeysuckle,Lonicera,49606,medium,Common plant genus
+hyacynth,Hyacinthus,82024,medium,Typo reviewed hyacinth
+I. ricinus,Ixodes ricinus,34613,high,Standard tick abbreviation
+jujube,Ziziphus,72171,medium,Common plant genus
+Kestrel,Falco,8952,medium,Common raptor genus
+Lampropeltis,Lampropeltis,94873,high,Valid snake genus
+Leiodermatium,Leiodermatium,1090547,medium,Valid sponge genus
+Lemna,Lemna,4469,high,Valid duckweed genus
+Lemuroidea,Lemuriformes,376915,medium,NCBI-supported lemur clade
+longicorn,Cerambycidae,34667,medium,Longhorn beetle family
+Maple,Acer,4022,medium,Common tree genus
+Marten,Martes,9658,medium,Common mammal genus
+marter,Martes,9658,medium,Typo reviewed marten
+Microcerotermes,Microcerotermes,139992,high,Valid termite genus
+Micromys,Micromys,13150,high,Valid rodent genus
+millet,Poaceae,4479,low,Ambiguous crop mapped to family
+Minipig,Sus scrofa,9823,medium,Domestic pig
+Monkeys,Simiiformes,314293,medium,Broad monkey clade
+Muntiacus,Muntiacus,9885,high,Valid muntjac genus
+mustard,Brassicaceae,3700,medium,Common crop family
+O. sativa,Oryza sativa,4530,high,Standard crop abbreviation
+olive,Olea europaea,4146,medium,Common crop
+Orchid,Orchidaceae,4747,medium,Common plant family
+orchids,Orchidaceae,4747,medium,Broad common-name plant host
+Ortrugo,Vitis vinifera,29760,medium,Grape cultivar mapped conservatively
+ostracean,Crustacea,197562,medium,Likely misspelled crustacean-like host
+ostrea,Ostrea,37858,medium,Genus-level oyster host
+P.falciparum,Plasmodium falciparum,5833,medium,Common abbreviation
+Palythoa,Palythoa,86596,medium,Genus-level cnidarian host
+Parrotbill,Passeriformes,9126,medium,Common bird group
+peony,Paeonia,13625,medium,Common plant host
+Phocidae,Phocidae,9709,high,Family-level seal host
+Pigeonpea,Cajanus cajan,3821,medium,Common crop name
+Polyblastidium,Polyblastidium,2884779,medium,Genus-level fungal or lichen host
+Polygala,Polygala,4275,medium,Genus-level plant host
+Polytelis,Polytelis,35544,medium,Genus-level bird host
+Porphyla,Porphyra,2784,medium,Likely misspelling of Porphyra
+Porqupine,Rodentia,9989,medium,Misspelling of porcupine
+Pumkin,Cucurbita,3660,medium,Misspelling of pumpkin
+Pygathrix,Pygathrix,54132,medium,Genus-level primate host
+R. pseudoacacia L.,Robinia pseudoacacia,35938,high,Botanical abbreviation
+raccoondog,Nyctereutes procyonoides,34880,medium,Common name
+Rapeseed,Brassica napus,3708,medium,Common crop name
+red-billed woodhoopoe,Phoeniculus purpureus,113189,medium,Common bird name
+reed,Poaceae,4479,medium,Conservative grass-family mapping
+Ryegrass,Lolium,4520,medium,Common grass genus
+S.paradoxus,Saccharomyces paradoxus,27291,medium,Common abbreviation
+Saccharum,Saccharum,4546,medium,Genus-level sugarcane host
+Saffron,Crocus sativus,82528,medium,Common crop name
+Salvelinus,Salvelinus,8033,medium,Genus-level fish host
+Sangiovese,Vitis vinifera,29760,medium,Wine grape cultivar
+Sanqi,Panax notoginseng,44586,medium,Common medicinal plant name
+Serrasalmidae,Serrasalmidae,42495,high,Family-level fish host
+sika,Cervus nippon,9863,medium,Common name
+slender-horned gazella,Gazella leptoceros,69303,medium,Common name
+Spaghnum,Sphagnum,13804,medium,Misspelling of Sphagnum
+Spheniscidae,Spheniscidae,9231,high,Family-level penguin host
+stag,Cervidae,9850,medium,Male deer common label
+Suricat,Suricata suricatta,37032,medium,Suricate or meerkat common name
+Tabaco,Nicotiana tabacum,4097,medium,Tobacco spelling variant
+Three-lined grunt (Parapristipoma trilineatum),Parapristipoma trilineatum,360507,high,Scientific name supplied in parentheses
+Tomate,Solanum lycopersicum,4081,medium,Tomato common name variant
+vetch,Vicia,3904,medium,Common plant genus
+vine,Viridiplantae,33090,medium,Ambiguous vine retained as broad plant
+Weasel,Mustelidae,9655,medium,Common mustelid family
+Weever,Trachinidae,56735,medium,Common fish family
+wenyujin,Curcuma wenyujin,136221,medium,Medicinal plant common name
+wheatgrass,Triticum,4564,medium,Common wheat genus
+White-Breasted Nuthatch,Sitta carolinensis,50250,medium,Common bird name
+White-faced saki,Pithecia pithecia,43777,medium,Common primate name
+wood-wren,Henicorhina,109453,medium,Common bird genus
+Myodes sp,Myodes,447134,medium,genus-level sp label
+Erodium sp.,Erodium,21555,medium,genus-level sp label
+Agapostemon sp.,Agapostemon,88590,medium,genus-level sp label
+Augochlorella sp.,Augochlorella,178017,medium,genus-level sp label
+Ircinia cf. reteplana JBK-2021,Ircinia,275431,medium,cf and voucher removed to genus
+Sander vitreus and Perca sp.,Percidae,8165,medium,multiple hosts mapped to family
+Anopheles gambiae strain G3,Anopheles gambiae,7165,medium,strain removed
+Cleopatra sp.,Cleopatra,223730,medium,genus-level sp label
+Filago sp.,Filago,261771,medium,genus-level sp label
+Iophon sp.,Iophon,1336928,medium,genus-level sp label
+Allomyria dichotoma,Allomyrina dichotoma,273928,medium,spelling normalized
+Alyscotermes sp.,Alyscotermes,377663,medium,genus-level sp label
+Aphidus ervi,Aphidius ervi,37627,medium,spelling normalized
+Beilhmielda manni,Beilschmiedia mannii,2708731,medium,spelling normalized
+common redpoll,Acanthis flammea,54769,medium,common name normalized
+Dialictus sp.,Dialictus,88475,medium,genus-level sp label
+Dipodomys sp.,Dipodomys,10016,medium,genus-level sp label
+dolphinfish (mahi-mahi),Coryphaena hippurus,34814,medium,common name normalized
+Gallas gallas domesticus,Gallus gallus domesticus,9031,medium,spelling normalized
+Homalodisca coagulata (glassy-winged sharpshooter),Homalodisca vitripennis,197043,medium,synonym normalized
+Lophophysema sp. RT-2015,Poecilosclerida,27925,medium,uncertain sponge mapped to order
+marine ciliate,Ciliophora,5878,medium,broad ciliate host
+Micromys sp,Micromys,13150,medium,genus-level sp label
+Microtus sp,Microtus,10053,medium,genus-level sp label
+Nasonia sp. VxG hybrid,Nasonia,7424,medium,hybrid descriptor removed
+Poecilosclerida sp.,Poecilosclerida,27925,medium,order-level label
+Sayornic nigricans,Sayornis nigricans,183530,medium,spelling normalized
+Spongia sp.,Spongia,121489,medium,genus-level sp label
+Valerianella locusta (L.) Laterr.,Valerianella locusta,59166,medium,authority removed
+zoanthid Palythoa caribaeorum,Palythoa caribaeorum,134933,medium,descriptor removed
+Abyssinian ground hornbill,Bucorvus abyssinicus,153643,medium,common name normalized
+Acanthaphora specifera,Acanthophora spicifera,385024,medium,spelling normalized
+Achillia millefolium,Achillea millefolium,13329,medium,spelling normalized
+Adelaide Rosella,Platycercus,35541,medium,common name conservatively mapped to genus
+African spoonbiil,Platalea alba,33578,medium,common name spelling normalized
+Akashiwo sangruia,Akashiwo sanguinea,143672,medium,spelling normalized
+Anaerameoba flamelloides Busselton2,Anaeramoeba flamelloides,1746091,medium,suffix removed and spelling normalized
+Ananeramoeba flamelloides Schooner1,Anaeramoeba flamelloides,1746091,medium,suffix removed and spelling normalized
+Anastrepha ludens black pupae (BP) Genetic sexing strain Guatemala-10 (aka Family 10),Anastrepha ludens,28586,medium,life-stage and strain removed
+Anopheles gambiae G3 strain (malaria mosquito),Anopheles gambiae,7165,medium,strain and descriptor removed
+Anopheline albitarsis,Anopheles albitarsis,58236,medium,label normalized
+Aplysina fulva (marine sponge),Aplysina fulva,289401,medium,parenthetical removed
+aquatic mosses,Bryophyta,3208,medium,broad moss host
+arctic char,Salvelinus alpinus,8036,medium,common name normalized
+Arctium lappa L.,Arctium lappa,4217,medium,authority removed
+Arthrocaulon sp.,Arthrocaulon,2116365,medium,genus-level sp label
+Asteriscus sp.,Asteriscus,56520,medium,genus-level sp label
+Athyrium wallichianum Ching,Athyrium wallichianum,2055122,medium,authority removed
+Aulonothroscus sp. AUS03,Aulonothroscus,445462,medium,suffix removed
+Axinellida sp. (marine sponge),Axinellida,1779152,medium,broad sponge order
+Bembidion lapponicum OSAC:DRMaddison DNA3974,Bembidion lapponicum,447293,medium,voucher removed
+Bembidion nr. transversale OSAC:DRMaddison DNA3205,Bembidion transversale,528238,medium,near and voucher text removed cautiously
+Bradysia coprophila Holo2,Bradysia coprophila,38358,medium,line suffix removed
+Branta canadensis parvipes,Branta canadensis,8853,medium,subspecies collapsed
+Buahinia variegata,Bauhinia variegata,167791,medium,spelling normalized
+Camponotus (Colobopsis) obliquus,Camponotus obliquus,3058748,medium,subgenus removed
+Camponotus pennsylvanicus Antoinette #7,Camponotus pennsylvanicus,104422,medium,colony suffix removed
+Canarium ovatum Engl.,Canarium ovatum,43691,medium,authority removed
+Canthopagrus schlegeli,Acanthopagrus schlegelii,72011,medium,accepted fish name
+capercailie grouse,Tetrao urogallus,100830,medium,common name normalized
+Centroscyllium fabricii (deep sea shark),Centroscyllium fabricii,170813,medium,parenthetical removed
+Ceratitis capitata Genetic Sexing Strain (GSS) strain Vienna 8 (D53-)/Toliman 99,Ceratitis capitata,7213,medium,strain text removed
+Ceratitis capitata line Ccap10.3,Ceratitis capitata,7213,medium,line text removed
+Cervus nippon mandarinus,Cervus nippon,9863,medium,subspecies collapsed
+Chaenophryne sp.,Chaenophryne,412638,medium,genus-level sp label
+Chaeonophryne sp.,Chaenophryne,412638,medium,spelling normalized
+Chambourcin sp.,Vitis,3603,medium,cultivar mapped to genus
+Chinese chive,Allium tuberosum,4683,medium,common name normalized
+Chinese chives,Allium tuberosum,4683,medium,common name normalized
+chinese okra,Luffa acutangula,56866,medium,common name normalized
+Chinese silvergrass,Miscanthus sinensis,62337,medium,common name normalized
+Chrysomya megacephala (blowfly),Chrysomya megacephala,115424,medium,parenthetical removed
+Cicadidae sp. C,Cicadidae,7033,medium,family-level candidate
+Class Hexactinellida,Hexactinellida,60882,medium,class-level sponge label
+Coccorella sp.,Coccorella,172146,medium,genus-level sp label
+comb pen shell,Bivalvia,6544,medium,broad bivalve label
+Contoneaster amiguus,Cotoneaster ambiguus,1143214,medium,spelling normalized
+Crape Myrtle,Lagerstroemia,122809,medium,common name mapped to genus
+Crategus cuneata,Crataegus cuneata,2741994,medium,spelling normalized
+Crella incrustans levis,Crella incrustans,1114232,medium,variety suffix removed
+Damaliscus pygargus phillips,Damaliscus pygargus,9931,medium,suffix removed
+Desmonium incanum,Desmodium incanum,564662,medium,spelling normalized
+Diaphorina citri Kuwayama,Diaphorina citri,121845,medium,authority removed
+Dictyonema sp. 2651,Dictyonema,39673,medium,sample suffix removed
+Dictyonema sp. 3644,Dictyonema,39673,medium,sample suffix removed
+Dictyonema sp. 3668,Dictyonema,39673,medium,sample suffix removed
+Dirofilaria (Dirofilaria) immitis,Dirofilaria immitis,6287,medium,subgenus removed
+diseased yellow croaker,Larimichthys crocea,215358,medium,disease descriptor removed
+Dune Marsh Elder Iva imbricata,Iva imbricata,913330,medium,common prefix removed
+eastern boxelder,Acer negundo,4023,medium,common name normalized
+Echinochloa crusgalli (L.) Beauv.,Echinochloa crus-galli,90397,medium,authority removed and spelling normalized
+Enarsia hispida,Encarsia hispida,119697,medium,spelling normalized
+Epalzeothynchos frenatum,Epalzeorhynchos frenatum,2848748,medium,spelling normalized
+Ephestia (Aphomia) qularis,Aphomia gularis,1915117,medium,subgenus and spelling normalized
+Ephistia cautella,Ephestia cautella,12985,medium,spelling normalized
+european roe,Capreolus capreolus,9858,medium,common name normalized
+Focha andina,Fulica ardesiaca,555253,medium,Spanish common name normalized
+forage rape,Brassica napus,3708,medium,crop common name
+Fritillariae Cirrhosae,Fritillaria cirrhosa,108544,medium,medicinal plant label
+Giant seaperch,Lates calcarifer,8187,medium,common name normalized
+Greek oregano,Origanum vulgare,39352,medium,common name normalized
+green eggplant,Solanum melongena,4111,medium,cultivar label normalized
+Green spruce,Picea,3328,medium,broad common name mapped to genus
+Guang Chen Pi,Citrus reticulata,85571,medium,medicinal label normalized
+Guar pulse,Cyamopsis tetragonoloba,3832,medium,crop label normalized
+Guinea multimammate,Mastomys,30639,medium,common name mapped to genus
+Hipocampus ingens (seahorse),Hippocampus ingens,109285,medium,spelling normalized
+Howardula sp.,Howardula,209929,medium,genus-level sp label
+Ipomea obscura,Ipomoea obscura,89652,medium,spelling normalized
+Isolated from cauliflower,Brassica oleracea,3712,medium,source phrase normalized
+Ixodes aulacodi str. Akure,Ixodes aulacodi,1790017,medium,strain suffix removed
+Ixodes frontalis str. Montpellier,Ixodes frontalis,213683,medium,strain suffix removed
+Ixodes ricinus str. Naples,Ixodes ricinus,34613,medium,strain suffix removed
+Ixodes ricinus str. Viterbo,Ixodes ricinus,34613,medium,strain suffix removed
+Ixodes stilesi collected from Oligoryzomys longicaudatus,Ixodes stilesi,330945,medium,collection text removed
+king palm,Arecaceae,4710,medium,Finalized by reviewer batch 4
+Kroswia sp. S13,Kroswia,1344011,medium,Finalized by reviewer batch 4
+Latuca sp.,Lactuca,4235,medium,Finalized by reviewer batch 4
+Lepidocollema sp. S4,Lepidocollema,1618045,medium,Finalized by reviewer batch 4
+Leptosemia sp. G,Leptosemia,179420,medium,Finalized by reviewer batch 4
+Listrus sp. 00,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 01,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 02,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 04,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 06,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 07,Listrus,1710671,medium,Finalized by reviewer batch 4
+Listrus sp. 09,Listrus,1710671,medium,Finalized by reviewer batch 4
+Lobaria pulmonaria thallus,Lobaria pulmonaria,86794,medium,Finalized by reviewer batch 4
+Luffae sp.,Luffa,3669,medium,Finalized by reviewer batch 4
+Macherium nyctitans,Machaerium nyctitans,450035,medium,Finalized by reviewer batch 4
+Mantidactylus aff. curtus 19,Mantidactylus curtus,143435,medium,Finalized by reviewer batch 4
+Maoctra Veneriformis,Mactra veneriformis,120570,medium,Finalized by reviewer batch 4
+Marantha leuconeura,Maranta leuconeura,34203,medium,Finalized by reviewer batch 4
+Marcelaria sp.,Marcelaria,1562556,medium,Finalized by reviewer batch 4
+Marmosa camescens,Marmosa canescens,225728,medium,Finalized by reviewer batch 4
+Meenoplinae sp.,Meenoplinae,1401837,medium,Finalized by reviewer batch 4
+Mephitiade sp.,Mephitidae,119825,medium,Finalized by reviewer batch 4
+Merlot sp.,Vitis vinifera,29760,medium,Finalized by reviewer batch 4
+mexican lime,Citrus aurantiifolia,159033,medium,Finalized by reviewer batch 4
+"Myrtea sp. ""scaly one"" KF741663",Myrtea,183491,medium,Finalized by reviewer batch 4
+Myxilla sp. 4,Myxilla,118320,medium,Finalized by reviewer batch 4
+Neotyphloceras sp.,Neotyphloceras,507071,medium,Finalized by reviewer batch 4
+Nephrolepsis exaltata,Nephrolepis exaltata,34165,medium,Finalized by reviewer batch 4
+NewZealand rabbits,Oryctolagus cuniculus,9986,medium,Finalized by reviewer batch 4
+Nightshade (Solanum nigrum),Solanum nigrum,4112,medium,Finalized by reviewer batch 4
+Nippon ibis,Nipponia nippon,128390,medium,Finalized by reviewer batch 4
+olive knot (Olea europaea),Olea europaea,4146,medium,Finalized by reviewer batch 4
+Onchorhynchus apache,Oncorhynchus apache,209197,medium,Finalized by reviewer batch 4
+Orizae sativa L.,Oryza sativa,4530,medium,Finalized by reviewer batch 4
+Ornithdoros turicata,Ornithodoros turicata,34597,medium,Finalized by reviewer batch 4
+Ornithdoros turicatae,Ornithodoros turicata,34597,medium,Finalized by reviewer batch 4
+Others -Heterodon platrhinos,Heterodon platirhinos,8597,medium,Finalized by reviewer batch 4
+Others -Oxycirrhites typus,Oxycirrhites typus,587059,medium,Finalized by reviewer batch 4
+Otis tarde,Otis tarda,73107,medium,Finalized by reviewer batch 4
+Pallasiomys meridianus,Meriones meridianus,261754,medium,Finalized by reviewer batch 4
+Passerculus sandwichensis beldingi,Passerculus sandwichensis,161624,medium,Finalized by reviewer batch 4
+pasture gramineae,Poaceae,4479,medium,Finalized by reviewer batch 4
+Peanuts (Arachis hypogea L.),Arachis hypogaea,3818,medium,Finalized by reviewer batch 4
+Pelicanus rufescens,Pelecanus rufescens,1243782,medium,Finalized by reviewer batch 4
+Phaecochoerus aethipicus,Phacochoerus aethiopicus,85517,medium,Finalized by reviewer batch 4
+Phgllotreta striolaea,Phyllotreta striolata,444603,medium,Finalized by reviewer batch 4
+Photos sp.,Pothos,174212,medium,Finalized by reviewer batch 4
+Phyllanthus urinaria L,Phyllanthus urinaria,296035,medium,Finalized by reviewer batch 4
+Phyton sp.,Python,37579,medium,Finalized by reviewer batch 4
+Picochloruma sp. 122,Picochlorum,249344,medium,Finalized by reviewer batch 4
+Pinot Noir,Vitis vinifera,29760,medium,Finalized by reviewer batch 4
+Planarians flatworm,Tricladida,6159,medium,Finalized by reviewer batch 4
+Plantanus sp.,Platanus,4402,medium,Finalized by reviewer batch 4
+Polyalae radix,Polygala,4275,medium,Finalized by reviewer batch 4
+Polychachis laevissima,Polyrhachis laevissima,616287,medium,Finalized by reviewer batch 4
+Polyrhachis (Hedomyrma) turneri,Polyrhachis turneri,111087,medium,Finalized by reviewer batch 4
+Porities sp.,Porites,46719,medium,Finalized by reviewer batch 4
+Porphyrae yezoensis (red alga),Porphyra yezoensis,2788,medium,Finalized by reviewer batch 4
+Pullet carpet shell,Veneridae,6592,medium,Finalized by reviewer batch 4
+putative tunicate,Tunicata,7712,medium,Finalized by reviewer batch 4
+red cocoyam,Araceae,4454,medium,Finalized by reviewer batch 4
+red marine alga,Rhodophyta,2763,medium,Finalized by reviewer batch 4
+Rheum palmatum L.,Rheum palmatum,137221,medium,Finalized by reviewer batch 4
+Rhizoma kaempferiae,Kaempferia galanga,97750,medium,Finalized by reviewer batch 4
+Rhynchosiae phaseoloides,Rhynchosia phaseoloides,2730134,medium,Finalized by reviewer batch 4
+Ridgea piscesae,Ridgeia piscesae,27915,medium,Finalized by reviewer batch 4
+roe buck,Capreolus capreolus,9858,medium,Finalized by reviewer batch 4
+Rubus caesius (transferred with Cuscuta europaea),Rubus caesius,75065,medium,Finalized by reviewer batch 4
+ruby grapefruit,Citrus paradisi,37656,medium,Finalized by reviewer batch 4
+Russian Sage,Perovskia atriplicifolia,268885,medium,Finalized by reviewer batch 4
+Salp sp.,Salpidae,34759,medium,Finalized by reviewer batch 4
+Saurania reinwardti,Saurauia reinwardtiana,2945189,medium,Finalized by reviewer batch 4
+Schizaphis graminum biotype I,Schizaphis graminum,13262,medium,Finalized by reviewer batch 4
+Scomber japonicus peruanus,Scomber japonicus,13676,medium,Finalized by reviewer batch 4
+sesame seedling,Sesamum indicum,4182,medium,Finalized by reviewer batch 4
+Siberian jerboa (Allactagasibirica),Allactaga sibirica,234626,medium,Finalized by reviewer batch 4
+Sinapsis avensis,Sinapis arvensis,2982281,medium,Finalized by reviewer batch 4
+small cardamom,Elettaria cardamomum,105181,medium,Finalized by reviewer batch 4
+smooth vetch,Vicia villosa,3911,medium,Finalized by reviewer batch 4
+South american tapirus terrestris,Tapirus terrestris,9801,medium,Finalized by reviewer batch 4
+spotted hyena,Crocuta crocuta,9678,medium,Finalized by reviewer batch 4
+sprouted soy,Glycine max,3847,medium,Finalized by reviewer batch 4
+Steirnernema unicornum,Steinernema unicornum,759381,medium,Finalized by reviewer batch 4
+string beans,Phaseolus vulgaris,3885,medium,Finalized by reviewer batch 4
+sugar cane YZ08-1095,Saccharum,4546,medium,Finalized by reviewer batch 4
+Sula nebouxi,Sula nebouxii,37087,medium,Finalized by reviewer batch 4
+Thai silk cocoon,Bombyx mori,7091,medium,Finalized by reviewer batch 4
+Thalictrum simplex L,Thalictrum simplex,495765,medium,Finalized by reviewer batch 4
+Thamnidium elegans WA0000018081,Thamnidium elegans,101142,medium,Finalized by reviewer batch 4
+Tichocarpus crinitus (red alga),Tichocarpus crinitus,38364,medium,Finalized by reviewer batch 4
+Tinamu major,Tinamus major,30468,medium,Finalized by reviewer batch 4
+Trachemys scripta callirostris,Trachemys scripta,34903,medium,Finalized by reviewer batch 4
+Tryonyx sinensis (Chinese soft-shell turtle),Pelodiscus sinensis,13735,medium,Finalized by reviewer batch 4
+tubeworm trophosome,Annelida,6340,medium,Finalized by reviewer batch 4
+Turbinaria peltata (coral),Turbinaria peltata,2971088,medium,Finalized by reviewer batch 4
+Ursidae sp.,Ursidae,9632,medium,Finalized by reviewer batch 4
+Verdot sp.,Vitis vinifera,29760,medium,Finalized by reviewer batch 4
+Vibernum davidii,Viburnum davidii,237932,medium,Finalized by reviewer batch 4
+weaned Rex rabbits,Oryctolagus cuniculus,9986,medium,Finalized by reviewer batch 4
+Westrigia fruticosa,Westringia fruticosa,664412,medium,Finalized by reviewer batch 4
+white elm,Ulmus americana,29740,medium,Finalized by reviewer batch 4
+white pelican,Pelecanus,33617,medium,Finalized by reviewer batch 4
+White radish,Raphanus sativus,3726,medium,Finalized by reviewer batch 4
+whole panna microdon,Panna microdon,588791,medium,Finalized by reviewer batch 4
+wild chukar,Alectoris chukar,9078,medium,Finalized by reviewer batch 4
+wild orchid,Orchidaceae,4747,medium,Finalized by reviewer batch 4
+wild rabbits,Oryctolagus cuniculus,9986,medium,Finalized by reviewer batch 4
+Winterberry holly,Ilex verticillata,185559,medium,Finalized by reviewer batch 4
+Wohrlfartia sp.,Wohlfahrtia,128961,medium,Finalized by reviewer batch 4
+Xestospongia sp. SYM12 (sponge),Xestospongia,178550,medium,Finalized by reviewer batch 4
+Xestosponiga sp. QYP07 (sponge),Xestospongia,178550,medium,Finalized by reviewer batch 4
+yellow legged gulls,Larus michahellis,119627,medium,Finalized by reviewer batch 4
+yellowfin seabream,Acanthopagrus latus,8177,medium,Finalized by reviewer batch 4
+Ziziphus mauritiana Lam,Ziziphus mauritiana,157914,medium,Finalized by reviewer batch 4
+water-lettuce,Pistia stratiotes,4477,high,Reviewed hyphenated common-name variant for Pistia stratiotes; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+waterlettuce,Pistia stratiotes,4477,high,Reviewed concatenated common-name variant for Pistia stratiotes; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+shorebird,Charadriiformes,8906,medium,Reviewed broad common-name mapping; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+shore bird,Charadriiformes,8906,medium,Reviewed spaced common-name variant; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+shorebirds,Charadriiformes,8906,medium,Reviewed plural common-name variant; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+Cuttloefish,Sepiidae,6608,medium,Reviewed misspelling mapped conservatively to cuttlefish family; TaxID confirmed with local NCBI Taxonomy via TaxonKit.

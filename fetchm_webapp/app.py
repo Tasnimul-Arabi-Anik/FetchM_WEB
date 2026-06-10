@@ -4099,6 +4099,9 @@ def apply_core_standardization_overrides() -> None:
     )
 
 
+HOST_REVIEWED_CONTEXT_RULES: dict[str, str] = {}
+
+
 def load_external_standardization_rules() -> None:
     for row in load_standardization_csv(STANDARDIZATION_DIR / "host_synonyms.csv"):
         synonym = normalize_standardization_lookup(row.get("synonym"))
@@ -4111,6 +4114,12 @@ def load_external_standardization_rules() -> None:
             HOST_BROAD_SYNONYMS[synonym] = (canonical, taxid)
         else:
             HOST_SYNONYMS[synonym] = (canonical, taxid)
+
+    for row in load_standardization_csv(STANDARDIZATION_DIR / "host_context_rules.csv"):
+        synonym = normalize_standardization_lookup(row.get("synonym"))
+        context = (row.get("context") or "").strip()
+        if synonym and context:
+            HOST_REVIEWED_CONTEXT_RULES[synonym] = context
 
     for row in load_standardization_csv(STANDARDIZATION_DIR / "host_negative_rules.csv"):
         synonym = normalize_standardization_lookup(row.get("synonym"))
@@ -4299,6 +4308,9 @@ def extract_host_context_fields(value: Any) -> dict[str, str]:
     microbial_context = microbial_self_descriptor_context(text)
     if microbial_context is not None:
         context["Host_Context_SD"] = microbial_context[0]
+    reviewed_context = HOST_REVIEWED_CONTEXT_RULES.get(normalize_standardization_lookup(text))
+    if reviewed_context:
+        context["Host_Context_SD"] = reviewed_context
     for pattern, field, label in HOST_CONTEXT_PATTERNS:
         if pattern.search(text) and not context[field]:
             context[field] = label
@@ -4529,6 +4541,16 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
                 "Host_TaxID": taxid,
                 "Host_SD_Method": HOST_APPROVED_RULE_METHOD.get(candidate, "dictionary"),
                 "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "high"),
+                "Host_Review_Status": "approved" if candidate in HOST_APPROVED_RULE_METHOD else "accepted",
+            }
+    for candidate in standardization_lookup_variants(original):
+        if candidate in HOST_BROAD_SYNONYMS:
+            name, taxid = HOST_BROAD_SYNONYMS[candidate]
+            return {
+                "Host_SD": name,
+                "Host_TaxID": taxid,
+                "Host_SD_Method": HOST_APPROVED_RULE_METHOD.get(candidate, "broad_dictionary"),
+                "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "medium"),
                 "Host_Review_Status": "approved" if candidate in HOST_APPROVED_RULE_METHOD else "accepted",
             }
     for key, (name, taxid) in HOST_SUBSTRING_SYNONYMS.items():

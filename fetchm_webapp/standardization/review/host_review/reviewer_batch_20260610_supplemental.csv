@@ -1,0 +1,5 @@
+raw_host,final_is_approved,final_host,final_taxid,final_confidence,rule_type,match_method,reviewer_note
+shorebird,TRUE,Charadriiformes,8906,medium,broad_host,reviewed_common_name,Reviewed broad common-name mapping; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+shore bird,TRUE,Charadriiformes,8906,medium,broad_host,reviewed_common_name,Reviewed spaced common-name variant; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+shorebirds,TRUE,Charadriiformes,8906,medium,broad_host,reviewed_common_name,Reviewed plural common-name variant; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
+Cuttloefish,TRUE,Sepiidae,6608,medium,broad_host,reviewed_common_name,Reviewed misspelling mapped conservatively to cuttlefish family; TaxID confirmed with local NCBI Taxonomy via TaxonKit.

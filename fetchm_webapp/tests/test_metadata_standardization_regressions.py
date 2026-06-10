@@ -77,6 +77,18 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(error, "")
         self.assertIn("does not match", rows[0]["_taxonomy_error"])
 
+    def test_exact_medium_rule_precedes_generic_broad_substring(self) -> None:
+        key = "shore bird"
+        previous = fetchm_app.HOST_BROAD_SYNONYMS.get(key)
+        fetchm_app.HOST_BROAD_SYNONYMS[key] = ("Charadriiformes", "8906")
+        standardized = fetchm_app.standardize_host_metadata(key)
+        self.assertEqual(standardized["Host_SD"], "Charadriiformes")
+        self.assertEqual(standardized["Host_TaxID"], "8906")
+        if previous is None:
+            fetchm_app.HOST_BROAD_SYNONYMS.pop(key, None)
+        else:
+            fetchm_app.HOST_BROAD_SYNONYMS[key] = previous
+
     def test_reviewed_common_name_rule_overrides_broad_dictionary(self) -> None:
         key = "water lettuce"
         fetchm_app.HOST_SYNONYMS.pop(key, None)
