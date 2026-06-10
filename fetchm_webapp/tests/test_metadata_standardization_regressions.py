@@ -77,6 +77,32 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(error, "")
         self.assertIn("does not match", rows[0]["_taxonomy_error"])
 
+    def test_reviewed_common_name_rule_overrides_broad_dictionary(self) -> None:
+        key = "water lettuce"
+        fetchm_app.HOST_SYNONYMS.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_CONFIDENCE.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_METHOD.pop(key, None)
+        fetchm_app.apply_approved_standardization_rule_to_memory({
+            "original_value": key,
+            "destination": "Host_SD",
+            "proposed_value": "Pistia stratiotes",
+            "ontology_id": "4477",
+            "method": "reviewed_common_name",
+            "confidence": "high",
+        })
+
+        standardized = fetchm_app.standardize_host_metadata(key)
+        enriched = fetchm_app.enrich_host_standardization(key, standardized)
+
+        self.assertEqual(enriched["Host_SD"], "Pistia stratiotes")
+        self.assertEqual(enriched["Host_TaxID"], "4477")
+        self.assertEqual(enriched["Host_Match_Method"], "reviewed_common_name")
+        self.assertEqual(enriched["Host_Confidence"], "high")
+        self.assertEqual(enriched["Host_Review_Status"], "approved")
+        fetchm_app.HOST_SYNONYMS.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_CONFIDENCE.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_METHOD.pop(key, None)
+
     def test_medium_confidence_manual_exact_rule_remains_exact(self) -> None:
         key = "reviewed exact medium host"
         fetchm_app.HOST_SYNONYMS.pop(key, None)
@@ -95,6 +121,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(standardized["Host_SD_Confidence"], "medium")
         fetchm_app.HOST_SYNONYMS.pop(key, None)
         fetchm_app.HOST_APPROVED_RULE_CONFIDENCE.pop(key, None)
+        fetchm_app.HOST_APPROVED_RULE_METHOD.pop(key, None)
 
     def test_host_curation_approval_overlay_avoids_full_cache_rebuild(self) -> None:
         rows = [

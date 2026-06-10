@@ -4161,6 +4161,7 @@ load_external_standardization_rules()
 
 
 HOST_APPROVED_RULE_CONFIDENCE: dict[str, str] = {}
+HOST_APPROVED_RULE_METHOD: dict[str, str] = {}
 
 
 def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> None:
@@ -4191,6 +4192,7 @@ def apply_approved_standardization_rule_to_memory(rule: Mapping[str, Any]) -> No
         HOST_APPROVED_RULE_CONFIDENCE[normalized_value] = confidence or (
             "high" if exact_rule else "medium"
         )
+        HOST_APPROVED_RULE_METHOD[normalized_value] = method
         clear_standardization_runtime_caches()
         return
 
@@ -4430,7 +4432,7 @@ def enrich_host_standardization(value: Any, host: Mapping[str, str]) -> dict[str
             "Host_SD_Confidence": str(host.get("Host_SD_Confidence") or ""),
             "Host_Match_Method": str(host.get("Host_SD_Method") or ""),
             "Host_Confidence": str(host.get("Host_SD_Confidence") or ""),
-            "Host_Review_Status": (
+            "Host_Review_Status": host.get("Host_Review_Status") or (
                 "accepted"
                 if host.get("Host_TaxID")
                 else (
@@ -4491,16 +4493,18 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
                 return {
                     "Host_SD": name,
                     "Host_TaxID": taxid,
-                    "Host_SD_Method": "dictionary",
+                    "Host_SD_Method": HOST_APPROVED_RULE_METHOD.get(candidate, "dictionary"),
                     "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "high"),
+                    "Host_Review_Status": "approved" if candidate in HOST_APPROVED_RULE_METHOD else "accepted",
                 }
             if candidate in HOST_BROAD_SYNONYMS:
                 name, taxid = HOST_BROAD_SYNONYMS[candidate]
                 return {
                     "Host_SD": name,
                     "Host_TaxID": taxid,
-                    "Host_SD_Method": "broad_dictionary",
-                    "Host_SD_Confidence": "medium",
+                    "Host_SD_Method": HOST_APPROVED_RULE_METHOD.get(candidate, "broad_dictionary"),
+                    "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "medium"),
+                    "Host_Review_Status": "approved" if candidate in HOST_APPROVED_RULE_METHOD else "accepted",
                 }
     if cleaned in NON_HOST_SOURCE_HINTS:
         return {
@@ -4523,8 +4527,9 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
             return {
                 "Host_SD": name,
                 "Host_TaxID": taxid,
-                "Host_SD_Method": "dictionary",
+                "Host_SD_Method": HOST_APPROVED_RULE_METHOD.get(candidate, "dictionary"),
                 "Host_SD_Confidence": HOST_APPROVED_RULE_CONFIDENCE.get(candidate, "high"),
+                "Host_Review_Status": "approved" if candidate in HOST_APPROVED_RULE_METHOD else "accepted",
             }
     for key, (name, taxid) in HOST_SUBSTRING_SYNONYMS.items():
         pattern = rf"(^|\s){re.escape(key.replace('.', ''))}(\s|$)"

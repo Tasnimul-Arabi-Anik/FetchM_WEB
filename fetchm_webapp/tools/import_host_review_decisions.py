@@ -17,6 +17,7 @@ from app import app, save_approved_standardization_rule
 APPROVED_TYPES = {"exact_host", "broad_host"}
 REJECTED_TYPES = {"ignore", "non_host_source", "missing"}
 RULE_TYPE_ALIASES = {
+    "exact_or_genus_taxon": "exact_host",
     "exact_taxonomy_or_cleaned_scientific_name": "exact_host",
     "broad_taxonomy_or_common_name": "broad_host",
     "ignore_unsafe_ambiguous": "ignore",
@@ -128,7 +129,9 @@ def import_row(row: dict[str, str], approved_by: str, dry_run: bool) -> tuple[st
             return "invalid", f"{raw_host}: approved host has no final_host"
         if not taxid:
             return "unresolved", f"{raw_host}: no TaxID for {proposed_host}"
-        method = "manual_host_curation" if rule_type == "exact_host" else "manual_broad_host_curation"
+        method = first_value(row, "match_method", "host_match_method")
+        if not method:
+            method = "manual_host_curation" if rule_type == "exact_host" else "manual_broad_host_curation"
         confidence = confidence or ("high" if rule_type == "exact_host" else "medium")
         if not dry_run:
             save_approved_standardization_rule(
