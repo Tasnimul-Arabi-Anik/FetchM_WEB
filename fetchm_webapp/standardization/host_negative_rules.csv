@@ -718,3 +718,5 @@ fish,not_identifiable,Reviewed broad biological context label. Preserve Host_Con
 algae,not_identifiable,Reviewed broad algal context; do not force Host_SD. Preserve Host_Context_SD without forcing Host_SD.
 lichen,not_identifiable,Reviewed broad lichen context; do not force Host_SD. Preserve Host_Context_SD without forcing Host_SD.
 zooplankton,not_identifiable,Reviewed broad zooplankton context. Preserve Host_Context_SD without forcing Host_SD.
+Archaea_Bacteria,non_host_source,Reviewed microbial_taxon_in_host_field: mixed microbial superkingdom label in host field; do not populate Host_SD.
+gram-positive bacteria,non_host_source,Reviewed microbial_taxon_in_host_field: bacterial group label in host field; do not populate Host_SD.

@@ -4477,6 +4477,13 @@ def standardize_host_metadata(value: Any) -> dict[str, str]:
             "Host_SD_Confidence": "none",
         }
     cleaned = clean_host_lookup_text(original)
+    if normalize_standardization_lookup(original) in HOST_REVIEWED_CONTEXT_RULES:
+        return {
+            "Host_SD": "",
+            "Host_TaxID": "",
+            "Host_SD_Method": "not_identifiable",
+            "Host_SD_Confidence": "none",
+        }
     if microbial_self_descriptor_context(cleaned) is not None:
         return {
             "Host_SD": "",

@@ -15,3 +15,7 @@ Zooplatnkon,zooplankton,Reviewed typo for zooplankton context.
 zooplankton,zooplankton,Reviewed broad zooplankton context.
 bracket mold,fungus,Reviewed broad fungal context label.
 green alga,green algae,Reviewed broad green algae context label.
+crutose lichen,lichen,Reviewed typo/variant of crustose lichen; lichen growth-form host context only; do not force Host_SD.
+crustose lichen,lichen,Reviewed lichen growth-form host context only; do not force Host_SD.
+foliose lichen,lichen,Reviewed lichen growth-form host context only; do not force Host_SD.
+pelagic zooplankton,zooplankton,Reviewed ecological zooplankton host context only; do not force Host_SD.

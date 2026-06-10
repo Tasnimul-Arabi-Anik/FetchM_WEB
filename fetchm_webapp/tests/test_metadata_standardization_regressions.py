@@ -40,8 +40,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("algae", "algae"),
             ("lichen", "lichen"),
             ("lichens", "lichen"),
+            ("crutose lichen", "lichen"),
+            ("crustose lichen", "lichen"),
+            ("foliose lichen", "lichen"),
             ("Pisces", "fish"),
             ("Zooplatnkon", "zooplankton"),
+            ("pelagic zooplankton", "zooplankton"),
             ("bracket mold", "fungus"),
             ("green alga", "green algae"),
             ("Basunti mas", "fish"),
@@ -124,6 +128,11 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("fish", "fish"),
             ("Pisces", "fish"),
             ("Zooplatnkon", "zooplankton"),
+            ("zooplankton", "zooplankton"),
+            ("crutose lichen", "lichen"),
+            ("crustose lichen", "lichen"),
+            ("foliose lichen", "lichen"),
+            ("pelagic zooplankton", "zooplankton"),
             ("green alga", "green algae"),
             ("marine invertebrate", "marine invertebrate"),
         ]:
@@ -134,6 +143,16 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(enriched["Host_SD"], "")
             self.assertEqual(enriched["Host_TaxID"], "")
             self.assertEqual(enriched["Host_Context_SD"], expected_context)
+
+    def test_reviewed_microbial_group_labels_do_not_force_host_sd(self) -> None:
+        for raw_host in ["Archaea_Bacteria", "gram-positive bacteria"]:
+            enriched = fetchm_app.enrich_host_standardization(
+                raw_host,
+                fetchm_app.standardize_host_metadata(raw_host),
+            )
+            self.assertEqual(enriched["Host_SD"], "")
+            self.assertEqual(enriched["Host_TaxID"], "")
+            self.assertEqual(enriched["Host_Review_Status"], "non_host_source")
 
     def test_reviewed_common_name_rule_overrides_broad_dictionary(self) -> None:
         key = "water lettuce"
