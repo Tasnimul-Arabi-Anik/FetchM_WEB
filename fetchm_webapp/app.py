@@ -3661,14 +3661,17 @@ def normalized_isolation_source_context(
     if cleaned in {
         "clinical fluid material",
         "clinical host associated material",
-        "respiratory sample",
         "host associated context",
+    }:
+        return isolation_source, "sample_context_router"
+    if cleaned in {
         "healthcare associated environment",
         "agricultural environment",
-        "plant associated material",
         "environmental material",
     }:
-        return isolation_source, ""
+        return isolation_source, "environment_context_router"
+    if cleaned == "plant associated material":
+        return isolation_source, "host_context_router"
 
     if environment_medium:
         raw_environment = normalize_standardization_lookup(environment_medium)
@@ -3694,8 +3697,14 @@ def normalized_isolation_source_context(
         ):
             return "clinical/host-associated material", "sample_context_router"
 
-    if isolation_site and (canonical_anatomical_site(isolation_source) or cleaned == "canal"):
-        return "clinical/host-associated material", "anatomy_source_router"
+    if isolation_site:
+        raw_site = normalize_standardization_lookup(isolation_site)
+        if raw_site and cleaned == raw_site:
+            if re.search(r"(?:plant|leaf|root|rhizosphere|stem|flower|fruit|seed)", cleaned):
+                return "plant-associated material", "host_context_router"
+            return "clinical/host-associated material", "anatomy_source_router"
+        if canonical_anatomical_site(isolation_source) or cleaned == "canal":
+            return "clinical/host-associated material", "anatomy_source_router"
     return isolation_source, ""
 
 

@@ -1370,6 +1370,16 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(ear_canal["Isolation_Site_SD"], "organ/tissue site")
         self.assertEqual(ear_canal["Isolation_Source_SD"], "clinical/host-associated material")
 
+        respiratory = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "respiratory sample"})
+        self.assertEqual(respiratory["Sample_Type_SD"], "respiratory sample")
+        self.assertEqual(respiratory["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(respiratory["Isolation_Source_SD_Method"], "sample_context_router")
+
+        leaf_tissue = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "leaf tissue"})
+        self.assertEqual(leaf_tissue["Isolation_Site_SD"], "leaf tissue")
+        self.assertEqual(leaf_tissue["Isolation_Source_SD"], "plant-associated material")
+        self.assertEqual(leaf_tissue["Isolation_Source_SD_Method"], "host_context_router")
+
         for material, expected in [
             ("blood", "blood"),
             ("stool", "feces/stool"),

@@ -320,12 +320,28 @@ def generate_qa(
                             THEN 'route_to_non_source_descriptor'
                         WHEN {present_sql(source_expr)} AND {present_sql(sample_expr)}
                              AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({sample_expr}))
+                             AND COALESCE({method_expr}, '') NOT IN (
+                                 'sample_context_router',
+                                 'food_source_context',
+                                 'host_context_router'
+                             )
                             THEN 'route_to_sample_type'
                         WHEN {present_sql(source_expr)} AND {present_sql(medium_expr)}
                              AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({medium_expr}))
+                             AND COALESCE({method_expr}, '') NOT IN (
+                                 'environment_context_router',
+                                 'food_source_context',
+                                 'host_context_router'
+                             )
                             THEN 'route_to_environment_medium'
                         WHEN {present_sql(source_expr)} AND {present_sql(site_expr)}
                              AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({site_expr}))
+                             AND COALESCE({method_expr}, '') NOT IN (
+                                 'anatomy_source_router',
+                                 'sample_context_router',
+                                 'food_source_context',
+                                 'host_context_router'
+                             )
                             THEN 'route_to_isolation_site'
                         ELSE NULL
                     END AS action
