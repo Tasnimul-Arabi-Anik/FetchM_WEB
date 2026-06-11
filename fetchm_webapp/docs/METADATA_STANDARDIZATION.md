@@ -87,3 +87,5 @@ Latest canonical checkpoint:
 - Raw-only unresolved isolation-source rows: 286,950
 - Non-approved broad source rows: 0
 - Controlled-category duplicate/conflict keys: 0/0
+- QA implementation commit: `ebdc418`
+- Versioned artifacts: `standardization/review/source_sample_environment_qa/20260611/`

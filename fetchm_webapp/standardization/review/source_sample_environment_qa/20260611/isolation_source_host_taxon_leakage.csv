@@ -1,0 +1,326 @@
+isolation_source_sd,assembly_count,recommended_action
+poultry meat/product,77728,route_to_food_source
+plant-associated material,20751,route_to_host_context
+turkey meat/product,14061,route_to_food_source
+plant/produce food product,6677,route_to_food_source
+plant stem,942,route_to_host_context
+plant root/rhizosphere,767,route_to_host_context
+ground chicken,669,route_to_food_source
+food/animal-production swab,668,route_to_sample_type
+Animal-Calf-Bob Veal,137,route_to_host_context
+Wild Animal,123,route_to_host_context
+animal by-product,112,route_to_host_context
+cat,91,route_to_host_context
+Animal-Calf-Formula-fed Veal,90,route_to_host_context
+animal feed,85,route_to_host_context
+Mouse embryonic cells,64,route_to_host_context
+Domestic animal,47,route_to_host_context
+Animal-Goat,43,route_to_host_context
+Animal feed,37,route_to_host_context
+Animal-Calf-Non Formula-fed Veal,29,route_to_host_context
+Animal Tissue,27,route_to_sample_type
+poultry meat,26,route_to_food_source
+oyster product,25,route_to_food_source
+Computer keyboard and mouse,22,route_to_host_context
+animal feed canola meal,20,route_to_host_context
+Domestic cat,19,route_to_host_context
+Wild animal,19,route_to_host_context
+dog chew,18,route_to_host_context
+Mouse ES Cells,17,route_to_host_context
+dog treat,16,route_to_host_context
+hot dog,16,route_to_host_context
+mouse spinal cord microglia,13,route_to_host_context
+Cat nape,12,route_to_host_context
+Pig product,12,route_to_host_context
+Whole animal,11,route_to_host_context
+animal feed wheat,11,route_to_host_context
+Balb/C mouse gall bladder,10,route_to_isolation_site
+Rat,10,route_to_host_context
+animal-associated,9,route_to_host_context
+retail raw cream cow,9,route_to_host_context
+Mouse,8,route_to_host_context
+computer keyboard/mouse,8,route_to_host_context
+frozen feeder mouse,8,route_to_host_context
+whole animal,8,route_to_host_context
+Animal hide,7,route_to_host_context
+booties (outside chicken tractor),7,route_to_food_source
+keyboard/mouse,7,route_to_host_context
+"ward, keyboard mouse",7,route_to_host_context
+Animal Feed,6,route_to_host_context
+Animal-Calf,6,route_to_host_context
+Dog treat,6,route_to_host_context
+Human melanoma cell line,6,route_to_host_context
+"K562 cells, mouse embryonic fibroblasts",6,route_to_host_context
+Mouse frontal cortex,6,route_to_host_context
+final product sale animal origin,6,route_to_host_context
+mouse deer,6,route_to_host_context
+Domestic dog,5,route_to_host_context
+animal waste,5,route_to_host_context
+cow udder,5,route_to_host_context
+mouse mature T-cells,5,route_to_host_context
+raw pig,5,route_to_host_context
+Animal - Avian,4,route_to_host_context
+Animal Bedding,4,route_to_host_context
+Bos taurus (Cow),4,route_to_host_context
+animal feed feather meal,4,route_to_host_context
+dog bite,4,route_to_host_context
+mouse jejunal,4,route_to_host_context
+rawhide dog chew,4,route_to_host_context
+Animal Protein Products,3,route_to_host_context
+Captive animal,3,route_to_host_context
+Dog Conch,3,route_to_host_context
+Dog nape,3,route_to_host_context
+"Dog, pet",3,route_to_host_context
+Hot Dog,3,route_to_host_context
+"Mouse fibroblast, L929",3,route_to_host_context
+animal associated,3,route_to_host_context
+animal calf bob veal,3,route_to_host_context
+animal feed distiller dry grain cake,3,route_to_host_context
+animal feed soybean meal,3,route_to_host_context
+animal feed wheat bran,3,route_to_host_context
+animal tissue,3,route_to_sample_type
+baked dog treat,3,route_to_host_context
+bovine dog treat,3,route_to_host_context
+canola meal for animal feed,3,route_to_host_context
+dog paws,3,route_to_host_context
+duodenum of female CD1 mouse,3,route_to_host_context
+feather animal meal,3,route_to_host_context
+frozen animal feed adult mouse,3,route_to_host_context
+frozen animal feed baby mouse,3,route_to_host_context
+frozen animal feed young mouse,3,route_to_host_context
+house mouse,3,route_to_host_context
+hydrolyzed feather animal meal,3,route_to_host_context
+mouse colonic,3,route_to_host_context
+rat poison,3,route_to_host_context
+soybean meal animal feed,3,route_to_host_context
+"Amphibian, Wild Animal, Frog",2,route_to_host_context
+Animal-Bearded Dragon,2,route_to_host_context
+Animal-Bison,2,route_to_host_context
+Animal-Calf-Heavy Calf,2,route_to_host_context
+Animal-Turtle,2,route_to_host_context
+Bos (cattle),2,route_to_food_source
+"Cat, pet",2,route_to_host_context
+Dog Treats,2,route_to_host_context
+"Dog, lip",2,route_to_host_context
+Elanco Animal Health,2,route_to_host_context
+"Feed, animal-based",2,route_to_host_context
+HOT DOG,2,route_to_host_context
+Hot Dog Sausage,2,route_to_host_context
+Hot dog-parowka,2,route_to_host_context
+Livestock animal,2,route_to_host_context
+Lohmann Animal Health,2,route_to_host_context
+Mouse KO miRNA26B,2,route_to_host_context
+Mouse microbiome,2,route_to_host_context
+Ngari (fermented fish),2,route_to_host_context
+Pustules of a dog,2,route_to_host_context
+"Reptile, Wild Animal, Snake",2,route_to_host_context
+"Tissue, animal",2,route_to_sample_type
+Zoo animal,2,route_to_host_context
+animal feed blend,2,route_to_host_context
+animal feed cotton seed meal,2,route_to_host_context
+animal feed distilled corn,2,route_to_host_context
+animal feed sesame meal,2,route_to_host_context
+animal origin,2,route_to_host_context
+animal protein,2,route_to_host_context
+booties (chicken field),2,route_to_food_source
+central nervous system of the animal,2,route_to_host_context
+deer mouse or kangaroo rat,2,route_to_host_context
+dog chews pizzle,2,route_to_host_context
+dog treat deer antler,2,route_to_host_context
+dog treat lamb crumble,2,route_to_host_context
+dried animal hooves,2,route_to_host_context
+dried ostrich dog treat,2,route_to_host_context
+dry dog kibble,2,route_to_host_context
+freshwater fish product,2,route_to_host_context
+frozen animal feed feeder mouse,2,route_to_host_context
+frozen animal feed pink baby mouse,2,route_to_host_context
+frozen animal feed raw for cat,2,route_to_host_context
+hnRNP L KO mouse,2,route_to_host_context
+industrialized animal ration,2,route_to_host_context
+jejunum from mouse on 7% by weight (16% by calorie) soybean oil diet,2,route_to_host_context
+kangaroo rat,2,route_to_host_context
+mouse,2,route_to_host_context
+mouse embryonic fibroblasts,2,route_to_host_context
+mouse mature inner hair cells,2,route_to_host_context
+mouse mature outer hair cells,2,route_to_host_context
+organ from animal collected from slaughterhouse,2,route_to_host_context
+raw cream cow,2,route_to_host_context
+rawhide dog treat,2,route_to_host_context
+wt mouse,2,route_to_host_context
+"7 DIV E16.5 mouse cortical neurons, before and after membrane depolarization induced by extracellular potassium",1,route_to_host_context
+Animal - Avian-Yolk sac,1,route_to_host_context
+Animal - Rodent,1,route_to_host_context
+Animal bite,1,route_to_host_context
+Animal excrete,1,route_to_host_context
+Animal facility,1,route_to_host_context
+"Animal facility center (vivarium, bioterio) from Institute of Tropical Medicine",1,route_to_host_context
+Animal feed (hay),1,route_to_host_context
+Animal lymphoma parotid,1,route_to_host_context
+Animal lymphoma pre-scapular,1,route_to_host_context
+Animal lymphoma retrofaringeo,1,route_to_host_context
+Animal lymphoma scapular,1,route_to_host_context
+Animal rearing facility,1,route_to_host_context
+"Animal, Animal",1,route_to_host_context
+"Animal, cat",1,route_to_host_context
+"Animal, iguana",1,route_to_host_context
+"Animal, organs/carcasses",1,route_to_host_context
+"Animal, reptile",1,route_to_host_context
+Animal-Gecko,1,route_to_host_context
+Animal-Leopard Gecko,1,route_to_host_context
+Animal-Snake,1,route_to_host_context
+Animal-snake,1,route_to_host_context
+Animal-turtle,1,route_to_host_context
+"Avian, Wild Animal, Bird",1,route_to_host_context
+"Base of eucalyptus tree near dog training area at Reseda Park, a suburban public park",1,route_to_host_context
+"Base of pine tree, Collie dog tied to tree near dog drinking fountain, Coronado Park",1,route_to_host_context
+Base of shrub at back entrance to private residence; dog is kept in back yard,1,route_to_host_context
+"Base of tree near dog drinking fountain, Coronado Park, Coronado Island",1,route_to_host_context
+C57Bl/6 mouse at an animal facility,1,route_to_host_context
+C57Bl/6 mouse at the Animal Research Facility,1,route_to_host_context
+CANOLA MEAL FOR ANIMAL FEED,1,route_to_host_context
+Cat (Fecal),1,route_to_host_context
+Cat faeces,1,route_to_sample_type
+"Cat, gingiva",1,route_to_host_context
+Cold salad (chicken),1,route_to_food_source
+Computer mouse,1,route_to_host_context
+Cow,1,route_to_host_context
+"Dipodomys californicus, California kangaroo rat",1,route_to_host_context
+Dog ears,1,route_to_host_context
+"Dog, implant",1,route_to_host_context
+"Dog, implant site",1,route_to_host_context
+"Dog, not reported",1,route_to_host_context
+"Dog, vocal cords",1,route_to_host_context
+Exudate from a dog,1,route_to_host_context
+Flea captured from prairie dog burrow showing signs of recent die-off,1,route_to_host_context
+Ground swine,1,route_to_food_source
+Human carious dentine,1,route_to_host_context
+Human gingival crevice,1,route_to_host_context
+Ileal mucosa of a 12-week-old female TNF DeltaARE mouse,1,route_to_host_context
+Ixodes ricinus larvae cultured in MKP-F (human serum),1,route_to_sample_type
+Jaw lesion in adult cow,1,route_to_host_context
+Kusaya gravy (fermented brine used for the production dried fish),1,route_to_host_context
+Larson prairie dog colony,1,route_to_host_context
+Left femur of elderly Sprague Dawley rat,1,route_to_host_context
+"Mouse CD4 and CD8 positive T cells, Thymus, FACS",1,route_to_host_context
+Mouse embryonic fibroblasts,1,route_to_host_context
+Mouse microbiota,1,route_to_host_context
+National Veterinary Research Institute PIWet Puawy (animal origin),1,route_to_host_context
+OSKM-iPS mouse derived fibroblast cells,1,route_to_host_context
+P0 Neonatal mouse microglia,1,route_to_host_context
+"Primate, Wild Animal, Golden Lion Tamarin Monkey",1,route_to_host_context
+Probiotic animal feed,1,route_to_host_context
+Rat snake (pet),1,route_to_host_context
+Recovered dog,1,route_to_host_context
+"Reptile, Wild Animal, Agamid",1,route_to_host_context
+"Reptile, Wild Animal, Halys viper",1,route_to_host_context
+"Reptile, Wild Animal, Lizard",1,route_to_host_context
+"Reptile, Wild Animal, Terrapin",1,route_to_host_context
+"Reptile, Wild Animal, Turtle",1,route_to_host_context
+Retina from E13.5 mouse embryo,1,route_to_host_context
+Retina from E14.5 mouse embryo,1,route_to_host_context
+Retina from E15.5 mouse embryo,1,route_to_host_context
+Retina from E18.5 mouse embryo,1,route_to_host_context
+Rice-straw residue from a methanogenic reactor treating waste from cattle farms,1,route_to_food_source
+Rice-straw residue obtained from a methanogenic reactor treating waste collected from cattle farms,1,route_to_food_source
+"Scabs from cattle, North Rhodesia",1,route_to_food_source
+Sigmodon hispidus (cotton rat),1,route_to_host_context
+Som fak (Thai fermented fish),1,route_to_host_context
+Sturgeon (fish),1,route_to_host_context
+Surfaces of lower molars of Sprague Dawley rat,1,route_to_host_context
+Swine dysentery,1,route_to_food_source
+TSKM-iPS mouse derived fibroblast cells,1,route_to_host_context
+UCSB animal house,1,route_to_host_context
+WILD CAT,1,route_to_host_context
+"WPCP 1 2329 Danielsville-Colbert Rd, past the Madison/Oglethorpe Animal Shelter",1,route_to_host_context
+Weanling pig,1,route_to_host_context
+Wild rat,1,route_to_host_context
+Young adult whole animal,1,route_to_host_context
+animal calf formula fed veal,1,route_to_host_context
+animal cloacal swabs,1,route_to_host_context
+animal droppings,1,route_to_host_context
+animal dung,1,route_to_host_context
+animal facilities of Max-Planck-Institute for Evolutionary Biology,1,route_to_host_context
+animal feed bison pellet,1,route_to_host_context
+animal feed bulk protein,1,route_to_host_context
+animal feed compressed pellet,1,route_to_host_context
+animal feed cotton seed hull,1,route_to_host_context
+animal feed dried senna pod,1,route_to_host_context
+animal feed hen,1,route_to_host_context
+animal feed layer,1,route_to_host_context
+animal feed laying mash,1,route_to_host_context
+animal feed ovine meal,1,route_to_host_context
+animal feed soybean hull,1,route_to_host_context
+animal feed sweet oat,1,route_to_host_context
+animal feed vitamin supplement,1,route_to_host_context
+animal feed zoo diet,1,route_to_host_context
+"animal feed, bulk ground corn",1,route_to_host_context
+"animal feed, soybean meal",1,route_to_host_context
+animal host,1,route_to_host_context
+animal pen floor,1,route_to_host_context
+animal scat,1,route_to_host_context
+booties (inside chicken tractor),1,route_to_food_source
+bulk soyplus animal feed,1,route_to_host_context
+bully bites dog chews,1,route_to_host_context
+bully hide roll dog treat,1,route_to_host_context
+bully stick dog chews,1,route_to_host_context
+canola meal animal feed,1,route_to_host_context
+cat bite,1,route_to_host_context
+cat bladder clot,1,route_to_isolation_site
+cat claw dietary supplement,1,route_to_host_context
+cat claw powder herbal product,1,route_to_host_context
+cat fleas,1,route_to_host_context
+collected in Swedish Zoo from an animal originally from South Africa,1,route_to_host_context
+cow dung,1,route_to_host_context
+daily vitamin for cat and kitten,1,route_to_host_context
+digestive flora (rat),1,route_to_host_context
+dog nail,1,route_to_host_context
+dog pen,1,route_to_host_context
+dog tissue,1,route_to_sample_type
+dried venison dog treat,1,route_to_host_context
+dry dog feed,1,route_to_host_context
+feed to animal,1,route_to_host_context
+flea captured from prairie dog burrow showing signs of recent die-off,1,route_to_host_context
+fried eel (fish),1,route_to_host_context
+frozen dried raw super boost for dog,1,route_to_host_context
+frozen fuzzie feeder mouse,1,route_to_host_context
+frozen pinkie feeder mouse,1,route_to_host_context
+fur from dog that had recently been in Pacific Ocean,1,route_to_host_context
+ground swine,1,route_to_food_source
+hand (human),1,route_to_host_context
+host body (fish),1,route_to_host_context
+hot-dog,1,route_to_host_context
+hydrolized feather animal meal,1,route_to_host_context
+joint from feeder animal,1,route_to_host_context
+kangaroo tail dog chew,1,route_to_host_context
+kelp meal for animal,1,route_to_host_context
+"mouse embryo, day 10",1,route_to_host_context
+mouse embryos,1,route_to_host_context
+"mouse fibroblast NIH3T3 cells, infected with MHV-68",1,route_to_disease_or_health_state
+mouse necropsy,1,route_to_host_context
+mouse passage,1,route_to_host_context
+"olivier salad (potatoes, eggs, pickled cucumbers, carrots, chicken, peas, mayonnaise)",1,route_to_food_source
+organ from animal collected by hunter,1,route_to_host_context
+pet treat dog biscuit,1,route_to_host_context
+pet treat dog biscuits,1,route_to_host_context
+pet treat dog chew,1,route_to_host_context
+pet treat for cat,1,route_to_host_context
+phage resistant from mouse experiment,1,route_to_host_context
+plague epizootic in a Gunnison's prairie dog colony,1,route_to_host_context
+plant material,1,route_to_host_context
+rawhide moccasin dog treat chews,1,route_to_host_context
+render cattle by product,1,route_to_food_source
+rodent deer mouse,1,route_to_host_context
+rodent kangaroo rat,1,route_to_host_context
+sea-animal; barnacle on rock and mussels,1,route_to_host_context
+shoulder animal,1,route_to_host_context
+skinless hot dog,1,route_to_host_context
+soy meal animal feed,1,route_to_host_context
+soybean animal meal,1,route_to_host_context
+soybean meal for animal feed,1,route_to_host_context
+soymeal animal feed,1,route_to_host_context
+tumeric coated dog chew,1,route_to_host_context
+unground oats (animal feed),1,route_to_host_context
+venison cubes dog treat,1,route_to_host_context
+vitamin chewable tablet for dog,1,route_to_host_context
+"ward, keyboard mouse stand",1,route_to_host_context
+zoo animal,1,route_to_host_context

@@ -1,0 +1,10 @@
+field,present_count,present_percent
+Isolation_Source_SD,1984892,63.38
+Isolation_Source_SD_Broad,1831325,58.48
+Sample_Type_SD,1687861,53.9
+Environment_Medium_SD,507647,16.21
+Environment_Broad_Scale_SD,981225,31.33
+Environment_Local_Scale_SD,622966,19.89
+Isolation_Site_SD,999106,31.9
+Host_Disease_SD,57258,1.83
+Host_Health_State_SD,75393,2.41

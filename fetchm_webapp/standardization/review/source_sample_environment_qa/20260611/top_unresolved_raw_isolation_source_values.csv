@@ -1,0 +1,1001 @@
+raw_isolation_source,assembly_count
+human,166402
+chicken,9322
+patient,7310
+not known,4507
+human feces,4225
+animal-swine-market swine,3937
+animal-cattle-dairy cow,3900
+animal-cattle-steer,3578
+animal-chicken-young chicken,3547
+animal,3230
+Poultry,2763
+human listeriosis,2475
+pig,2401
+animal-cattle-heifer,2147
+animal-swine-sow,1968
+turkey,1658
+human stool,1550
+bovine,1462
+Human faeces,1400
+Animal-Turkey-Young Turkey,1399
+cattle,1377
+Chicken Wings,1294
+Chicken Thighs,1159
+Hospitalized patient,1017
+animal-cattle-beef cow,1004
+fly,943
+cattle manure,936
+cow,899
+Chicken caeca,869
+Homo sapiens,831
+Chicken Breasts,818
+not available: to be reported later,785
+Chicken Legs,721
+Retail chicken,700
+fish,696
+human-associated habitat,679
+healthy people,672
+equine,592
+cattle feces,527
+Animal-Sheep-Lamb (cecal),511
+Non-hospitalized person,497
+pulmonary sample from from cystic fibrosis patient,496
+Chicken Gizzard,494
+dog,490
+dairy cattle manure,482
+Human bacterial culture,466
+canine,460
+Human infection,454
+swine,445
+duck,441
+Animal-Sheep-Mature Sheep (cecal),413
+poultry,407
+Human Stool,402
+avian,400
+Companion animal,375
+poultry manure,365
+human - faeces,355
+chicken litter,346
+"Human, Blood",343
+Animal-Chicken-Heavy Fowl,338
+Cattle faeces,321
+human blood,310
+goat,309
+Host,308
+tracheal aspirates from patient ventilator,306
+low methane producing sheep,305
+Chicken faeces,300
+mosquito,296
+Human sample,289
+human - bacteraemia,288
+isolate from patient sample,287
+human sputum,284
+Feces of Homo sapiens (GER),277
+soil adjacent to human cadaver hip,277
+Feces of Homo sapiens (DK),275
+Infants,271
+homo,271
+chicken feces,268
+Human blood sample,267
+Chicken Gizzard (Giblets),265
+feces from patient with diarrhea,260
+"Human, Stool",253
+Human stool,252
+cattle fecal samples,250
+Human body sites or biosamples,244
+feral pig,241
+chickens,238
+sheep,236
+Human urine,233
+high methane producing sheep,222
+Chicken thighs,220
+Hospital patients,216
+human infection,211
+whole Stomoxys flies,208
+poultry litter,206
+Commercial Turkey,201
+fecal sample from STEC-infected patient,188
+not recorded,187
+human biome,184
+retail chicken,179
+sheep recto-anal junction,178
+Patient Sinus Swab,174
+human fecal sample,165
+Feces of Homo sapiens (DRC),163
+poultry feces,161
+Feces of Homo sapiens (CIV),160
+Cattle feces,149
+Fermented cow milk,149
+Human Saliva,149
+chicken slaughter houses,149
+Chicken feces,146
+Chicken from wild market,145
+Chicken Whole - cut in lab,143
+chicken thigh,143
+pig stool,142
+Poultry slughterhouses,138
+Human,137
+Fresh chicken,133
+Human colorectal mucosa,130
+Pooled sheep faecal samples collected from floor of farm,126
+Chicken giblets (CL-1),125
+patient with infection,124
+Chickens,122
+Human body,120
+Human feces,120
+cow paddock straw bedding,120
+'missing',119
+"human, urine",118
+chicken drag swab,115
+pig feces,111
+Chicken wings,109
+human orapharyngeals,108
+stool (fecal) sample from asymptomatic human participant,107
+pig ears,104
+Feral swine feces,103
+Poultry environment,103
+Chicken instestinal microbiome,100
+chicken breasts,98
+Chicken breasts,97
+NRTE (Not-Ready-to-Eat) Comminuted Poultry Exploratory Sampling - Chickens,97
+packaged whole turkey,97
+Cattle Hide,96
+blood from patient with bacteremia,96
+chicken manure swab,96
+intestinal contents of pig,96
+Human blood,95
+broiler chickens,95
+Chicken livers,94
+chicken from wet market,94
+10 mM sulfoquinovose-amended vegetarian human fecal microcosm,93
+chicken wing,93
+Poultry internal organs,92
+human saliva,91
+Avian,90
+Pig tissue,90
+Chicken neck cute,88
+chicken thighs,88
+cystic fibrosis patient,87
+Chicken carcasses,86
+Cystic fibrosis human lung,86
+Chicken Hearts,83
+Pig stool,82
+Chicken Livers,81
+human-associated,81
+dairy cattle manure digester,80
+individual chicken cloaca,77
+cow's milk,76
+dairy cattle manure (Bos taurus),76
+human faeces,76
+Poultry [FOODON:00004298],75
+chicken manure,75
+Raw sheep milk,73
+Chicken from supermarket,72
+Human Feces,72
+Frozen Chicken Shawrma,71
+Frozen whole chicken carcasses,70
+feces of feedlot cattle,69
+cattle stool,68
+human urine,68
+human carrier,67
+cow milk,66
+#REF!,65
+Human sputum,65
+table-egg layer chicken,65
+Chicken feather,64
+Patient (nasal),64
+chicken wings,64
+feces cow,64
+patient sample,64
+Animal-Sheep-Lamb,63
+Pig feces,63
+human faecal samples,63
+missing: control sample,62
+non-organic retail chicken,62
+Chicken Gizzards,60
+Poultry shed,60
+homo sapiens,60
+Young Chicken,58
+not available: not collected,58
+Chicken gizzards,57
+Whole Chicken,57
+asymptomatic patient,57
+pig fecal swab,57
+"""dairy cattle manure, Bos taurus""",56
+Frozen chicken,56
+Retail Poultry,56
+Chicken environment,55
+poultry house overshoe (Gallus gallus domesticus),55
+chicken salad,54
+diseased pig,54
+"pool of bioreactors CSTR01a, CSTR02a, and CSTR03a; thermophilic anaerobic digestion of cattle manure in continuous reactors for biogas production (methane)",54
+chicken cloacal swab,53
+chicken giblets,53
+Swine manure pit,52
+fecal sample from patient with Hemolytic Uremic Syndrome,52
+Broiler chickens,51
+Chicken giblets (CG-1),51
+Chicken gizzard,50
+Unknown/Unspecified,50
+Swine body,49
+Chicken Mixed Parts,48
+Human isolate,48
+Pooled sheep fecal samples collected from floor of farm,48
+feedlot cattle feces,48
+Chicken Giblets,47
+Chicken Wing,47
+mucosal tissue from Crohns disease patient,47
+"Abattoir, chicken",46
+Animal-Sheep-Mature Sheep,46
+Blood sample from septic human participant,46
+Chicken embryo,46
+"Human, Faeces",46
+turkey fluff,46
+Human Sample,45
+human beard,45
+Poultry slaugherhouse B,44
+feral swine feces,44
+Chicken (Retail),43
+chicken embryo,43
+swine feces,43
+Animal-Cattle-Dairy Cow (lymph node),42
+Chicken samples,41
+colonic content of eviscerated cattle,41
+cow feces,41
+human blood culture,41
+CHICKEN GIZZARD,40
+Dairy Cattle,40
+"Fattening pig, feces",40
+Human Endothlial cell line,40
+Human Listeriosis,40
+cow paddock straw bedding bovine dairy,40
+patient fluids,40
+whole chicken,40
+Chicken Giblet,39
+Healthy dairy cow (Bos taurus),39
+dairy cow feces,39
+cow veal calf,38
+feces (cloacal swab/caeca) from domestic chicken,38
+Animal-Swine-Feces,37
+human vaginal swab,37
+Chicken legs,36
+Commercial Turkey Barn,36
+Human fecal samples,36
+Patient sample,36
+sheep feces,36
+Chicken hearts,35
+Cow Feces,35
+"cattle feces, cows",35
+chicken (food),35
+sputum of adult cystic fibrosis patient,35
+Animal,34
+Chicken giblets (CH-1),34
+Poultry slaugherhouse A,34
+chicken gizzard,34
+chicken hearts,34
+cow dung,34
+restricted access,34
+frozen chicken,33
+Chicken ceacum,32
+Poultry faeces,32
+human body,32
+human lung transplant,32
+infant,32
+not determined,32
+organic retail chicken,32
+swine facility,32
+Chicken giblets (CH-2),31
+Human Intestine,31
+Young Turkey,31
+feces pig,31
+pig feaces,31
+Livestock swine,30
+chicken stool,30
+human stool samples,30
+pasteurized chicken sausage,30
+sputum from cystic fibrosis patient,30
+Chicken Thigh,29
+Chicken intestine,29
+drag swab poultry,29
+sputum from CF patient,29
+Chicken (Farm),28
+Cow feces,28
+"Sheep, milk",28
+Tuberculosis Patient,28
+chicken gizzards,28
+chicken paper,28
+human feces in bioreactor,28
+packaged chicken,28
+ANIMAL-chicken,27
+Chicken (Abattoir),27
+Chicken&Duck,27
+Fecal samples of broiler chickens,27
+chicken piece,27
+de-identified patient sample,27
+feces from asymptomatic of infected patient,27
+packaged turkey,27
+Food-chicken,26
+Human Blood,26
+Pig faeces,26
+Poultry slaughterhouse C,26
+fecal sample from patient with diarrhea,26
+Chicken carcasse,25
+Cystic Fibrosis human lung,25
+Human Blood culture,25
+Human-associated habitat,25
+Patient Bed Zone,25
+Patient with decompensated cirrhosis at Hannover Medical School,25
+Pig embryo,25
+Pre-slaughter chicken,25
+chicken waste,25
+cow udder,25
+frozen poultry from supermarket in South Africa,25
+"human, blood",25
+Chicken drumsticks,24
+Poultry production system,24
+Young Chickens,24
+[ENVO:00000446],24
+clinically healthy pig,24
+CHICKEN BREASTS,23
+Chicken - Mixed Parts,23
+Chicken eggs,23
+Patient (oral rinse),23
+Poultry vendoors and farms,23
+chicken droppings,23
+cow calf,23
+human blood monocytes,23
+human milk,23
+pig manure,23
+Grass with Chicken Manure,22
+Human (feces),22
+Pig (baby) - fecal,22
+Poultry litter,22
+Poultry rinsate,22
+chicken (Sonali breed),22
+chicken drumsticks,22
+feces market swine,22
+porcine pig intestine,22
+poultry soil,22
+Chicken gizzard (giblets),21
+Chicken wing,21
+sheep meat,21
+steer feces,21
+Cattle,20
+Chicken ecal dropping,20
+Patient-hands,20
+pig faeces,20
+poultry feed,20
+(blank),19
+CHICKEN THIGHS,19
+CHICKEN WINGS,19
+Cattle cowdung,19
+Dog,19
+Homo-sapien,19
+Human saliva,19
+Human vaginal,19
+"Human, Feces",19
+Market Swine,19
+chicken field feces,19
+finished chicken,19
+"human, missing",19
+Animal-Cattle-Bull,18
+Carrier pig,18
+Chicken Ileum,18
+Diarrheal patient,18
+"Human, Blood culture",18
+Patient Blood,18
+Poultry production settings,18
+Retail Chicken,18
+Swine Biome,18
+chicken house,18
+raw sheep milk,18
+tonsil from Healthy pig in slaughterhouse,18
+turkey sandwich,18
+Stool from hospitalized human,17
+bovine cow intestine,17
+chicken carcacess,17
+feces young chicken,17
+fermented cow milk,17
+human-associated biome,17
+Chicken chicken gizzard,16
+Chicken-Mixed Parts,16
+Fly,16
+Human colonisation,16
+Human patient,16
+chicken salad sandwich,16
+feces dairy cow (Bos taurus),16
+feces heifer,16
+human WBC H3K27me3,16
+milk bovine cow,16
+poultry manure (Gallus gallus domesticus),16
+produce near cattle,16
+Animal-Swine-Roaster Swine,15
+Chicken,15
+Chicken hearts (giblets),15
+Chicken livers (giblets),15
+Cow milk,15
+Human sputum sample,15
+Patient sputum,15
+Pig carcasses,15
+Pig production settings,15
+Poultry/Soil,15
+chicken intestinal concent,15
+cloaca of chicken,15
+cow manure,15
+human cell line,15
+pooled poultry feces,15
+swine fecal,15
+CHICKEN LIVERS,14
+Chicken Chicken Gizzard,14
+Infected Human Urine,14
+Poultry Litter,14
+Poultry drinking water,14
+Turkey Patties,14
+cattle egret,14
+chicken egg,14
+chicken litter digestates,14
+sputum of child cystic fibrosis patient,14
+"turkey, faecal samples",14
+Breeder chickens,13
+Cattle faecal sample,13
+Cattle fecal sample,13
+Chicken Drumsticks,13
+Chicken Mixed parts,13
+Chicken giblets (CG-2),13
+Chicken gizzards and hearts,13
+Cystic fibrosis patient,13
+JD_chickens,13
+Poultry (Meat),13
+Poultry barn,13
+Poultry offal,13
+Retail Chicken Carcasse,13
+Retail Turkey,13
+Swine feces,13
+Unknown Specimen Type,13
+blood from critically ill patient,13
+bovine (Bos taurus),13
+chicken legs,13
+chicken livers,13
+chicken sandwich,13
+chicken wing (Gallus gallus),13
+feces young turkey,13
+frozen whole chicken carcasses,13
+porcine pig intestine small,13
+poultry slaughterhouse,13
+Bovine,12
+Chicken chicken wings,12
+Chicken litter,12
+Fish (Salmon),12
+Homo sapiens faeces,12
+Human stool samples,12
+Isolated from feces from dairy cow,12
+Tonsil pig,12
+bovine cow intestine small,12
+lungs of cystic fibrosis patient A,12
+patient fecal,12
+poultry chicken,12
+tissue sample from feedlot cattle,12
+Bovine (Fecal),11
+Chicken (Diagnostic),11
+Chicken Nuggets,11
+Chicken breeding farms,11
+Chicken thigh,11
+Human faecal,11
+Human monocyte-derived macrophages,11
+Kge_cow_field,11
+Pig (sow) - fecal,11
+Pig anus swab,11
+a feces sample of swine origin,11
+chicken slaughter chill tank (Gallus gallus),11
+frozen poultry shipment from Brazil sampled at South African port of entry,11
+human melanoma,11
+patient blood culture samples,11
+poultry drag swab,11
+sheep ground meat,11
+swine sausage,11
+Albertan feedlot cattle,10
+Animal-Cattle-Beef Cow (lymph node),10
+Animal-Cattle-Heifer (lymph node),10
+Animal-Swine-Meat,10
+Chicken - Whole cut in lab,10
+Domestic pig,10
+GIST882 Human GIST Cells,10
+Homo Sapiens,10
+Human Eyes,10
+Human Urine,10
+Human fecal sample,10
+Human healthy carriers,10
+"Human, Fluids",10
+Marinated chicken,10
+Patient's blood,10
+Poultry faecal material,10
+Restricted access,10
+Stewed chicken,10
+"Swine, Livestock",10
+bovine cow uterus,10
+"cattle feces, juveniles",10
+chicken house front,10
+cow cheese,10
+fecal sample from diarrhoea affected cattle B,10
+lungs of cystic fibrosis patient C,10
+patient blood,10
+patient specimen,10
+pig feed,10
+"pig, feces",10
+poultry shed,10
+sheep ovine,10
+turkey swiss sandwich,10
+Animal - Chicken,9
+Animal-Cattle-Steer (lymph node),9
+Animal-Poultry-Feces,9
+Bovine (Meat),9
+Cattle/Soil,9
+Chicken (meat),9
+Chicken Chicken Thigh,9
+Chicken Food,9
+Chicken shed overboot,9
+Collected from patient during rainy season,9
+Grass with Cow Manure,9
+Guinea Pig,9
+Heifer shed 1 (older cows),9
+Patient-AC fossae,9
+Swine manure,9
+Turkey salad (in-store),9
+Whole chicken,9
+[ENVO:00000428],9
+chicken chicken gizzard,9
+chicken feed,9
+chicken giblet,9
+chicken house back,9
+chicken intestine,9
+chicken water,9
+egg poultry,9
+fecal pasture close to dairy cow,9
+feces cattle,9
+live pig swab,9
+pig slaughterhouse,9
+pig slaughterhouse wastewater,9
+stool specimen from a Guillain-Barre syndrome patient,9
+CHICKEN GIZZARDS,8
+CHICKEN LEGS,8
+Chicken (Processing),8
+Chicken Faeces,8
+Chicken Whole-Cut In Lab,8
+Chicken Whole-Cut In The Lab,8
+Chicken chicken thighs,8
+Chicken rince,8
+Chicken sausage,8
+Companion Animal,8
+Dairy cow feces,8
+Diseased pig,8
+Duodenal mucosa of Celiac disease patient,8
+Human Stools,8
+Human monocytes,8
+Patient: associated with 2001 almond outbreak,8
+Pooled soil sample collected from floor of sheep farm,8
+Poultry egg,8
+Poultry feces,8
+Sputum from patient,8
+Stool from healthy human,8
+animal feed chicken,8
+cattle feed,8
+chicken house middle,8
+chicken kiev,8
+dairy cow feces (Bos taurus),8
+fecal sample from diarrhoea affected cattle A,8
+human pharyngeal swab,8
+mastitic cow,8
+pig fecal,8
+stool from MSM patient,8
+swine feed,8
+swine salami,8
+unavailable,8
+undifferentiated human embryonic stem cells,8
+"Avian, Poultry",7
+Broiler_chickens,7
+Chicken Feces,7
+Chicken Giblets (Gizzards),7
+Chicken fecal,7
+Chicken gizzards (giblets),7
+Grount Turkey,7
+Guinea pig,7
+Human monocyte-derived dendritic cells,7
+"Human, Urine",7
+Human-Blood,7
+Kge cow field,7
+"Pig ears, dog chew",7
+Poultry (Fecal),7
+Poultry manure,7
+Poultry organ,7
+Sheep faeces,7
+Sheep/Soil,7
+Slaughterhouse pig,7
+Sputum of Homo sapiens,7
+Swine lagoon,7
+blackbone chicken,7
+boneless chicken,7
+bovine cow lung,7
+cattle barrier,7
+chicken cage cleaning,7
+chicken dung,7
+chicken paper (Gallus gallus domesticus),7
+cloaca swab from retail chicken,7
+copper fed pig,7
+food animal chicken,7
+healthy cow feces,7
+"human, feces",7
+poultry flock,7
+unknown insects from Prunus persica,7
+CHICKEN GIZZARD (GIBLETS),6
+Cattle/Water,6
+Chicken Coop,6
+Chicken Giblets (Liver),6
+Chicken House Swab,6
+Chicken Salad,6
+Chicken ceca,6
+Chicken coup,6
+Chicken feed,6
+Chicken giblets (CH-3),6
+Chicken nuggets,6
+Cleaned poultry house,6
+Cow milk from bulk tank,6
+High-touch surfaces - Patient area B06,6
+Human microbiome,6
+Human-associated environment,6
+Human_physical,6
+Index patient,6
+Patient 2,6
+Patient ulcer,6
+Patient-ankles/SCD,6
+Patient-perirectal,6
+Pet Treats: Chicken snaps,6
+Pig manure,6
+Ready-to-cook chicken cutlets,6
+Retail chicken livers,6
+Retailed Chicken,6
+SWINE INTESTINE,6
+a feces sample of chicken origin,6
+broccoli and cheese stuffed chicken,6
+cattle blood,6
+cattle slurry,6
+chicken (Gallus gallus),6
+chicken cordon bleu,6
+chicken intestinal contents,6
+chicken meal,6
+cow manure scat soil,6
+feces chicken house,6
+ham turkey pimento cheese sandwich,6
+human prostate cancer LN-CaP cell line,6
+live poultry marketplace,6
+lungs of cystic fibrosis patient B,6
+missingsal cavity,6
+natural fermented cow's milk,6
+not reported,6
+patient sputum,6
+pig intestine,6
+poultry flock breeder (Gallus gallus),6
+poultry house fecal,6
+sheep milk cheese,6
+sour cow milk,6
+sporadic listeriosis case,6
+steer,6
+stool sample from patient with hemolytic uremic syndrome (HUS),6
+swine manure,6
+"Animal, pig feces",5
+Bacteraemia patient,5
+Cattle hide,5
+Chicken Anal swab,5
+Chicken Egg shell,5
+Chicken Wings (Gallus gallus),5
+Dairy cattle,5
+Fresh Chicken,5
+Grass with Pig Manure,5
+Grouund Turkey,5
+High-touch surfaces - Patient area B02,5
+Human tissue,5
+"Human, stool",5
+Human-Sporadic,5
+Patient blood,5
+Patient stools,5
+Pelleted chicken food,5
+Pig specific (nasal swab),5
+"Turkey hen, feces",5
+UNK,5
+Unknown animal source,5
+animal feed cattle,5
+animal feed poultry,5
+animal feed turkey,5
+blood sample of melioidosis patient,5
+chicken alfredo,5
+chicken dirty pool tissue,5
+chicken house litter,5
+chicken mixed part,5
+chicken mixed parts,5
+chicken whole cut,5
+cow paddock straw bedding bovine steer,5
+diarrheal patient,5
+effluent from poultry environment,5
+fecal sample of diarrhea patient,5
+feces chicken house back,5
+feces chicken house middle,5
+healthy cattle faeces,5
+human sample,5
+lungs of sick pig,5
+male,5
+no data,5
+patient environment,5
+patient tissue,5
+porcine pig jejunum,5
+poultry - broilers,5
+poultry environment,5
+poultry environment - boot swab,5
+rotisserie chicken,5
+sliced turkey,5
+soil from poultry environment,5
+sour cow milk fermented,5
+stool (fecal) sample from septic human participant,5
+stool sample from patient,5
+swine intestinal swab,5
+swine salami paste,5
+turkey eggshell,5
+turkey wrap,5
+unknown isolate,5
+Animal - Chicken-Environment swab,4
+"Animal, pig",4
+Animal-Cattle-Dairy Cow 2,4
+"C3: Patient area (e.g., bathroom sink splash zones)",4
+CF patient lungs,4
+CHICKEN HEARTS,4
+Chicken - mixed parts,4
+Chicken Chicken Mixed Parts,4
+Chicken Egg Content,4
+Chicken Environment,4
+Chicken Giblets (Hearts),4
+Chicken Lung,4
+Chicken Whole,4
+Chicken at slaugther,4
+Chicken burger,4
+Chicken cloacal swab (Gallus gallus),4
+Chicken giblets (CL-3),4
+Chicken manure,4
+Chicken whole-cut in lab,4
+Child cystic fibrosis patient,4
+Covid-19 patient on mechanical ventilation,4
+Cow Milk,4
+Cow vaginae,4
+Digestive tract content pig,4
+Ex vivo culture of human feces,4
+Fecal samples from slaughtered sheep,4
+Feral Pig,4
+From a 68-year-old male patient,4
+Gorund Turkey,4
+Healthy human,4
+High-touch surfaces - Patient area A06,4
+High-touch surfaces - Patient area A07,4
+Human Ethiopian adoptees,4
+Human Faeces,4
+Human Milk,4
+Human community,4
+Human lesion,4
+Human lung,4
+Human milk,4
+"Human, bacterial strain",4
+Patient Urine,4
+Patient space floor,4
+Patient-axilla,4
+Peadiatric - patient file,4
+Pig (nursery) - fecal,4
+Pig Special Project (Sampling of Livestock and Poultry Environment),4
+Poultry food,4
+Poultry water,4
+"Poultry, minced chicken",4
+"Poultry, organs",4
+Retail chicken hearts,4
+Sheep feces,4
+Smoked Turkey,4
+Sputum from a patient,4
+Swine (Meat),4
+Unavailable,4
+Urine from patient,4
+animal feed chicken meal,4
+blood culture from bacteremic patient,4
+"blood of patient with fever after tick-bite innoculated in SCID mouse, and isolated in MKP-F culture",4
+boneless skinless chicken thigh,4
+chicken braised sausage hot dog,4
+chicken breat,4
+chicken caesar salad,4
+chicken food,4
+chicken house litter back,4
+chicken schnitzel,4
+chicken swab,4
+"chicken, rice, veggie mix",4
+clinically diseased pig,4
+cluster-related_human_case,4
+cold chicken,4
+cow sheep milk cheese,4
+dog food chicken meal,4
+drag swab chicken house (Gallus gallus domesticus),4
+drag swab through chicken house (Gallus gallus domesticus),4
+feces chicken house front,4
+feces inside chicken tractor,4
+feces turkey,4
+frozen chicken part supermarket,4
+frozen chicken patty,4
+frozen turkey neck,4
+guinea pig,4
+hospitalized patient,4
+human airway,4
+human stool sample,4
+human-associated habitat [ENVO:00002154],4
+individual cow milk,4
+patient stool,4
+patient with gastroenteritis,4
+patient with hemolytic uremic syndrome (HUS),4
+patient with paratyphoid fever,4
+pet chicken treat,4
+pet treat chicken jerky,4
+pig at slaughter,4
+pig swab,4
+porcine pig ileum,4
+porcine pig lung,4
+poultry meal,4
+roast chicken,4
+roasted chicken,4
+smoked turkey sandwich,4
+sputum from COVID-19 patient,4
+sputum of adult bronchiectasis patient,4
+sputum of cystic fibrosis patient,4
+sputum sample from a patient with lung infection,4
+sputum sample from patient,4
+swab from patient with pharyngitis/tonsilitis,4
+swine lagoon,4
+swine slaughterhouse,4
+turkey intestine (Meleagris gallopavo),4
+unknown swab,4
+wastewater cattle,4
+Animal (poultry),3
+Animal-Cattle-Dairy Cow 1,3
+"Antibiotic associated diarrhea, human",3
+Blood from patient,3
+Blood from patient with systemic infection,3
+Boneless skinless chicken thighs,3
+"Bovine, Livestock, CATTLE",3
+Brazilian imported chicken meats,3
+CHICKEN GIBLET (LIVERS),3
+Carcasse Pig,3
+Cattle Feed,3
+Cattle feed,3
+Chicken (Breaded cuttlets),3
+Chicken (Whole - cut in lab),3
+Chicken - Boot swab,3
+Chicken Chicken Legs,3
+Chicken Hearts (Giblets),3
+Chicken Thighs (Gallus gallus),3
+Chicken Wingettes and Drumettes,3
+Chicken Wings ( Gallus gallus),3
+Chicken anus swab,3
+Chicken chicken legs,3
+Chicken dung channel,3
+Chicken fecal microbiome,3
+Chicken salad,3
+Chicken-mixed parts,3
+Clinically healthy swine,3
+"Cooked, diced chicken",3
+Cystic fibrosis paediatric patient,3
+Diarrheal patient stool,3
+Faeces - Cattle - Local livestock market,3
+Feces of healthy 3-month-old male infants,3
+Feces of patient with diarrhea,3
+From a 51-year-old male patient,3
+Hand swab from chicken handler,3
+High-touch surfaces - Patient area A01,3
+High-touch surfaces - Patient area A03,3
+High-touch surfaces - Patient area B01,3
+High-touch surfaces - Patient area B05,3
+Homo sapiens flea,3
+Homo sapiens sapiens,3
+Homo sapiens-associated habitat [ENVO:00009003],3
+Human Unknown,3
+Human ependymoma cells,3
+Human urine sample,3
+Human-Stool,3
+Internal organs of chicken,3
+Intubated patient,3
+Not aplicable,3
+Patient Sputum,3
+Patient-inguinal,3
+Patient-tracheostomy,3
+Patient: associated with 2006 almond outbreak,3
+Pig (body surface),3
+Poultry Bedding material,3
+Poultry feed,3
+Poultry house,3
+Poultry processing equipment,3
+"Poultry, turkey mixed dishes",3
+Retail chicken gizzards,3
+Retail chicken hearts and livers,3
+Roast Turkey,3
+Sheep manure,3
+Unknown meat,3
+Urine sample from patient with Septicemia,3
+adult,3
+adult patient with underlying chronic lung disease,3
+anal swab of patient with food poisoning,3
+animal feed dairy cattle,3
+animal feed poultry feather meal,3
+asymptomatic pig,3
+"bedding, chicken roosting box",3
+blood from Melioidosis patient,3
+blood from hepatitis patient,3
+blood from patient,3
+blood from patient with pneumonia,3
+blood sample from patient with septicaemia,3
+blood sample from patient with septicemia,3
+boneless chicken thigh,3
+bovine cow joint cavity,3
+bulk chicken meal for pet,3
+bulk-tank raw milk of sheep farms,3
+cancer patient,3
+cattle anal swab,3
+cattle fecal sample,3
+cattle manure with soil,3
+chicken broccoli and cheese,3
+chicken burrito,3
+chicken caeca,3
+chicken chicken legs,3
+chicken chicken wings,3
+chicken claw,3
+chicken club panini,3
+chicken coop,3
+chicken dung channel,3
+chicken embryos,3
+chicken evisceration tank water (Gallus gallus),3
+chicken fajita sandwich,3
+chicken fecal material,3
+chicken hamburger,3
+chicken haunch,3
+chicken house fly trap,3
+chicken quail blend for dog food,3
+chicken recipe for cats,3
+chicken salad wrap sandwich,3
+chicken sausage,3
+chicken taco,3
+chicken thigh (Gallus gallus),3
+chicken wing paddle,3
+companion animal (dog),3
+cornea from keratitis patient,3
+cow (Bos taurus),3
+cow dung pit,3
+cow feces (Bos taurus),3
+cow manure (Bos primigenius),3
+cow stool,3
+cow with mastitis,3
+"dairy cow, adult",3
+deli turkey,3
+drag swab poultry chicken,3
+feces from diarrhea of infected patient,3
+feces from hospitalized patient,3
+feces sheep,3
+feces swine,3
+female 63 year old colorectal cancer patient 79 colon adenocarcinoma,3
+floor litter of chicken,3
+food consumed by patient with food poisoning,3
+fresh chicken,3
+human fecal,3
+human hand,3
+human induced pluripotent stem cells,3
+human isolate,3
+human patient,3
+human prostate cancer V-CaP cell line,3
+human vaginal discharge,3
+intestine cattle,3
+lung turkey,3
+milking cow barn,3
+patient blood culture,3
+"patient, endotracheal suctioning",3
+"patient, stool",3
+pet food poultry blend,3
+pig ceacal sample,3
+pig lungs,3
+pig slaughterhouse chilling room floor,3
