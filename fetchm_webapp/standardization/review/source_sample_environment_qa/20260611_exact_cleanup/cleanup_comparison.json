@@ -1,0 +1,24 @@
+{
+  "canonical_snapshot": "20260602T140414Z_genbank_bacteria_root",
+  "before_cleanup": {
+    "rows_audited": 3131699,
+    "hard_exact_leakage_rows": 1215170,
+    "review_signal_exact_cross_field_rows": 1244575,
+    "review_signal_exact_cross_field_unique_values": 2332,
+    "isolation_source_sd_present_percent": 63.38,
+    "isolation_source_sd_broad_present_percent": 58.48,
+    "raw_present_isolation_source_standardization_percent": 87.24
+  },
+  "final_checkpoint": {
+    "rows_audited": 3131699,
+    "hard_exact_leakage_rows": 0,
+    "review_signal_exact_cross_field_rows": 190284,
+    "review_signal_exact_cross_field_unique_values": 2080,
+    "isolation_source_sd_present_percent": 59.07,
+    "isolation_source_sd_broad_present_percent": 55.51,
+    "raw_present_isolation_source_standardization_percent": 81.23,
+    "non_approved_broad_rows": 0,
+    "controlled_category_duplicate_keys": 0,
+    "controlled_category_conflict_keys": 0
+  }
+}

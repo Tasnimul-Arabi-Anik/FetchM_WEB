@@ -1,0 +1,46 @@
+isolation_source_sd,assembly_count,recommended_action
+Infected tissue,55,route_to_disease_or_health_state
+infected vegetal samples,26,route_to_disease_or_health_state
+citrus infected tissue,21,route_to_disease_or_health_state
+Infected person,12,route_to_disease_or_health_state
+EFB infected honey bee larva,11,route_to_disease_or_health_state
+colorectal cancer tissue,9,route_to_disease_or_health_state
+Infected pancreatic necrosis,8,route_to_disease_or_health_state
+gastric cancer cells,6,route_to_disease_or_health_state
+Gastric cancer,4,route_to_disease_or_health_state
+AHPND infected Litopenaeus vannamei,3,route_to_disease_or_health_state
+AHPND infected Penaeus japonicus,2,route_to_disease_or_health_state
+HIV infected cell supernatant,2,route_to_disease_or_health_state
+artificially infected Catharanthus roseus,2,route_to_disease_or_health_state
+eggs of a naturally infected Ixodes ricinus tick,2,route_to_disease_or_health_state
+eggs of a tick infected in nature,2,route_to_disease_or_health_state
+Canker on pear tree infected with Erwinia amylovora,1,route_to_disease_or_health_state
+Cervical cancer cell line (HeLa),1,route_to_disease_or_health_state
+Colorectal cancer,1,route_to_disease_or_health_state
+EFB-infected honey bee colony,1,route_to_disease_or_health_state
+European foulbrood infected honey bee larva,1,route_to_disease_or_health_state
+European foulbrood of honey bees-infected honey bee larva,1,route_to_disease_or_health_state
+Galleria mellonella larvae infected with Heterorhabditis amazonensis,1,route_to_disease_or_health_state
+HIV infected individual,1,route_to_disease_or_health_state
+Infected Mulberry Trees,1,route_to_disease_or_health_state
+Infected limb joint,1,route_to_disease_or_health_state
+Infected maize seeds,1,route_to_disease_or_health_state
+Infected nail well,1,route_to_disease_or_health_state
+"Periwinkle (C. roseus) plants placed in a phytoplasma infected vineyard, natuarally infected by vectors (M. fuscovaria)",1,route_to_disease_or_health_state
+Purified from Hep-2 infected cells by sonication and differential centrifugation,1,route_to_disease_or_health_state
+Screw Infected Plate Site,1,route_to_disease_or_health_state
+Steinernema-infected Galleria mellonella cadaver,1,route_to_disease_or_health_state
+Thyroid cancer cells,1,route_to_disease_or_health_state
+WBD-infected periwinkle,1,route_to_disease_or_health_state
+cancer tissue of gastric cancer patients,1,route_to_disease_or_health_state
+carapace of the crustacean species Cancer pagurus,1,route_to_disease_or_health_state
+hemolymph of infected host,1,route_to_disease_or_health_state
+infected Surti Goat,1,route_to_disease_or_health_state
+infected WLH birds,1,route_to_disease_or_health_state
+infected napier grass,1,route_to_disease_or_health_state
+mandibular lymphnode (abscess),1,route_to_disease_or_health_state
+medium McCoy infected cells,1,route_to_disease_or_health_state
+"mouse fibroblast NIH3T3 cells, infected with MHV-68",1,route_to_disease_or_health_state
+prepuce of a naturally-infected bull,1,route_to_disease_or_health_state
+soft rot-infected petioles and tubers,1,route_to_disease_or_health_state
+wash from infected hand,1,route_to_disease_or_health_state

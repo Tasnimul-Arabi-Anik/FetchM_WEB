@@ -1,0 +1,43 @@
+isolation_source_sd,assembly_count,recommended_action
+canal,1054,route_to_isolation_site
+Bladder,61,route_to_isolation_site
+Gall bladder tissue,54,route_to_sample_type
+bladder,25,route_to_isolation_site
+Gall bladder,15,route_to_isolation_site
+gall bladder,13,route_to_isolation_site
+Balb/C mouse gall bladder,10,route_to_isolation_site
+oropharyngeal/throat swab,7,route_to_sample_type
+Bladder tumor,6,route_to_isolation_site
+Bladder Stone,5,route_to_isolation_site
+Bladder Wall,3,route_to_isolation_site
+Gall Bladder,3,route_to_isolation_site
+bladder (Canis lupus familiaris),3,route_to_isolation_site
+Bladder stones,2,route_to_isolation_site
+GI: Gall Bladder,2,route_to_isolation_site
+bladder wall,2,route_to_isolation_site
+"general (wound, abcess, Etc.)",2,route_to_isolation_site
+"""Bladder,Bladder """,1,route_to_isolation_site
+Bladder Mucosa,1,route_to_isolation_site
+Bladder mucosa,1,route_to_isolation_site
+Bladder probe,1,route_to_isolation_site
+Bladder-Sx,1,route_to_isolation_site
+Canine bladder tissue and stones,1,route_to_sample_type
+Focus (Wound swab),1,route_to_sample_type
+Haematoma gall bladder,1,route_to_isolation_site
+Swim Bladder,1,route_to_isolation_site
+Tissue gall bladder,1,route_to_sample_type
+Tissue(wound),1,route_to_sample_type
+a bite (wound),1,route_to_isolation_site
+bladder stone wiping solution,1,route_to_isolation_site
+bladder stones,1,route_to_isolation_site
+bladder tissue,1,route_to_sample_type
+canine bladder (Canis lupus familiaris),1,route_to_isolation_site
+canine bladder mucosa,1,route_to_isolation_site
+canine gall bladder,1,route_to_isolation_site
+caprine necropsy gall bladder,1,route_to_isolation_site
+cat bladder clot,1,route_to_isolation_site
+feline bladder mucosa,1,route_to_isolation_site
+gall bladder (Canis lupus familiaris),1,route_to_isolation_site
+sand under fuel bladder,1,route_to_isolation_site
+surgical site (wound swab),1,route_to_sample_type
+wound,1,route_to_isolation_site

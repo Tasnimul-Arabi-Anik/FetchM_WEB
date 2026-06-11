@@ -81,11 +81,17 @@ Latest canonical checkpoint:
 - Snapshot: `20260602T140414Z_genbank_bacteria_root`
 - Rows audited: 3,131,699
 - Raw isolation-source coverage: 2,248,471 (71.80%)
-- `Isolation_Source_SD` coverage: 1,984,892 (63.38%)
-- `Isolation_Source_SD_Broad` coverage: 1,831,325 (58.48%)
-- Raw-present isolation-source standardization: 87.24%
-- Raw-only unresolved isolation-source rows: 286,950
+- `Isolation_Source_SD` coverage: 1,849,781 (59.07%)
+- `Isolation_Source_SD_Broad` coverage: 1,738,398 (55.51%)
+- Raw-present isolation-source standardization: 81.23%
+- Raw-only unresolved isolation-source rows: 421,947
 - Non-approved broad source rows: 0
+- Hard exact-source leakage rows: 0
+- Review-signal exact cross-field rows: 190,284
+- Material routed to `Sample_Type_SD`: 1,002,268
+- Environment medium routed: 422,173
+- Isolation site routed: 4,443
+- Metadata descriptor rows suppressed: 135,111
 - Controlled-category duplicate/conflict keys: 0/0
-- QA implementation commit: `ebdc418`
-- Versioned artifacts: `standardization/review/source_sample_environment_qa/20260611/`
+- QA implementation commit: `abd3119`
+- Versioned artifacts: `standardization/review/source_sample_environment_qa/20260611_exact_cleanup/`
