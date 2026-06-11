@@ -767,6 +767,7 @@ def write_snapshot_manifest(summary: dict[str, Any], snapshot_dir: Path) -> None
         "latest_standardization_audit_code_version": methods.get("latest_standardization_audit_code_version"),
         "host_standardization_provenance": methods.get("host_standardization_provenance") or {},
         "geography_collection_date_provenance": methods.get("geography_collection_date_provenance") or {},
+        "source_sample_environment_provenance": methods.get("source_sample_environment_provenance") or {},
     })
     write_json(provenance_dir / "qa_report.json", summary.get("qa") or {})
 
@@ -843,6 +844,36 @@ def latest_geography_collection_date_provenance(root: Path | None = None) -> dic
         ),
         "country_lookup_sha256": provenance.get("country_lookup_sha256") or "",
         "collection_date_parser_sha256": provenance.get("collection_date_parser_sha256") or "",
+        "generated_artifacts": provenance.get("generated_artifacts") or [],
+    }
+
+
+def latest_source_sample_environment_provenance(root: Path | None = None) -> dict[str, Any]:
+    root = root or Path(__file__).resolve().parents[1]
+    qa_root = root / "data" / "source_sample_environment_qa"
+    latest_path = qa_root / "latest.json"
+    if not latest_path.exists():
+        return {}
+    try:
+        latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        summary_path = qa_root / str(latest.get("summary") or "")
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    metrics = summary.get("metrics") or {}
+    provenance = summary.get("provenance") or {}
+    return {
+        "qa_timestamp": provenance.get("qa_timestamp") or "not available",
+        "qa_commit": provenance.get("qa_commit") or "not available",
+        "total_canonical_rows_audited": int(metrics.get("total_rows_scanned") or 0),
+        "isolation_source_coverage_percent": float(metrics.get("isolation_source_sd_present_percent") or 0),
+        "isolation_source_broad_coverage_percent": float(metrics.get("isolation_source_sd_broad_present_percent") or 0),
+        "raw_present_standardization_percent": float(metrics.get("raw_present_isolation_source_standardization_percent") or 0),
+        "unresolved_isolation_source_rows": int(metrics.get("raw_only_unresolved_isolation_source_rows") or 0),
+        "suspicious_exact_source_unique_values": int(metrics.get("suspicious_exact_source_unique_values") or 0),
+        "broad_vocabulary_leakage_rows": int(metrics.get("non_approved_broad_rows") or 0),
+        "controlled_categories_sha256": provenance.get("controlled_categories_sha256") or "",
+        "approved_broad_categories_sha256": provenance.get("approved_broad_categories_sha256") or "",
         "generated_artifacts": provenance.get("generated_artifacts") or [],
     }
 
@@ -2012,6 +2043,7 @@ def generate_global_insights_snapshot(
     rule_manifest = standardization_rule_manifest()
     host_provenance = latest_host_standardization_provenance()
     geography_date_provenance = latest_geography_collection_date_provenance()
+    source_sample_environment_provenance = latest_source_sample_environment_provenance()
     tool_versions = tool_version_manifest()
     production_gate = rule_manifest.get("production_readiness_gate") or {}
     production_metrics = production_gate.get("metrics") or {}
@@ -2131,6 +2163,7 @@ def generate_global_insights_snapshot(
             "standardization_rule_files": rule_manifest.get("files", []),
             "host_standardization_provenance": host_provenance,
             "geography_collection_date_provenance": geography_date_provenance,
+            "source_sample_environment_provenance": source_sample_environment_provenance,
             "latest_standardization_audit_timestamp": rule_manifest.get("latest_audit_timestamp", "not available"),
             "latest_standardization_audit_git_commit": rule_manifest.get("latest_audit_git_commit", "not available"),
             "latest_standardization_audit_code_version": rule_manifest.get("latest_audit_code_version", "not available"),

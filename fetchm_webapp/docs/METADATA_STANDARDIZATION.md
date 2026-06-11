@@ -49,3 +49,41 @@ Latest canonical checkpoint:
 
 Country and geography summarize representation in public repository metadata.
 They must not be interpreted as biological prevalence.
+
+## Source, sample, and environment production checkpoint
+
+Source, sample, environment, anatomical site, disease, and health-state
+standardization runs on the canonical bacterial dataset. The production QA
+checkpoint audits exact and broad routing without automatically changing
+reviewed rules.
+
+Deterministic rule sources:
+
+- `standardization/controlled_categories.csv`
+- `standardization/approved_broad_categories.csv`
+- committed routing code in `app.py`
+
+Run the production gate with:
+
+```bash
+python tools/qa_source_sample_environment_standardization.py --fail-on-hard-errors
+```
+
+Exact-source classifications are review signals. A concept may legitimately be
+retained as source context while also producing `Sample_Type_SD`,
+`Environment_Medium_SD`, `Isolation_Site_SD`, `Host_Disease_SD`, or
+`Host_Health_State_SD`. Hard failures are limited to missing provenance,
+conflicting rules, unapproved broad vocabulary, empty canonical scope, and
+raw-present standardization below the production threshold.
+
+Latest canonical checkpoint:
+
+- Snapshot: `20260602T140414Z_genbank_bacteria_root`
+- Rows audited: 3,131,699
+- Raw isolation-source coverage: 2,248,471 (71.80%)
+- `Isolation_Source_SD` coverage: 1,984,892 (63.38%)
+- `Isolation_Source_SD_Broad` coverage: 1,831,325 (58.48%)
+- Raw-present isolation-source standardization: 87.24%
+- Raw-only unresolved isolation-source rows: 286,950
+- Non-approved broad source rows: 0
+- Controlled-category duplicate/conflict keys: 0/0

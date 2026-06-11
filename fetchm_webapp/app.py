@@ -3414,6 +3414,7 @@ ANATOMICAL_SITE_SYNONYMS = {
     "tooth": "oral cavity",
     "skin": "skin/body surface",
     "skin body surface": "skin/body surface",
+    "groin": "skin/body surface",
     "forehead": "skin/body surface",
     "foot": "skin/body surface",
     "leg": "skin/body surface",

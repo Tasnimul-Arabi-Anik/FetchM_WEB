@@ -49,3 +49,4 @@ Isolation_Source_SD_Broad,surface/sample collection material,Collection material
 Isolation_Source_SD_Broad,gut/host-associated material,Gut-associated host material,intestinal epithelial cells
 Isolation_Source_SD_Broad,wastewater/organic waste,Wastewater or organic waste digestion source,anaerobic digester
 Isolation_Source_SD_Broad,metadata descriptor / non-source,Metadata descriptor rather than biological source,metagenome
+Isolation_Source_SD_Broad,animal tissue/site,Animal tissue or anatomical site context,gill

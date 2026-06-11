@@ -26,13 +26,45 @@ from app import (
     standardize_host_metadata,
 )
 from external_tools.quality_check.runner import validate_quality_runtime
-from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_geography_collection_date_provenance, latest_host_standardization_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_geography_collection_date_provenance, latest_host_standardization_provenance, latest_source_sample_environment_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import import_host_review_decisions as host_review_importer
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_source_sample_environment_provenance_loader(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            qa_root = root / "data" / "source_sample_environment_qa"
+            qa_dir = qa_root / "20260611"
+            qa_dir.mkdir(parents=True)
+            (qa_dir / "summary.json").write_text(json.dumps({
+                "metrics": {
+                    "total_rows_scanned": 100,
+                    "isolation_source_sd_present_percent": 60,
+                    "isolation_source_sd_broad_present_percent": 55,
+                    "raw_present_isolation_source_standardization_percent": 90,
+                    "raw_only_unresolved_isolation_source_rows": 5,
+                    "suspicious_exact_source_unique_values": 3,
+                    "non_approved_broad_rows": 0,
+                },
+                "provenance": {
+                    "qa_timestamp": "2026-06-11T00:00:00+00:00",
+                    "qa_commit": "test",
+                    "controlled_categories_sha256": "controlled",
+                    "approved_broad_categories_sha256": "broad",
+                    "generated_artifacts": ["summary.json"],
+                },
+            }), encoding="utf-8")
+            (qa_root / "latest.json").write_text(json.dumps({
+                "summary": "20260611/summary.json",
+            }), encoding="utf-8")
+            provenance = latest_source_sample_environment_provenance(root)
+            self.assertEqual(provenance["total_canonical_rows_audited"], 100)
+            self.assertEqual(provenance["raw_present_standardization_percent"], 90)
+            self.assertEqual(provenance["broad_vocabulary_leakage_rows"], 0)
+
     def test_geography_collection_date_provenance_loader(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1297,6 +1329,17 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(broad_standardization_category("river water"), "water")
 
     def test_body_site_sample_source_separation(self) -> None:
+        groin = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "groin"})
+        self.assertEqual(groin["Isolation_Site_SD"], "skin/body surface")
+        self.assertNotEqual(groin["Isolation_Source_SD"], "groin")
+
+        soil = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "soil"})
+        self.assertEqual(soil["Environment_Medium_SD"], "soil")
+
+        for host_only in ["human", "patient", "chicken"]:
+            standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": host_only})
+            self.assertNotEqual(standardized["Isolation_Source_SD"], host_only)
+
         rectal_swab = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "rectal swab"})
         self.assertEqual(rectal_swab["Sample_Type_SD"], "rectal swab")
         self.assertEqual(rectal_swab["Isolation_Site_SD"], "rectum/perianal region")
