@@ -1335,6 +1335,30 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
         soil = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "soil"})
         self.assertEqual(soil["Environment_Medium_SD"], "soil")
+        self.assertEqual(soil["Isolation_Source_SD"], "environmental material")
+
+        lake_water = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "lake water"})
+        self.assertEqual(lake_water["Environment_Medium_SD"], "lake water")
+        self.assertEqual(lake_water["Isolation_Source_SD"], "environmental material")
+
+        canal_water = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "canal water"})
+        self.assertEqual(canal_water["Environment_Medium_SD"], "canal water")
+        self.assertEqual(canal_water["Isolation_Source_SD"], "environmental material")
+
+        ear_canal = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "ear canal"})
+        self.assertEqual(ear_canal["Isolation_Site_SD"], "organ/tissue site")
+        self.assertEqual(ear_canal["Isolation_Source_SD"], "clinical/host-associated material")
+
+        for material, expected in [
+            ("blood", "blood"),
+            ("stool", "feces/stool"),
+            ("urine", "urine"),
+            ("sputum", "sputum"),
+        ]:
+            standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": material})
+            self.assertEqual(standardized["Sample_Type_SD"], expected)
+            self.assertEqual(standardized["Isolation_Source_SD"], "clinical/host-associated material")
+            self.assertEqual(standardized["Isolation_Site_SD"], "")
 
         for host_only in ["human", "patient", "chicken"]:
             standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": host_only})
@@ -1425,7 +1449,15 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(facility["Isolation_Source_SD"], "healthcare-associated environment")
 
         raw_code = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "cxwnd"})
-        self.assertEqual(raw_code["Isolation_Source_SD"], "metadata descriptor / non-source")
+        self.assertEqual(raw_code["Isolation_Source_SD"], "")
+
+        for descriptor in ["metagenome", "sample", "metadata descriptor/non-source"]:
+            standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": descriptor})
+            self.assertEqual(standardized["Isolation_Source_SD"], "")
+            self.assertEqual(standardized["Sample_Type_SD"], "")
+
+        whole_organism = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "whole organism"})
+        self.assertEqual(whole_organism["Isolation_Source_SD"], "host-associated context")
 
     def test_external_nextflow_qc_master_imports_as_canonical_qc_outputs(self) -> None:
         with TemporaryDirectory() as tmp:

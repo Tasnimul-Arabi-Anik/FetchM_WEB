@@ -3630,6 +3630,75 @@ def source_context_for_lab_or_metadata_artifact(value: Any) -> tuple[str, str] |
     return None
 
 
+ENVIRONMENT_SOURCE_DETAIL_PATTERN = re.compile(
+    r"\b(?:soil|water|sediment|wastewater|sewage|seawater|sludge|biofilm|air|"
+    r"river|lake|pond|groundwater|spring|environment|canal|estuary|brine)\b",
+    re.IGNORECASE,
+)
+
+
+def normalized_isolation_source_context(
+    isolation_source: str,
+    *,
+    sample_type: str,
+    environment_medium: str,
+    isolation_site: str,
+) -> tuple[str, str]:
+    """Keep source context in Isolation_Source_SD; detail belongs in routed fields."""
+    cleaned = normalize_standardization_lookup(isolation_source)
+    if not cleaned:
+        return "", "missing"
+    if cleaned in {
+        "metadata descriptor non source",
+        "metagenome",
+        "metagenomic assembly",
+        "sample",
+        "whole genome sequencing sample",
+    }:
+        return "", "non_source_descriptor_router"
+    if cleaned in {"whole organism", "whole animal"}:
+        return "host-associated context", "host_context_router"
+    if cleaned in {
+        "clinical fluid material",
+        "clinical host associated material",
+        "respiratory sample",
+        "host associated context",
+        "healthcare associated environment",
+        "agricultural environment",
+        "plant associated material",
+        "environmental material",
+    }:
+        return isolation_source, ""
+
+    if environment_medium:
+        raw_environment = normalize_standardization_lookup(environment_medium)
+        if "hospital" in cleaned or "healthcare" in cleaned:
+            return "healthcare-associated environment", "environment_context_router"
+        if re.search(r"\b(?:agricultur|farm|irrigation|aquaculture|food processing)\b", cleaned):
+            return "agricultural environment", "environment_context_router"
+        if raw_environment and (
+            cleaned == raw_environment
+            or ENVIRONMENT_SOURCE_DETAIL_PATTERN.search(cleaned)
+            or ENVIRONMENT_SOURCE_DETAIL_PATTERN.search(raw_environment)
+        ):
+            return "environmental material", "environment_context_router"
+
+    if sample_type:
+        raw_sample = normalize_standardization_lookup(sample_type)
+        if re.search(r"\b(?:food|meat|poultry|turkey|chicken|beef|pork|seafood|oyster|dairy)\b", cleaned):
+            return isolation_source, "food_source_context"
+        if raw_sample and (
+            cleaned == raw_sample
+            or SAMPLE_MATERIAL_EVIDENCE_PATTERN.search(cleaned)
+            or SAMPLE_MATERIAL_EVIDENCE_PATTERN.search(raw_sample)
+        ):
+            return "clinical/host-associated material", "sample_context_router"
+
+    if isolation_site and (canonical_anatomical_site(isolation_source) or cleaned == "canal"):
+        return "clinical/host-associated material", "anatomy_source_router"
+    return isolation_source, ""
+
+
 def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
     proposed = normalize_standardization_lookup(proposed_value)
     source = normalize_standardization_lookup(synonym)
@@ -3640,7 +3709,33 @@ def sample_type_rule_is_host_only(synonym: Any, proposed_value: Any) -> bool:
 
 def sanitize_sample_type_standardization(value: Any) -> str:
     text = "" if value is None else str(value).strip()
+    cleaned = normalize_standardization_lookup(text)
+    if cleaned in {
+        "sample",
+        "metagenome",
+        "metagenomic assembly",
+        "whole genome sequencing sample",
+        "canal",
+    }:
+        return ""
     return "" if sample_type_rule_is_host_only(text, text) or sample_type_is_site_only(text) else text
+
+
+def sanitize_isolation_site_standardization(value: Any) -> str:
+    text = "" if value is None else str(value).strip()
+    cleaned = normalize_standardization_lookup(text)
+    if cleaned in {
+        "blood",
+        "urine",
+        "sputum",
+        "feces stool",
+        "body fluid",
+        "milk",
+        "sample",
+        "whole organism",
+    }:
+        return ""
+    return text
 
 
 def enforce_clean_sample_type_columns(frame: pd.DataFrame) -> pd.DataFrame:
@@ -5193,6 +5288,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_site = anatomy_site
         isolation_site_method = "anatomy_router"
         isolation_site_ontology_id = ""
+    isolation_site = sanitize_isolation_site_standardization(isolation_site)
+    if not isolation_site:
+        isolation_site_method = "missing"
+        isolation_site_ontology_id = ""
     environment_broad, environment_broad_method, environment_broad_ontology_id = first_standardized_concept(
         [
             row.get("Environment (Broad Scale)"),
@@ -5287,6 +5386,15 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     lab_context = source_context_for_lab_or_metadata_artifact(isolation_source)
     if lab_context is not None:
         isolation_source, isolation_method = lab_context
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
+    isolation_source, routed_source_method = normalized_isolation_source_context(
+        isolation_source,
+        sample_type=sample_type,
+        environment_medium=environment_medium,
+        isolation_site=isolation_site,
+    )
+    if routed_source_method:
+        isolation_method = routed_source_method
         isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
     if host_disease and not host_health_state and host_disease != "healthy/no disease reported":
         host_health_state = "diseased"

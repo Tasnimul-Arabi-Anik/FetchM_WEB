@@ -69,12 +69,12 @@ Run the production gate with:
 python tools/qa_source_sample_environment_standardization.py --fail-on-hard-errors
 ```
 
-Exact-source classifications are review signals. A concept may legitimately be
-retained as source context while also producing `Sample_Type_SD`,
-`Environment_Medium_SD`, `Isolation_Site_SD`, `Host_Disease_SD`, or
-`Host_Health_State_SD`. Hard failures are limited to missing provenance,
-conflicting rules, unapproved broad vocabulary, empty canonical scope, and
-raw-present standardization below the production threshold.
+Exact-source classifications are review signals, not error counts. The QA splits
+these signals into hard exact leakage, intentional cross-field context, routed
+sample material, routed environment medium, routed anatomical site, suppressed
+metadata descriptors, and preserved food context. The production gate fails
+when metadata descriptors remain as exact sources or when an exact source value
+duplicates its dedicated sample, environment-medium, or isolation-site field.
 
 Latest canonical checkpoint:
 

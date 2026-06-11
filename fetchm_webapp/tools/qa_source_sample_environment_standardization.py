@@ -264,6 +264,10 @@ def generate_qa(
     raw_expr = "s.standardized_payload->>'Isolation Source'"
     source_expr = "s.standardized_payload->>'Isolation_Source_SD'"
     broad_expr = "s.standardized_payload->>'Isolation_Source_SD_Broad'"
+    sample_expr = "s.standardized_payload->>'Sample_Type_SD'"
+    medium_expr = "s.standardized_payload->>'Environment_Medium_SD'"
+    site_expr = "s.standardized_payload->>'Isolation_Site_SD'"
+    method_expr = "s.standardized_payload->>'Isolation_Source_SD_Method'"
     raw_present = present_sql(raw_expr)
     source_present = present_sql(source_expr)
 
@@ -303,6 +307,59 @@ def generate_qa(
                 (snapshot_id,),
             ).fetchall()
         ]
+        unresolved_exact_routing = {
+            str(action): int(count or 0)
+            for action, count in connection.execute(
+                f"""
+                SELECT action, COUNT(*)
+                FROM (
+                    SELECT CASE
+                        WHEN LOWER(BTRIM(COALESCE({source_expr}, ''))) IN
+                             ('metagenome', 'metagenomic assembly', 'sample',
+                              'metadata descriptor/non-source', 'metadata descriptor / non-source')
+                            THEN 'route_to_non_source_descriptor'
+                        WHEN {present_sql(source_expr)} AND {present_sql(sample_expr)}
+                             AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({sample_expr}))
+                            THEN 'route_to_sample_type'
+                        WHEN {present_sql(source_expr)} AND {present_sql(medium_expr)}
+                             AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({medium_expr}))
+                            THEN 'route_to_environment_medium'
+                        WHEN {present_sql(source_expr)} AND {present_sql(site_expr)}
+                             AND LOWER(BTRIM({source_expr})) = LOWER(BTRIM({site_expr}))
+                            THEN 'route_to_isolation_site'
+                        ELSE NULL
+                    END AS action
+                    FROM bacterial_inventory_membership AS i
+                    JOIN assembly_standardization AS s USING (assembly_accession)
+                    WHERE i.snapshot_id = %s
+                ) AS routed
+                WHERE action IS NOT NULL
+                GROUP BY action
+                """,
+                (snapshot_id,),
+            ).fetchall()
+        }
+        routing_method_counts = {
+            str(method): int(count or 0)
+            for method, count in connection.execute(
+                f"""
+                SELECT COALESCE({method_expr}, ''), COUNT(*)
+                FROM bacterial_inventory_membership AS i
+                JOIN assembly_standardization AS s USING (assembly_accession)
+                WHERE i.snapshot_id = %s
+                  AND COALESCE({method_expr}, '') IN (
+                      'sample_context_router',
+                      'environment_context_router',
+                      'anatomy_source_router',
+                      'non_source_descriptor_router',
+                      'food_source_context',
+                      'host_context_router'
+                  )
+                GROUP BY 1
+                """,
+                (snapshot_id,),
+            ).fetchall()
+        }
 
     total = int(counts[0] or 0)
     raw_count = int(counts[1] or 0)
@@ -353,6 +410,19 @@ def generate_qa(
         "neither_raw_nor_standardized_isolation_source_rows": int(counts[6] or 0),
         "suspicious_exact_source_unique_values": len(classified),
         "suspicious_exact_source_rows": sum(int(row[1]) for row in classified),
+        "hard_exact_leakage_rows": sum(unresolved_exact_routing.values()),
+        "hard_exact_leakage_by_action": unresolved_exact_routing,
+        "review_signal_exact_cross_field_unique_values": len(classified),
+        "review_signal_exact_cross_field_rows": sum(int(row[1]) for row in classified),
+        "intentional_cross_field_context_rows": sum(routing_method_counts.values()),
+        "material_routed_to_sample_type_rows": routing_method_counts.get("sample_context_router", 0),
+        "environment_medium_routed_rows": routing_method_counts.get("environment_context_router", 0),
+        "site_routed_rows": routing_method_counts.get("anatomy_source_router", 0),
+        "metadata_descriptor_suppressed_rows": routing_method_counts.get("non_source_descriptor_router", 0),
+        "food_context_preserved_rows": routing_method_counts.get("food_source_context", 0),
+        "host_context_preserved_rows": routing_method_counts.get("host_context_router", 0),
+        "unresolved_exact_routing_rows": sum(unresolved_exact_routing.values()),
+        "unresolved_exact_routing_by_action": unresolved_exact_routing,
         "non_approved_broad_unique_values": len(invalid_broad),
         "non_approved_broad_rows": sum(int(row[1]) for row in invalid_broad),
         "controlled_category_total_rows": rule_metrics["total_rows"],
@@ -408,6 +478,7 @@ def generate_qa(
             metrics["raw_present_isolation_source_standardization_percent"]
             < MIN_STANDARDIZATION_PERCENT
         ),
+        "hard exact-source leakage": metrics["hard_exact_leakage_rows"],
     }
     hard_failures = [f"{label}: {count}" for label, count in hard_checks.items() if count]
     summary = {
@@ -416,9 +487,10 @@ def generate_qa(
         "provenance": provenance,
         "hard_failures": hard_failures,
         "review_note": (
-            "Exact-field classifications are review signals, not automatic routing failures. "
-            "Many exact source concepts intentionally coexist with sample, environment, site, "
-            "host, disease, or health-state fields."
+            "Review-signal classifications are vocabulary triage, not error counts. Hard exact "
+            "leakage is limited to metadata descriptors or exact source values duplicated in a "
+            "dedicated sample, environment-medium, or isolation-site field. Successful routing "
+            "is counted separately from intentional source context."
         ),
     }
 
@@ -514,7 +586,14 @@ def generate_qa(
         f"- Raw-only unresolved isolation source rows: {metrics['raw_only_unresolved_isolation_source_rows']:,}",
         f"- Non-approved broad rows: {metrics['non_approved_broad_rows']:,}",
         f"- Controlled-category duplicate/conflict keys: {rule_metrics['duplicate_keys']}/{rule_metrics['conflict_keys']}",
-        f"- Suspicious exact-source values for review: {len(classified):,} unique; {metrics['suspicious_exact_source_rows']:,} rows",
+        f"- Review-signal exact cross-field values: {len(classified):,} unique; {metrics['review_signal_exact_cross_field_rows']:,} rows",
+        f"- Hard exact-source leakage rows: {metrics['hard_exact_leakage_rows']:,}",
+        f"- Intentional cross-field context rows: {metrics['intentional_cross_field_context_rows']:,}",
+        f"- Material routed to Sample_Type_SD: {metrics['material_routed_to_sample_type_rows']:,}",
+        f"- Environment medium routed: {metrics['environment_medium_routed_rows']:,}",
+        f"- Site routed: {metrics['site_routed_rows']:,}",
+        f"- Metadata descriptor suppressed: {metrics['metadata_descriptor_suppressed_rows']:,}",
+        f"- Food context preserved: {metrics['food_context_preserved_rows']:,}",
         "",
         summary["review_note"],
     ]
