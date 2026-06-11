@@ -766,6 +766,7 @@ def write_snapshot_manifest(summary: dict[str, Any], snapshot_dir: Path) -> None
         "latest_standardization_audit_git_commit": methods.get("latest_standardization_audit_git_commit"),
         "latest_standardization_audit_code_version": methods.get("latest_standardization_audit_code_version"),
         "host_standardization_provenance": methods.get("host_standardization_provenance") or {},
+        "geography_collection_date_provenance": methods.get("geography_collection_date_provenance") or {},
     })
     write_json(provenance_dir / "qa_report.json", summary.get("qa") or {})
 
@@ -807,6 +808,42 @@ def latest_host_standardization_provenance(root: Path | None = None) -> dict[str
         "latest_host_qa_timestamp": summary.get("generated_at") or "not available",
         "validation_sample_filename": summary.get("validation_sample_filename") or "",
         "validation_sample_sha256": summary.get("validation_sample_sha256") or "",
+    }
+
+
+def latest_geography_collection_date_provenance(root: Path | None = None) -> dict[str, Any]:
+    root = root or Path(__file__).resolve().parents[1]
+    qa_root = root / "data" / "geography_collection_date_qa"
+    latest_path = qa_root / "latest.json"
+    if not latest_path.exists():
+        return {}
+    try:
+        latest = json.loads(latest_path.read_text(encoding="utf-8"))
+        summary_path = qa_root / str(latest.get("summary") or "")
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    metrics = summary.get("metrics") or {}
+    provenance = summary.get("provenance") or {}
+    return {
+        "qa_timestamp": provenance.get("qa_timestamp") or "not available",
+        "qa_commit": provenance.get("qa_commit") or "not available",
+        "total_canonical_rows_audited": int(metrics.get("total_rows_scanned") or 0),
+        "country_coverage_percent": float(metrics.get("country_present_percent") or 0),
+        "continent_coverage_percent": float(metrics.get("continent_present_percent") or 0),
+        "subcontinent_coverage_percent": float(metrics.get("subcontinent_present_percent") or 0),
+        "collection_year_coverage_percent": float(metrics.get("collection_year_present_percent") or 0),
+        "non_country_values_in_country_rows": int(metrics.get("non_country_values_in_country_rows") or 0),
+        "country_continent_mismatch_rows": int(metrics.get("country_continent_mismatch_rows") or 0),
+        "country_subcontinent_mismatch_rows": int(metrics.get("country_subcontinent_mismatch_rows") or 0),
+        "invalid_future_impossible_collection_year_rows": (
+            int(metrics.get("invalid_collection_year_rows") or 0)
+            + int(metrics.get("future_collection_year_rows") or 0)
+            + int(metrics.get("impossible_collection_year_rows") or 0)
+        ),
+        "country_lookup_sha256": provenance.get("country_lookup_sha256") or "",
+        "collection_date_parser_sha256": provenance.get("collection_date_parser_sha256") or "",
+        "generated_artifacts": provenance.get("generated_artifacts") or [],
     }
 
 
@@ -1974,6 +2011,7 @@ def generate_global_insights_snapshot(
     app_commit_available = bool(app_commit and app_commit != "unknown")
     rule_manifest = standardization_rule_manifest()
     host_provenance = latest_host_standardization_provenance()
+    geography_date_provenance = latest_geography_collection_date_provenance()
     tool_versions = tool_version_manifest()
     production_gate = rule_manifest.get("production_readiness_gate") or {}
     production_metrics = production_gate.get("metrics") or {}
@@ -2092,6 +2130,7 @@ def generate_global_insights_snapshot(
             "standardization_review_or_nonapproved_rule_rows": rule_manifest.get("review_or_nonapproved_rule_rows", 0),
             "standardization_rule_files": rule_manifest.get("files", []),
             "host_standardization_provenance": host_provenance,
+            "geography_collection_date_provenance": geography_date_provenance,
             "latest_standardization_audit_timestamp": rule_manifest.get("latest_audit_timestamp", "not available"),
             "latest_standardization_audit_git_commit": rule_manifest.get("latest_audit_git_commit", "not available"),
             "latest_standardization_audit_code_version": rule_manifest.get("latest_audit_code_version", "not available"),

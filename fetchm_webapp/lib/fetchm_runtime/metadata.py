@@ -1719,6 +1719,7 @@ ALIASES = {
     "U.K.": "United Kingdom",
     "U.S.": "United States",
     "U.S.A.": "United States",
+    "United States of America": "United States",
     "Viet Nam": "Vietnam",
     "DRC": "Democratic Republic of the Congo",
     "Republic Of The Congo": "Republic of the Congo",

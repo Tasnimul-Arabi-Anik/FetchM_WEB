@@ -17,20 +17,72 @@ from app import (
     build_quality_config,
     ensure_managed_metadata_schema,
     extract_country,
+    extract_year_from_collection_text,
     import_nextflow_qc_outputs,
     dedupe_reason_text,
     run_sequence_quality_checks,
     should_expose_output_file,
+    standardize_collection_year_value,
     standardize_host_metadata,
 )
 from external_tools.quality_check.runner import validate_quality_runtime
-from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_host_standardization_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_geography_collection_date_provenance, latest_host_standardization_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import import_host_review_decisions as host_review_importer
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_geography_collection_date_provenance_loader(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            qa_root = root / "data" / "geography_collection_date_qa"
+            qa_dir = qa_root / "20260610"
+            qa_dir.mkdir(parents=True)
+            (qa_dir / "summary.json").write_text(json.dumps({
+                "metrics": {
+                    "total_rows_scanned": 100,
+                    "country_present_percent": 80,
+                    "continent_present_percent": 80,
+                    "subcontinent_present_percent": 80,
+                    "collection_year_present_percent": 70,
+                    "non_country_values_in_country_rows": 0,
+                    "country_continent_mismatch_rows": 0,
+                    "country_subcontinent_mismatch_rows": 0,
+                    "invalid_collection_year_rows": 0,
+                    "future_collection_year_rows": 0,
+                    "impossible_collection_year_rows": 0,
+                },
+                "provenance": {
+                    "qa_timestamp": "2026-06-10T00:00:00+00:00",
+                    "qa_commit": "test",
+                    "country_lookup_sha256": "country",
+                    "collection_date_parser_sha256": "date",
+                    "generated_artifacts": ["summary.json"],
+                },
+            }), encoding="utf-8")
+            (qa_root / "latest.json").write_text(json.dumps({
+                "summary": "20260610/summary.json",
+            }), encoding="utf-8")
+            provenance = latest_geography_collection_date_provenance(root)
+            self.assertEqual(provenance["total_canonical_rows_audited"], 100)
+            self.assertEqual(provenance["country_lookup_sha256"], "country")
+            self.assertEqual(provenance["invalid_future_impossible_collection_year_rows"], 0)
+
+    def test_country_aliases_and_false_positive_blocks(self) -> None:
+        for value in ["USA", "U.S.A.", "United States of America"]:
+            self.assertEqual(extract_country(value), "United States")
+        for value in ["ground turkey", "Guinea pig", "Norway rat", "Aspergillus niger", "turkey meat"]:
+            self.assertIsNone(extract_country(value))
+
+    def test_collection_year_parser_accepts_valid_dates_and_rejects_false_dates(self) -> None:
+        for value in ["2019-05-10", "May 2019", "2019"]:
+            self.assertEqual(standardize_collection_year_value(value), "2019")
+        for value in ["1899", "2099", "publication date 2019", "submitted 2019", "accession 2019", "protocol 2019"]:
+            self.assertIsNone(standardize_collection_year_value(value))
+        self.assertIsNone(extract_year_from_collection_text("published in 2019", require_context=True))
+        self.assertIsNone(extract_year_from_collection_text("submitted in 2019", require_context=True))
+
     def test_host_provenance_loader_reads_latest_monitoring_summary(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
