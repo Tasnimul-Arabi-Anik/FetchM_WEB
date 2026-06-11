@@ -1,0 +1,731 @@
+{
+  "candidate_file": "standardization/review/source_sample_environment_publication_curation/20260611/source_sample_environment_publication_review_candidates.csv",
+  "categories": {
+    "by_proposed_batch": [
+      {
+        "affected_rows": 98965,
+        "category": "Batch 5 - food and commodity context",
+        "unique_values": 19
+      },
+      {
+        "affected_rows": 56359,
+        "category": "Batch 2 - sample materials",
+        "unique_values": 526
+      },
+      {
+        "affected_rows": 22324,
+        "category": "Batch 6 - host context",
+        "unique_values": 268
+      },
+      {
+        "affected_rows": 7305,
+        "category": "Batch 4 - environmental media",
+        "unique_values": 8
+      },
+      {
+        "affected_rows": 3911,
+        "category": "Batch 1 - metadata descriptors",
+        "unique_values": 1180
+      },
+      {
+        "affected_rows": 1225,
+        "category": "Batch 3 - anatomical sites",
+        "unique_values": 34
+      },
+      {
+        "affected_rows": 195,
+        "category": "Batch 7 - disease and health state",
+        "unique_values": 45
+      }
+    ],
+    "by_recommended_action": [
+      {
+        "affected_rows": 98965,
+        "category": "route_to_food_source",
+        "unique_values": 19
+      },
+      {
+        "affected_rows": 56359,
+        "category": "route_to_sample_type",
+        "unique_values": 526
+      },
+      {
+        "affected_rows": 22324,
+        "category": "route_to_host_context",
+        "unique_values": 268
+      },
+      {
+        "affected_rows": 7305,
+        "category": "route_to_environment_medium",
+        "unique_values": 8
+      },
+      {
+        "affected_rows": 3911,
+        "category": "route_to_non_source_descriptor",
+        "unique_values": 1180
+      },
+      {
+        "affected_rows": 1225,
+        "category": "route_to_isolation_site",
+        "unique_values": 34
+      },
+      {
+        "affected_rows": 195,
+        "category": "route_to_disease_or_health_state",
+        "unique_values": 45
+      }
+    ],
+    "by_signal_class": [
+      {
+        "affected_rows": 121971,
+        "category": "host_taxon_or_context",
+        "unique_values": 296
+      },
+      {
+        "affected_rows": 58699,
+        "category": "sample_type",
+        "unique_values": 536
+      },
+      {
+        "affected_rows": 7305,
+        "category": "environment_medium",
+        "unique_values": 8
+      },
+      {
+        "affected_rows": 2266,
+        "category": "metadata_descriptor",
+        "unique_values": 13
+      },
+      {
+        "affected_rows": 1645,
+        "category": "raw_code_or_artifact",
+        "unique_values": 1167
+      },
+      {
+        "affected_rows": 1292,
+        "category": "body_site",
+        "unique_values": 42
+      },
+      {
+        "affected_rows": 195,
+        "category": "disease",
+        "unique_values": 45
+      }
+    ]
+  },
+  "generated_at": "2026-06-11T16:26:31.661177+00:00",
+  "input_semantics": "Candidates are aggregated Isolation_Source_SD values. raw_value mirrors the QA signal label and is not guaranteed to be an original raw metadata value.",
+  "metrics": {
+    "broad_leakage_rows": 0,
+    "hard_exact_leakage_rows": 0,
+    "isolation_source_sd_broad_coverage_percent": 55.51,
+    "isolation_source_sd_coverage_percent": 59.07,
+    "raw_present_standardization_percent": 81.23,
+    "review_signal_rows": 190284,
+    "review_signal_unique_values": 2080,
+    "rows_audited": 3131699
+  },
+  "source_qa_directory": "standardization/review/source_sample_environment_qa/20260611_exact_cleanup",
+  "top_100_review_signals": [
+    {
+      "affected_rows": 77718,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "poultry meat/product"
+    },
+    {
+      "affected_rows": 36138,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "feces/stool"
+    },
+    {
+      "affected_rows": 20751,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "plant-associated material"
+    },
+    {
+      "affected_rows": 14060,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "turkey meat/product"
+    },
+    {
+      "affected_rows": 9768,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "blood"
+    },
+    {
+      "affected_rows": 6446,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "plant/produce food product"
+    },
+    {
+      "affected_rows": 5060,
+      "recommended_action": "route_to_environment_medium",
+      "signal_type": "environment_medium",
+      "value": "healthcare-associated environment"
+    },
+    {
+      "affected_rows": 2975,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "urine"
+    },
+    {
+      "affected_rows": 2020,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "sample_type|metadata_descriptor",
+      "value": "clinical sample"
+    },
+    {
+      "affected_rows": 2015,
+      "recommended_action": "route_to_environment_medium",
+      "signal_type": "environment_medium",
+      "value": "agricultural environment"
+    },
+    {
+      "affected_rows": 1895,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue"
+    },
+    {
+      "affected_rows": 1327,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "tissue"
+    },
+    {
+      "affected_rows": 1054,
+      "recommended_action": "route_to_isolation_site",
+      "signal_type": "body_site",
+      "value": "canal"
+    },
+    {
+      "affected_rows": 813,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "body fluid"
+    },
+    {
+      "affected_rows": 669,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "ground chicken"
+    },
+    {
+      "affected_rows": 663,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type|host_taxon_or_context",
+      "value": "food/animal-production swab"
+    },
+    {
+      "affected_rows": 304,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "milk"
+    },
+    {
+      "affected_rows": 280,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "soft tissue"
+    },
+    {
+      "affected_rows": 221,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "sample_type|metadata_descriptor",
+      "value": "respiratory sample"
+    },
+    {
+      "affected_rows": 213,
+      "recommended_action": "route_to_environment_medium",
+      "signal_type": "environment_medium",
+      "value": "terrestrial environment"
+    },
+    {
+      "affected_rows": 137,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Animal-Calf-Bob Veal"
+    },
+    {
+      "affected_rows": 123,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Wild Animal"
+    },
+    {
+      "affected_rows": 114,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue (Specify:)"
+    },
+    {
+      "affected_rows": 112,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "animal by-product"
+    },
+    {
+      "affected_rows": 112,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "raw_code_or_artifact",
+      "value": "ENVO_00005801"
+    },
+    {
+      "affected_rows": 110,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "pooled tissue"
+    },
+    {
+      "affected_rows": 95,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "TISSUE"
+    },
+    {
+      "affected_rows": 91,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Connective tissue"
+    },
+    {
+      "affected_rows": 90,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Animal-Calf-Formula-fed Veal"
+    },
+    {
+      "affected_rows": 90,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "cat"
+    },
+    {
+      "affected_rows": 85,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "animal feed"
+    },
+    {
+      "affected_rows": 72,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Broncho-alveolar lavage"
+    },
+    {
+      "affected_rows": 65,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Gastric tissue"
+    },
+    {
+      "affected_rows": 64,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "fermented milk/dairy product"
+    },
+    {
+      "affected_rows": 64,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Mouse embryonic cells"
+    },
+    {
+      "affected_rows": 63,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tick tissue"
+    },
+    {
+      "affected_rows": 62,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "tissue pool"
+    },
+    {
+      "affected_rows": 61,
+      "recommended_action": "route_to_isolation_site",
+      "signal_type": "body_site",
+      "value": "Bladder"
+    },
+    {
+      "affected_rows": 55,
+      "recommended_action": "route_to_disease_or_health_state",
+      "signal_type": "sample_type|disease",
+      "value": "Infected tissue"
+    },
+    {
+      "affected_rows": 55,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "periprosthetic tissue"
+    },
+    {
+      "affected_rows": 54,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "body_site|sample_type",
+      "value": "Gall bladder tissue"
+    },
+    {
+      "affected_rows": 47,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Domestic animal"
+    },
+    {
+      "affected_rows": 43,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Animal-Goat"
+    },
+    {
+      "affected_rows": 42,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "plant root/rhizosphere"
+    },
+    {
+      "affected_rows": 40,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "plasma"
+    },
+    {
+      "affected_rows": 37,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Soft tissue"
+    },
+    {
+      "affected_rows": 35,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "broncho-alveolar lavage"
+    },
+    {
+      "affected_rows": 34,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Animal feed"
+    },
+    {
+      "affected_rows": 30,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue fragment"
+    },
+    {
+      "affected_rows": 29,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Animal-Calf-Non Formula-fed Veal"
+    },
+    {
+      "affected_rows": 29,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Deep Tissue"
+    },
+    {
+      "affected_rows": 29,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue Pool"
+    },
+    {
+      "affected_rows": 26,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "coral tissue"
+    },
+    {
+      "affected_rows": 26,
+      "recommended_action": "route_to_disease_or_health_state",
+      "signal_type": "disease",
+      "value": "infected vegetal samples"
+    },
+    {
+      "affected_rows": 26,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "poultry meat"
+    },
+    {
+      "affected_rows": 25,
+      "recommended_action": "route_to_isolation_site",
+      "signal_type": "body_site",
+      "value": "bladder"
+    },
+    {
+      "affected_rows": 25,
+      "recommended_action": "route_to_food_source",
+      "signal_type": "host_taxon_or_context",
+      "value": "oyster product"
+    },
+    {
+      "affected_rows": 24,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Nasopharygneal lavage"
+    },
+    {
+      "affected_rows": 24,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "serum"
+    },
+    {
+      "affected_rows": 23,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Plasma"
+    },
+    {
+      "affected_rows": 22,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Computer keyboard and mouse"
+    },
+    {
+      "affected_rows": 22,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "lavage"
+    },
+    {
+      "affected_rows": 21,
+      "recommended_action": "route_to_disease_or_health_state",
+      "signal_type": "sample_type|disease",
+      "value": "citrus infected tissue"
+    },
+    {
+      "affected_rows": 21,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "plant stem"
+    },
+    {
+      "affected_rows": 21,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "tissue composite"
+    },
+    {
+      "affected_rows": 20,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "animal feed canola meal"
+    },
+    {
+      "affected_rows": 19,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Domestic cat"
+    },
+    {
+      "affected_rows": 19,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Wild animal"
+    },
+    {
+      "affected_rows": 18,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "dog chew"
+    },
+    {
+      "affected_rows": 17,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Mouse ES Cells"
+    },
+    {
+      "affected_rows": 17,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "tissue samples"
+    },
+    {
+      "affected_rows": 16,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "dog treat"
+    },
+    {
+      "affected_rows": 16,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "hot dog"
+    },
+    {
+      "affected_rows": 15,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Deep tissue"
+    },
+    {
+      "affected_rows": 15,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "raw_code_or_artifact",
+      "value": "ENVO_01000248"
+    },
+    {
+      "affected_rows": 15,
+      "recommended_action": "route_to_isolation_site",
+      "signal_type": "body_site",
+      "value": "Gall bladder"
+    },
+    {
+      "affected_rows": 15,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tracheal lavage"
+    },
+    {
+      "affected_rows": 14,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Homogenized tissue"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_environment_medium",
+      "signal_type": "environment_medium",
+      "value": "combination of 24 samples (8 from lake Croche, 8 from Montjoie and 8 from Simoncouche) collected from 2013 through 2014"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_isolation_site",
+      "signal_type": "body_site",
+      "value": "gall bladder"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "guttural pouch lavage"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "mouse spinal cord microglia"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Pooled Tissue"
+    },
+    {
+      "affected_rows": 13,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Soft Tissue"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "raw_code_or_artifact",
+      "value": "BLDP1"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Cat nape"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "raw_code_or_artifact",
+      "value": "curd_Producer_2"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_non_source_descriptor",
+      "signal_type": "raw_code_or_artifact",
+      "value": "curd_Producer_3"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_disease_or_health_state",
+      "signal_type": "disease",
+      "value": "Infected person"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "periprosthetic tissue specimen"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "Pig product"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "sputum"
+    },
+    {
+      "affected_rows": 12,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Toe Tissue"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_host_context",
+      "signal_type": "host_taxon_or_context",
+      "value": "animal feed wheat"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "biopsy"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_disease_or_health_state",
+      "signal_type": "disease",
+      "value": "EFB infected honey bee larva"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Guttural pouch lavage"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Hip Tissue"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue, Ankle"
+    },
+    {
+      "affected_rows": 11,
+      "recommended_action": "route_to_sample_type",
+      "signal_type": "sample_type",
+      "value": "Tissue, Finger"
+    }
+  ]
+}
