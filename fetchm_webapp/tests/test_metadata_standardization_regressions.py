@@ -1328,6 +1328,27 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(broad_standardization_category("urogenital/reproductive swab"), "swab")
         self.assertEqual(broad_standardization_category("river water"), "water")
 
+    def test_secondary_only_restandardization_matches_full_routing(self) -> None:
+        from tools.restandardize_canonical_metadata import restandardize_secondary_row
+
+        secondary_fields = [
+            "Isolation_Source_SD",
+            "Isolation_Source_SD_Broad",
+            "Sample_Type_SD",
+            "Environment_Medium_SD",
+            "Isolation_Site_SD",
+            "Host_Disease_SD",
+            "Host_Health_State_SD",
+        ]
+        for source in ["blood", "soil", "lake water", "groin", "metagenome", "chicken meat"]:
+            existing = ensure_managed_metadata_schema({"Host": "", "Isolation Source": source})
+            full = ensure_managed_metadata_schema(dict(existing), force_standardization=True)
+            secondary = restandardize_secondary_row(existing)
+            self.assertEqual(
+                {field: secondary.get(field, "") for field in secondary_fields},
+                {field: full.get(field, "") for field in secondary_fields},
+            )
+
     def test_body_site_sample_source_separation(self) -> None:
         groin = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "groin"})
         self.assertEqual(groin["Isolation_Site_SD"], "skin/body surface")

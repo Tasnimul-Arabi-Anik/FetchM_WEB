@@ -13,7 +13,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app import normalize_managed_metadata_row
+from app import normalize_managed_metadata_row, standardize_secondary_metadata
 from dataset_production_store import connect, seed_standardized_metadata_batch, standardized_metadata_coverage
 from global_insights.generator import standardization_rule_manifest
 from tools.host_standardization_monitoring import generate_host_monitoring
@@ -52,6 +52,16 @@ def restandardize_row(row: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def restandardize_secondary_row(row: dict[str, Any]) -> dict[str, Any]:
+    host_standardization = {
+        key: value for key, value in row.items()
+        if key.startswith("Host_") or key in {"Host_SD", "Host_TaxID"}
+    }
+    normalized = dict(row)
+    normalized.update(standardize_secondary_metadata(row, host_standardization))
+    return normalized
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", required=True)
@@ -59,6 +69,11 @@ def main() -> int:
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for validation runs only.")
     parser.add_argument("--standardization-workers", type=int, default=0)
     parser.add_argument("--rule-fingerprint", default="")
+    parser.add_argument(
+        "--secondary-only",
+        action="store_true",
+        help="Recompute only source/sample/environment/site/disease fields while reusing host standardization.",
+    )
     args = parser.parse_args()
     if not 1 <= args.batch_size <= 50000:
         parser.error("--batch-size must be between 1 and 50000")
@@ -76,10 +91,11 @@ def main() -> int:
             if not payloads:
                 break
             last_accession = str(payloads[-1].get("Assembly Accession") or last_accession)
+            standardizer = restandardize_secondary_row if args.secondary_only else restandardize_row
             if executor is None or len(payloads) <= 1:
-                standardized = [restandardize_row(row) for row in payloads]
+                standardized = [standardizer(row) for row in payloads]
             else:
-                standardized = list(executor.map(restandardize_row, payloads, chunksize=max(1, len(payloads) // (workers * 4))))
+                standardized = list(executor.map(standardizer, payloads, chunksize=max(1, len(payloads) // (workers * 4))))
             result = seed_standardized_metadata_batch(
                 args.snapshot_id,
                 standardized,
@@ -102,6 +118,7 @@ def main() -> int:
         "processed_rows": processed,
         "updated_rows": updated,
         "standardization_workers": workers,
+        "secondary_only": bool(args.secondary_only),
         **standardized_metadata_coverage(args.snapshot_id),
     }
     summary["host_standardization_monitoring"] = generate_host_monitoring(args.snapshot_id)
