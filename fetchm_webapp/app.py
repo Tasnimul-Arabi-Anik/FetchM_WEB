@@ -3653,6 +3653,8 @@ def normalized_isolation_source_context(
         "metagenome",
         "metagenomic assembly",
         "sample",
+        "specimen",
+        "uncategorized",
         "whole genome sequencing sample",
     }:
         return "", "non_source_descriptor_router"
@@ -3721,8 +3723,12 @@ def sanitize_sample_type_standardization(value: Any) -> str:
     cleaned = normalize_standardization_lookup(text)
     if cleaned in {
         "sample",
+        "specimen",
+        "uncategorized",
         "metagenome",
         "metagenomic assembly",
+        "metadata descriptor non source",
+        "other unspecified",
         "whole genome sequencing sample",
         "canal",
     }:

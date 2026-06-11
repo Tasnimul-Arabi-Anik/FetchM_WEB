@@ -1482,10 +1482,47 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         raw_code = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "cxwnd"})
         self.assertEqual(raw_code["Isolation_Source_SD"], "")
 
-        for descriptor in ["metagenome", "sample", "metadata descriptor/non-source"]:
+        for descriptor in [
+            "metagenome",
+            "sample",
+            "specimen",
+            "uncategorized",
+            "metadata descriptor/non-source",
+            "pathogen.cl",
+            "other",
+        ]:
             standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": descriptor})
             self.assertEqual(standardized["Isolation_Source_SD"], "")
             self.assertEqual(standardized["Sample_Type_SD"], "")
+            self.assertEqual(standardized["Environment_Medium_SD"], "")
+            self.assertEqual(standardized["Isolation_Site_SD"], "")
+
+        for missing in ["unknown", "missing", "not applicable", "none"]:
+            standardized = ensure_managed_metadata_schema({"Host": "", "Isolation Source": missing})
+            self.assertEqual(standardized["Isolation_Source_SD"], "")
+            self.assertEqual(standardized["Sample_Type_SD"], "")
+
+        clinical = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "clinical sample"})
+        self.assertEqual(clinical["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(clinical["Sample_Type_SD"], "clinical sample")
+
+        respiratory = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "respiratory sample"})
+        self.assertEqual(respiratory["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(respiratory["Sample_Type_SD"], "respiratory sample")
+        self.assertEqual(respiratory["Isolation_Site_SD"], "respiratory tract")
+
+        environmental = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "environmental sample"})
+        self.assertEqual(environmental["Isolation_Source_SD"], "environmental material")
+        self.assertTrue(environmental["Environment_Medium_SD"])
+
+        ontology_code = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "ENVO_00005801"})
+        self.assertEqual(ontology_code["Isolation_Source_SD"], "ENVO_00005801")
+        self.assertEqual(ontology_code["Isolation_Source_SD_Method"], "standardizer")
+
+        culture = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "soil enrichment culture"})
+        self.assertEqual(culture["Environment_Medium_SD"], "soil")
+        self.assertTrue(culture["Sample_Type_SD"])
+        self.assertEqual(culture["Isolation_Source_SD"], "environmental material")
 
         whole_organism = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "whole organism"})
         self.assertEqual(whole_organism["Isolation_Source_SD"], "host-associated context")
