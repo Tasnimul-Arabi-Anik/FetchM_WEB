@@ -44,7 +44,8 @@ Latest canonical checkpoint:
 - Country/Subcontinent mismatches: 0
 - Non-country values in `Country`: 0
 - Invalid, future, or impossible collection years: 0
-- Versioned artifacts: `standardization/review/geography_collection_date_qa/20260610/`
+- QA commit: `570aac7`
+- Versioned artifacts: `standardization/review/geography_collection_date_qa/20260611/`
 
 Country and geography summarize representation in public repository metadata.
 They must not be interpreted as biological prevalence.
