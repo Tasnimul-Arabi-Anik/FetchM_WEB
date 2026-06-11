@@ -54,3 +54,15 @@ fetchm.png
 fetchm_species.png
 fetchm_website.png
 fetchm_webapp/standardization/review/host_review/after_ai_rules_*/
+
+# Local AI/Codex staging artifacts belong outside the repository root.
+/*.patch
+/*_edit/
+/scratch/
+/tmp/
+/codex_work/
+/codex_*.md
+/*_AI_*.csv
+/remaining_host_*.csv
+/process_remaining_host_*.py
+/source_sample_environment_qa_tool.py
