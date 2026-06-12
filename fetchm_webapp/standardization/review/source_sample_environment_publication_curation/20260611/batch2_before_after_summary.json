@@ -1,0 +1,56 @@
+{
+  "batch": "Batch 2 - sample materials and specimens",
+  "generated_from_commit": "81b836d",
+  "qa_timestamp": "2026-06-12T08:14:24.548115+00:00",
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "reviewed_candidates": {
+    "unique_values": 101,
+    "affected_rows": 14260,
+    "decision_unique_values": {
+      "route_to_sample_type": 88,
+      "split_sample_type_and_site": 8,
+      "preserve_food_context": 2,
+      "plant_material_context": 1,
+      "unresolved_low_priority": 2
+    },
+    "decision_affected_rows": {
+      "route_to_sample_type": 13490,
+      "split_sample_type_and_site": 82,
+      "preserve_food_context": 727,
+      "plant_material_context": 1,
+      "unresolved_low_priority": 3
+    }
+  },
+  "before_after": {
+    "rows_audited": [3131699, 3131699],
+    "hard_exact_leakage_rows": [0, 0],
+    "broad_leakage_rows": [0, 0],
+    "review_signal_rows": [190295, 147632],
+    "review_signal_unique_values": [2081, 1615],
+    "material_routed_to_sample_type_rows": [1002246, 1054829],
+    "sample_type_sd_present_count": [1215095, 1406917],
+    "sample_type_sd_present_percent": [38.8, 44.93],
+    "isolation_site_sd_present_count": [402225, 404239],
+    "isolation_source_sd_present_count": [1849780, 1843535],
+    "isolation_source_sd_coverage_percent": [59.07, 58.87],
+    "isolation_source_sd_broad_present_count": [1738396, 1735530],
+    "isolation_source_sd_broad_coverage_percent": [55.51, 55.42],
+    "raw_present_standardization_percent": [81.23, 80.96],
+    "food_context_preserved_rows": [164462, 164796]
+  },
+  "qa": {
+    "status": "pass",
+    "hard_failures": [],
+    "file_errors": 0,
+    "rule_duplicate_keys": 0,
+    "rule_conflict_keys": 0,
+    "tests_passed": 70
+  },
+  "remaining_ambiguity": {
+    "unique_values": 2,
+    "affected_rows": 3,
+    "values": ["cerebrospinal", "Cerebrospinal"],
+    "decision": "Leave unresolved because the value does not explicitly identify cerebrospinal fluid."
+  },
+  "interpretation": "Review signals are triage, not errors. Exact-source coverage decreased slightly because material-only labels moved to Sample_Type_SD. Clinical, respiratory, plant, food, and environmental context remains available when supported."
+}

@@ -1,0 +1,17 @@
+{
+  "approved_broad_categories": {
+    "approved_isolation_source_broad_values": 51,
+    "path": "standardization/approved_broad_categories.csv",
+    "rows": 51,
+    "sha256": "e7bd77053f771bf34ad5b507091908c6b997f213d406f31b1c57b5698810384d"
+  },
+  "controlled_categories": {
+    "approved_rows": 7399,
+    "conflict_keys": 0,
+    "duplicate_keys": 0,
+    "path": "standardization/controlled_categories.csv",
+    "rows": 7505,
+    "sha256": "c4b6bcfebd6f9252e0efcf7060213306ded3e0853a4e6b94084f3d812fcc65db"
+  },
+  "runtime_rule_source": "Committed CSV files are loaded by app.load_external_standardization_rules()."
+}

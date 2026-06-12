@@ -1,0 +1,13 @@
+rule_area,input_or_condition,standardized_output,rationale
+sample_type,"serum; plasma",blood-derived material,Route blood-derived specimens to Sample_Type_SD.
+sample_type,tissue,tissue,Route generic tissue material to Sample_Type_SD.
+sample_type,"leaf tissue; root tissue",plant tissue,Route explicit plant tissue while preserving plant-associated context.
+sample_type,swab,swab,Route generic swab material to Sample_Type_SD.
+isolation_site,"pericardial tissue; gall bladder tissue",organ/tissue site,Split tissue material from anatomical site.
+isolation_site,bladder tissue,urogenital tract,Split tissue material from anatomical site.
+isolation_site,cloacal swab,cloaca,Split swab material from anatomical site.
+isolation_site,"tracheal aspirate; tracheal secretion",lower respiratory tract/bronch/pleural cavity,Split respiratory material from anatomical site.
+isolation_site,gastric biopsy,gastrointestinal tract,Split biopsy material from anatomical site.
+source_suppression,milk alone,blank Isolation_Source_SD,Milk is a specimen unless explicit dairy or food context is present.
+fallback,descriptor Sample_Type_SD removed,Retry material routing from body site or raw Isolation Source,Recover specific material when a generic submitted sample descriptor is suppressed.
+fallback,tissue or biopsy free text,"tissue; plant tissue",Conservative material fallback after descriptor sanitization.

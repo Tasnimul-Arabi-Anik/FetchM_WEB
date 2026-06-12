@@ -1,0 +1,8 @@
+isolation_source_sd,assembly_count,recommended_action
+canal,1052,route_to_isolation_site
+oropharyngeal/throat swab,7,route_to_sample_type
+"general (wound, abcess, Etc.)",2,route_to_isolation_site
+Focus (Wound swab),1,route_to_sample_type
+a bite (wound),1,route_to_isolation_site
+surgical site (wound swab),1,route_to_sample_type
+wound,1,route_to_isolation_site
