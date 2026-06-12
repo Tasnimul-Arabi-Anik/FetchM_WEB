@@ -1430,6 +1430,64 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(conjunctiva["Isolation_Source_SD"], "clinical/host-associated material")
         self.assertEqual(conjunctiva["Isolation_Site_SD"], "organ/tissue site")
 
+    def test_batch2_material_fallback_after_descriptor_sample_type(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        for source, expected in [
+            ("feces", "feces/stool"),
+            ("stool", "feces/stool"),
+            ("faeces", "feces/stool"),
+            ("blood", "blood"),
+            ("serum", "blood-derived material"),
+            ("plasma", "blood-derived material"),
+            ("urine", "urine"),
+            ("sputum", "sputum"),
+            ("saliva", "saliva"),
+            ("tissue", "tissue"),
+            ("swab", "swab"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Sample_Type_SD"], expected, source)
+            self.assertNotEqual(result["Isolation_Source_SD"].casefold(), expected.casefold(), source)
+
+        milk = standardized("milk")
+        self.assertEqual(milk["Sample_Type_SD"], "milk")
+        self.assertEqual(milk["Isolation_Source_SD"], "")
+
+        for source, sample_type, site in [
+            ("pericardial tissue", "tissue", "organ/tissue site"),
+            ("bladder tissue", "tissue", "urogenital tract"),
+            ("Gall bladder tissue", "tissue", "organ/tissue site"),
+            ("wound swab", "wound swab", "wound"),
+            ("rectal swab", "rectal swab", "rectum/perianal region"),
+            ("nasal swab", "nasal swab", "nasal cavity/sinus/upper respiratory tract"),
+            ("throat swab", "oropharyngeal/throat swab", "nasopharynx/oropharynx"),
+            ("oropharyngeal/throat swab", "oropharyngeal/throat swab", "nasopharynx/oropharynx"),
+            ("cloacal swab", "cloacal swab", "cloaca"),
+            ("tracheal aspirate", "tracheal aspirate/secretion", "lower respiratory tract/bronch/pleural cavity"),
+            ("bronchoalveolar lavage", "bronchoalveolar lavage fluid", "lower respiratory tract/bronch/pleural cavity"),
+            ("gastric biopsy", "gastric biopsy", "gastrointestinal tract"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Sample_Type_SD"], sample_type, source)
+            self.assertEqual(result["Isolation_Site_SD"], site, source)
+            self.assertNotEqual(result["Isolation_Source_SD"].casefold(), source.casefold(), source)
+
+        plant_tissue = standardized("leaf tissue")
+        self.assertEqual(plant_tissue["Sample_Type_SD"], "plant tissue")
+        self.assertEqual(plant_tissue["Isolation_Source_SD"], "plant-associated material")
+        self.assertEqual(plant_tissue["Isolation_Site_SD"], "leaf tissue")
+
+        clinical = standardized("clinical sample")
+        self.assertEqual(clinical["Isolation_Source_SD"], "clinical/host-associated material")
+        respiratory = standardized("respiratory sample")
+        self.assertEqual(respiratory["Isolation_Site_SD"], "respiratory tract")
+        chicken_meat = standardized("chicken meat")
+        self.assertEqual(chicken_meat["Isolation_Source_SD_Broad"], "food/meat")
+
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
         self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")

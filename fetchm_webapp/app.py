@@ -2144,6 +2144,9 @@ SAMPLE_TYPE_SYNONYMS = {
     "urine": "urine",
     "sputum": "sputum",
     "saliva": "saliva",
+    "serum": "blood-derived material",
+    "plasma": "blood-derived material",
+    "tissue": "tissue",
     "swab": "swab",
     "stool swab": "fecal/stool swab",
     "fecal swab": "fecal/stool swab",
@@ -3488,6 +3491,13 @@ ANATOMICAL_SITE_SYNONYMS = {
     "lymph node": "organ/tissue site",
     "heart": "organ/tissue site",
     "abdomen": "organ/tissue site",
+    "pericardium": "organ/tissue site",
+    "pericardial": "organ/tissue site",
+    "bladder": "urogenital tract",
+    "urinary bladder": "urogenital tract",
+    "gall bladder": "organ/tissue site",
+    "gallbladder": "organ/tissue site",
+    "biliary tract": "organ/tissue site",
 }
 
 SAMPLE_MATERIAL_EVIDENCE_PATTERN = re.compile(
@@ -3538,7 +3548,9 @@ def canonical_anatomical_site(value: Any) -> str:
         (r"\b(bronch|bronchial|bronchoalveolar|pleural|lung|trachea)\b", "lower respiratory tract/bronch/pleural cavity"),
         (r"\b(tonsil)\b", "tonsil/oropharyngeal site"),
         (r"\b(breast|mammary)\b", "breast"),
-        (r"\b(pancreas|liver|brain|kidney|spleen|bone|eye|ocular|conjunctiva|ear|placenta|lymph node|heart|abdomen)\b", "organ/tissue site"),
+        (r"\b(gall bladder|gallbladder|biliary)\b", "organ/tissue site"),
+        (r"\b(bladder|urinary bladder)\b", "urogenital tract"),
+        (r"\b(pancreas|liver|brain|kidney|spleen|bone|eye|ocular|conjunctiva|ear|placenta|lymph node|heart|abdomen|pericardial|pericardium)\b", "organ/tissue site"),
     )
     for pattern, label in patterns:
         if re.search(pattern, searchable):
@@ -3690,6 +3702,8 @@ def normalized_isolation_source_context(
 
     if sample_type:
         raw_sample = normalize_standardization_lookup(sample_type)
+        if cleaned == "milk" and raw_sample == "milk":
+            return "", "sample_material_router"
         if re.search(r"\b(?:food|meat|poultry|turkey|chicken|beef|pork|seafood|oyster|dairy)\b", cleaned):
             return isolation_source, "food_source_context"
         if raw_sample and (
@@ -4157,9 +4171,27 @@ def apply_core_standardization_overrides() -> None:
         SAMPLE_TYPE_SYNONYMS.pop(host_only_key, None)
     SAMPLE_TYPE_SYNONYMS.update(
         {
+            "swab": "swab",
+            "serum": "blood-derived material",
+            "plasma": "blood-derived material",
+            "tissue": "tissue",
+            "leaf tissue": "plant tissue",
+            "root tissue": "plant tissue",
             "wound swab": "wound swab",
             "swab wound": "wound swab",
             "swab_wound": "wound swab",
+        }
+    )
+    ISOLATION_SITE_SYNONYMS.update(
+        {
+            "cloacal swab": "cloaca",
+            "tracheal aspirate": "lower respiratory tract/bronch/pleural cavity",
+            "tracheal secretion": "lower respiratory tract/bronch/pleural cavity",
+            "gastric biopsy": "gastrointestinal tract",
+            "pericardial tissue": "organ/tissue site",
+            "bladder tissue": "urogenital tract",
+            "gall bladder tissue": "organ/tissue site",
+            "gallbladder tissue": "organ/tissue site",
         }
     )
     ENVIRONMENT_MEDIUM_SYNONYMS.update(
@@ -5385,6 +5417,23 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         HOST_HEALTH_STATE_SYNONYMS,
     )
     sample_type = sanitize_sample_type_standardization(sample_type)
+    if not sample_type:
+        if body_site_sample_type:
+            sample_type = sanitize_sample_type_standardization(body_site_sample_type)
+            sample_type_method = "body_site_material_router"
+            sample_type_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(sample_type, "")
+        else:
+            sample_type, sample_type_method, sample_type_ontology_id = first_standardized_concept(
+                [row.get("Isolation Source"), isolation_source_material, host_as_context, *host_disease_context],
+                SAMPLE_TYPE_SYNONYMS,
+            )
+            sample_type = sanitize_sample_type_standardization(sample_type)
+            if sample_type and sample_type_method == "original":
+                cleaned_material = normalize_standardization_lookup(isolation_source_material or row.get("Isolation Source"))
+                if re.search(r"\b(?:tissue|biopsy)\b", cleaned_material):
+                    sample_type = "plant tissue" if re.search(r"\b(?:plant|leaf|root|stem|flower|fruit|seed)\b", cleaned_material) else "tissue"
+                    sample_type_method = "material_fallback_router"
+                    sample_type_ontology_id = ""
     if not sample_type:
         sample_type_method = "missing"
         sample_type_ontology_id = ""

@@ -365,6 +365,7 @@ def generate_qa(
                 WHERE i.snapshot_id = %s
                   AND COALESCE({method_expr}, '') IN (
                       'sample_context_router',
+                      'sample_material_router',
                       'environment_context_router',
                       'anatomy_source_router',
                       'non_source_descriptor_router',
@@ -431,7 +432,10 @@ def generate_qa(
         "review_signal_exact_cross_field_unique_values": len(classified),
         "review_signal_exact_cross_field_rows": sum(int(row[1]) for row in classified),
         "intentional_cross_field_context_rows": sum(routing_method_counts.values()),
-        "material_routed_to_sample_type_rows": routing_method_counts.get("sample_context_router", 0),
+        "material_routed_to_sample_type_rows": (
+            routing_method_counts.get("sample_context_router", 0)
+            + routing_method_counts.get("sample_material_router", 0)
+        ),
         "environment_medium_routed_rows": routing_method_counts.get("environment_context_router", 0),
         "site_routed_rows": routing_method_counts.get("anatomy_source_router", 0),
         "metadata_descriptor_suppressed_rows": routing_method_counts.get("non_source_descriptor_router", 0),
