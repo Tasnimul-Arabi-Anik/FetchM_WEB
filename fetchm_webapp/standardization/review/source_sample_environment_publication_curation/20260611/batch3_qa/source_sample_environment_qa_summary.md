@@ -2,7 +2,7 @@
 
 - Status: **pass**
 - Canonical snapshot: `20260602T140414Z_genbank_bacteria_root`
-- QA timestamp: `2026-06-12T15:22:57.364592+00:00`
+- QA timestamp: `2026-06-12T16:04:00.596909+00:00`
 - Rows audited: 3,131,699
 - Raw isolation source coverage: 2,248,471 (71.8%)
 - Isolation_Source_SD coverage: 1,839,616 (58.74%)

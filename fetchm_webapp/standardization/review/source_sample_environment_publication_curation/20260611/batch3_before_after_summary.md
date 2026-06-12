@@ -1,6 +1,6 @@
 # Batch 3 Anatomical And Body-Site Curation
 
-Batch 3 refreshed and audited all 3,131,699 canonical bacterial metadata rows using implementation commit `59cdd43`.
+Batch 3 refreshed and audited all 3,131,699 canonical bacterial metadata rows using implementation commits `59cdd43` and `fa9531f`.
 
 ## QA Result
 
@@ -19,7 +19,7 @@ The focused body-site queue fell from seven values affecting 1,065 rows to two v
 | --- | ---: | ---: | ---: |
 | Isolation_Site_SD rows | 404,239 (12.91%) | 399,121 (12.74%) | -5,118 |
 | Site-routed source rows | 3,996 | 3,952 | -44 |
-| Sample_Type_SD rows | 1,406,917 (44.93%) | 1,380,581 (44.08%) | -26,336 |
+| Sample_Type_SD rows | 1,406,917 (44.93%) | 1,380,569 (44.08%) | -26,348 |
 | Review-signal rows | 147,632 | 150,659 | +3,027 |
 | Review-signal unique values | 1,615 | 1,609 | -6 |
 | Environment-routed rows | 422,172 | 422,911 | +739 |

@@ -1,7 +1,7 @@
 {
   "batch": "Batch 3 - anatomical and body-site curation",
-  "generated_from_commit": "59cdd43",
-  "qa_timestamp": "2026-06-12T15:22:57.364592+00:00",
+  "generated_from_commit": "fa9531f",
+  "qa_timestamp": "2026-06-12T16:04:00.596909+00:00",
   "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
   "reviewed_candidates": {
     "unique_values": 8,
@@ -19,7 +19,7 @@
     "isolation_site_sd_present_count": [404239, 399121],
     "isolation_site_sd_present_percent": [12.91, 12.74],
     "site_routed_rows": [3996, 3952],
-    "sample_type_sd_present_count": [1406917, 1380581],
+    "sample_type_sd_present_count": [1406917, 1380569],
     "sample_type_sd_present_percent": [44.93, 44.08],
     "isolation_source_sd_present_count": [1843535, 1839616],
     "isolation_source_sd_present_percent": [58.87, 58.74],

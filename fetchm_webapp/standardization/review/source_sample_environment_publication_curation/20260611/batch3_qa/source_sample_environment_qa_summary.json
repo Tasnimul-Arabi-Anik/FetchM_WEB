@@ -39,7 +39,7 @@
     "raw_present_isolation_source_standardization_percent": 80.78,
     "review_signal_exact_cross_field_rows": 150659,
     "review_signal_exact_cross_field_unique_values": 1609,
-    "sample_type_sd_present_count": 1380581,
+    "sample_type_sd_present_count": 1380569,
     "sample_type_sd_present_percent": 44.08,
     "site_routed_rows": 3952,
     "standardized_only_rescued_isolation_source_rows": 23235,
@@ -81,8 +81,8 @@
       "controlled_categories_rule_audit.csv",
       "source_sample_environment_rule_manifest.json"
     ],
-    "qa_commit": "59cdd43",
-    "qa_timestamp": "2026-06-12T15:22:57.364592+00:00",
+    "qa_commit": "fa9531f",
+    "qa_timestamp": "2026-06-12T16:04:00.596909+00:00",
     "snapshot_id": "20260602T140414Z_genbank_bacteria_root"
   },
   "review_note": "Review-signal classifications are vocabulary triage, not error counts. Hard exact leakage is limited to metadata descriptors or exact source values duplicated in a dedicated sample, environment-medium, or isolation-site field. Successful routing is counted separately from intentional source context.",
