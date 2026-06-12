@@ -1,0 +1,106 @@
+isolation_source_sd,assembly_count,recommended_action
+blood,9729,route_to_sample_type
+urine,2892,route_to_sample_type
+clinical sample,1957,route_to_non_source_descriptor
+food/animal-production swab,663,route_to_sample_type
+feces/stool,343,route_to_sample_type
+respiratory sample,211,route_to_non_source_descriptor
+milk,124,route_to_sample_type
+Broncho-alveolar lavage,72,route_to_sample_type
+fermented milk/dairy product,64,route_to_sample_type
+tissue,43,route_to_sample_type
+blood-derived material,36,route_to_sample_type
+broncho-alveolar lavage,35,route_to_sample_type
+Nasopharygneal lavage,24,route_to_sample_type
+lavage,22,route_to_sample_type
+Tracheal lavage,15,route_to_sample_type
+body fluid,13,route_to_sample_type
+guttural pouch lavage,13,route_to_sample_type
+Guttural pouch lavage,11,route_to_sample_type
+Bronchalveolar Lavage,10,route_to_sample_type
+cloacal sample,9,route_to_non_source_descriptor
+Nasobronchial lavage,8,route_to_sample_type
+sputum,8,route_to_sample_type
+broncoalveolar lavage,7,route_to_sample_type
+oropharyngeal/throat swab,7,route_to_sample_type
+Broncheoalveolar lavage,6,route_to_sample_type
+Bronco-Alveolar Lavage,5,route_to_sample_type
+brochoalveolar lavage,5,route_to_sample_type
+cloacal swab,5,route_to_sample_type
+gastric lavage,5,route_to_sample_type
+Broncho-Alveolar Lavage,3,route_to_sample_type
+Gastric lavage,3,route_to_sample_type
+Lavage,3,route_to_sample_type
+bronchioalveolar lavage,3,route_to_sample_type
+Broncho alveolaire lavage,2,route_to_sample_type
+Broncho alveolar lavage,2,route_to_sample_type
+Catether (Blood),2,route_to_sample_type
+Lizards faeces,2,route_to_sample_type
+Post-lavage,2,route_to_sample_type
+Tracheobronchial lavage,2,route_to_sample_type
+baby faeces,2,route_to_sample_type
+"bat, faeces",2,route_to_sample_type
+biopsy,2,route_to_sample_type
+broncho alveolar lavage,2,route_to_sample_type
+cerebrospinal,2,route_to_sample_type
+kite (cloacal swab),2,route_to_sample_type
+source/sample material,2,route_to_non_source_descriptor
+Abdominal (drain aspirate),1,route_to_sample_type
+Alveolar lavage specimen,1,route_to_sample_type
+Brochoalveolar lavage,1,route_to_sample_type
+Bronchialveolar Lavage,1,route_to_sample_type
+Bronchioaleveolar lavage,1,route_to_sample_type
+Bronchioalveolar lavage,1,route_to_sample_type
+Bronchoalve. Lavage,1,route_to_sample_type
+Bronchoalvelar lavage (BAL),1,route_to_sample_type
+Bronchoavleolar lavage,1,route_to_sample_type
+Broncholaveolar lavage,1,route_to_sample_type
+Broncial Lavage,1,route_to_sample_type
+Bronco-alveolar lavage,1,route_to_sample_type
+Bronko-alveolær lavage,1,route_to_sample_type
+Canine faeces,1,route_to_sample_type
+Cat faeces,1,route_to_sample_type
+Cerebrospinal,1,route_to_sample_type
+Chest (PUS),1,route_to_sample_type
+Corn Snake (Faeces),1,route_to_sample_type
+Elbow(PUS)-left,1,route_to_sample_type
+Evap (midpoint from sample petcock) - Liquid (WIP),1,route_to_non_source_descriptor
+Faeces - Goat - Local livestock market,1,route_to_sample_type
+Faeces of piglets,1,route_to_sample_type
+Infant faeces,1,route_to_sample_type
+Ixodes ricinus larvae cultured in MKP-F (human serum),1,route_to_sample_type
+Lizard Faeces,1,route_to_sample_type
+Lizard faeces,1,route_to_sample_type
+"Lizard, faeces",1,route_to_sample_type
+Peritoneal lavage,1,route_to_sample_type
+Post lavage,1,route_to_sample_type
+Rodent faeces,1,route_to_sample_type
+Snake faeces,1,route_to_sample_type
+Vulture faeces,1,route_to_sample_type
+Zoo Ostrava (mixed sample),1,route_to_non_source_descriptor
+alveolar lavage,1,route_to_sample_type
+broncheoalveolar lavage,1,route_to_sample_type
+broncho-alveolar lavage (BAL),1,route_to_sample_type
+broncho-aveolar lavage,1,route_to_sample_type
+bronchoavelar lavage,1,route_to_sample_type
+cerebrospinal fluid,1,route_to_sample_type
+endotrach lavage,1,route_to_sample_type
+faeces 9.10,1,route_to_sample_type
+faeces 9.11,1,route_to_sample_type
+faeces 9.12,1,route_to_sample_type
+faeces 9.13,1,route_to_sample_type
+faeces 9.14,1,route_to_sample_type
+faeces 9.15,1,route_to_sample_type
+faeces 9.16,1,route_to_sample_type
+faeces 9.17,1,route_to_sample_type
+faeces 9.7,1,route_to_sample_type
+faeces 9.8,1,route_to_sample_type
+faeces 9.9,1,route_to_sample_type
+faeces of a thoroughbred horse,1,route_to_sample_type
+infant faeces,1,route_to_sample_type
+lamb faeces,1,route_to_sample_type
+leaf tissue,1,route_to_sample_type
+neonatal calf faeces,1,route_to_sample_type
+peritoneal lavage,1,route_to_sample_type
+poulltry faeces,1,route_to_sample_type
+roe deer faeces,1,route_to_sample_type

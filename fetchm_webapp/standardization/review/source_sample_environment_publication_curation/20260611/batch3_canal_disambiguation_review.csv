@@ -1,0 +1,10 @@
+value,decision,destination,standardized_value,confidence,note
+ear canal,anatomical,Isolation_Site_SD,organ/tissue site,high,Explicit anatomical phrase.
+birth canal,anatomical,Isolation_Site_SD,urogenital tract,high,Explicit anatomical phrase.
+anal canal,anatomical,Isolation_Site_SD,rectum/perianal region,high,Explicit anatomical phrase.
+root canal,anatomical,Isolation_Site_SD,oral cavity,high,Explicit dental phrase.
+bile canal,anatomical,Isolation_Site_SD,organ/tissue site,high,Explicit biliary phrase.
+canal water,environment,Environment_Medium_SD,canal water,high,Explicit water medium.
+canal sediment,environment,Environment_Medium_SD,sediment,high,Explicit sediment medium.
+irrigation canal,environment,Environment_Local_Scale_SD,irrigation canal,high,Explicit environmental feature.
+canal,manual_review,,,high,Context-free term remains unresolved and is not forced to anatomy or environment.

@@ -1,0 +1,18 @@
+host_health_state_sd,assembly_count
+diseased,51506
+patient,14939
+healthy,3465
+hospitalized,1183
+healthy/control,1077
+carrier,782
+healthy/no disease reported,675
+non-hospitalized,497
+asymptomatic,466
+dead,289
+symptomatic,224
+exposure/contact context,95
+specific pathogen free,56
+diseased/patient,50
+exacerbation,48
+alive,40
+convalescent,1

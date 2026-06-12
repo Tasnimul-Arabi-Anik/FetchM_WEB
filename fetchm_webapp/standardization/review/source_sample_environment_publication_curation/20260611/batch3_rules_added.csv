@@ -1,0 +1,10 @@
+rule_group,input_or_condition,destination,standardized_value,rationale
+anatomical_canal,ear canal,Isolation_Site_SD,organ/tissue site,Explicit anatomical phrase overrides generic canal environment mapping.
+anatomical_canal,birth canal,Isolation_Site_SD,urogenital tract,Explicit anatomical phrase overrides generic canal environment mapping.
+anatomical_canal,anal canal,Isolation_Site_SD,rectum/perianal region,Explicit anatomical phrase overrides generic canal environment mapping.
+anatomical_canal,root canal,Isolation_Site_SD,oral cavity,Explicit dental phrase overrides generic canal environment mapping.
+anatomical_canal,bile or biliary canal,Isolation_Site_SD,organ/tissue site,Explicit biliary phrase overrides generic canal environment mapping.
+wound_site,surgical site or bite wound,Isolation_Site_SD,wound,Clear wound-site phrases route to anatomy.
+ambiguous_exact,canal or drainage or surface,suppressed/manual review,,Context-free terms do not force source sample site or environment.
+environment_precedence,canal water or canal sediment or irrigation canal or drainage water,environment fields,context-specific environment,Environmental wording takes precedence over anatomy.
+food_host_safeguard,animal commodity plus anatomy,food or host context,,Pork liver beef heart chicken breast fish gut and oyster tissue do not become human clinical sites.

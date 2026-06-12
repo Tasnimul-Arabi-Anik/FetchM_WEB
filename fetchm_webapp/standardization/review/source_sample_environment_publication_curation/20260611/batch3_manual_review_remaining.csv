@@ -1,0 +1,4 @@
+normalized_value,affected_rows,decision,note
+canal,971,manual_review,Context-free term may be anatomical or environmental.
+drainage,967,manual_review,Context-free term may be clinical material or environmental drainage.
+surface,249,manual_review,Context-free term may be body built healthcare or food-contact surface.

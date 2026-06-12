@@ -1,0 +1,58 @@
+{
+  "batch": "Batch 3 - anatomical and body-site curation",
+  "generated_from_commit": "59cdd43",
+  "qa_timestamp": "2026-06-12T15:22:57.364592+00:00",
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "reviewed_candidates": {
+    "unique_values": 8,
+    "affected_rows": 1066,
+    "body_site_rows_before": 1065,
+    "body_site_rows_after": 8,
+    "body_site_values_after": 2
+  },
+  "before_after": {
+    "rows_audited": [3131699, 3131699],
+    "hard_exact_leakage_rows": [0, 0],
+    "broad_leakage_rows": [0, 0],
+    "review_signal_rows": [147632, 150659],
+    "review_signal_unique_values": [1615, 1609],
+    "isolation_site_sd_present_count": [404239, 399121],
+    "isolation_site_sd_present_percent": [12.91, 12.74],
+    "site_routed_rows": [3996, 3952],
+    "sample_type_sd_present_count": [1406917, 1380581],
+    "sample_type_sd_present_percent": [44.93, 44.08],
+    "isolation_source_sd_present_count": [1843535, 1839616],
+    "isolation_source_sd_present_percent": [58.87, 58.74],
+    "environment_medium_routed_rows": [422172, 422911],
+    "food_context_preserved_rows": [164796, 168924]
+  },
+  "semantic_corrections": {
+    "generic_wound_removed_from_sample_type": 20952,
+    "wound_swab_added_to_sample_type": 2317,
+    "bare_canal_source_assignments_removed": 1052,
+    "false_organ_tissue_sites_removed": 2661,
+    "false_gastrointestinal_sites_removed": 2120,
+    "false_skin_body_surface_sites_removed": 911,
+    "wound_sites_added": 586,
+    "food_context_rows_added": 4128,
+    "environment_context_rows_added": 739
+  },
+  "ambiguity_review": {
+    "anatomical_canal_categories": 5,
+    "environmental_canal_categories": 3,
+    "manual_review_raw_rows": {
+      "canal": 971,
+      "drainage": 967,
+      "surface": 249
+    }
+  },
+  "qa": {
+    "status": "pass",
+    "hard_failures": [],
+    "file_errors": 0,
+    "rule_duplicate_keys": 0,
+    "rule_conflict_keys": 0,
+    "tests_passed": 71
+  },
+  "interpretation": "The slight decreases in site and sample coverage remove false-positive body-site-only sample labels, animal commodity anatomy, and context-free ambiguity. The increase in overall review-signal rows is driven by preserved food/host context and remains triage, not hard leakage."
+}
