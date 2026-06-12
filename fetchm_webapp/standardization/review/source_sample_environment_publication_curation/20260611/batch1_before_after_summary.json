@@ -1,0 +1,80 @@
+{
+  "batch": "Batch 1 - metadata descriptors",
+  "generated_from_commit": "8b140eb",
+  "qa_timestamp": "2026-06-12T05:11:28.489747+00:00",
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "review_signal_candidates_reviewed": {
+    "unique_values": 1180,
+    "affected_rows": 3911
+  },
+  "preventive_hardening": {
+    "unique_values": 4,
+    "exact_raw_occurrences": 28304,
+    "note": "Preventive exact-value counts are not added to review-signal affected rows."
+  },
+  "decision_counts": {
+    "unique_values": {
+      "safe_suppress": 4,
+      "context_bearing_keep_or_review": 3,
+      "ontology_code_manual_review": 19,
+      "unresolved_low_priority": 1158
+    },
+    "affected_rows": {
+      "safe_suppress": 28304,
+      "context_bearing_keep_or_review": 2250,
+      "ontology_code_manual_review": 165,
+      "unresolved_low_priority": 1496
+    }
+  },
+  "before_after": {
+    "rows_audited": [
+      3131699,
+      3131699
+    ],
+    "hard_exact_leakage_rows": [
+      0,
+      0
+    ],
+    "broad_leakage_rows": [
+      0,
+      0
+    ],
+    "review_signal_rows": [
+      190284,
+      190295
+    ],
+    "review_signal_unique_values": [
+      2080,
+      2081
+    ],
+    "metadata_descriptor_suppressed_rows": [
+      135111,
+      135112
+    ],
+    "sample_type_sd_present_count": [
+      1252191,
+      1215095
+    ],
+    "isolation_source_sd_coverage_percent": [
+      59.07,
+      59.07
+    ],
+    "isolation_source_sd_broad_coverage_percent": [
+      55.51,
+      55.51
+    ],
+    "raw_present_standardization_percent": [
+      81.23,
+      81.23
+    ]
+  },
+  "qa": {
+    "status": "pass",
+    "hard_failures": [],
+    "rule_duplicate_keys": 0,
+    "rule_conflict_keys": 0,
+    "tests_passed": 69
+  },
+  "interpretation": "The +11 review-signal rows expose legitimate sample-material signals previously hidden by generic descriptor sample types: feces/stool +6, blood +2, tissue +1, milk +1, and Pericardial Tissue +1. Review signals are triage, not errors.",
+  "protected_context": "clinical sample, respiratory sample, cloacal sample, environmental context, ENVO identifiers, and culture/process terms were not blanket-suppressed."
+}

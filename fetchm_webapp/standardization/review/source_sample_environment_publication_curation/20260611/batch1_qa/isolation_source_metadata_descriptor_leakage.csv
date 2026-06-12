@@ -1,0 +1,14 @@
+isolation_source_sd,assembly_count,recommended_action
+clinical sample,2020,route_to_non_source_descriptor
+respiratory sample,221,route_to_non_source_descriptor
+cloacal sample,9,route_to_non_source_descriptor
+Bovine Unknown,3,route_to_non_source_descriptor
+Product-Rinse-Unknown species,3,route_to_non_source_descriptor
+Elaeagnus angustifolia foliage harboring unknown insect,2,route_to_non_source_descriptor
+source/sample material,2,route_to_non_source_descriptor
+Evap (midpoint from sample petcock) - Liquid (WIP),1,route_to_non_source_descriptor
+Product-Raw-Intact-Unknown species,1,route_to_non_source_descriptor
+Zoo Ostrava (mixed sample),1,route_to_non_source_descriptor
+nature unknown,1,route_to_non_source_descriptor
+source of origin unknown,1,route_to_non_source_descriptor
+"strain EV G. Gerard, G Robic (Vaccine strain EV line NIIEG is mutant strain, was isolated from other stain EV Gerard and Robic)",1,route_to_non_source_descriptor
