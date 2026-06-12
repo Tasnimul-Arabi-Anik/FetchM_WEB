@@ -1523,6 +1523,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(result["Environment_Medium_SD"], medium, source)
             self.assertEqual(result["Isolation_Site_SD"], "", source)
             self.assertEqual(result["Isolation_Source_SD"], "environmental material", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
 
         irrigation = standardized("irrigation canal")
         self.assertEqual(irrigation["Environment_Local_Scale_SD"], "irrigation canal")

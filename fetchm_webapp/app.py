@@ -5497,7 +5497,9 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         sample_type_method = "missing"
         sample_type_ontology_id = ""
     if not sample_type:
-        if raw_isolation_source in {"canal", "drainage", "surface"}:
+        if raw_isolation_source in {"canal", "drainage", "surface"} or re.search(
+            r"\b(?:canal water|canal sediment|drainage water)\b", raw_isolation_source
+        ):
             pass
         elif body_site_sample_type:
             sample_type = sanitize_sample_type_standardization(body_site_sample_type)
