@@ -1488,6 +1488,77 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         chicken_meat = standardized("chicken meat")
         self.assertEqual(chicken_meat["Isolation_Source_SD_Broad"], "food/meat")
 
+    def test_batch3_body_site_ambiguity_and_context_precedence(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        for source, expected_site in [
+            ("groin", "skin/body surface"),
+            ("wound", "wound"),
+            ("surgical site", "wound"),
+            ("bite wound", "wound"),
+            ("rectum", "rectum/perianal region"),
+            ("throat", "nasopharynx/oropharynx"),
+            ("nasal cavity", "nasal cavity/sinus/upper respiratory tract"),
+            ("lung", "lower respiratory tract/bronch/pleural cavity"),
+            ("bladder", "urogenital tract"),
+            ("cloaca", "cloaca"),
+            ("ear canal", "organ/tissue site"),
+            ("birth canal", "urogenital tract"),
+            ("anal canal", "rectum/perianal region"),
+            ("root canal", "oral cavity"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Site_SD"], expected_site, source)
+            self.assertNotEqual(result["Isolation_Source_SD"].casefold(), source.casefold(), source)
+
+        for source, medium in [
+            ("canal water", "canal water"),
+            ("canal sediment", "sediment"),
+            ("drainage water", "drainage water"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Environment_Medium_SD"], medium, source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+            self.assertEqual(result["Isolation_Source_SD"], "environmental material", source)
+
+        irrigation = standardized("irrigation canal")
+        self.assertEqual(irrigation["Environment_Local_Scale_SD"], "irrigation canal")
+        self.assertEqual(irrigation["Isolation_Site_SD"], "")
+        self.assertEqual(irrigation["Isolation_Source_SD"], "environmental material")
+
+        for source in ["canal", "drainage", "surface"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+
+        wound_drainage = standardized("wound drainage")
+        self.assertEqual(wound_drainage["Sample_Type_SD"], "drainage")
+        self.assertEqual(wound_drainage["Isolation_Site_SD"], "wound")
+
+        hospital_surface = standardized("hospital surface")
+        self.assertEqual(hospital_surface["Isolation_Source_SD_Broad"], "healthcare-associated environment")
+        self.assertEqual(hospital_surface["Isolation_Site_SD"], "")
+
+        skin_surface = standardized("skin surface")
+        self.assertEqual(skin_surface["Isolation_Site_SD"], "skin/body surface")
+
+        for source in ["chicken breast meat", "pork liver", "beef heart"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "food/meat", source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+
+        for source in ["fish gut", "oyster tissue"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+            self.assertNotEqual(result["Isolation_Source_SD"], "clinical/host-associated material", source)
+
+        self.assertEqual(standardized("clinical sample")["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(standardized("respiratory sample")["Isolation_Site_SD"], "respiratory tract")
+
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
         self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")

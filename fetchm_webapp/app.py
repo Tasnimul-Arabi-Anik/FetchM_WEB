@@ -3515,6 +3515,26 @@ FOOD_CUT_CONTEXT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+ANIMAL_COMMODITY_ANATOMY_PATTERN = re.compile(
+    r"\b(?:pork|beef|chicken|turkey|poultry|fish|oyster|shellfish|swine|cattle|animal)\b"
+    r".*\b(?:breast|liver|heart|gut|intestin|stomach|tissue|skin|kidney|lung)\b",
+    re.IGNORECASE,
+)
+
+
+def is_animal_commodity_anatomy(value: Any) -> bool:
+    cleaned = normalize_standardization_lookup(value)
+    raw_text = "" if value is None else str(value).strip().lower()
+    searchable = f"{cleaned} {raw_text}"
+    reverse_pattern = (
+        r"\b(?:breast|liver|heart|gut|intestin|stomach|tissue|skin|kidney|lung)\b"
+        r".*\b(?:pork|beef|chicken|turkey|poultry|fish|oyster|shellfish|swine|cattle|animal)\b"
+    )
+    return bool(
+        ANIMAL_COMMODITY_ANATOMY_PATTERN.search(searchable)
+        or re.search(reverse_pattern, searchable, re.IGNORECASE)
+    )
+
 
 def food_cut_sample_type(value: Any) -> str:
     cleaned = normalize_standardization_lookup(value)
@@ -3528,7 +3548,7 @@ def food_cut_sample_type(value: Any) -> str:
 
 
 def canonical_anatomical_site(value: Any) -> str:
-    if food_cut_sample_type(value):
+    if food_cut_sample_type(value) or is_animal_commodity_anatomy(value):
         return ""
     for candidate in standardization_lookup_variants(value):
         if candidate in ANATOMICAL_SITE_SYNONYMS:
@@ -3538,7 +3558,18 @@ def canonical_anatomical_site(value: Any) -> str:
         return ""
     raw_text = "" if value is None else str(value).strip().lower()
     searchable = f"{cleaned} {raw_text}"
+    canal_patterns = (
+        (r"\bear canal\b", "organ/tissue site"),
+        (r"\bbirth canal\b", "urogenital tract"),
+        (r"\banal canal\b", "rectum/perianal region"),
+        (r"\broot canal\b", "oral cavity"),
+        (r"\b(?:bile|biliary) canal\b", "organ/tissue site"),
+    )
+    for pattern, label in canal_patterns:
+        if re.search(pattern, searchable):
+            return label
     patterns = (
+        (r"\b(?:surgical site|bite wound|wound|abscess site)\b", "wound"),
         (r"\b(rectal|rectum|recto\s*anal|perirectal|perianal|anus)\b", "rectum/perianal region"),
         (r"\b(nasal|nose|nares|sinus|paranasal)\b", "nasal cavity/sinus/upper respiratory tract"),
         (r"\b(oral|mouth|dental|tooth|saliva)\b", "oral cavity"),
@@ -3699,6 +3730,10 @@ def normalized_isolation_source_context(
             or ENVIRONMENT_SOURCE_DETAIL_PATTERN.search(raw_environment)
         ):
             return "environmental material", "environment_context_router"
+    if re.search(r"\b(?:irrigation canal|canal water|canal sediment|drainage water)\b", cleaned):
+        return "environmental material", "environment_context_router"
+    if cleaned in {"canal", "drainage", "surface"}:
+        return "", "ambiguous_context_router"
 
     if sample_type:
         raw_sample = normalize_standardization_lookup(sample_type)
@@ -3719,7 +3754,7 @@ def normalized_isolation_source_context(
             if re.search(r"(?:plant|leaf|root|rhizosphere|stem|flower|fruit|seed)", cleaned):
                 return "plant-associated material", "host_context_router"
             return "clinical/host-associated material", "anatomy_source_router"
-        if canonical_anatomical_site(isolation_source) or cleaned == "canal":
+        if canonical_anatomical_site(isolation_source):
             return "clinical/host-associated material", "anatomy_source_router"
     return isolation_source, ""
 
@@ -3745,6 +3780,8 @@ def sanitize_sample_type_standardization(value: Any) -> str:
         "other unspecified",
         "whole genome sequencing sample",
         "canal",
+        "irrigation canal",
+        "surface",
     }:
         return ""
     return "" if sample_type_rule_is_host_only(text, text) or sample_type_is_site_only(text) else text
@@ -4184,6 +4221,15 @@ def apply_core_standardization_overrides() -> None:
     )
     ISOLATION_SITE_SYNONYMS.update(
         {
+            "surgical site": "wound",
+            "bite wound": "wound",
+            "abscess site": "wound",
+            "ear canal": "organ/tissue site",
+            "birth canal": "urogenital tract",
+            "anal canal": "rectum/perianal region",
+            "root canal": "oral cavity",
+            "bile canal": "organ/tissue site",
+            "biliary canal": "organ/tissue site",
             "cloacal swab": "cloaca",
             "tracheal aspirate": "lower respiratory tract/bronch/pleural cavity",
             "tracheal secretion": "lower respiratory tract/bronch/pleural cavity",
@@ -5191,6 +5237,14 @@ def isolation_source_material_context(value: Any) -> str:
     food_cut = food_cut_sample_type(value)
     if food_cut:
         return food_cut
+    if is_animal_commodity_anatomy(value):
+        if re.search(r"\b(?:pork|swine)\b", cleaned):
+            return "pork"
+        if re.search(r"\b(?:beef|cattle)\b", cleaned):
+            return "beef"
+        if re.search(r"\b(?:chicken|turkey|poultry)\b", cleaned):
+            return "poultry meat"
+        return "host-associated context"
     if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES:
         return ""
     if cleaned in ISOLATION_SOURCE_CONTEXT_OVERRIDES:
@@ -5336,6 +5390,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_site_method = "anatomy_router"
         isolation_site_ontology_id = ""
     isolation_site = sanitize_isolation_site_standardization(isolation_site)
+    if is_animal_commodity_anatomy(row.get("Isolation Source")):
+        isolation_site = ""
+        isolation_site_method = "missing"
+        isolation_site_ontology_id = ""
     if not isolation_site:
         isolation_site_method = "missing"
         isolation_site_ontology_id = ""
@@ -5384,6 +5442,21 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         ],
         ENVIRONMENT_MEDIUM_SYNONYMS,
     )
+    raw_isolation_source = normalize_standardization_lookup(row.get("Isolation Source"))
+    if raw_isolation_source == "canal":
+        environment_local = ""
+        environment_local_method = "missing"
+        environment_local_ontology_id = ""
+    anatomical_canal_site = canonical_anatomical_site(row.get("Isolation Source"))
+    if anatomical_canal_site and re.search(r"\bcanal\b", raw_isolation_source):
+        if normalize_standardization_lookup(environment_local) in {"canal", "irrigation canal"}:
+            environment_local = ""
+            environment_local_method = "missing"
+            environment_local_ontology_id = ""
+        if normalize_standardization_lookup(environment_medium) in {"canal", "canal water", "water"}:
+            environment_medium = ""
+            environment_method = "missing"
+            environment_ontology_id = ""
     sample_type, sample_type_method, sample_type_ontology_id = first_standardized_concept(
         [row.get("Sample Type"), isolation_source_material, row.get("Isolation Source"), host_as_context, *host_disease_context],
         SAMPLE_TYPE_SYNONYMS,
@@ -5417,8 +5490,16 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         HOST_HEALTH_STATE_SYNONYMS,
     )
     sample_type = sanitize_sample_type_standardization(sample_type)
+    if raw_isolation_source in {"canal", "drainage", "surface"} or re.search(
+        r"\b(?:canal water|canal sediment|drainage water)\b", raw_isolation_source
+    ):
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
     if not sample_type:
-        if body_site_sample_type:
+        if raw_isolation_source in {"canal", "drainage", "surface"}:
+            pass
+        elif body_site_sample_type:
             sample_type = sanitize_sample_type_standardization(body_site_sample_type)
             sample_type_method = "body_site_material_router"
             sample_type_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(sample_type, "")
@@ -5437,6 +5518,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     if not sample_type:
         sample_type_method = "missing"
         sample_type_ontology_id = ""
+    if anatomical_canal_site and re.search(r"\bcanal\b", raw_isolation_source):
+        isolation_source = "clinical/host-associated material"
+        isolation_method = "anatomy_source_router"
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
     source_context = source_context_for_anatomical_site(isolation_source)
     if source_context:
         isolation_source = source_context

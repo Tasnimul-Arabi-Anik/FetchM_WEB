@@ -47,7 +47,8 @@ FIELD_FILES = {
 BODY_SITE_PATTERN = re.compile(
     r"\b(?:groin|nasal|nose|nasopharyn|oropharyn|throat|rectum|rectal|perianal|skin|"
     r"lung|bronch|pleur|gut|intestin|colon|ileum|stomach|rumen|oral|mouth|dental|"
-    r"vagina|vaginal|cervix|urethra|bladder|wound|ear|eye|conjunctiva|canal)\b",
+    r"vagina|vaginal|cervix|urethra|bladder|wound|ear|eye|conjunctiva|"
+    r"birth canal|anal canal|root canal|bile canal|biliary canal)\b",
     re.I,
 )
 SAMPLE_PATTERN = re.compile(
