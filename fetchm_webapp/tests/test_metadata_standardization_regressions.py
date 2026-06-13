@@ -1560,6 +1560,55 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(standardized("clinical sample")["Isolation_Source_SD"], "clinical/host-associated material")
         self.assertEqual(standardized("respiratory sample")["Isolation_Site_SD"], "respiratory tract")
 
+    def test_batch4_environment_media_context_and_precedence(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        for source, medium in [
+            ("river sediment", "sediment"),
+            ("canal sediment", "sediment"),
+            ("wastewater treatment plant influent", "wastewater"),
+            ("wastewater treatment plant effluent", "wastewater"),
+            ("sewage influent", "sewage"),
+            ("drainage water", "drainage water"),
+            ("poultry litter", "agricultural organic material"),
+            ("animal bedding", "agricultural organic material"),
+            ("sink biofilm", "biofilm"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Environment_Medium_SD"], medium, source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
+            self.assertNotEqual(result["Isolation_Source_SD"], "clinical/host-associated material", source)
+
+        treatment_plant = standardized("wastewater treatment plant influent")
+        self.assertEqual(treatment_plant["Isolation_Source_SD"], "environmental material")
+        self.assertEqual(treatment_plant["Sample_Type_SD"], "")
+
+        estuary = standardized("estuary")
+        self.assertEqual(estuary["Environment_Broad_Scale_SD"], "estuarine environment")
+        self.assertEqual(estuary["Environment_Local_Scale_SD"], "estuary")
+        self.assertEqual(estuary["Isolation_Source_SD"], "environmental material")
+        self.assertEqual(estuary["Sample_Type_SD"], "")
+
+        digester = standardized("anaerobic digester")
+        self.assertEqual(digester["Isolation_Source_SD"], "wastewater/organic waste")
+        self.assertEqual(digester["Sample_Type_SD"], "")
+
+        enrichment = standardized("enrichment culture")
+        self.assertEqual(enrichment["Isolation_Source_SD"], "culture")
+        self.assertEqual(enrichment["Sample_Type_SD"], "enrichment culture")
+
+        dental = standardized("dental biofilm")
+        self.assertEqual(dental["Environment_Medium_SD"], "biofilm")
+        self.assertEqual(dental["Isolation_Site_SD"], "oral cavity")
+
+        for source in ["canal", "drainage", "surface", "influent", "mud", "sand"]:
+            result = standardized(source)
+            self.assertNotEqual(result["Isolation_Source_SD"], "environmental material", source)
+
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
         self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")

@@ -3717,6 +3717,12 @@ def normalized_isolation_source_context(
         return isolation_source, "environment_context_router"
     if cleaned == "plant associated material":
         return isolation_source, "host_context_router"
+    if cleaned == "anaerobic digester":
+        return "wastewater/organic waste", "environment_context_router"
+    if cleaned == "enrichment culture" and not environment_medium:
+        return "culture", "lab_artifact_router"
+    if cleaned == "estuary":
+        return "environmental material", "environment_context_router"
 
     if environment_medium:
         raw_environment = normalize_standardization_lookup(environment_medium)
@@ -4253,6 +4259,16 @@ def apply_core_standardization_overrides() -> None:
             "marine water": "seawater",
             "hot spring water": "hot spring water",
             "irrigation water": "irrigation water",
+            "river sediment": "sediment",
+            "canal sediment": "sediment",
+            "wastewater treatment plant influent": "wastewater",
+            "wastewater treatment plant effluent": "wastewater",
+            "sewage influent": "sewage",
+            "drainage water": "drainage water",
+            "poultry litter": "agricultural organic material",
+            "animal bedding": "agricultural organic material",
+            "sink biofilm": "biofilm",
+            "dental biofilm": "biofilm",
             "cheese": "dairy food",
             "cheese rind": "dairy food",
             "yogurt": "dairy food",
@@ -5247,6 +5263,8 @@ def isolation_source_material_context(value: Any) -> str:
         return "host-associated context"
     if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES:
         return ""
+    if HOST_CONTEXT_SOURCE_DOMINANT_PATTERN.search(cleaned) and not HOST_CONTEXT_MATERIAL_EVIDENCE_PATTERN.search(cleaned):
+        return str(value).strip()
     if cleaned in ISOLATION_SOURCE_CONTEXT_OVERRIDES:
         return ISOLATION_SOURCE_CONTEXT_OVERRIDES[cleaned]
     for key, standardized in sorted(ISOLATION_SOURCE_CONTEXT_OVERRIDES.items(), key=lambda item: len(item[0]), reverse=True):
@@ -5443,6 +5461,19 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         ENVIRONMENT_MEDIUM_SYNONYMS,
     )
     raw_isolation_source = normalize_standardization_lookup(row.get("Isolation Source"))
+    source_dominant_environment = bool(
+        HOST_CONTEXT_SOURCE_DOMINANT_PATTERN.search(raw_isolation_source)
+        and not HOST_CONTEXT_MATERIAL_EVIDENCE_PATTERN.search(raw_isolation_source)
+    )
+    if source_dominant_environment and normalize_standardization_lookup(isolation_site) in {
+        "plant associated material",
+        "root",
+        "rhizosphere",
+        "leaf tissue",
+    }:
+        isolation_site = ""
+        isolation_site_method = "missing"
+        isolation_site_ontology_id = ""
     if raw_isolation_source == "canal":
         environment_local = ""
         environment_local_method = "missing"
@@ -5490,6 +5521,33 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         HOST_HEALTH_STATE_SYNONYMS,
     )
     sample_type = sanitize_sample_type_standardization(sample_type)
+    environment_source_sample_type, _, _ = first_standardized_concept(
+        [row.get("Isolation Source")], SAMPLE_TYPE_SYNONYMS
+    )
+    environmental_pseudo_sample_types = {
+        "air",
+        "anaerobic digester",
+        "estuary",
+        "groundwater",
+        "hot spring",
+        "pond",
+        "river",
+        "sewage",
+        "sink",
+        "sludge",
+    }
+    block_environment_sample_fallback = bool(
+        raw_isolation_source in {"estuary", "anaerobic digester"}
+        or (
+            environment_medium
+            and normalize_standardization_lookup(environment_source_sample_type) in environmental_pseudo_sample_types
+        )
+    )
+    if environment_medium and normalize_standardization_lookup(sample_type) in environmental_pseudo_sample_types:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
+        block_environment_sample_fallback = True
     if raw_isolation_source in {"canal", "drainage", "surface"} or re.search(
         r"\b(?:canal water|canal sediment|drainage water)\b", raw_isolation_source
     ):
@@ -5497,7 +5555,9 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         sample_type_method = "missing"
         sample_type_ontology_id = ""
     if not sample_type:
-        if raw_isolation_source in {"canal", "drainage", "surface"} or re.search(
+        if block_environment_sample_fallback:
+            pass
+        elif raw_isolation_source in {"canal", "drainage", "surface"} or re.search(
             r"\b(?:canal water|canal sediment|drainage water)\b", raw_isolation_source
         ):
             pass

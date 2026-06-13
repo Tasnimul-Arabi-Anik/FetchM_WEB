@@ -1,0 +1,27 @@
+{
+  "batch": "Batch 4 - environmental media lightweight curation",
+  "baseline_commit": "c3e6e86",
+  "workflow": "lightweight_only",
+  "canonical_refresh_run": false,
+  "global_insights_regenerated": false,
+  "deployment_run": false,
+  "targeted_values_tested": 25,
+  "targeted_values_changed": 10,
+  "deterministic_rules_added": 15,
+  "admin_review_values": 10,
+  "protected_regression_values_checked": 12,
+  "protected_regression_values_passed": 12,
+  "targeted_hard_leakage_after": 0,
+  "targeted_broad_vocabulary_leakage_after": 0,
+  "controlled_categories": {
+    "total_rows": 7505,
+    "approved_rows": 7399,
+    "duplicate_keys": 0,
+    "conflict_keys": 0
+  },
+  "tests": {
+    "regression_tests_passed": 72,
+    "regression_tests_failed": 0
+  },
+  "interpretation": "Review signals are triage, not errors. Ambiguous bare terms remain unresolved for admin review. Canonical coverage and row-count changes are deferred to the Batches 4-8 consolidation refresh."
+}
