@@ -1,0 +1,32 @@
+{
+  "batch": 7,
+  "workflow": "lightweight_only",
+  "generated_at": "2026-06-16T06:36:46.552179+00:00",
+  "canonical_refresh_run": false,
+  "global_insights_regenerated": false,
+  "deployment_run": false,
+  "values_reviewed": 30,
+  "deterministic_rules_added": 16,
+  "code_helper_updates": 3,
+  "admin_review_values_retained_unresolved": 11,
+  "protected_regression_values_checked": 43,
+  "targeted_hard_leakage_after": 0,
+  "targeted_broad_vocabulary_leakage_after": 0,
+  "controlled_category_duplicate_keys": 0,
+  "controlled_category_conflict_keys": 0,
+  "tests_passed": 75,
+  "lightweight_rule_audit": {
+    "total_rows": 7521,
+    "approved_rows": 7415,
+    "duplicate_keys": 0,
+    "conflict_keys": 0,
+    "suspicious_rows": 20
+  },
+  "canonical_coverage_deferred_to_final_consolidation": true,
+  "notes": [
+    "Host taxonomy rule files were not modified.",
+    "Clinical sample and respiratory sample were preserved as context-bearing aggregates, not disease labels.",
+    "Outbreak/surveillance/contaminated-food terms were retained for admin review unless explicit disease evidence exists.",
+    "Full canonical refresh, Global Insights regeneration, and deployment were intentionally skipped."
+  ]
+}

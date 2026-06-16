@@ -2562,6 +2562,8 @@ HOST_DISEASE_SYNONYMS = {
     "not applicable": "",
     "diarrhea": "diarrheal disease",
     "diarrhoea": "diarrheal disease",
+    "diarrheal": "diarrheal disease",
+    "diarrheal disease": "diarrheal disease",
     "gastroenteritis": "gastroenteritis",
     "colitis": "colitis",
     "urinary tract infection": "urinary tract infection",
@@ -2581,9 +2583,14 @@ HOST_DISEASE_SYNONYMS = {
     "leg infection": "skin and soft tissue infection",
     "infection of surgical site": "surgical site infection",
     "sepsis": "sepsis/bacteremia",
+    "septicemia": "sepsis/bacteremia",
     "bacteremia": "sepsis/bacteremia",
+    "bacteraemia": "sepsis/bacteremia",
     "bloodstream infection": "sepsis/bacteremia",
     "meningitis": "meningitis",
+    "skin infection": "skin infection",
+    "lower respiratory infection": "respiratory infection",
+    "upper respiratory infection": "respiratory infection",
     "periodontitis": "periodontal disease",
     "dental caries": "dental caries",
     "cystic fibrosis": "cystic fibrosis",
@@ -2992,6 +2999,11 @@ SOURCE_HOST_CONTEXT_RULES: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"\b(?:insect|mosquito|tick)\b", re.IGNORECASE), "arthropod"),
     (PLANT_CONTEXT_SOURCE_PATTERN, "plant-associated"),
 )
+
+DISEASE_SAMPLE_SPLIT_SOURCE_TERMS = {
+    "mastitis milk",
+    "bovine mastitis milk",
+}
 
 def compact_lookup_text(value: Any) -> str:
     return re.sub(r"[^a-z0-9]+", "", normalize_standardization_lookup(value))
@@ -3672,6 +3684,7 @@ def canonical_anatomical_site(value: Any) -> str:
         (r"\b(skin|forehead|foot|leg|chin|palm|axilla|umbilicus|sacrum|popliteal|cheek|index|perineum|perineal|tarsal)\b", "skin/body surface"),
         (r"\b(urogenital|genitourinary|urinary|urethra|urethral|penis|vagina|vaginal|cervix|uterus)\b", "urogenital tract"),
         (r"\b(colon|ileum|caecum|cecum|intestinal|intestine|gastrointestinal|gut|stomach|rumen|cloaca)\b", "gastrointestinal tract"),
+        (r"\b(respiratory infection|respiratory disease|lower respiratory infection|upper respiratory infection)\b", "respiratory tract"),
         (r"\b(bronch|bronchial|bronchoalveolar|pleural|lung|trachea)\b", "lower respiratory tract/bronch/pleural cavity"),
         (r"\b(tonsil)\b", "tonsil/oropharyngeal site"),
         (r"\b(breast|mammary)\b", "breast"),
@@ -5422,6 +5435,8 @@ def isolation_source_material_context(value: Any) -> str:
         if re.search(r"\b(?:chicken|turkey|poultry)\b", cleaned):
             return "poultry meat"
         return "host-associated context"
+    if cleaned in DISEASE_SAMPLE_SPLIT_SOURCE_TERMS:
+        return ""
     if cleaned in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
         return ""
     if cleaned in {"egg", "farm", "market"}:
@@ -5838,6 +5853,10 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
         isolation_source = ""
         isolation_method = "ambiguous_context_router"
+        isolation_ontology_id = ""
+    if raw_isolation_source in DISEASE_SAMPLE_SPLIT_SOURCE_TERMS:
+        isolation_source = ""
+        isolation_method = "disease_sample_split_router"
         isolation_ontology_id = ""
     if raw_isolation_source in {"slaughterhouse", "abattoir"}:
         isolation_source = "food processing environment"

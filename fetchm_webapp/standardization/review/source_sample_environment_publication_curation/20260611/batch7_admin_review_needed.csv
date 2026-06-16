@@ -1,0 +1,12 @@
+raw_value,reason,reviewer_decision,notes
+infection,generic disease term without site/host specificity,manual_review,Do not infer specific disease beyond existing broad diseased state without more context.
+infected animal,animal health context ambiguous,manual_review,"Could be disease state, exposure, or host context; no specific disease target."
+diseased plant,plant health context ambiguous,manual_review,Plant disease/health-state wording without target disease vocabulary.
+outbreak,epidemiological context,manual_review,Outbreak is not itself a disease unless disease is explicit.
+outbreak food source,food/outbreak context,manual_review,Preserve food/outbreak context; do not infer host disease.
+contaminated food,food safety context,manual_review,Contamination is not host disease by itself.
+wastewater surveillance,environment surveillance context,manual_review,Surveillance is not host disease; preserve environment context.
+carrier,colonization/status ambiguity,manual_review,Carrier status needs domain review.
+colonized,colonization/status ambiguity,manual_review,Colonization is not necessarily disease.
+clinical,generic clinical context,manual_review,Do not force generic clinical value into disease.
+patient,host/clinical context,manual_review,Batch 6 host-context rule applies; no disease without explicit disease term.

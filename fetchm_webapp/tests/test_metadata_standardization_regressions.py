@@ -1833,6 +1833,101 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(standardized("canal water")["Environment_Medium_SD"], "canal water")
         self.assertEqual(standardized("cheese")["Isolation_Source_SD_Broad"], "food/dairy")
 
+    def test_batch7_disease_health_source_context(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        for source, disease in [
+            ("diarrhea", "diarrheal disease"),
+            ("diarrhoea", "diarrheal disease"),
+            ("diarrheal", "diarrheal disease"),
+            ("pneumonia", "pneumonia"),
+            ("sepsis", "sepsis/bacteremia"),
+            ("septicemia", "sepsis/bacteremia"),
+            ("bacteremia", "sepsis/bacteremia"),
+            ("bacteraemia", "sepsis/bacteremia"),
+            ("urinary tract infection", "urinary tract infection"),
+            ("UTI", "urinary tract infection"),
+            ("mastitis", "mastitis"),
+            ("meningitis", "meningitis"),
+            ("gastroenteritis", "gastroenteritis"),
+            ("cystic fibrosis", "cystic fibrosis"),
+            ("wound infection", "wound infection"),
+            ("skin infection", "skin infection"),
+            ("respiratory infection", "respiratory infection"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Host_Disease_SD"], disease, source)
+            self.assertNotEqual(result["Isolation_Source_SD"], source, source)
+            self.assertEqual(result["Environment_Medium_SD"], "", source)
+
+        wound_infection = standardized("wound infection")
+        self.assertEqual(wound_infection["Isolation_Site_SD"], "wound")
+        skin_infection = standardized("skin infection")
+        self.assertEqual(skin_infection["Isolation_Site_SD"], "skin/body surface")
+        respiratory_infection = standardized("respiratory infection")
+        self.assertEqual(respiratory_infection["Isolation_Site_SD"], "respiratory tract")
+
+        for source, health_state in [
+            ("healthy", "healthy"),
+            ("healthy control", "healthy"),
+            ("asymptomatic", "asymptomatic"),
+            ("symptomatic", "symptomatic"),
+            ("diseased", "diseased"),
+            ("control", "healthy/control"),
+            ("normal", "healthy"),
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Host_Health_State_SD"], health_state, source)
+            self.assertNotEqual(result["Isolation_Source_SD"], source, source)
+            self.assertEqual(result["Environment_Medium_SD"], "", source)
+
+        diarrheal_stool = standardized("diarrheal stool")
+        self.assertEqual(diarrheal_stool["Sample_Type_SD"], "feces/stool")
+        self.assertEqual(diarrheal_stool["Host_Disease_SD"], "diarrheal disease")
+        urine_uti = standardized("urine from UTI")
+        self.assertEqual(urine_uti["Sample_Type_SD"], "urine")
+        self.assertEqual(urine_uti["Host_Disease_SD"], "urinary tract infection")
+        blood_sepsis = standardized("blood from sepsis")
+        self.assertEqual(blood_sepsis["Sample_Type_SD"], "blood")
+        self.assertEqual(blood_sepsis["Host_Disease_SD"], "sepsis/bacteremia")
+        mastitis_milk = standardized("mastitis milk")
+        self.assertEqual(mastitis_milk["Sample_Type_SD"], "milk")
+        self.assertEqual(mastitis_milk["Host_Disease_SD"], "mastitis")
+        self.assertEqual(mastitis_milk["Isolation_Source_SD"], "")
+        abscess_aspirate = standardized("abscess aspirate")
+        self.assertIn(abscess_aspirate["Sample_Type_SD"], {"aspirate", "clinical fluid/material"})
+        self.assertNotEqual(abscess_aspirate["Environment_Medium_SD"], "abscess aspirate")
+
+        for source in ["clinical sample", "clinical patient", "patient sample", "respiratory sample"]:
+            result = standardized(source)
+            self.assertEqual(result["Host_Disease_SD"], "", source)
+            self.assertNotEqual(result["Environment_Medium_SD"], source, source)
+        self.assertEqual(standardized("clinical sample")["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(standardized("respiratory sample")["Isolation_Site_SD"], "respiratory tract")
+
+        for source in [
+            "infected animal",
+            "diseased plant",
+            "contaminated food",
+            "outbreak food source",
+            "wastewater surveillance",
+            "hospital environment",
+        ]:
+            result = standardized(source)
+            self.assertNotEqual(result["Host_Disease_SD"], source, source)
+        self.assertEqual(standardized("contaminated food")["Isolation_Source_SD_Broad"], "food")
+        self.assertTrue(standardized("wastewater surveillance")["Environment_Medium_SD"])
+        self.assertEqual(standardized("hospital environment")["Isolation_Source_SD_Broad"], "healthcare-associated environment")
+
+        self.assertEqual(standardized("metagenome")["Isolation_Source_SD"], "")
+        self.assertEqual(standardized("feces")["Sample_Type_SD"], "feces/stool")
+        self.assertEqual(standardized("canal water")["Environment_Medium_SD"], "canal water")
+        self.assertEqual(standardized("chicken meat")["Isolation_Source_SD_Broad"], "food/meat")
+        self.assertEqual(standardized("human")["Host_Context_SD"], "human-associated")
+
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
         self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")
