@@ -1,0 +1,31 @@
+{
+  "canonical_refresh_summary_sha256": "",
+  "controlled_categories_sha256": "bc964998e23efbc67773f1626168eaa7837476d9482f8536b61a7fcc8aa90986",
+  "global_insights_snapshot_sha256": "6d05edf439f933fd875666e9f67328f2d6cac7aa9d7eba081495917d233b7565",
+  "major_category_counts_after": {
+    "countries_observed": 230,
+    "hosts_observed": 6786,
+    "metadata_rows_scanned": 3131699,
+    "source_sample_environment_qa_timestamp": "2026-06-16T08:05:37.603117+00:00",
+    "source_sample_environment_rows_audited": 3131699,
+    "unique_assemblies": 3131699
+  },
+  "major_category_counts_before": {
+    "countries_observed": 230,
+    "hosts_observed": 6786,
+    "metadata_rows_scanned": 3131699,
+    "source_sample_environment_qa_timestamp": "2026-06-12T16:04:00.596909+00:00",
+    "source_sample_environment_rows_audited": 3131699,
+    "unique_assemblies": 3131699
+  },
+  "pass": true,
+  "row_count_after": 3131699,
+  "row_count_before": 3131699,
+  "run_at": "2026-06-16T08:17:29.643807+00:00",
+  "snapshot_id": "20260616T081156Z_global_insights",
+  "source_sample_environment_provenance_updated": true,
+  "source_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "summary_path": "/app/fetchm_webapp/data/global_insights/snapshots/20260616t081156z_global_insights/summary.json",
+  "unexpected_category_drops": [],
+  "unexpected_category_spikes": []
+}

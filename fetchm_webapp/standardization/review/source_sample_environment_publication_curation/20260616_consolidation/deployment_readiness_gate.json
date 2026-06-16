@@ -1,0 +1,15 @@
+{
+  "admin_review_blockers": 0,
+  "broad_leakage_after": 0,
+  "canonical_refresh_pass": true,
+  "conflict_keys": 0,
+  "controlled_category_audit_pass": true,
+  "duplicate_keys": 0,
+  "generated_at": "2026-06-16T08:28:45.764776+00:00",
+  "global_insights_regenerated": true,
+  "hard_failures": [],
+  "hard_leakage_after": 0,
+  "reason": "deployment intentionally manual",
+  "safe_to_deploy": false,
+  "tests_pass": true
+}

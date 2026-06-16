@@ -1,0 +1,21 @@
+raw_value	before_Host_Disease_SD	after_Host_Disease_SD	before_Host_Health_State_SD	after_Host_Health_State_SD	before_Sample_Type_SD	after_Sample_Type_SD	before_Isolation_Site_SD	after_Isolation_Site_SD	before_Isolation_Source_SD	after_Isolation_Source_SD	decision	confidence	review_notes
+diarrhea		diarrheal disease		diseased						clinical/host-associated material	route_to_host_disease	high	Reviewed Batch 7 disease/health-state consolidation example.
+diarrhoea		diarrheal disease		diseased						clinical/host-associated material	route_to_host_disease	high	Reviewed Batch 7 disease/health-state consolidation example.
+diarrheal		diarrheal disease		diseased						clinical/host-associated material	route_to_host_disease	high	Reviewed Batch 7 disease/health-state consolidation example.
+diarrheal stool		diarrheal disease		diseased	feces/stool	feces/stool				clinical/host-associated material	split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+urine from UTI		urinary tract infection		diseased		urine	urine			clinical/host-associated material	split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+blood from sepsis		sepsis/bacteremia		diseased	blood	blood				clinical/host-associated material	split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+mastitis milk		mastitis		diseased		milk			milk		split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+bovine mastitis milk		mastitis		diseased		milk			milk		split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+septicemia		sepsis/bacteremia		diseased						clinical/host-associated material	route_to_host_disease	high	Reviewed Batch 7 disease/health-state consolidation example.
+bacteraemia		sepsis/bacteremia		diseased						clinical/host-associated material	route_to_host_disease	high	Reviewed Batch 7 disease/health-state consolidation example.
+skin infection		skin infection		diseased				skin/body surface		clinical/host-associated material	split_disease_and_isolation_site	high	Reviewed Batch 7 disease/health-state consolidation example.
+lower respiratory infection		respiratory infection		diseased		respiratory sample		respiratory tract		clinical/host-associated material	split_disease_and_sample_type	high	Reviewed Batch 7 disease/health-state consolidation example.
+clinical sample						clinical sample				clinical/host-associated material	preserve_clinical_context	high	Context-bearing aggregate label; do not infer disease.
+respiratory sample						respiratory sample		respiratory tract		clinical/host-associated material	preserve_clinical_context	high	Respiratory site/sample context; do not infer disease.
+contaminated food						food				food/food product	admin_review	medium	Food safety context, not host disease without explicit disease evidence.
+wastewater surveillance											admin_review	medium	Environment surveillance context, not host disease.
+outbreak food source						food product				food/food product	admin_review	medium	Outbreak/source context remains admin review unless disease is explicit.
+carrier										carrier	admin_review	medium	Carrier status remains admin review.
+colonized										colonized	admin_review	medium	Colonization status remains admin review.
+patient				patient							admin_review	medium	Patient-only context remains host/clinical context, not disease.

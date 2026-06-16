@@ -1,0 +1,15 @@
+{
+  "broad_leakage_after": 0,
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "controlled_category_conflict_keys": 0,
+  "controlled_category_duplicate_keys": 0,
+  "deployment_safe_to_deploy": false,
+  "generated_at": "2026-06-16T08:28:45.764894+00:00",
+  "global_insights_snapshot_id": "20260616T081156Z_global_insights",
+  "hard_leakage_after": 0,
+  "isolation_source_sd_present_percent": 58.65,
+  "raw_present_standardization_percent": 80.65,
+  "scope": "Batches 4-8 source/sample/environment consolidation refresh",
+  "status": "pass",
+  "total_rows_scanned": 3131699
+}

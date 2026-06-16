@@ -1601,6 +1601,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(enrichment["Isolation_Source_SD"], "culture")
         self.assertEqual(enrichment["Sample_Type_SD"], "enrichment culture")
 
+        benzene_enrichment = standardized("benzene-degrading enrichment culture")
+        self.assertEqual(benzene_enrichment["Isolation_Source_SD"], "")
+        self.assertEqual(benzene_enrichment["Sample_Type_SD"], "enrichment culture")
+
         dental = standardized("dental biofilm")
         self.assertEqual(dental["Environment_Medium_SD"], "biofilm")
         self.assertEqual(dental["Isolation_Site_SD"], "oral cavity")
@@ -2024,6 +2028,82 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
         whole_organism = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "whole organism"})
         self.assertEqual(whole_organism["Isolation_Source_SD"], "host-associated context")
+
+    def test_source_sample_environment_consolidation_gate_is_manual(self) -> None:
+        from tools import check_deployment_readiness_gate as gate_tool
+
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            gate = gate_tool.deployment_gate(
+                root,
+                {"duplicate_keys": 0, "conflict_keys": 0, "hard_rule_leakage": 0},
+                {
+                    "status": "pass",
+                    "hard_failures": [],
+                    "metrics": {
+                        "hard_exact_leakage_rows": 0,
+                        "non_approved_broad_rows": 0,
+                        "controlled_category_duplicate_keys": 0,
+                        "controlled_category_conflict_keys": 0,
+                    },
+                },
+                {"pass": True, "global_insights_snapshot_sha256": "abc123", "snapshot_id": "test_snapshot"},
+                tests_passed=True,
+            )
+            self.assertTrue(gate["canonical_refresh_pass"])
+            self.assertTrue(gate["global_insights_regenerated"])
+            self.assertEqual(gate["hard_failures"], [])
+            self.assertFalse(gate["safe_to_deploy"])
+            self.assertEqual(gate["reason"], "deployment intentionally manual")
+            self.assertTrue((root / "deployment_readiness_gate.json").exists())
+
+    def test_source_sample_environment_consolidation_gate_blocks_missing_outputs(self) -> None:
+        from tools import check_deployment_readiness_gate as gate_tool
+
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            gate = gate_tool.deployment_gate(
+                root,
+                {"duplicate_keys": 0, "conflict_keys": 0, "hard_rule_leakage": 0},
+                {
+                    "status": "fail",
+                    "hard_failures": ["hard exact-source leakage: 2"],
+                    "metrics": {
+                        "hard_exact_leakage_rows": 2,
+                        "non_approved_broad_rows": 0,
+                        "controlled_category_duplicate_keys": 0,
+                        "controlled_category_conflict_keys": 0,
+                    },
+                },
+                {},
+                tests_passed=False,
+            )
+            self.assertFalse(gate["canonical_refresh_pass"])
+            self.assertFalse(gate["global_insights_regenerated"])
+            self.assertIn("tests failed or not recorded", gate["hard_failures"])
+            self.assertIn("Global Insights regeneration missing or failed", gate["hard_failures"])
+            self.assertIn("hard leakage after refresh > 0", gate["hard_failures"])
+            self.assertFalse(gate["safe_to_deploy"])
+
+    def test_controlled_category_consolidation_audit_detects_conflicts(self) -> None:
+        from tools import check_deployment_readiness_gate as gate_tool
+
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rules = root / "controlled_categories.csv"
+            broad = root / "approved_broad_categories.csv"
+            rules.write_text(
+                "synonym,source_column,original_value,normalized_value,destination,category,proposed_value,broad_value,ontology_id,method,confidence,status,note\n"
+                "x,Isolation Source,x,x,Sample_Type_SD,blood,blood,clinical/host-associated material,,test,high,approved,\n"
+                "x,Isolation Source,x,x,Sample_Type_SD,urine,urine,clinical/host-associated material,,test,high,approved,\n",
+                encoding="utf-8",
+            )
+            broad.write_text("field,approved_value\nIsolation_Source_SD_Broad,clinical/host-associated material\n", encoding="utf-8")
+            with patch.object(gate_tool, "CONTROLLED_CATEGORIES", rules), patch.object(gate_tool, "APPROVED_BROAD_CATEGORIES", broad):
+                metrics = gate_tool.controlled_category_audit(root)
+            self.assertEqual(metrics["conflict_keys"], 1)
+            self.assertEqual(metrics["duplicate_keys"], 0)
+            self.assertTrue((root / "controlled_category_conflict_keys.tsv").exists())
 
     def test_external_nextflow_qc_master_imports_as_canonical_qc_outputs(self) -> None:
         with TemporaryDirectory() as tmp:

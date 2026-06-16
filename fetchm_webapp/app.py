@@ -3830,6 +3830,8 @@ def normalized_isolation_source_context(
         return isolation_source, "host_context_router"
     if cleaned == "anaerobic digester":
         return "wastewater/organic waste", "environment_context_router"
+    if "enrichment culture" in cleaned and cleaned != "enrichment culture" and not environment_medium:
+        return "", "lab_artifact_router"
     if cleaned == "enrichment culture" and not environment_medium:
         return "culture", "lab_artifact_router"
     if cleaned == "estuary":
@@ -5893,6 +5895,16 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
     if routed_source_method:
         isolation_method = routed_source_method
         isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
+    if (
+        isolation_source == "culture"
+        and sample_type == "enrichment culture"
+        and "enrichment culture" in raw_isolation_source
+        and raw_isolation_source != "enrichment culture"
+        and not environment_medium
+    ):
+        isolation_source = ""
+        isolation_method = "lab_artifact_router"
+        isolation_ontology_id = ""
     if host_disease and not host_health_state and host_disease != "healthy/no disease reported":
         host_health_state = "diseased"
         host_health_state_method = "disease_inference"
