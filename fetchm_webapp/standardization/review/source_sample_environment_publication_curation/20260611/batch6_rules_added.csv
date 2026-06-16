@@ -1,0 +1,9 @@
+rule_file,rule_or_helper,purpose
+app.py,SOURCE_HOST_CONTEXT_RULES,Conservative source-derived Host_Context_SD labels for animal/plant/human context.
+app.py,STANDALONE_HOST_CONTEXT_SOURCE_TERMS,Prevent host-only animal labels from exact source/sample leakage.
+app.py,STANDALONE_PLANT_CONTEXT_SOURCE_TERMS,Route plant-only context to plant-associated source context without sample/environment guessing.
+app.py,PLANT_CONTEXT_SOURCE_PATTERN,Plant context guard for plant tissue/surface/environment split rules.
+app.py,extract_source_host_context_fields,Fill Host_Context_SD from source phrases without modifying host taxonomy rules.
+app.py,plant non-medium cleanup,Remove plant tissue/leaf terms from Environment_Medium_SD false routing.
+app.py,agricultural context overrides,Dairy farm/farm environment/livestock market/poultry farm route to agricultural context.
+tests/test_metadata_standardization_regressions.py,test_batch6_host_only_animal_plant_context,Regression coverage for Batch 6 and previous-batch protections.

@@ -1,0 +1,6 @@
+raw_value,classification,note
+poultry litter,split_environment_and_host_context,Agricultural organic medium plus poultry context; no food/meat.
+animal bedding,split_environment_and_host_context,Agricultural organic medium plus animal context.
+rhizosphere soil,split_environment_and_host_context,Soil medium plus plant/rhizosphere context.
+root-associated soil,split_environment_and_host_context,Soil medium plus plant/root context.
+farm environment,preserve_agricultural_context,Farm environment protected from bogus environment medium.

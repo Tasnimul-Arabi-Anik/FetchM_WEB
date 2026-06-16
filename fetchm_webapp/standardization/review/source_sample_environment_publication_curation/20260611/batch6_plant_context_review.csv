@@ -1,0 +1,18 @@
+raw_value,classification,note
+oyster tissue,protect_animal_anatomy_from_human_site_mapping,Aquatic animal tissue protected from human tissue/site routing.
+animal tissue,split_sample_type_and_host_context,Animal tissue preserved as host-associated sample context.
+plant,preserve_plant_associated_context,Plant-only label no longer food/sample/environment.
+leaf,preserve_plant_associated_context,Plant part context retained without environment medium.
+root,preserve_plant_associated_context,Plant part context retained without environment medium.
+stem,preserve_plant_associated_context,Plant part context retained without clinical site.
+seed,preserve_plant_associated_context,Plant part context retained without sample guessing.
+flower,preserve_plant_associated_context,Plant part context retained without sample guessing.
+phyllosphere,preserve_plant_associated_context,Plant surface context retained as plant-associated.
+endosphere,preserve_plant_associated_context,Plant internal context retained as plant-associated.
+leaf tissue,split_sample_type_and_host_context,Plant tissue sample plus leaf site/context.
+root tissue,split_sample_type_and_host_context,Plant tissue sample plus root site/context.
+stem tissue,split_sample_type_and_host_context,Plant tissue sample plus stem site/context.
+plant tissue,split_sample_type_and_host_context,Plant tissue sample plus plant-associated context.
+leaf surface,preserve_plant_associated_context,Plant surface protected from human skin/body surface routing.
+rhizosphere soil,split_environment_and_host_context,Soil medium plus plant/rhizosphere context.
+root-associated soil,split_environment_and_host_context,Soil medium plus plant/root context.

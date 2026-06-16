@@ -1878,6 +1878,10 @@ def normalize_managed_metadata_row(
     host_standardization = enrich_host_standardization(host_source_value, host_standardization)
     for column in HOST_STANDARDIZATION_COLUMNS:
         normalized[column] = host_standardization[column]
+    source_host_context = extract_source_host_context_fields(normalized.get("Isolation Source"))
+    for column, value in source_host_context.items():
+        if value and not str(normalized.get(column) or "").strip():
+            normalized[column] = value
     secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
     for column in SECONDARY_STANDARDIZATION_COLUMNS:
         normalized[column] = secondary_standardization[column]
@@ -2945,6 +2949,49 @@ FOOD_CONTEXT_SOURCE_TERMS = {
     "egg product",
     "food processing environment",
 }
+
+STANDALONE_HOST_CONTEXT_SOURCE_TERMS = {
+    "bird",
+    "calf",
+    "cat",
+    "horse",
+    "insect",
+    "livestock",
+    "tick",
+    "wild bird",
+}
+
+STANDALONE_PLANT_CONTEXT_SOURCE_TERMS = {
+    "endosphere",
+    "flower",
+    "leaf",
+    "phyllosphere",
+    "plant",
+    "root",
+    "seed",
+    "stem",
+}
+
+PLANT_CONTEXT_SOURCE_PATTERN = re.compile(
+    r"\b(?:plant|leaf|root|stem|seed|flower|rhizosphere|phyllosphere|endosphere)\b",
+    re.IGNORECASE,
+)
+
+SOURCE_HOST_CONTEXT_RULES: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\b(?:human|patient)\b", re.IGNORECASE), "human-associated"),
+    (re.compile(r"\b(?:animal)\b", re.IGNORECASE), "animal-associated"),
+    (re.compile(r"\b(?:chicken|poultry)\b", re.IGNORECASE), "poultry"),
+    (re.compile(r"\b(?:cattle|cow|calf|bovine|livestock)\b", re.IGNORECASE), "livestock/cattle"),
+    (re.compile(r"\b(?:swine|pig)\b", re.IGNORECASE), "livestock/swine"),
+    (re.compile(r"\b(?:horse|equine)\b", re.IGNORECASE), "livestock/horse"),
+    (re.compile(r"\b(?:sheep|goat)\b", re.IGNORECASE), "livestock/small ruminant"),
+    (re.compile(r"\b(?:dog|cat|pet|companion animal)\b", re.IGNORECASE), "pet/companion animal"),
+    (re.compile(r"\b(?:fish)\b", re.IGNORECASE), "fish"),
+    (re.compile(r"\b(?:oyster|shellfish|shrimp|prawn)\b", re.IGNORECASE), "aquatic invertebrate"),
+    (re.compile(r"\b(?:bird|wild bird|avian)\b", re.IGNORECASE), "bird"),
+    (re.compile(r"\b(?:insect|mosquito|tick)\b", re.IGNORECASE), "arthropod"),
+    (PLANT_CONTEXT_SOURCE_PATTERN, "plant-associated"),
+)
 
 def compact_lookup_text(value: Any) -> str:
     return re.sub(r"[^a-z0-9]+", "", normalize_standardization_lookup(value))
@@ -4270,7 +4317,9 @@ def apply_core_standardization_overrides() -> None:
             "plasma": "blood-derived material",
             "tissue": "tissue",
             "leaf tissue": "plant tissue",
+            "plant tissue": "plant tissue",
             "root tissue": "plant tissue",
+            "stem tissue": "plant tissue",
             "wound swab": "wound swab",
             "swab wound": "wound swab",
             "swab_wound": "wound swab",
@@ -4295,6 +4344,12 @@ def apply_core_standardization_overrides() -> None:
             "bladder tissue": "urogenital tract",
             "gall bladder tissue": "organ/tissue site",
             "gallbladder tissue": "organ/tissue site",
+            "leaf surface": "leaf tissue",
+            "plant tissue": "plant-associated material",
+            "stem": "plant stem",
+            "stem tissue": "plant stem",
+            "phyllosphere": "phyllosphere",
+            "endosphere": "endosphere",
         }
     )
     ENVIRONMENT_MEDIUM_SYNONYMS.update(
@@ -4331,8 +4386,20 @@ def apply_core_standardization_overrides() -> None:
             "leaf": "plant tissue",
         }
     )
-    for food_only_medium in ("cheese", "cheese rind", "yogurt", "yoghurt", "dairy product"):
-        ENVIRONMENT_MEDIUM_SYNONYMS.pop(food_only_medium, None)
+    for non_medium in (
+        "cheese",
+        "cheese rind",
+        "dairy product",
+        "leaf",
+        "leaf surface",
+        "leaf tissue",
+        "plant tissue",
+        "root tissue",
+        "stem tissue",
+        "yogurt",
+        "yoghurt",
+    ):
+        ENVIRONMENT_MEDIUM_SYNONYMS.pop(non_medium, None)
     # Keep generic food labels generic. Specific meat/product classes are handled by
     # more specific keys such as "pork", "chicken meat", and "raw ground beef".
     ISOLATION_SOURCE_SYNONYMS.update(
@@ -4354,6 +4421,14 @@ def apply_core_standardization_overrides() -> None:
             "retail meat market": "meat product",
             "seafood market": "seafood/aquatic food product",
             "food contact surface": "food processing environment",
+            "plant-associated material": "plant-associated material",
+            "plant tissue": "plant-associated material",
+            "stem": "plant-associated material",
+            "stem tissue": "plant-associated material",
+            "seed": "plant-associated material",
+            "flower": "plant-associated material",
+            "phyllosphere": "plant-associated material",
+            "endosphere": "plant-associated material",
         }
     )
     HOST_BROAD_SYNONYMS.update(
@@ -4600,6 +4675,24 @@ def extract_host_context_fields(value: Any) -> dict[str, str]:
     for pattern, field, label in HOST_CONTEXT_PATTERNS:
         if pattern.search(text) and not context[field]:
             context[field] = label
+    return context
+
+
+def extract_source_host_context_fields(value: Any) -> dict[str, str]:
+    context = {"Host_Context_SD": ""}
+    text = "" if value is None else str(value)
+    cleaned = normalize_standardization_lookup(text)
+    if not cleaned:
+        return context
+    if SEAFOOD_SOURCE_CONTEXT_PATTERN.search(cleaned) or re.search(
+        r"\b(?:food|meat|product|produce|sausage|salad|slaughterhouse|abattoir|market)\b",
+        cleaned,
+    ):
+        return context
+    for pattern, label in SOURCE_HOST_CONTEXT_RULES:
+        if pattern.search(cleaned):
+            context["Host_Context_SD"] = label
+            break
     return context
 
 
@@ -5106,6 +5199,7 @@ HOST_ONLY_ISOLATION_SOURCE_VALUES = {
     "mosquito",
     "fish",
     "animal",
+    *STANDALONE_HOST_CONTEXT_SOURCE_TERMS,
 }
 
 
@@ -5334,15 +5428,19 @@ def isolation_source_material_context(value: Any) -> str:
         return ""
     if cleaned in STANDALONE_PRODUCE_TERMS:
         return ""
+    if cleaned in STANDALONE_PLANT_CONTEXT_SOURCE_TERMS:
+        return "plant-associated material"
     if re.search(r"\b(?:plant|host|tissue|leaf|root|stem|rhizosphere)\b", cleaned) and any(
         re.search(rf"\b{re.escape(term)}\b", cleaned) for term in STANDALONE_PRODUCE_TERMS
     ):
         return "plant-associated material"
     if any(re.search(rf"\b{re.escape(term)}\b", cleaned) for term in STANDALONE_PRODUCE_TERMS) and PRODUCE_FOOD_CONTEXT_PATTERN.search(cleaned):
         return "plant/produce food product"
+    if PLANT_CONTEXT_SOURCE_PATTERN.search(cleaned) and re.search(r"\b(?:associated|surface|tissue)\b", cleaned):
+        return "plant-associated material"
     if cleaned in {"slaughterhouse", "abattoir"}:
         return "food processing environment"
-    if cleaned == "poultry farm":
+    if cleaned in {"dairy farm", "farm environment", "livestock market", "poultry farm"}:
         return "agricultural environment"
     if cleaned in {"dairy product", "cheese", "cheese rind", "yogurt", "yoghurt"}:
         return "dairy food"
@@ -5577,6 +5675,14 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         environment_local = ""
         environment_local_method = "missing"
         environment_local_ontology_id = ""
+    if normalize_standardization_lookup(environment_medium) == "plant tissue" and PLANT_CONTEXT_SOURCE_PATTERN.search(raw_isolation_source):
+        environment_medium = ""
+        environment_method = "missing"
+        environment_ontology_id = ""
+    if raw_isolation_source in {"dairy farm", "farm environment", "livestock market", "poultry farm"}:
+        environment_medium = ""
+        environment_method = "missing"
+        environment_ontology_id = ""
     anatomical_canal_site = canonical_anatomical_site(row.get("Isolation Source"))
     if anatomical_canal_site and re.search(r"\bcanal\b", raw_isolation_source):
         if normalize_standardization_lookup(environment_local) in {"canal", "irrigation canal"}:
@@ -5653,11 +5759,24 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
-    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+    if (
+        raw_isolation_source in {"dairy farm", "farm", "farm environment", "livestock market", "market", "poultry farm", "egg"}
+        or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS
+        or raw_isolation_source in STANDALONE_HOST_CONTEXT_SOURCE_TERMS
+    ):
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
-    if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
+    if raw_isolation_source in STANDALONE_PRODUCE_TERMS or raw_isolation_source in STANDALONE_PLANT_CONTEXT_SOURCE_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
+    if (
+        sample_type
+        and PLANT_CONTEXT_SOURCE_PATTERN.search(raw_isolation_source)
+        and not re.search(r"\b(?:tissue|swab|sample|specimen|material)\b", raw_isolation_source)
+        and normalize_standardization_lookup(sample_type) in {"leaf", "lettuce", "plant", "rhizosphere", "root", "seed", "spinach", "tomato", "vegetable"}
+    ):
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
@@ -5684,18 +5803,35 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
                     sample_type = "plant tissue" if re.search(r"\b(?:plant|leaf|root|stem|flower|fruit|seed)\b", cleaned_material) else "tissue"
                     sample_type_method = "material_fallback_router"
                     sample_type_ontology_id = ""
-    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+    if (
+        raw_isolation_source in {"dairy farm", "farm", "farm environment", "livestock market", "market", "poultry farm", "egg"}
+        or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS
+        or raw_isolation_source in STANDALONE_HOST_CONTEXT_SOURCE_TERMS
+    ):
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
-    if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
+    if raw_isolation_source in STANDALONE_PRODUCE_TERMS or raw_isolation_source in STANDALONE_PLANT_CONTEXT_SOURCE_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
+    if (
+        sample_type
+        and PLANT_CONTEXT_SOURCE_PATTERN.search(raw_isolation_source)
+        and not re.search(r"\b(?:tissue|swab|sample|specimen|material)\b", raw_isolation_source)
+        and normalize_standardization_lookup(sample_type) in {"leaf", "lettuce", "plant", "rhizosphere", "root", "seed", "spinach", "tomato", "vegetable"}
+    ):
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
     if not sample_type:
         sample_type_method = "missing"
         sample_type_ontology_id = ""
-    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+    if (
+        raw_isolation_source in {"dairy farm", "farm", "farm environment", "livestock market", "market", "poultry farm", "egg"}
+        or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS
+        or raw_isolation_source in STANDALONE_HOST_CONTEXT_SOURCE_TERMS
+    ):
         isolation_source = ""
         isolation_method = "ambiguous_context_router"
         isolation_ontology_id = ""
@@ -5707,7 +5843,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_source = "food processing environment"
         isolation_method = "food_source_context"
         isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
-    if raw_isolation_source == "poultry farm":
+    if raw_isolation_source in {"dairy farm", "farm environment", "livestock market", "poultry farm"}:
         isolation_source = "agricultural environment"
         isolation_method = "agricultural_context_router"
         isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")

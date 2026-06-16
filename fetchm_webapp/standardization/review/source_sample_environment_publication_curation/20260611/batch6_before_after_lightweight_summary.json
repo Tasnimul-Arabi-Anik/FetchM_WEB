@@ -1,0 +1,30 @@
+{
+  "batch": 6,
+  "workflow": "lightweight_only",
+  "generated_at": "2026-06-16T06:16:18.614518+00:00",
+  "canonical_refresh_run": false,
+  "global_insights_regenerated": false,
+  "deployment_run": false,
+  "values_reviewed": 51,
+  "deterministic_rules_added": 8,
+  "admin_review_values_retained_unresolved": 11,
+  "protected_regression_values_checked": 45,
+  "targeted_hard_leakage_after": 0,
+  "targeted_broad_vocabulary_leakage_after": 0,
+  "controlled_category_duplicate_keys": 0,
+  "controlled_category_conflict_keys": 0,
+  "tests_passed": 74,
+  "lightweight_rule_audit": {
+    "total_rows": 7505,
+    "approved_rows": 7399,
+    "duplicate_keys": 0,
+    "conflict_keys": 0,
+    "suspicious_rows": 20
+  },
+  "canonical_coverage_deferred_to_final_consolidation": true,
+  "notes": [
+    "Host taxonomy rule files were not modified.",
+    "Host_Context_SD is filled conservatively from source phrases only when empty.",
+    "Animal/plant standalone exact source leakage is blocked for reviewed high-confidence values."
+  ]
+}

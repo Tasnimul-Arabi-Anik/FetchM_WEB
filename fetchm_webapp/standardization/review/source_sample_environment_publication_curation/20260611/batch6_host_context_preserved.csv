@@ -1,0 +1,38 @@
+raw_value,classification,note
+human,preserve_human_associated_context,Human-only source values no longer populate exact source/sample/environment.
+patient,preserve_human_associated_context,Patient-only source values preserve human-associated context without exact source.
+clinical patient,preserve_human_associated_context,"Clinical context preserved, not environment/sample-only."
+animal,preserve_animal_associated_context,Animal-only source value routed to host context only.
+livestock,preserve_animal_associated_context,Livestock-only label protected from exact source leakage.
+calf,preserve_animal_associated_context,Animal-only label protected from exact source leakage.
+horse,preserve_animal_associated_context,Animal-only label protected from exact source leakage.
+cat,preserve_animal_associated_context,Pet animal context retained without exact source.
+insect,preserve_animal_associated_context,Arthropod context retained without exact source.
+tick,preserve_animal_associated_context,Arthropod context retained without exact source.
+bird,preserve_animal_associated_context,Bird-only context retained without exact source.
+wild bird,preserve_animal_associated_context,Bird-only context retained without exact source.
+chicken feces,split_sample_type_and_host_context,Animal + material split: feces sample type plus poultry context.
+cattle feces,split_sample_type_and_host_context,Animal + material split.
+swine feces,split_sample_type_and_host_context,Animal + material split.
+cow milk,split_sample_type_and_host_context,Milk sample type plus livestock context.
+poultry litter,split_environment_and_host_context,Agricultural organic medium plus poultry context; no food/meat.
+animal bedding,split_environment_and_host_context,Agricultural organic medium plus animal context.
+fish gut,protect_animal_anatomy_from_human_site_mapping,Animal anatomy protected from human clinical site routing.
+oyster tissue,protect_animal_anatomy_from_human_site_mapping,Aquatic animal tissue protected from human tissue/site routing.
+animal tissue,split_sample_type_and_host_context,Animal tissue preserved as host-associated sample context.
+plant,preserve_plant_associated_context,Plant-only label no longer food/sample/environment.
+leaf,preserve_plant_associated_context,Plant part context retained without environment medium.
+root,preserve_plant_associated_context,Plant part context retained without environment medium.
+stem,preserve_plant_associated_context,Plant part context retained without clinical site.
+seed,preserve_plant_associated_context,Plant part context retained without sample guessing.
+flower,preserve_plant_associated_context,Plant part context retained without sample guessing.
+phyllosphere,preserve_plant_associated_context,Plant surface context retained as plant-associated.
+endosphere,preserve_plant_associated_context,Plant internal context retained as plant-associated.
+leaf tissue,split_sample_type_and_host_context,Plant tissue sample plus leaf site/context.
+root tissue,split_sample_type_and_host_context,Plant tissue sample plus root site/context.
+stem tissue,split_sample_type_and_host_context,Plant tissue sample plus stem site/context.
+plant tissue,split_sample_type_and_host_context,Plant tissue sample plus plant-associated context.
+leaf surface,preserve_plant_associated_context,Plant surface protected from human skin/body surface routing.
+rhizosphere soil,split_environment_and_host_context,Soil medium plus plant/rhizosphere context.
+root-associated soil,split_environment_and_host_context,Soil medium plus plant/root context.
+poultry farm,preserve_agricultural_context,Explicit poultry farm -> agricultural context; no sample type.
