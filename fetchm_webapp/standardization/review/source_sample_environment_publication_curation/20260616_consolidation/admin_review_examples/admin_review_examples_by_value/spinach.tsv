@@ -1,0 +1,21 @@
+review_value	Assembly Accession	Organism Name	BioSample	BioProject	Host raw	Host_SD	Host_Context_SD	Isolation Source raw	Sample_Type_SD	Isolation_Source_SD	Isolation_Source_SD_Broad	Isolation_Site_SD	Environment_Medium_SD	Environment_Broad_Scale_SD	Environment_Local_Scale_SD	Host_Disease_SD	Host_Health_State_SD	Collection_Year	Country	matched raw field	matched raw value	current routing method
+spinach	GCA_000178755.1	Escherichia coli O157:H7 str. EC4191	SAMN02470604		absent			spinach bag	spinach	plant/produce food product	food								United States	Isolation Source raw	spinach bag	food_source_context
+spinach	GCA_000272935.1	Salmonella enterica subsp. enterica serovar Newport str. CVM 37978	SAMN01765624		absent			spinach											absent	Isolation Source raw	spinach	missing
+spinach	GCA_000439655.1	Clostridium botulinum CFSAN002369	SAMN01940926		absent			spinach						food-associated environment					United States	Isolation Source raw	spinach	missing
+spinach	GCA_001257675.2	Listeria monocytogenes CFSAN002349	SAMN01939119		unknown			organic baby spinach	spinach	plant/produce food product	food								United States	Isolation Source raw	organic baby spinach	food_source_context
+spinach	GCA_001573335.1	Clostridium botulinum	SAMN03779958		absent			spinach (foodborne isolate)											United States	Isolation Source raw	spinach (foodborne isolate)	missing
+spinach	GCA_001573385.1	Clostridium botulinum	SAMN03779948		absent			spinach (foodborne isolate)											United States	Isolation Source raw	spinach (foodborne isolate)	missing
+spinach	GCA_001713515.2	Salmonella enterica subsp. enterica serovar Enteritidis	SAMN05180023		unknown			organic spinach	spinach	plant/produce food product	food								United States	Isolation Source raw	organic spinach	food_source_context
+spinach	GCA_001998985.1	Listeria monocytogenes	SAMN06297510		absent			Baby spinach	spinach	plant/produce food product	food								Canada	Isolation Source raw	Baby spinach	food_source_context
+spinach	GCA_001999085.1	Listeria monocytogenes	SAMN06297526		absent			Baby spinach	spinach	plant/produce food product	food								absent	Isolation Source raw	Baby spinach	food_source_context
+spinach	GCA_002065635.1	Salmonella enterica subsp. enterica serovar Hadar	SAMN02368568		unknown			Spinach											Nigeria	Isolation Source raw	Spinach	missing
+spinach	GCA_002131925.1	Listeria monocytogenes CFSAN002349	SAMN01939119		unknown			organic baby spinach	spinach	plant/produce food product	food								United States	Isolation Source raw	organic baby spinach	food_source_context
+spinach	GCA_002193115.1	Enterobacter kobei	SAMN06887690		absent			Baby spinach leaves	cell culture	plant/produce food product	food	leaf tissue							Australia	Isolation Source raw	Baby spinach leaves	food_source_context
+spinach	GCA_002538545.1	Escherichia coli	SAMN05439441		absent			spinach											United States	Isolation Source raw	spinach	missing
+spinach	GCA_002538705.1	Escherichia coli	SAMN05439420		absent			spinach											United States	Isolation Source raw	spinach	missing
+spinach	GCA_002543985.1	Escherichia coli	SAMN05439418		absent			spinach											United States	Isolation Source raw	spinach	missing
+spinach	GCA_002544095.1	Escherichia coli	SAMN05439419		absent			spinach											United States	Isolation Source raw	spinach	missing
+spinach	GCA_002563455.1	Lactococcus lactis	SAMN06226867		absent			baby spinach	cell culture	plant/produce food product	food								Australia	Isolation Source raw	baby spinach	food_source_context
+spinach	GCA_002563535.1	Lactococcus lactis	SAMN06226866		absent			baby spinach	cell culture	plant/produce food product	food								Australia	Isolation Source raw	baby spinach	food_source_context
+spinach	GCA_002901365.1	Enterobacter cloacae	SAMN08380934		absent			Spinach											Brazil	Isolation Source raw	Spinach	missing
+spinach	GCA_002901385.1	Escherichia coli	SAMN08380947		absent			Spinach											Brazil	Isolation Source raw	Spinach	missing

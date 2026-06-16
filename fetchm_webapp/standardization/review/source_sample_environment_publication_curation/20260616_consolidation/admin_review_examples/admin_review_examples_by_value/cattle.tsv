@@ -1,0 +1,21 @@
+review_value	Assembly Accession	Organism Name	BioSample	BioProject	Host raw	Host_SD	Host_Context_SD	Isolation Source raw	Sample_Type_SD	Isolation_Source_SD	Isolation_Source_SD_Broad	Isolation_Site_SD	Environment_Medium_SD	Environment_Broad_Scale_SD	Environment_Local_Scale_SD	Host_Disease_SD	Host_Health_State_SD	Collection_Year	Country	matched raw field	matched raw value	current routing method
+cattle	GCA_000020305.1	Anaplasma marginale str. Florida	SAMN02604306		cattle	Bos taurus		erythrocytes		erythrocytes									United States	Host raw	cattle	standardizer
+cattle	GCA_000023005.1	Rickettsia africae ESF-5	SAMN02603146		Amblyomma variegatum (cattle tick)	amblyomma variegatum													Ethiopia	Host raw	Amblyomma variegatum (cattle tick)	missing
+cattle	GCA_000174895.1	Ruminococcus flavefaciens FD-1	SAMN02471821		cattle	Bos taurus		rumen pill	gut content	clinical/host-associated material	clinical/host-associated material	gastrointestinal tract							absent	Host raw	cattle	sample_context_router
+cattle	GCA_000176275.1	Mannheimia haemolytica serotype A2 str. BOVINE	SAMN02436661		cattle	Bos taurus													absent	Host raw	cattle	missing
+cattle	GCA_000215485.2	Anaplasma marginale str. Florida	SAMN02469629		Bos taurus	Bos taurus		cattle blood	blood										absent	Isolation Source raw	cattle blood	missing
+cattle	GCA_000215525.2	Anaplasma marginale str. St. Maries	SAMN02469627		Bos taurus	Bos taurus		cattle blood	blood										absent	Isolation Source raw	cattle blood	missing
+cattle	GCA_000215545.2	Anaplasma marginale str. Washington Okanogan	SAMN02469626		Bos taurus	Bos taurus		cattle blood	blood										United States	Isolation Source raw	cattle blood	missing
+cattle	GCA_000215565.2	Anaplasma marginale str. Oklahoma	SAMN02469631		Bos taurus	Bos taurus		cattle blood	blood										United States	Isolation Source raw	cattle blood	missing
+cattle	GCA_000215585.2	Anaplasma marginale str. South Idaho	SAMN02469628		Bos taurus	Bos taurus		cattle blood	blood										United States	Isolation Source raw	cattle blood	missing
+cattle	GCA_000215605.2	Anaplasma marginale str. Okeechobee	SAMN02469625		Bos taurus	Bos taurus		cattle blood	blood										United States	Isolation Source raw	cattle blood	missing
+cattle	GCA_000227645.1	Brucella melitensis NI	SAMN02603116		cattle	Bos taurus													China	Host raw	cattle	missing
+cattle	GCA_000238175.1	Brucella abortus A13334	SAMN02603577		cattle	Bos taurus		gastric system of dairy cattle fetus						food-associated environment					South Korea	Host raw	cattle	missing
+cattle	GCA_000238175.1	Brucella abortus A13334	SAMN02603577		cattle	Bos taurus		gastric system of dairy cattle fetus						food-associated environment					South Korea	Isolation Source raw	gastric system of dairy cattle fetus	missing
+cattle	GCA_000247665.4	Escherichia coli O157:H43 str. T22	SAMN02469320		cattle	Bos taurus		milk from healthy cattle	milk							healthy/no disease reported	healthy		Hungary	Host raw	cattle	missing
+cattle	GCA_000247665.4	Escherichia coli O157:H43 str. T22	SAMN02469320		cattle	Bos taurus		milk from healthy cattle	milk							healthy/no disease reported	healthy		Hungary	Isolation Source raw	milk from healthy cattle	missing
+cattle	GCA_000270525.1	Mycoplasmopsis bovis HB0801	SAMN02603874		cattle	Bos taurus		lung		clinical/host-associated material	clinical/host-associated material	lower respiratory tract/bronch/pleural cavity							China	Host raw	cattle	sample_context_router
+cattle	GCA_000272735.4	Salmonella enterica subsp. enterica serovar Newport str. CVM 22513	SAMN01805325		Bos taurus	Bos taurus		cattle											United States	Isolation Source raw	cattle	missing
+cattle	GCA_000272775.4	Salmonella enterica subsp. enterica serovar Newport str. CVM 22425	SAMN01813481		Bos taurus	Bos taurus		cattle											United States	Isolation Source raw	cattle	missing
+cattle	GCA_000298515.2	Chlamydia psittaci WC	SAMN02604212		Bos taurus	Bos taurus		cattle during an outbreak of enteritis											absent	Isolation Source raw	cattle during an outbreak of enteritis	missing
+cattle	GCA_000314265.1	Campylobacter jejuni subsp. jejuni BIGS0013	SAMN01795769		Cow	Bos taurus		cattle											New Zealand	Isolation Source raw	cattle	missing
