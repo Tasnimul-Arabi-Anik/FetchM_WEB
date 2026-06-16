@@ -1604,6 +1604,11 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         benzene_enrichment = standardized("benzene-degrading enrichment culture")
         self.assertEqual(benzene_enrichment["Isolation_Source_SD"], "")
         self.assertEqual(benzene_enrichment["Sample_Type_SD"], "enrichment culture")
+        benzene_culture_sample = ensure_managed_metadata_schema(
+            {"Host": "", "Isolation Source": "benzene-degrading enrichment culture", "Sample Type": "culture"}
+        )
+        self.assertEqual(benzene_culture_sample["Isolation_Source_SD"], "")
+        self.assertEqual(benzene_culture_sample["Sample_Type_SD"], "culture")
 
         dental = standardized("dental biofilm")
         self.assertEqual(dental["Environment_Medium_SD"], "biofilm")

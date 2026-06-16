@@ -1,0 +1,15 @@
+metric	before	after	delta	pass_fail	notes
+total_rows_scanned	3131699	3131699	0.0	pass	no hard-gate issue
+raw_isolation_source_present_count	2248471	2248471	0.0	pass	no hard-gate issue
+isolation_source_sd_present_count	1839616	1843868	4252.0	pass	no hard-gate issue
+isolation_source_sd_broad_present_count	1731858	1739314	7456.0	pass	no hard-gate issue
+raw_present_isolation_source_standardization_percent	80.78	80.97	0.19	pass	no hard-gate issue
+raw_only_unresolved_isolation_source_rows	432090	427838	-4252.0	pass	no hard-gate issue
+host_disease_sd_present_count	57258	57831	573.0	pass	no hard-gate issue
+host_health_state_sd_present_count	75393	70328	-5065.0	pass	no hard-gate issue
+sample_type_sd_present_count	1380569	1302642	-77927.0	pass	no hard-gate issue
+environment_medium_sd_present_count	507647	497354	-10293.0	pass	no hard-gate issue
+hard_exact_leakage_rows	0	0	0.0	pass	no hard-gate issue
+non_approved_broad_rows	0	0	0.0	pass	no hard-gate issue
+controlled_category_duplicate_keys	0	0	0.0	pass	no hard-gate issue
+controlled_category_conflict_keys	0	0	0.0	pass	no hard-gate issue

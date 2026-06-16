@@ -1,0 +1,30 @@
+raw_value	current_signal_type	current_standardized_value	current_broad_value	reason	recommended_action	priority	batch_source
+canal	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+drainage	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+surface	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+influent	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+mud	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+sand	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+water	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+manure	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+biofilm	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+fermentation broth	manual_review			ambiguous reviewed value	admin_review_needed	low	batch4
+oyster	Aquatic animal/common food word without food/product wording; do not force food source.			Aquatic animal/common food word without food/product wording; do not force food source.	manual_review	low	batch5
+fish	Host/aquatic animal/food ambiguous without food context.			Host/aquatic animal/food ambiguous without food context.	manual_review	low	batch5
+shellfish	Seafood or aquatic animal ambiguous without product/food wording.			Seafood or aquatic animal ambiguous without product/food wording.	manual_review	low	batch5
+shrimp	Seafood or aquatic animal ambiguous without product/food wording.			Seafood or aquatic animal ambiguous without product/food wording.	manual_review	low	batch5
+egg	Food/sample/reproductive context ambiguous without product wording.			Food/sample/reproductive context ambiguous without product wording.	manual_review	low	batch5
+lettuce	Plant/produce ambiguous without food/produce wording.			Plant/produce ambiguous without food/produce wording.	manual_review	low	batch5
+spinach	Plant/produce ambiguous without food/produce wording.			Plant/produce ambiguous without food/produce wording.	manual_review	low	batch5
+tomato	Plant/produce ambiguous without food/produce wording.			Plant/produce ambiguous without food/produce wording.	manual_review	low	batch5
+vegetable	Generic plant/food term ambiguous without food context.			Generic plant/food term ambiguous without food context.	manual_review	low	batch5
+chicken	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+turkey	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+cattle	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+cow	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+swine	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+pig	Animal name alone; do not force food.			Animal name alone; do not force food.	manual_review	low	batch5
+farm	Ambiguous agricultural context; bare term not forced.			Ambiguous agricultural context; bare term not forced.	manual_review	low	batch5
+market	Ambiguous retail/location context; bare term not forced.			Ambiguous retail/location context; bare term not forced.	manual_review	low	batch5
+fish gut	Food/host anatomy ambiguous; protected from clinical anatomy.			Food/host anatomy ambiguous; protected from clinical anatomy.	manual_review	low	batch5
+oyster tissue	Seafood/host tissue ambiguous; protected from clinical anatomy.			Seafood/host tissue ambiguous; protected from clinical anatomy.	manual_review	low	batch5

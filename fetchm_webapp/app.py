@@ -5912,7 +5912,7 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
     if (
         isolation_source == "culture"
-        and sample_type == "enrichment culture"
+        and normalize_standardization_lookup(sample_type) in {"culture", "enrichment culture"}
         and "enrichment culture" in raw_isolation_source
         and raw_isolation_source != "enrichment culture"
         and not environment_medium
