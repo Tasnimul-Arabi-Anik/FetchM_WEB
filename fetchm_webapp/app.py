@@ -19399,7 +19399,7 @@ def canonical_report_output_dir(cache_key: str) -> Path:
     return CANONICAL_METADATA_REPORTS_DIR / cache_key
 
 
-def latest_canonical_snapshot() -> dict[str, Any] | None:
+def latest_canonical_snapshot(*, include_rule_fingerprint: bool = True) -> dict[str, Any] | None:
     if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
         return None
     try:
@@ -19437,18 +19437,20 @@ def latest_canonical_snapshot() -> dict[str, Any] | None:
             if not row:
                 return None
             snapshot_id = str(row[0])
-            rule_row = connection.execute(
-                """
-                SELECT s.rule_fingerprint, COUNT(*) AS rows
-                FROM bacterial_inventory_membership i
-                JOIN assembly_standardization s ON s.assembly_accession = i.assembly_accession
-                WHERE i.snapshot_id = %s
-                GROUP BY s.rule_fingerprint
-                ORDER BY rows DESC
-                LIMIT 1
-                """,
-                (snapshot_id,),
-            ).fetchone()
+            rule_row = None
+            if include_rule_fingerprint:
+                rule_row = connection.execute(
+                    """
+                    SELECT s.rule_fingerprint, COUNT(*) AS rows
+                    FROM bacterial_inventory_membership i
+                    JOIN assembly_standardization s ON s.assembly_accession = i.assembly_accession
+                    WHERE i.snapshot_id = %s
+                    GROUP BY s.rule_fingerprint
+                    ORDER BY rows DESC
+                    LIMIT 1
+                    """,
+                    (snapshot_id,),
+                ).fetchone()
             return {
                 "snapshot_id": snapshot_id,
                 "generated_at": str(row[1] or ""),
@@ -19474,7 +19476,7 @@ def canonical_taxon_count(snapshot_id: str, rank: str, name: str) -> int:
 
 
 def canonical_search_results(query: str, *, limit: int = 20) -> list[dict[str, Any]]:
-    snapshot = latest_canonical_snapshot()
+    snapshot = latest_canonical_snapshot(include_rule_fingerprint=False)
     if not snapshot:
         return []
     cleaned = normalize_species_name(query)
