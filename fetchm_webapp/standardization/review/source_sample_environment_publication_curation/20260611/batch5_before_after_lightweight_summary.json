@@ -1,0 +1,32 @@
+{
+  "batch": 5,
+  "workflow": "lightweight_only",
+  "generated_at": "2026-06-16T05:43:52.977963+00:00",
+  "canonical_refresh_run": false,
+  "global_insights_regenerated": false,
+  "deployment_run": false,
+  "values_reviewed": 48,
+  "deterministic_rules_added": 9,
+  "admin_review_values_retained_unresolved": 19,
+  "protected_regression_values_checked": 33,
+  "targeted_hard_leakage_after": 0,
+  "targeted_broad_vocabulary_leakage_after": 0,
+  "controlled_category_duplicate_keys": 0,
+  "controlled_category_conflict_keys": 0,
+  "tests_passed": 73,
+  "full_regression_command": "docker run ... python -m unittest tests.test_metadata_standardization_regressions",
+  "lightweight_rule_audit": {
+    "total_rows": 7505,
+    "approved_rows": 7399,
+    "duplicate_keys": 0,
+    "conflict_keys": 0,
+    "suspicious_rows": 20
+  },
+  "canonical_coverage_deferred_to_final_consolidation": true,
+  "notes": [
+    "Standalone animal names are not forced to food source.",
+    "Food anatomy phrases are protected from clinical anatomy routing.",
+    "Standalone produce terms are not forced to food without product/produce/food wording.",
+    "Dairy food terms no longer populate Environment_Medium_SD."
+  ]
+}

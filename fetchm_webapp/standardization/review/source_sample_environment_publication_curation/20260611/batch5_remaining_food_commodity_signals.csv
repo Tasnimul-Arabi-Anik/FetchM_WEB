@@ -1,0 +1,20 @@
+raw_value,classification,note
+oyster,manual_review,Aquatic animal/common food word without food/product wording; do not force food source.
+fish,manual_review,Host/aquatic animal/food ambiguous without food context.
+shellfish,manual_review,Seafood or aquatic animal ambiguous without product/food wording.
+shrimp,manual_review,Seafood or aquatic animal ambiguous without product/food wording.
+egg,manual_review,Food/sample/reproductive context ambiguous without product wording.
+lettuce,manual_review,Plant/produce ambiguous without food/produce wording.
+spinach,manual_review,Plant/produce ambiguous without food/produce wording.
+tomato,manual_review,Plant/produce ambiguous without food/produce wording.
+vegetable,manual_review,Generic plant/food term ambiguous without food context.
+chicken,manual_review,Animal name alone; do not force food.
+turkey,manual_review,Animal name alone; do not force food.
+cattle,manual_review,Animal name alone; do not force food.
+cow,manual_review,Animal name alone; do not force food.
+swine,manual_review,Animal name alone; do not force food.
+pig,manual_review,Animal name alone; do not force food.
+farm,manual_review,Ambiguous agricultural context; bare term not forced.
+market,manual_review,Ambiguous retail/location context; bare term not forced.
+fish gut,manual_review,Food/host anatomy ambiguous; protected from clinical anatomy.
+oyster tissue,manual_review,Seafood/host tissue ambiguous; protected from clinical anatomy.

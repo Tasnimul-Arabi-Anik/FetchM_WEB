@@ -1609,6 +1609,102 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             result = standardized(source)
             self.assertNotEqual(result["Isolation_Source_SD"], "environmental material", source)
 
+    def test_batch5_food_commodity_context_and_safeguards(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        for source in [
+            "chicken meat",
+            "poultry meat/product",
+            "ground turkey",
+            "turkey meat",
+            "beef",
+            "pork",
+            "retail meat",
+            "sausage",
+        ]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "food/meat", source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+            self.assertNotEqual(result["Environment_Medium_SD"], "food/meat", source)
+        self.assertIsNone(extract_country("ground turkey"))
+
+        for source in ["seafood", "fish meat", "oyster meat", "shrimp seafood"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "aquatic food product", source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+        for source in ["oyster", "fish", "shellfish", "shrimp"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
+
+        milk = standardized("milk")
+        self.assertEqual(milk["Sample_Type_SD"], "milk")
+        self.assertEqual(milk["Isolation_Source_SD"], "")
+        raw_milk = standardized("raw milk")
+        self.assertEqual(raw_milk["Sample_Type_SD"], "milk")
+        self.assertEqual(raw_milk["Environment_Medium_SD"], "")
+        for source in ["dairy product", "cheese", "yogurt"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "food/dairy", source)
+            self.assertEqual(result["Environment_Medium_SD"], "", source)
+
+        egg_product = standardized("egg product")
+        self.assertEqual(egg_product["Isolation_Source_SD"], "egg product")
+        self.assertEqual(egg_product["Isolation_Source_SD_Broad"], "food")
+        egg = standardized("egg")
+        self.assertEqual(egg["Isolation_Source_SD"], "")
+        self.assertEqual(egg["Sample_Type_SD"], "")
+
+        for source in ["lettuce produce", "spinach produce", "tomato food product", "salad"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "food", source)
+        lettuce_plant = standardized("lettuce plant")
+        self.assertEqual(lettuce_plant["Isolation_Source_SD"], "plant-associated material")
+        self.assertNotEqual(lettuce_plant["Isolation_Source_SD_Broad"], "food")
+        for source in ["lettuce", "spinach", "tomato", "vegetable"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
+
+        for source in ["chicken", "turkey", "cattle", "cow", "swine", "pig"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "", source)
+
+        for source in ["chicken breast meat", "pork liver", "beef heart"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD_Broad"], "food/meat", source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+        for source in ["fish gut", "oyster tissue"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Site_SD"], "", source)
+            self.assertNotEqual(result["Isolation_Source_SD"], "clinical/host-associated material", source)
+
+        slaughterhouse = standardized("slaughterhouse")
+        self.assertEqual(slaughterhouse["Isolation_Source_SD_Broad"], "food/processing environment")
+        abattoir = standardized("abattoir")
+        self.assertEqual(abattoir["Isolation_Source_SD_Broad"], "food/processing environment")
+        poultry_farm = standardized("poultry farm")
+        self.assertEqual(poultry_farm["Isolation_Source_SD"], "agricultural environment")
+        for source in ["farm", "market"]:
+            result = standardized(source)
+            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            self.assertEqual(result["Sample_Type_SD"], "", source)
+
+        for source in ["blood", "feces", "urine"]:
+            result = standardized(source)
+            self.assertTrue(result["Sample_Type_SD"], source)
+            self.assertNotEqual(result["Isolation_Source_SD_Broad"], "food/meat", source)
+        self.assertEqual(standardized("wound")["Isolation_Site_SD"], "wound")
+        self.assertEqual(standardized("canal water")["Environment_Medium_SD"], "canal water")
+        self.assertEqual(standardized("ear canal")["Isolation_Site_SD"], "organ/tissue site")
+        self.assertEqual(standardized("clinical sample")["Isolation_Source_SD"], "clinical/host-associated material")
+        self.assertEqual(standardized("respiratory sample")["Isolation_Site_SD"], "respiratory tract")
+        self.assertEqual(standardized("metagenome")["Isolation_Source_SD"], "")
+
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})
         self.assertEqual(retail_breast["Sample_Type_SD"], "poultry meat")

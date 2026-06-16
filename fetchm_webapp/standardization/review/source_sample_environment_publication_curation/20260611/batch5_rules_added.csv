@@ -1,0 +1,10 @@
+rule_file,rule_or_helper,purpose
+app.py,STANDALONE_PRODUCE_TERMS,Standalone produce terms are no longer forced to food/produce without food wording.
+app.py,PRODUCE_FOOD_CONTEXT_PATTERN,Food/produce context requires product/produce/food/salad style wording.
+app.py,STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS,Standalone fish/oyster/shellfish/shrimp terms are admin-review only.
+app.py,FOOD_CONTEXT_SOURCE_TERMS,Food context labels are preserved by normalized source routing.
+app.py,ENVIRONMENT_MEDIUM_SYNONYMS.pop(cheese/yogurt/dairy product),Dairy foods no longer leak into Environment_Medium_SD.
+app.py,ISOLATION_SOURCE_SYNONYMS sausage/salad/egg/slaughterhouse/abattoir,High-confidence explicit food and food-production phrases added.
+app.py,isolation_source_material_context seafood/product precedence,Seafood product phrases route before generic meat/product fallback.
+app.py,standardize_secondary_metadata standalone ambiguity guards,Standalone animal/produce/farm/market/egg values suppressed to manual-review/unresolved behavior.
+tests/test_metadata_standardization_regressions.py,test_batch5_food_commodity_context_and_safeguards,Regression coverage for Batch 5 decisions and Batch 1-4 protections.

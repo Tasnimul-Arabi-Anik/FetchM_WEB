@@ -2898,6 +2898,54 @@ SEAFOOD_SOURCE_CONTEXT_PATTERN = re.compile(
 )
 
 
+
+STANDALONE_PRODUCE_TERMS = {
+    "avocado",
+    "cantaloupe",
+    "cilantro",
+    "cucumber",
+    "fruit",
+    "leafy greens",
+    "lettuce",
+    "papaya",
+    "spinach",
+    "tomato",
+    "vegetable",
+    "vegetables",
+}
+
+PRODUCE_FOOD_CONTEXT_PATTERN = re.compile(
+    r"\b(?:food|product|produce|ready[-\s]*to[-\s]*eat|rte|retail|salad|fresh[-\s]*cut|pre[-\s]*cut|"
+    r"packaged|processed|leafy greens?)\b",
+    re.IGNORECASE,
+)
+
+STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS = {
+    "fish",
+    "oyster",
+    "oysters",
+    "shellfish",
+    "shrimp",
+    "prawn",
+    "prawns",
+}
+
+FOOD_CONTEXT_SOURCE_TERMS = {
+    "dairy food",
+    "food/food product",
+    "plant/produce food product",
+    "ready-to-eat food",
+    "fermented food",
+    "meat product",
+    "beef/meat product",
+    "pork/meat product",
+    "poultry meat/product",
+    "turkey meat/product",
+    "seafood/aquatic food product",
+    "egg product",
+    "food processing environment",
+}
+
 def compact_lookup_text(value: Any) -> str:
     return re.sub(r"[^a-z0-9]+", "", normalize_standardization_lookup(value))
 
@@ -3219,6 +3267,7 @@ STANDARDIZATION_BROAD_CATEGORIES.update(
         "lettuce": "food/produce",
         "cilantro": "food/produce",
         "dairy product": "food/dairy",
+        "egg product": "food",
         "catfish product": "aquatic food product",
         "anaerobic digester": "wastewater/organic waste",
         "klicava reservoir": "water",
@@ -3709,6 +3758,8 @@ def normalized_isolation_source_context(
         "host associated context",
     }:
         return isolation_source, "sample_context_router"
+    if isolation_source in FOOD_CONTEXT_SOURCE_TERMS:
+        return isolation_source, "food_source_context"
     if cleaned in {
         "healthcare associated environment",
         "agricultural environment",
@@ -4280,6 +4331,8 @@ def apply_core_standardization_overrides() -> None:
             "leaf": "plant tissue",
         }
     )
+    for food_only_medium in ("cheese", "cheese rind", "yogurt", "yoghurt", "dairy product"):
+        ENVIRONMENT_MEDIUM_SYNONYMS.pop(food_only_medium, None)
     # Keep generic food labels generic. Specific meat/product classes are handled by
     # more specific keys such as "pork", "chicken meat", and "raw ground beef".
     ISOLATION_SOURCE_SYNONYMS.update(
@@ -4287,6 +4340,20 @@ def apply_core_standardization_overrides() -> None:
             "food": "food/food product",
             "foods": "food/food product",
             "food product": "food/food product",
+            "sausage": "meat product",
+            "salad": "plant/produce food product",
+            "lettuce produce": "plant/produce food product",
+            "spinach produce": "plant/produce food product",
+            "tomato food": "plant/produce food product",
+            "tomato food product": "plant/produce food product",
+            "egg product": "egg product",
+            "retail egg": "egg product",
+            "food egg": "egg product",
+            "slaughterhouse": "food processing environment",
+            "abattoir": "food processing environment",
+            "retail meat market": "meat product",
+            "seafood market": "seafood/aquatic food product",
+            "food contact surface": "food processing environment",
         }
     )
     HOST_BROAD_SYNONYMS.update(
@@ -5261,8 +5328,40 @@ def isolation_source_material_context(value: Any) -> str:
         if re.search(r"\b(?:chicken|turkey|poultry)\b", cleaned):
             return "poultry meat"
         return "host-associated context"
+    if cleaned in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+        return ""
+    if cleaned in {"egg", "farm", "market"}:
+        return ""
+    if cleaned in STANDALONE_PRODUCE_TERMS:
+        return ""
+    if re.search(r"\b(?:plant|host|tissue|leaf|root|stem|rhizosphere)\b", cleaned) and any(
+        re.search(rf"\b{re.escape(term)}\b", cleaned) for term in STANDALONE_PRODUCE_TERMS
+    ):
+        return "plant-associated material"
+    if any(re.search(rf"\b{re.escape(term)}\b", cleaned) for term in STANDALONE_PRODUCE_TERMS) and PRODUCE_FOOD_CONTEXT_PATTERN.search(cleaned):
+        return "plant/produce food product"
+    if cleaned in {"slaughterhouse", "abattoir"}:
+        return "food processing environment"
+    if cleaned == "poultry farm":
+        return "agricultural environment"
+    if cleaned in {"dairy product", "cheese", "cheese rind", "yogurt", "yoghurt"}:
+        return "dairy food"
+    if cleaned in {"sausage", "retail meat", "minced meat"}:
+        return "meat product"
+    if cleaned in {"egg product", "retail egg", "food egg"}:
+        return "egg product"
     if cleaned in HOST_ONLY_ISOLATION_SOURCE_VALUES:
         return ""
+    if re.search(r"\bfreshwater fish\b", cleaned) and re.search(r"\b(product|raw|processed|fillet|market|meat|seafood|food)\b", cleaned):
+        return "freshwater fish product"
+    if re.search(r"\bfish\b", cleaned) and re.search(r"\b(product|raw|processed|fillet|market|meat|seafood|food)\b", cleaned):
+        return "fish product"
+    if re.search(r"\b(shrimp|prawn)\b", cleaned) and re.search(r"\b(product|raw|processed|market|seafood|food)\b", cleaned):
+        return "shrimp product"
+    if re.search(r"\boyster\b", cleaned) and re.search(r"\b(product|raw|processed|shucked|market|meat|seafood|food)\b", cleaned):
+        return "oyster product"
+    if re.search(r"\b(shellfish|mussel|clam)\b", cleaned) and re.search(r"\b(product|raw|processed|market|seafood|food)\b", cleaned):
+        return "shellfish product"
     if HOST_CONTEXT_SOURCE_DOMINANT_PATTERN.search(cleaned) and not HOST_CONTEXT_MATERIAL_EVIDENCE_PATTERN.search(cleaned):
         return str(value).strip()
     if cleaned in ISOLATION_SOURCE_CONTEXT_OVERRIDES:
@@ -5293,11 +5392,11 @@ def isolation_source_material_context(value: Any) -> str:
         return "freshwater fish product"
     if re.search(r"\bfish\b", cleaned) and re.search(r"\b(product|raw|processed|fillet|market)\b", cleaned):
         return "fish product"
-    if re.search(r"\b(shrimp|prawn)\b", cleaned) and re.search(r"\b(product|raw|processed|market)\b", cleaned):
+    if re.search(r"\b(shrimp|prawn)\b", cleaned) and re.search(r"\b(product|raw|processed|market|seafood|food)\b", cleaned):
         return "shrimp product"
-    if re.search(r"\boyster\b", cleaned) and re.search(r"\b(product|raw|processed|shucked|market)\b", cleaned):
+    if re.search(r"\boyster\b", cleaned) and re.search(r"\b(product|raw|processed|shucked|market|meat|seafood|food)\b", cleaned):
         return "oyster product"
-    if re.search(r"\b(shellfish|mussel|clam)\b", cleaned) and re.search(r"\b(product|raw|processed|market)\b", cleaned):
+    if re.search(r"\b(shellfish|mussel|clam)\b", cleaned) and re.search(r"\b(product|raw|processed|market|seafood|food)\b", cleaned):
         return "shellfish product"
     if cleaned == "seafood":
         return "seafood"
@@ -5554,6 +5653,14 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         sample_type = ""
         sample_type_method = "missing"
         sample_type_ontology_id = ""
+    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
+    if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
     if not sample_type:
         if block_environment_sample_fallback:
             pass
@@ -5577,9 +5684,33 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
                     sample_type = "plant tissue" if re.search(r"\b(?:plant|leaf|root|stem|flower|fruit|seed)\b", cleaned_material) else "tissue"
                     sample_type_method = "material_fallback_router"
                     sample_type_ontology_id = ""
+    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
+    if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
+        sample_type = ""
+        sample_type_method = "missing"
+        sample_type_ontology_id = ""
     if not sample_type:
         sample_type_method = "missing"
         sample_type_ontology_id = ""
+    if raw_isolation_source in {"farm", "market", "egg"} or raw_isolation_source in STANDALONE_AQUATIC_FOOD_ANIMAL_TERMS:
+        isolation_source = ""
+        isolation_method = "ambiguous_context_router"
+        isolation_ontology_id = ""
+    if raw_isolation_source in STANDALONE_PRODUCE_TERMS:
+        isolation_source = ""
+        isolation_method = "ambiguous_context_router"
+        isolation_ontology_id = ""
+    if raw_isolation_source in {"slaughterhouse", "abattoir"}:
+        isolation_source = "food processing environment"
+        isolation_method = "food_source_context"
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
+    if raw_isolation_source == "poultry farm":
+        isolation_source = "agricultural environment"
+        isolation_method = "agricultural_context_router"
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
     if anatomical_canal_site and re.search(r"\bcanal\b", raw_isolation_source):
         isolation_source = "clinical/host-associated material"
         isolation_method = "anatomy_source_router"
