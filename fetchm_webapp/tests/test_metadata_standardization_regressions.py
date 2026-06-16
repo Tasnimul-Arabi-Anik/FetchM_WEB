@@ -1731,7 +1731,8 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         ]:
             result = standardized(source)
             self.assertEqual(result["Host_Context_SD"], context, source)
-            self.assertEqual(result["Isolation_Source_SD"], "", source)
+            expected_source = "clinical/host-associated material" if source == "patient" else ""
+            self.assertEqual(result["Isolation_Source_SD"], expected_source, source)
             self.assertEqual(result["Sample_Type_SD"], "", source)
             self.assertEqual(result["Environment_Medium_SD"], "", source)
 
@@ -1931,6 +1932,71 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(standardized("canal water")["Environment_Medium_SD"], "canal water")
         self.assertEqual(standardized("chicken meat")["Isolation_Source_SD_Broad"], "food/meat")
         self.assertEqual(standardized("human")["Host_Context_SD"], "human-associated")
+
+    def test_batch8_admin_review_values_are_resolved_conservatively(self) -> None:
+        def standardized(source: str) -> dict[str, str]:
+            return ensure_managed_metadata_schema(
+                {"Host": "", "Isolation Source": source, "Sample Type": "metagenomic assembly"}
+            )
+
+        infection = standardized("infection")
+        self.assertEqual(infection["Host_Disease_SD"], "infectious disease")
+        self.assertNotIn(infection["Host_Disease_SD"], {"pneumonia", "sepsis/bacteremia", "urinary tract infection"})
+        self.assertEqual(infection["Host_Health_State_SD"], "diseased")
+        self.assertEqual(infection["Isolation_Source_SD"], "clinical/host-associated material")
+
+        infected_animal = standardized("infected animal")
+        self.assertEqual(infected_animal["Host_Context_SD"], "animal-associated")
+        self.assertEqual(infected_animal["Host_Health_State_SD"], "diseased")
+        self.assertEqual(infected_animal["Host_Disease_SD"], "infectious disease")
+        self.assertEqual(infected_animal["Isolation_Source_SD"], "host-associated context")
+
+        diseased_plant = standardized("diseased plant")
+        self.assertEqual(diseased_plant["Host_Context_SD"], "plant-associated")
+        self.assertEqual(diseased_plant["Host_Health_State_SD"], "diseased")
+        self.assertEqual(diseased_plant["Host_Disease_SD"], "plant disease, unspecified")
+        self.assertEqual(diseased_plant["Isolation_Source_SD"], "plant-associated material")
+
+        outbreak = standardized("outbreak")
+        self.assertEqual(outbreak["Host_Disease_SD"], "")
+        self.assertEqual(outbreak["Host_Health_State_SD"], "")
+        self.assertEqual(outbreak["Isolation_Source_SD"], "")
+
+        outbreak_food = standardized("outbreak food source")
+        self.assertEqual(outbreak_food["Host_Disease_SD"], "")
+        self.assertEqual(outbreak_food["Isolation_Source_SD_Broad"], "food")
+        self.assertEqual(outbreak_food["Isolation_Source_SD"], "food/food product")
+
+        contaminated_food = standardized("contaminated food")
+        self.assertEqual(contaminated_food["Host_Disease_SD"], "")
+        self.assertEqual(contaminated_food["Isolation_Source_SD_Broad"], "food")
+        self.assertEqual(contaminated_food["Isolation_Source_SD"], "food/food product")
+
+        wastewater_surveillance = standardized("wastewater surveillance")
+        self.assertEqual(wastewater_surveillance["Host_Disease_SD"], "")
+        self.assertEqual(wastewater_surveillance["Environment_Medium_SD"], "wastewater")
+        self.assertEqual(wastewater_surveillance["Isolation_Source_SD"], "environmental material")
+
+        carrier = standardized("carrier")
+        self.assertEqual(carrier["Host_Disease_SD"], "")
+        self.assertEqual(carrier["Host_Health_State_SD"], "carrier")
+        self.assertEqual(carrier["Isolation_Source_SD"], "clinical/host-associated material")
+
+        colonized = standardized("colonized")
+        self.assertEqual(colonized["Host_Disease_SD"], "")
+        self.assertEqual(colonized["Host_Health_State_SD"], "colonized")
+        self.assertEqual(colonized["Isolation_Source_SD"], "clinical/host-associated material")
+
+        clinical = standardized("clinical")
+        self.assertEqual(clinical["Host_Disease_SD"], "")
+        self.assertEqual(clinical["Host_Health_State_SD"], "")
+        self.assertEqual(clinical["Isolation_Source_SD"], "clinical/host-associated material")
+
+        patient = standardized("patient")
+        self.assertEqual(patient["Host_Disease_SD"], "")
+        self.assertEqual(patient["Host_Health_State_SD"], "")
+        self.assertEqual(patient["Host_Context_SD"], "human-associated")
+        self.assertEqual(patient["Isolation_Source_SD"], "clinical/host-associated material")
 
     def test_food_cut_terms_are_not_clinical_anatomy(self) -> None:
         retail_breast = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "Retail Breast"})

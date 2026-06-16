@@ -1,0 +1,12 @@
+raw_value,reviewer_decision,proposed_host_disease_sd,proposed_host_health_state_sd,proposed_host_context_sd,proposed_isolation_source_sd,proposed_isolation_source_broad,proposed_environment_medium_sd,confidence,rationale
+infection,route_to_generic_disease_and_health_state,infectious disease,diseased,,clinical/host-associated material,clinical/host-associated material,,medium,Generic infection context; route to generic infectious disease and diseased health state without inferring a specific disease.
+infected animal,route_to_animal_health_context,infectious disease,diseased,animal-associated,host-associated context,host-associated context,,medium,Infected animal indicates animal-associated host context and diseased state; no specific disease inferred.
+diseased plant,route_to_plant_health_context,"plant disease, unspecified",diseased,plant-associated,plant-associated material,plant-associated material,,medium,Plant disease context without a specific disease name; preserve plant-associated context.
+outbreak,suppress_source_preserve_epidemiological_note,,,,,,,medium,"Outbreak is epidemiological context, not a disease or source by itself; no dedicated context field exists."
+outbreak food source,preserve_food_context_not_disease,,,,food/food product,food,,medium,Food/outbreak source context; do not infer host disease.
+contaminated food,preserve_food_safety_context_not_disease,,,,food/food product,food,,high,Food contamination context; not host disease.
+wastewater surveillance,preserve_environment_surveillance_context,,,,environmental material,environmental material,wastewater,high,Environmental wastewater surveillance context; not host disease.
+carrier,route_to_health_state_not_disease,,carrier,,clinical/host-associated material,clinical/host-associated material,,medium,"Carrier status is a host health/colonization state, not active disease."
+colonized,route_to_health_state_not_disease,,colonized,,clinical/host-associated material,clinical/host-associated material,,medium,Colonization status is not necessarily disease.
+clinical,preserve_clinical_context_not_disease,,,,clinical/host-associated material,clinical/host-associated material,,high,Generic clinical context; no disease inferred.
+patient,preserve_human_clinical_context_not_disease,,,human-associated,clinical/host-associated material,clinical/host-associated material,,high,"Patient means human clinical context, not disease by itself."

@@ -3005,6 +3005,18 @@ DISEASE_SAMPLE_SPLIT_SOURCE_TERMS = {
     "bovine mastitis milk",
 }
 
+BATCH8_REVIEWED_SOURCE_CONTEXT_RESOLUTIONS = {
+    "infected animal": ("host-associated context", "host_context_router"),
+    "diseased plant": ("plant-associated material", "host_context_router"),
+    "outbreak": ("", "epidemiological_context_reviewed"),
+    "wastewater surveillance": ("environmental material", "environment_context_router"),
+    "carrier": ("clinical/host-associated material", "clinical_context_router"),
+    "colonized": ("clinical/host-associated material", "clinical_context_router"),
+    "patient": ("clinical/host-associated material", "host_context_router"),
+}
+
+SOURCE_ONLY_HEALTH_STATE_SUPPRESSION_TERMS = {"patient"}
+
 def compact_lookup_text(value: Any) -> str:
     return re.sub(r"[^a-z0-9]+", "", normalize_standardization_lookup(value))
 
@@ -5860,6 +5872,9 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_source = ""
         isolation_method = "disease_sample_split_router"
         isolation_ontology_id = ""
+    if raw_isolation_source in BATCH8_REVIEWED_SOURCE_CONTEXT_RESOLUTIONS:
+        isolation_source, isolation_method = BATCH8_REVIEWED_SOURCE_CONTEXT_RESOLUTIONS[raw_isolation_source]
+        isolation_ontology_id = CONTROLLED_CATEGORY_ONTOLOGY_IDS.get(isolation_source, "")
     if raw_isolation_source in {"slaughterhouse", "abattoir"}:
         isolation_source = "food processing environment"
         isolation_method = "food_source_context"
@@ -5905,6 +5920,19 @@ def standardize_secondary_metadata(row: dict[str, Any], host_standardization: di
         isolation_source = ""
         isolation_method = "lab_artifact_router"
         isolation_ontology_id = ""
+    if (
+        raw_isolation_source in SOURCE_ONLY_HEALTH_STATE_SUPPRESSION_TERMS
+        and not any(str(row.get(field) or "").strip() for field in [
+            "Host Health State",
+            "BioSample Host Health State",
+            "BioSample Health State",
+            "BioSample Health Status",
+            "BioSample Host Health",
+        ])
+    ):
+        host_health_state = ""
+        host_health_state_method = "missing"
+        host_health_state_ontology_id = ""
     if host_disease and not host_health_state and host_disease != "healthy/no disease reported":
         host_health_state = "diseased"
         host_health_state_method = "disease_inference"

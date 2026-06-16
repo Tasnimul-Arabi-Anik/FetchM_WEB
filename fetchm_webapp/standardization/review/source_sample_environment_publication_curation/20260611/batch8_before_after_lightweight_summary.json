@@ -1,0 +1,13 @@
+{
+  "admin_review_values_resolved": 11,
+  "canonical_refresh_run": false,
+  "controlled_category_rows_added": 6,
+  "deployment_run": false,
+  "generated_at": "2026-06-16T08:54:10.713405+00:00",
+  "global_insights_regenerated": false,
+  "policy": "Use existing fields only; do not infer specific disease from generic clinical, outbreak, surveillance, contaminated-food, carrier, colonized, or patient-only labels.",
+  "remaining_batch7_admin_review_values": 0,
+  "source_context_overrides_added": 7,
+  "values_reviewed": 11,
+  "workflow": "lightweight_only"
+}
