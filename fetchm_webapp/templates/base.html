@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="fetchm-version" content="{{ app_version }}">
-    <title>FetchM Web</title>
+    <title>{% block title %}FetchM Web{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}FetchM Web standardizes public bacterial genome metadata for search, analysis, and sequence retrieval.{% endblock %}">
+    {% block canonical_url %}{% endblock %}
+    {% block open_graph %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v='20260618-ui-foundation') }}">
+    {% block extra_head %}{% endblock %}
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>

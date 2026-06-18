@@ -1,21 +1,34 @@
 {% extends "base.html" %}
-{% macro count_table(rows, label_name="Label") %}
-  <div class="table-scroll">
+{% block title %}Global Bacterial Metadata Insights | FetchM{% endblock %}
+{% block meta_description %}Versioned FetchM Global Metadata Insights for public bacterial genome assemblies, metadata standardization coverage, repository representation, and manuscript-ready source data.{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
+{% block open_graph %}
+  <meta property="og:title" content="Global Bacterial Metadata Insights | FetchM">
+  <meta property="og:description" content="Versioned FetchM analysis of public bacterial genome metadata coverage, standardization, representation, and bias.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ canonical_url }}">
+{% endblock %}
+{% block extra_head %}
+  {% if global_insights_json_ld %}<script type="application/ld+json">{{ global_insights_json_ld|safe }}</script>{% endif %}
+{% endblock %}
+{% macro count_table(rows, label_name="Label", caption="") %}
+  <div class="table-scroll" tabindex="0" aria-label="{{ caption or ('Table of ' ~ label_name|lower ~ ' counts') }}">
     <table>
+      {% if caption %}<caption>{{ caption }}</caption>{% endif %}
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>{{ label_name }}</th>
-          <th>Count</th>
-          <th>Share</th>
+          <th scope="col">Rank</th>
+          <th scope="col">{{ label_name }}</th>
+          <th scope="col">Count</th>
+          <th scope="col">Share</th>
         </tr>
       </thead>
       <tbody>
         {% for row in rows %}
           <tr>
             <td>{{ row.rank }}</td>
-            <td>{{ row.label }}</td>
-            <td>{{ row.count }}</td>
+            <th scope="row">{{ row.label }}</th>
+            <td>{{ fmt(row.count) }}</td>
             <td>
               <span class="insight-percent">{{ row.percent }}%</span>
               <span class="insight-bar" aria-hidden="true"><span style="width: {{ row.percent if row.percent <= 100 else 100 }}%"></span></span>
@@ -51,7 +64,7 @@
     {% for row in rows[-10:] %}
       {% set height = ((row.assemblies / ns.max_count) * 100) | round(2) %}
       <div class="insight-year-bar">
-        <span style="height: {{ height }}%" title="{{ row.year }}: {{ row.assemblies }} assemblies{% if row.partial_year %} (partial year){% endif %}"></span>
+        <span style="height: {{ height }}%" title="{{ row.year }}: {{ fmt(row.assemblies) }} assemblies{% if row.partial_year %} (partial year){% endif %}"></span>
         <small>{{ row.year }}{% if row.partial_year %}*{% endif %}</small>
       </div>
     {% else %}
@@ -79,8 +92,8 @@
       </div>
     </div>
     <p class="job-meta">
-      {{ row.changed_mappings|default("not recorded") }} raw values were mapped to a different standardized label;
-      {{ row.raw_only_records|default("not recorded") }} raw records still need mapping or review.
+      {{ fmt(row.changed_mappings|default("not recorded")) }} raw values were mapped to a different standardized label;
+      {{ fmt(row.raw_only_records|default("not recorded")) }} raw records still need mapping or review.
     </p>
   </div>
 {% endmacro %}
@@ -95,12 +108,38 @@
     | replace("The standardized-field percentages are intentionally stricter than raw-field population rates because free-text values are not treated as analysis-ready unless they map to a controlled category.", "Raw-field presence and standardized-field availability are different measures: a submitter value can be present but still too vague, inconsistent, or unmapped for reliable metadata filtering.")
   %}
   <details class="insight-details compact">
-    <summary>
-      <span>{{ title }}</span>
-      <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy</button>
-    </summary>
-    <p id="{{ block_id }}">{{ cleaned_text }}</p>
+    <summary><span>{{ title }}</span></summary>
+    <div class="copy-block-body">
+      <p id="{{ block_id }}">{{ cleaned_text }}</p>
+      <button type="button" class="ghost" data-copy-target="{{ block_id }}">Copy {{ title|lower }}</button>
+    </div>
   </details>
+{% endmacro %}
+
+{% macro publication_figure(figure, number) %}
+  {% set figure_id = 'figure-' ~ number %}
+  <figure class="publication-figure" id="{{ figure_id }}">
+    <div class="publication-figure-media">
+      {% if figure.files and figure.files.svg %}
+        <img src="{{ asset_url(figure.files.svg) }}" alt="Figure {{ number }}. {{ figure.title }} for FetchM Global Metadata Insights snapshot {{ summary.snapshot_id }}." loading="lazy">
+      {% else %}
+        <div class="insight-note">Figure asset not available in this snapshot.</div>
+      {% endif %}
+    </div>
+    <figcaption>
+      <p class="eyebrow">Figure {{ number }}</p>
+      <h3>{{ figure.title }}</h3>
+      <p>{{ figure.legend|default(figure.interpretation_note, true) }}</p>
+      <p class="job-meta">Denominator: {{ fmt(figure.denominator) }}{% if figure.denominator_note %} ({{ figure.denominator_note }}){% endif %}. Snapshot: {{ summary.snapshot_id }}.</p>
+      <p class="insight-explain">Interpretation boundary: these figures describe public repository representation and metadata usability, not biological prevalence, incidence, clinical risk, or genome-quality pass/fail status.</p>
+      <div class="file-list figure-downloads">
+        {% if figure.source_data %}<a href="{{ download_url(figure.source_data) }}">CSV source data</a>{% endif %}
+        {% if figure.files and figure.files.svg %}<a href="{{ download_url(figure.files.svg) }}">SVG</a>{% endif %}
+        {% if figure.files and figure.files.pdf %}<a href="{{ download_url(figure.files.pdf) }}">PDF</a>{% endif %}
+        {% if figure.files and figure.files.png %}<a href="{{ download_url(figure.files.png) }}">PNG</a>{% endif %}
+      </div>
+    </figcaption>
+  </figure>
 {% endmacro %}
 
 {% block content %}
@@ -297,7 +336,6 @@
   .insight-year-bar span {
     display: block;
     width: 100%;
-    min-height: 12px;
     border-radius: 10px 10px 4px 4px;
     background: linear-gradient(180deg, rgba(22, 92, 78, 0.88), rgba(184, 132, 77, 0.82));
   }
@@ -345,10 +383,185 @@
     margin: 0;
   }
 
+
+  .article-nav {
+    position: sticky;
+    top: 10px;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(255, 255, 251, 0.9);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(14px);
+  }
+
+  .article-nav a {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 800;
+  }
+
+  .article-nav a:focus,
+  .article-nav a:hover {
+    background: var(--accent-soft);
+    outline: none;
+  }
+
+  .provenance-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 18px;
+  }
+
+  .provenance-strip span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+    padding: 8px 10px;
+    border: 1px solid rgba(22, 92, 78, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: var(--muted);
+  }
+
+  .provenance-strip strong {
+    color: var(--accent-strong);
+  }
+
+  .article-copy {
+    max-width: 78ch;
+    font-size: 1.02rem;
+    line-height: 1.72;
+  }
+
+  .article-copy p {
+    margin: 0 0 14px;
+  }
+
+  .section-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .figure-grid {
+    display: grid;
+    gap: 18px;
+  }
+
+  .publication-figure {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
+    gap: 18px;
+    margin: 0;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .publication-figure-media {
+    min-width: 0;
+    padding: 10px;
+    border-radius: 18px;
+    background: white;
+    border: 1px solid rgba(215, 224, 221, 0.8);
+  }
+
+  .publication-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .figure-downloads {
+    margin-top: 12px;
+  }
+
+  .limitations-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .limitations-grid ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .citation-box {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid rgba(22, 92, 78, 0.16);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.72);
+  }
+
+  .copy-status {
+    min-height: 1.2em;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .copy-block-body {
+    display: grid;
+    gap: 10px;
+    padding: 0 18px 18px;
+  }
+
+  .copy-block-body p {
+    padding: 0;
+  }
+
+  table caption {
+    caption-side: top;
+    padding: 10px 12px;
+    color: var(--accent-strong);
+    font-weight: 800;
+    text-align: left;
+  }
+
+  .table-scroll:focus {
+    outline: 3px solid rgba(39, 181, 166, 0.28);
+    outline-offset: 3px;
+  }
+
+  .table-scroll::after {
+    content: "Scroll horizontally for more columns when needed";
+    display: none;
+    padding: 7px 10px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
   @media (max-width: 1100px) {
     .insight-callout-grid,
     .impact-grid,
-    .story-grid {
+    .story-grid,
+    .publication-figure,
+    .limitations-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -368,38 +581,41 @@
     .insight-year-bar {
       min-width: 42px;
     }
+
+    .article-nav {
+      border-radius: 20px;
+    }
+
+    .table-scroll::after {
+      display: block;
+    }
   }
 </style>
 <main class="layout">
-  <section class="panel detail-head insight-hero">
-    <div>
-      <p class="eyebrow">Global Insights</p>
-      <h1>Global Metadata Insights</h1>
-      <p class="lede">A global summary of FetchM-indexed bacterial genomes, standardized metadata coverage, and repository sampling bias after the latest metadata update.</p>
-      {% if summary %}
-        <div class="insight-badge-row">
-          <span class="status completed">{{ "demo data" if summary.is_demo else "real snapshot" }}</span>
-          <span class="tag">Snapshot: {{ summary.snapshot_id }}</span>
-          <span class="tag">Generated: {{ summary.generated_at }}</span>
-        </div>
-        <div class="insight-hero-actions">
-          <a class="button-like" href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">Download report JSON</a>
-          <button type="button" class="ghost" data-copy-target="copy-results">Copy results summary</button>
-        </div>
-      {% endif %}
-    </div>
-    <div class="status-box">
-      {% if summary %}
-        <span class="status completed">{{ "demo" if summary.is_demo else "current" }}</span>
-        <div class="job-meta">Snapshot: {{ summary.snapshot_id }}</div>
-        <div class="job-meta">Generated: {{ summary.generated_at }}</div>
-      {% elif latest_task %}
-        <span class="status running">{{ latest_task.status }}</span>
-        <div class="job-meta">Snapshot: {{ latest_task.snapshot_id }}</div>
-      {% else %}
-        <span class="status queued">not generated</span>
-      {% endif %}
-    </div>
+  <section class="panel insight-hero manuscript-hero" id="top">
+    <p class="eyebrow">Global Insights</p>
+    <h1>The public bacterial genome metadata landscape</h1>
+    <p class="lede">Repository representation, metadata completeness, and FetchM standardization across public bacterial assemblies.</p>
+    {% if summary %}
+      <div class="provenance-strip" aria-label="Snapshot provenance">
+        <span><strong>Snapshot</strong> {{ summary.snapshot_id }}</span>
+        <span><strong>Source</strong> {{ summary.methods.source_snapshot_id|default("not recorded", true) }}</span>
+        <span><strong>Assemblies</strong> {{ fmt(summary.overview.unique_assemblies) }}</span>
+        <span><strong>Generated</strong> {{ summary.generated_at }}</span>
+        <span><strong>App commit</strong> {{ summary.methods.app_commit|default("not recorded", true) }}</span>
+        <span><strong>Scientific QA</strong> {{ (summary.qa or {}).get("status", "legacy") }}</span>
+        <span><strong>Rules</strong> {{ ((summary.methods.source_sample_environment_provenance or {}).get("controlled_categories_sha256") or summary.methods.standardization_rule_version or "not recorded") }}</span>
+      </div>
+      <div class="insight-hero-actions">
+        <a class="button-like" href="{{ download_url('summary.json') }}">Download report JSON</a>
+        <button type="button" class="ghost" data-copy-target="copy-structured-summary">Copy structured summary</button>
+      </div>
+    {% elif latest_task %}
+      <span class="status running">{{ latest_task.status }}</span>
+      <div class="job-meta">Snapshot: {{ latest_task.snapshot_id }}</div>
+    {% else %}
+      <span class="status queued">not generated</span>
+    {% endif %}
   </section>
 
   {% if not summary %}
@@ -433,14 +649,36 @@
     {% set top_country = summary.geographic_bias.countries[0] if summary.geographic_bias.countries else none %}
     {% set top_host_category = summary.host_source_bias.host_categories[0] if summary.host_source_bias.host_categories else none %}
 
-    <section class="panel">
-      <h2>Global Snapshot</h2>
+    <nav class="article-nav" aria-label="Global Insights sections">
+      <a href="#summary">Summary</a>
+      <a href="#findings">Findings</a>
+      <a href="#figures">Figures</a>
+      <a href="#detailed-results">Detailed results</a>
+      <a href="#limitations">Limitations</a>
+      <a href="#methods">Methods</a>
+      <a href="#validation">Validation</a>
+      <a href="#data">Data</a>
+    </nav>
+
+    <section class="panel article-copy" id="summary">
+      <p class="eyebrow">Structured summary</p>
+      <h2>Snapshot summary</h2>
+      <p><strong>Dataset.</strong> {{ summary.manuscript.structured_dataset|default(summary.manuscript.dataset_overview, true) }}</p>
+      <p><strong>Principal findings.</strong> {{ summary.manuscript.structured_principal_findings|default(summary.manuscript.metadata_completeness, true) }}</p>
+      <p><strong>Interpretation.</strong> {{ summary.manuscript.structured_interpretation|default("These outputs describe repository composition and metadata usability, not biological prevalence.", true) }}</p>
+      <p><strong>Limitations.</strong> {{ summary.manuscript.structured_limitations|default(summary.manuscript.limitations, true) }}</p>
+      <p id="copy-structured-summary" class="visually-hidden">{{ summary.manuscript.structured_summary|default(summary.manuscript.abstract, true) }}</p>
+    </section>
+
+    <section class="panel" id="findings">
+      <h2>Principal findings</h2>
+      <h3>Global Snapshot</h3>
       <div class="metrics-grid">
-        <div class="metric-card"><strong>{{ summary.overview.unique_assemblies }}</strong><span>Unique assemblies</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.canonical_species_pages|default(summary.overview.species_observed) }}</strong><span>Canonical species pages</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.unresolved_species_level_label_pages|default(0) }}</strong><span>Unresolved species-level labels</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.genera_observed }}</strong><span>Observed genera</span></div>
-        <div class="metric-card"><strong>{{ summary.overview.bioprojects_observed }}</strong><span>BioProjects</span></div>
+        <div class="metric-card"><strong>{{ fmt(summary.overview.unique_assemblies) }}</strong><span>Unique assemblies</span></div>
+        <div class="metric-card"><strong>{{ fmt(summary.overview.canonical_species_pages|default(summary.overview.species_observed)) }}</strong><span>Canonical species pages</span></div>
+        <div class="metric-card"><strong>{{ fmt(summary.overview.unresolved_species_level_label_pages|default(0)) }}</strong><span>Unresolved species-level labels</span></div>
+        <div class="metric-card"><strong>{{ fmt(summary.overview.genera_observed) }}</strong><span>Observed genera</span></div>
+        <div class="metric-card"><strong>{{ fmt(summary.overview.bioprojects_observed) }}</strong><span>BioProjects</span></div>
         <div class="metric-card"><strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong><span>Standardized country</span></div>
       </div>
       <p class="job-meta top-gap">{{ summary.methods.caution }}</p>
@@ -490,12 +728,67 @@
       </p>
     </section>
 
-    <section class="panel">
-      <h2>Deeper Analysis</h2>
+    <section class="panel" id="figures">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Main figures</p>
+          <h2>Publication figures</h2>
+        </div>
+        <a class="ghost-link" href="#data">All downloads</a>
+      </div>
+      <p class="insight-explain">These are existing generated publication figures from the current snapshot. They are displayed inline without animation; source data and production formats remain downloadable.</p>
+      {% if summary.figure_exports %}
+        <div class="figure-grid">
+          {% for figure in summary.figure_exports[:5] %}
+            {{ publication_figure(figure, loop.index) }}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="job-meta">No publication figures are embedded in this snapshot yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel" id="limitations">
+      <p class="eyebrow">Interpretation boundaries</p>
+      <h2>What these results show, and what they do not show</h2>
+      <div class="limitations-grid">
+        <div>
+          <h3>What these results show</h3>
+          <ul>
+            <li>Representation within public bacterial genome repositories.</li>
+            <li>Availability and standardizability of submitted metadata.</li>
+            <li>Taxonomic, geographic, temporal, and BioProject concentration.</li>
+            <li>Metadata suitability for filtering and exploratory dataset construction.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>What these results do not show</h3>
+          <ul>
+            <li>True bacterial abundance or disease burden.</li>
+            <li>Geographic incidence, clinical risk, or causal relationships.</li>
+            <li>Genome-quality pass/fail status.</li>
+            <li>Record-level classification from heuristic broad host/source groupings.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="insight-note top-gap">{{ summary.manuscript.limitations }}</p>
+    </section>
+
+    <section class="panel" id="detailed-results">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Detailed results</p>
+          <h2>Supporting analyses</h2>
+        </div>
+        <div class="section-actions">
+          <button type="button" class="ghost" data-expand-details="true">Expand all</button>
+          <button type="button" class="ghost" data-collapse-details="true">Collapse all</button>
+        </div>
+      </div>
       <p class="insight-explain">Supporting tables and figure-ready summaries are collapsed by default to keep the page readable. Expand only the analysis you need.</p>
     </section>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Which Bacterial Taxa Dominate Public Sequencing?</span><span class="tag">taxa</span></summary>
       <div class="insight-details-body">
       <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot. FetchM keeps provisional and unresolved species-level labels searchable, but reports them separately from canonical binomial species.</p>
@@ -503,7 +796,8 @@
       {% if label_rows %}
       <div class="table-scroll bottom-gap">
         <table>
-          <thead><tr><th>Species-label class</th><th>Labels</th><th>Share</th><th>Interpretation</th></tr></thead>
+          <caption>Species-label classes in the current snapshot</caption>
+          <thead><tr><th scope="col">Species-label class</th><th scope="col">Labels</th><th scope="col">Share</th><th scope="col">Interpretation</th></tr></thead>
           <tbody>
             {% for row in label_rows %}
               <tr><td>{{ row.label }}</td><td>{{ row.labels }}</td><td>{{ row.label_percent }}%</td><td>{{ row.description }}</td></tr>
@@ -525,7 +819,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Public Bacterial Assemblies Released by Year</span><span class="tag">yearly trend</span></summary>
       <div class="insight-details-body">
       {% set yearly_rows = summary.get("yearly_growth", []) %}
@@ -540,15 +834,16 @@
             <div class="insight-details-body">
           <div class="table-scroll">
             <table>
+              <caption>Recent public assembly releases by year</caption>
               <thead>
-                <tr><th>Year</th><th>Assemblies</th><th>Cumulative assemblies</th></tr>
+                <tr><th scope="col">Year</th><th scope="col">Assemblies</th><th scope="col">Cumulative assemblies</th></tr>
               </thead>
               <tbody>
                 {% for row in yearly_rows[-10:] %}
                   <tr>
                     <td>{{ row.year }}{% if row.partial_year %} <small>partial</small>{% endif %}</td>
-                    <td>{{ row.assemblies }}</td>
-                    <td>{{ row.cumulative_assemblies }}</td>
+                    <td>{{ fmt(row.assemblies) }}</td>
+                    <td>{{ fmt(row.cumulative_assemblies) }}</td>
                   </tr>
                 {% else %}
                   <tr><td colspan="3">No release-year data were available in this snapshot.</td></tr>
@@ -567,7 +862,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Geographic, Host, Source, and Environment Representation</span><span class="tag">bias</span></summary>
       <div class="insight-details-body">
       <div class="grid two-column">
@@ -601,7 +896,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>How Complete Is Public Genome Metadata?</span><span class="tag">completeness</span></summary>
       <div class="insight-details-body">
       <p class="insight-note">
@@ -609,13 +904,14 @@
       </p>
       <div class="table-scroll">
         <table>
+          <caption>Raw versus standardized metadata completeness</caption>
           <thead>
             <tr>
-              <th>Field</th>
-              <th>Raw field present</th>
-              <th>Standardized</th>
-              <th>Raw but not standardized</th>
-              <th>Raw values remapped</th>
+              <th scope="col">Field</th>
+              <th scope="col">Raw field present</th>
+              <th scope="col">Standardized</th>
+              <th scope="col">Raw but not standardized</th>
+              <th scope="col">Raw values remapped</th>
             </tr>
           </thead>
           <tbody>
@@ -627,10 +923,10 @@
                     <small>Year-level value parsed from collection-date metadata; raw evidence is retained in exports when available.</small>
                   {% endif %}
                 </td>
-                <td>{{ row.raw_usable_percent }}% <small>({{ row.raw_usable }})</small></td>
-                <td>{{ row.standardized_usable_percent }}% <small>({{ row.standardized_usable }})</small></td>
-                <td>{{ row.raw_only_records|default("not recorded") }}</td>
-                <td>{{ row.changed_mappings|default("not recorded") }}</td>
+                <td>{{ row.raw_usable_percent }}% <small>({{ fmt(row.raw_usable) }})</small></td>
+                <td>{{ row.standardized_usable_percent }}% <small>({{ fmt(row.standardized_usable) }})</small></td>
+                <td>{{ fmt(row.raw_only_records|default("not recorded")) }}</td>
+                <td>{{ fmt(row.changed_mappings|default("not recorded")) }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -641,14 +937,15 @@
         <p class="insight-note">If a primary field was absent or unusable but a standardized value was recovered from another reviewed field, the table now labels it as recovered secondary evidence rather than displaying misleading mappings such as “absent → host”.</p>
         <div class="table-scroll">
           <table>
+            <caption>Most common metadata corrections in the current snapshot</caption>
             <thead>
               <tr>
-                <th>Field</th>
-                <th>Primary raw value / recovery note</th>
-                <th>Standardized value</th>
-                <th>Evidence source</th>
-                <th>Confidence</th>
-                <th>Mapped records</th>
+                <th scope="col">Field</th>
+                <th scope="col">Primary raw value / recovery note</th>
+                <th scope="col">Standardized value</th>
+                <th scope="col">Evidence source</th>
+                <th scope="col">Confidence</th>
+                <th scope="col">Mapped records</th>
               </tr>
             </thead>
             <tbody>
@@ -659,7 +956,7 @@
                   <td>{{ row.standardized_value }}</td>
                   <td>{{ row.evidence_source|default("not recorded", true) }}</td>
                   <td>{{ row.confidence|default("not recorded", true) }}</td>
-                  <td>{{ row.records_rescued }}</td>
+                  <td>{{ fmt(row.records_rescued) }}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -669,7 +966,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Raw versus Standardized Dataset-selection Simulator</span><span class="tag">query</span></summary>
       <div class="insight-details-body">
       <p>Estimate how dataset selection changes when the same query is applied to raw submitter fields versus FetchM standardized metadata fields. This uses the compact simulator table generated with the snapshot.</p>
@@ -687,23 +984,24 @@
       {% if simulator_result %}
         {% if simulator_result.available %}
           <div class="metrics-grid top-gap">
-            <div class="metric-card"><strong>{{ simulator_result.raw_count }}</strong><span>Raw metadata records</span></div>
-            <div class="metric-card"><strong>{{ simulator_result.standardized_count }}</strong><span>Standardized records</span></div>
-            <div class="metric-card"><strong>{{ simulator_result.rescued_count }}</strong><span>Additional records recovered</span></div>
+            <div class="metric-card"><strong>{{ fmt(simulator_result.raw_count) }}</strong><span>Raw metadata records</span></div>
+            <div class="metric-card"><strong>{{ fmt(simulator_result.standardized_count) }}</strong><span>Standardized records</span></div>
+            <div class="metric-card"><strong>{{ fmt(simulator_result.rescued_count) }}</strong><span>Additional records recovered</span></div>
             <div class="metric-card"><strong>{{ simulator_result.gain_percent }}%</strong><span>Gain vs raw count</span></div>
           </div>
           {% if simulator_result.examples %}
             <h3>Example Rescued Records</h3>
             <div class="table-scroll">
               <table>
+                <caption>Example records recovered by standardized metadata filtering</caption>
                 <thead>
                   <tr>
-                    <th>Assembly</th>
-                    <th>Taxon</th>
-                    <th>Raw country</th>
-                    <th>Standardized country</th>
-                    <th>Raw host</th>
-                    <th>Standardized host</th>
+                    <th scope="col">Assembly</th>
+                    <th scope="col">Taxon</th>
+                    <th scope="col">Raw country</th>
+                    <th scope="col">Standardized country</th>
+                    <th scope="col">Raw host</th>
+                    <th scope="col">Standardized host</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -728,7 +1026,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Metadata-readiness Index and Automated Bias Warnings</span><span class="tag">warnings</span></summary>
       <div class="insight-details-body">
       <p class="insight-note">The FetchM metadata-readiness index is a project-defined descriptive index for comparing metadata usability. It is not a biological genome-quality score, a CheckM/assembly-quality result, or a validated clinical metric.</p>
@@ -738,15 +1036,16 @@
           <p class="insight-explain">Ranked by index among taxa with at least 100 assemblies to avoid tiny taxa dominating the table.</p>
           <div class="table-scroll">
             <table>
+              <caption>Highest metadata-readiness index scores among taxa with at least 100 assemblies</caption>
               <thead>
-                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Index</th><th>Grade</th></tr>
+                <tr><th scope="col">Taxon</th><th scope="col">Rank</th><th scope="col">Assemblies</th><th scope="col">Index</th><th scope="col">Grade</th></tr>
               </thead>
               <tbody>
                 {% for row in summary.metadata_quality[:10] %}
                   <tr>
                     <td>{{ row.taxon }}</td>
                     <td>{{ row.rank }}</td>
-                    <td>{{ row.assemblies }}</td>
+                    <td>{{ fmt(row.assemblies) }}</td>
                     <td>{{ row.metadata_quality_score }}</td>
                     <td>{{ row.metadata_quality_grade }}</td>
                   </tr>
@@ -760,14 +1059,15 @@
           <p class="insight-explain">This table suppresses very small taxa so warnings focus on datasets large enough for practical downstream analysis.</p>
           <div class="table-scroll">
             <table>
+              <caption>Automated repository bias warnings for large taxa</caption>
               <thead>
-                <tr><th>Scope</th><th>Assemblies</th><th>Type</th><th>Severity</th><th>Warning</th></tr>
+                <tr><th scope="col">Scope</th><th scope="col">Assemblies</th><th scope="col">Type</th><th scope="col">Severity</th><th scope="col">Warning</th></tr>
               </thead>
               <tbody>
                 {% for row in summary.bias_warnings if (row.assemblies|default(0, true)|int) >= 100 %}
                   <tr>
                     <td>{{ row.scope }}</td>
-                    <td>{{ row.assemblies }}</td>
+                    <td>{{ fmt(row.assemblies) }}</td>
                     <td>{{ row.bias_type }}</td>
                     <td>{{ row.severity }}</td>
                     <td>{{ row.warning }}</td>
@@ -783,7 +1083,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Priority-taxon Metadata Coverage and Metadata-ready Taxa</span><span class="tag">readiness</span></summary>
       <div class="insight-details-body">
       <div class="grid two-column">
@@ -791,15 +1091,16 @@
           <h3>Priority-taxon Metadata-readiness</h3>
           <div class="table-scroll">
             <table>
+              <caption>Priority-taxon metadata-readiness summary</caption>
               <thead>
-                <tr><th>Taxon</th><th>Group</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+                <tr><th scope="col">Taxon</th><th scope="col">Group</th><th scope="col">Assemblies</th><th scope="col">Index</th><th scope="col">Grade</th></tr>
               </thead>
               <tbody>
                 {% for row in summary.pathogen_insights[:12] %}
                   <tr>
                     <td>{{ row.taxon_name or row.taxon }}</td>
                     <td>{{ row.group }}</td>
-                    <td>{{ row.assemblies }}</td>
+                    <td>{{ fmt(row.assemblies) }}</td>
                     <td>{{ row.metadata_quality_score }}</td>
                     <td>{{ row.metadata_quality_grade }}</td>
                   </tr>
@@ -814,15 +1115,16 @@
           <h3>Metadata-ready Taxa</h3>
           <div class="table-scroll">
             <table>
+              <caption>Taxa meeting metadata-readiness thresholds</caption>
               <thead>
-                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+                <tr><th scope="col">Taxon</th><th scope="col">Rank</th><th scope="col">Assemblies</th><th scope="col">Index</th><th scope="col">Grade</th></tr>
               </thead>
               <tbody>
                 {% for row in summary.qc_ready_taxa[:12] %}
                   <tr>
                     <td>{{ row.taxon }}</td>
                     <td>{{ row.rank }}</td>
-                    <td>{{ row.assemblies }}</td>
+                    <td>{{ fmt(row.assemblies) }}</td>
                     <td>{{ row.metadata_quality_score }}</td>
                     <td>{{ row.metadata_quality_grade }}</td>
                   </tr>
@@ -837,7 +1139,13 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <section id="methods" class="panel">
+      <p class="eyebrow">Methods and validation</p>
+      <h2>Methods and validation</h2>
+      <p class="insight-explain">Generation scope, rule provenance, validation availability, and QA checks for this snapshot.</p>
+    </section>
+
+    <details class="panel insight-details" id="validation">
       <summary><span>Validation and Manuscript-readiness QA</span><span class="tag">{{ (summary.qa or {}).get("status", "legacy") }}</span></summary>
       <div class="insight-details-body">
         <p class="insight-note">This panel separates scientific correctness checks from visual dashboard rendering. Legacy snapshots may show missing QA fields until Global Insights is regenerated.</p>
@@ -855,7 +1163,8 @@
         </div>
         <div class="table-scroll top-gap">
           <table>
-            <thead><tr><th>Check</th><th>Status</th><th>Detail</th></tr></thead>
+            <caption>Global Insights manuscript-readiness QA checks</caption>
+            <thead><tr><th scope="col">Check</th><th scope="col">Status</th><th scope="col">Detail</th></tr></thead>
             <tbody>
               {% for check in qa.get("checks", []) %}
                 <tr><td>{{ check.check }}</td><td>{{ check.status }}</td><td>{{ check.detail }}</td></tr>
@@ -868,7 +1177,7 @@
       </div>
     </details>
 
-    <details class="panel insight-details">
+    <details class="panel insight-details" id="methods-detail">
       <summary><span>Methods & Reproducibility</span><span class="tag">expand</span></summary>
       <div class="insight-details-body">
       <div class="coverage-table">
@@ -895,8 +1204,25 @@
       </div>
     </details>
 
+    <section class="panel" id="data">
+      <p class="eyebrow">Data availability and citation</p>
+      <h2>Cite this snapshot</h2>
+      <div class="citation-box">
+        <p id="copy-citation">{{ citation_text }}</p>
+        <div class="file-list">
+          <button type="button" class="ghost" data-copy-target="copy-citation">Copy citation</button>
+          <a href="{{ citation_url('txt') }}">Plain text</a>
+          <a href="{{ citation_url('bibtex') }}">BibTeX</a>
+          <a href="{{ citation_url('ris') }}">RIS</a>
+          {% if summary.downloads.get('archive_manifest') %}<a href="{{ download_url(summary.downloads.get('archive_manifest')) }}">Manifest</a>{% endif %}
+          {% if summary.downloads.get('checksums_sha256') %}<a href="{{ download_url(summary.downloads.get('checksums_sha256')) }}">Checksums</a>{% endif %}
+          <a href="https://doi.org/10.1093/bioadv/vbag124" target="_blank" rel="noreferrer">FetchM paper DOI</a>
+        </div>
+      </div>
+    </section>
+
     <details class="panel insight-details" open>
-      <summary><span>Publication Exports</span><span class="tag">figures and reports</span></summary>
+      <summary><span>Supplementary analyses and downloads</span><span class="tag">figures and reports</span></summary>
       <div class="insight-details-body">
         <p class="insight-note">Download manuscript-oriented reports, static figures, and source data generated from the same snapshot shown on this page. PNG figures are exported at 600 dpi; SVG and PDF versions are included for editing and journal production.</p>
         {% set downloads = summary.downloads or {} %}
@@ -907,34 +1233,34 @@
           <div class="metric-card"><strong>{{ "yes" if downloads.get("global_insights_report_docx") else "no" }}</strong><span>DOCX report</span></div>
         </div>
         <div class="file-list top-gap">
-          {% if downloads.get("global_insights_report_md") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_md')) }}">Manuscript report MD</a>{% endif %}
-          {% if downloads.get("global_insights_report_docx") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_docx')) }}">Manuscript report DOCX</a>{% endif %}
-          {% if downloads.get("global_insights_report_pdf") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_report_pdf')) }}">Manuscript report PDF</a>{% endif %}
-          {% if downloads.get("global_insights_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_figures_zip')) }}">All figures ZIP</a>{% endif %}
-          {% if downloads.get("source_data_for_figures_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('source_data_for_figures_zip')) }}">Source data for figures ZIP</a>{% endif %}
-          {% if downloads.get("global_insights_tables_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_tables_zip')) }}">All tables ZIP</a>{% endif %}
-          {% if downloads.get("global_insights_case_studies_zip") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('global_insights_case_studies_zip')) }}">Case-study reports ZIP</a>{% endif %}
-          {% if downloads.get("archive_manifest") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('archive_manifest')) }}">Archive manifest</a>{% endif %}
-          {% if downloads.get("checksums_sha256") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('checksums_sha256')) }}">SHA256 checksums</a>{% endif %}
-          {% if downloads.get("publication_export_audit") %}<a href="{{ url_for('download_global_insights_file', relative_path=downloads.get('publication_export_audit')) }}">Publication export audit</a>{% endif %}
+          {% if downloads.get("global_insights_report_md") %}<a href="{{ download_url(downloads.get('global_insights_report_md')) }}">Manuscript report MD</a>{% endif %}
+          {% if downloads.get("global_insights_report_docx") %}<a href="{{ download_url(downloads.get('global_insights_report_docx')) }}">Manuscript report DOCX</a>{% endif %}
+          {% if downloads.get("global_insights_report_pdf") %}<a href="{{ download_url(downloads.get('global_insights_report_pdf')) }}">Manuscript report PDF</a>{% endif %}
+          {% if downloads.get("global_insights_figures_zip") %}<a href="{{ download_url(downloads.get('global_insights_figures_zip')) }}">All figures ZIP</a>{% endif %}
+          {% if downloads.get("source_data_for_figures_zip") %}<a href="{{ download_url(downloads.get('source_data_for_figures_zip')) }}">Source data for figures ZIP</a>{% endif %}
+          {% if downloads.get("global_insights_tables_zip") %}<a href="{{ download_url(downloads.get('global_insights_tables_zip')) }}">All tables ZIP</a>{% endif %}
+          {% if downloads.get("global_insights_case_studies_zip") %}<a href="{{ download_url(downloads.get('global_insights_case_studies_zip')) }}">Case-study reports ZIP</a>{% endif %}
+          {% if downloads.get("archive_manifest") %}<a href="{{ download_url(downloads.get('archive_manifest')) }}">Archive manifest</a>{% endif %}
+          {% if downloads.get("checksums_sha256") %}<a href="{{ download_url(downloads.get('checksums_sha256')) }}">SHA256 checksums</a>{% endif %}
+          {% if downloads.get("publication_export_audit") %}<a href="{{ download_url(downloads.get('publication_export_audit')) }}">Publication export audit</a>{% endif %}
         </div>
         {% if summary.figure_exports %}
           <h3>Figure Index</h3>
           <div class="table-scroll">
             <table>
-              <thead><tr><th>Figure</th><th>Title</th><th>Denominator</th><th>Source data</th><th>Legend</th><th>Downloads</th></tr></thead>
+              <caption>Publication figure index and downloads</caption><thead><tr><th scope="col">Figure</th><th scope="col">Title</th><th scope="col">Denominator</th><th scope="col">Source data</th><th scope="col">Legend</th><th scope="col">Downloads</th></tr></thead>
               <tbody>
                 {% for figure in summary.figure_exports %}
                   <tr>
                     <td>{{ loop.index }}</td>
                     <td>{{ figure.title }}</td>
-                    <td>{{ figure.denominator }}</td>
-                    <td><a href="{{ url_for('download_global_insights_file', relative_path=figure.source_data) }}">CSV</a></td>
-                    <td>{% if figure.legend_file %}<a href="{{ url_for('download_global_insights_file', relative_path=figure.legend_file) }}">TXT</a>{% else %}—{% endif %}</td>
+                    <td>{{ fmt(figure.denominator) }}</td>
+                    <td><a href="{{ download_url(figure.source_data) }}">CSV</a></td>
+                    <td>{% if figure.legend_file %}<a href="{{ download_url(figure.legend_file) }}">TXT</a>{% else %}—{% endif %}</td>
                     <td>
-                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.svg) }}">SVG</a> ·
-                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.pdf) }}">PDF</a> ·
-                      <a href="{{ url_for('download_global_insights_file', relative_path=figure.files.png) }}">PNG</a>
+                      <a href="{{ download_url(figure.files.svg) }}">SVG</a> ·
+                      <a href="{{ download_url(figure.files.pdf) }}">PDF</a> ·
+                      <a href="{{ download_url(figure.files.png) }}">PNG</a>
                     </td>
                   </tr>
                 {% endfor %}
@@ -948,16 +1274,17 @@
     </details>
 
     <details class="panel insight-details">
-      <summary><span>Manuscript Support Tables</span><span class="tag">readiness, validation, case studies</span></summary>
+      <summary><span>Manuscript support tables</span><span class="tag">readiness, validation, case studies</span></summary>
       <div class="insight-details-body">
         <p class="insight-note">These tables support reviewer-facing claims: denominator logic, field confidence, metadata-readiness tiers, BioProject dominance, and optional manual validation accuracy.</p>
         <h3>Readiness tiers</h3>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Tier</th><th>Taxa</th><th>Definition</th></tr></thead>
+            <caption>Metadata-readiness tier definitions</caption>
+            <thead><tr><th scope="col">Tier</th><th scope="col">Taxa</th><th scope="col">Definition</th></tr></thead>
             <tbody>
               {% for row in summary.metadata_readiness_tiers or [] %}
-                <tr><td>{{ row.tier }}</td><td>{{ row.taxa }}</td><td>{{ row.definition }}</td></tr>
+                <tr><td>{{ row.tier }}</td><td>{{ fmt(row.taxa) }}</td><td>{{ row.definition }}</td></tr>
               {% else %}
                 <tr><td colspan="3">Regenerate Global Insights to populate readiness tiers.</td></tr>
               {% endfor %}
@@ -967,10 +1294,11 @@
         <h3>Top BioProjects</h3>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>BioProject</th><th>Assemblies</th><th>Share</th><th>Dominant taxon</th></tr></thead>
+            <caption>Top BioProjects represented in the snapshot</caption>
+            <thead><tr><th scope="col">BioProject</th><th scope="col">Assemblies</th><th scope="col">Share</th><th scope="col">Dominant taxon</th></tr></thead>
             <tbody>
               {% for row in (summary.top_bioprojects or [])[:12] %}
-                <tr><td>{{ row.bioproject }}</td><td>{{ row.count }}</td><td>{{ row.percent }}%</td><td>{{ row.dominant_taxon }}</td></tr>
+                <tr><td>{{ row.bioproject }}</td><td>{{ fmt(row.count) }}</td><td>{{ row.percent }}%</td><td>{{ row.dominant_taxon }}</td></tr>
               {% else %}
                 <tr><td colspan="4">No BioProject summary is embedded in this snapshot yet.</td></tr>
               {% endfor %}
@@ -980,10 +1308,11 @@
         <h3>Manual validation accuracy</h3>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Field</th><th>Records</th><th>Precision</th><th>False-positive rate</th><th>Status</th></tr></thead>
+            <caption>Manual validation accuracy summary when available</caption>
+            <thead><tr><th scope="col">Field</th><th scope="col">Records</th><th scope="col">Precision</th><th scope="col">False-positive rate</th><th scope="col">Status</th></tr></thead>
             <tbody>
               {% for row in summary.validation_accuracy or [] %}
-                <tr><td>{{ row.field }}</td><td>{{ row.validation_records }}</td><td>{{ row.precision_percent }}</td><td>{{ row.false_positive_rate_percent }}</td><td>{{ row.status }}</td></tr>
+                <tr><td>{{ row.field }}</td><td>{{ fmt(row.validation_records) }}</td><td>{{ row.precision_percent }}</td><td>{{ row.false_positive_rate_percent }}</td><td>{{ row.status }}</td></tr>
               {% else %}
                 <tr><td colspan="5">No validation accuracy table is embedded in this snapshot yet.</td></tr>
               {% endfor %}
@@ -993,10 +1322,11 @@
         <h3>Case studies</h3>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>Taxon</th><th>Assemblies</th><th>Quality</th><th>Readiness</th><th>Top BioProject share</th></tr></thead>
+            <caption>Selected taxon case studies</caption>
+            <thead><tr><th scope="col">Taxon</th><th scope="col">Assemblies</th><th scope="col">Index</th><th scope="col">Readiness</th><th scope="col">Top BioProject share</th></tr></thead>
             <tbody>
               {% for row in summary.case_studies or [] %}
-                <tr><td>{{ row.taxon }}</td><td>{{ row.assemblies }}</td><td>{{ row.metadata_quality_score }}</td><td>{{ row.metadata_readiness_tier }}</td><td>{{ row.top_bioproject_share_percent }}</td></tr>
+                <tr><td>{{ row.taxon }}</td><td>{{ fmt(row.assemblies) }}</td><td>{{ row.metadata_quality_score }}</td><td>{{ row.metadata_readiness_tier }}</td><td>{{ row.top_bioproject_share_percent }}</td></tr>
               {% else %}
                 <tr><td colspan="5">No case-study table is embedded in this snapshot yet.</td></tr>
               {% endfor %}
@@ -1006,8 +1336,9 @@
       </div>
     </details>
 
-    <section class="panel">
-      <h2>Copyable Manuscript-ready Summary</h2>
+    <details class="panel insight-details">
+      <summary><span>Manuscript writing aids</span><span class="tag">copyable text</span></summary>
+      <div class="insight-details-body">
       <p class="insight-explain">These are copyable text outputs, not figures. Figure-ready visual summaries are shown above in the main story and growth sections.</p>
       {{ copy_block("Abstract-style summary", summary.manuscript.abstract, "copy-abstract") }}
       {{ copy_block("Full results paragraph", summary.manuscript.results, "copy-results") }}
@@ -1023,15 +1354,16 @@
       {{ copy_block("Limitations paragraph", summary.manuscript.limitations, "copy-limitations") }}
       {{ copy_block("Figure legend text", summary.manuscript.figure_legend, "copy-figure") }}
       {{ copy_block("Table caption text", summary.manuscript.table_caption, "copy-table") }}
-    </section>
+      </div>
+    </details>
 
     <details class="panel insight-details">
       <summary><span>Downloads</span><span class="tag">exports</span></summary>
       <div class="insight-details-body">
       <div class="file-list">
-        <a href="{{ url_for('download_global_insights_file', relative_path='summary.json') }}">summary.json</a>
+        <a href="{{ download_url('summary.json') }}">summary.json</a>
         {% for label, relative_path in summary.downloads.items() %}
-          <a href="{{ url_for('download_global_insights_file', relative_path=relative_path) }}">{{ relative_path }}</a>
+          <a href="{{ download_url(relative_path) }}">{{ relative_path }}</a>
         {% endfor %}
       </div>
       </div>
@@ -1039,17 +1371,36 @@
   {% endif %}
 </main>
 
+<div class="copy-status" id="global-insights-copy-status" aria-live="polite"></div>
 <script>
-  document.querySelectorAll("[data-copy-target]").forEach((button) => {
-    button.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const target = document.getElementById(button.getAttribute("data-copy-target"));
-      if (!target) return;
-      await navigator.clipboard.writeText(target.textContent.trim());
-      button.textContent = "Copied";
-      setTimeout(() => { button.textContent = "Copy"; }, 1200);
+  (function () {
+    const status = document.getElementById("global-insights-copy-status");
+    function setStatus(message) {
+      if (status) status.textContent = message || "";
+    }
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+      const originalText = button.textContent;
+      button.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const target = document.getElementById(button.getAttribute("data-copy-target"));
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.textContent.trim());
+          button.textContent = "Copied";
+          setStatus("Copied to clipboard.");
+          setTimeout(() => { button.textContent = originalText; setStatus(""); }, 1400);
+        } catch (error) {
+          button.textContent = originalText;
+          setStatus("Copy failed. Select and copy the text manually.");
+        }
+      });
     });
-  });
+    const expand = document.querySelector("[data-expand-details]");
+    const collapse = document.querySelector("[data-collapse-details]");
+    const details = Array.from(document.querySelectorAll("details[data-analysis-detail]"));
+    if (expand) expand.addEventListener("click", () => details.forEach((item) => { item.open = true; }));
+    if (collapse) collapse.addEventListener("click", () => details.forEach((item) => { item.open = false; }));
+  })();
 </script>
 {% endblock %}

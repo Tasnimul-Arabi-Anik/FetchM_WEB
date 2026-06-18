@@ -41,7 +41,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.io as pio
 from scipy.stats import pearsonr, spearmanr
-from flask import Flask, abort, flash, g, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, Response, abort, flash, g, redirect, render_template, request, send_from_directory, session, url_for
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -125,7 +125,13 @@ PUBLIC_ENDPOINTS = {
     "download_taxon_metadata",
     "download_taxon_metadata_bundle",
     "global_insights",
+    "global_insights_snapshot",
     "download_global_insights_file",
+    "download_global_insights_snapshot_file",
+    "inline_global_insights_file",
+    "inline_global_insights_snapshot_file",
+    "download_global_insights_citation",
+    "download_global_insights_snapshot_citation",
 }
 _auth_rate_limit_lock = threading.Lock()
 _auth_rate_limit_events: dict[tuple[str, str], list[float]] = {}
@@ -9423,17 +9429,170 @@ def load_latest_global_insights_summary() -> tuple[dict[str, Any] | None, Path |
         summary_path = Path(str(latest.get("summary_path") or ""))
         if not summary_path.is_absolute():
             summary_path = global_insights_root() / summary_path
+        return load_global_insights_summary_from_path(summary_path)
+    except Exception:
+        logging.exception("Failed to load latest Global Insights snapshot.")
+        return None, None
+
+
+def global_insights_snapshot_dir_name(snapshot_id: str) -> str:
+    return re.sub(r"[^a-zA-Z0-9._-]+", "-", str(snapshot_id or "").strip()).strip("-").lower()
+
+
+def load_global_insights_summary_from_path(summary_path: Path) -> tuple[dict[str, Any] | None, Path | None]:
+    try:
         root = global_insights_root().resolve()
         resolved_summary = summary_path.resolve()
         if root not in resolved_summary.parents and resolved_summary != root:
             return None, None
-        if not resolved_summary.exists():
+        if not resolved_summary.exists() or not resolved_summary.is_file():
             return None, None
         summary = json.loads(resolved_summary.read_text(encoding="utf-8"))
         return summary, resolved_summary.parent
     except Exception:
-        logging.exception("Failed to load latest Global Insights snapshot.")
+        logging.exception("Failed to load Global Insights snapshot from %s.", summary_path)
         return None, None
+
+
+def load_global_insights_summary_by_snapshot(snapshot_id: str) -> tuple[dict[str, Any] | None, Path | None]:
+    if not snapshot_id or "/" in snapshot_id or ".." in snapshot_id:
+        return None, None
+    summary_path = global_insights_root() / "snapshots" / global_insights_snapshot_dir_name(snapshot_id) / "summary.json"
+    summary, snapshot_dir = load_global_insights_summary_from_path(summary_path)
+    if summary and str(summary.get("snapshot_id") or "") != snapshot_id:
+        return None, None
+    return summary, snapshot_dir
+
+
+def format_display_count(value: Any) -> str:
+    if value is None or value == "":
+        return "0"
+    if isinstance(value, bool):
+        return "yes" if value else "no"
+    try:
+        if isinstance(value, float) and not value.is_integer():
+            return f"{value:,.2f}"
+        text = str(value).strip()
+        if not text:
+            return "0"
+        if re.fullmatch(r"-?\d+", text):
+            return f"{int(text):,}"
+        if re.fullmatch(r"-?\d+\.0+", text):
+            return f"{int(float(text)):,}"
+        return text
+    except Exception:
+        return str(value)
+
+
+def global_insights_allowed_files(summary: dict[str, Any]) -> set[str]:
+    allowed_files = {str(value) for value in (summary.get("downloads") or {}).values() if value}
+    allowed_files.add("summary.json")
+    for figure in summary.get("figure_exports") or []:
+        files = figure.get("files") or {}
+        allowed_files.update(str(value) for value in files.values() if value)
+        if figure.get("source_data"):
+            allowed_files.add(str(figure["source_data"]))
+        if figure.get("legend_file"):
+            allowed_files.add(str(figure["legend_file"]))
+    return allowed_files
+
+
+def resolve_global_insights_file(summary: dict[str, Any], snapshot_dir: Path, relative_path: str) -> tuple[Path, str] | None:
+    normalized = Path(relative_path)
+    if normalized.is_absolute() or ".." in normalized.parts:
+        return None
+    relative = normalized.as_posix()
+    if relative not in global_insights_allowed_files(summary):
+        return None
+    path = snapshot_dir / relative
+    if not path.exists() or not path.is_file():
+        return None
+    return path, relative
+
+
+def global_insights_citation_text(summary: dict[str, Any]) -> str:
+    methods = summary.get("methods") or {}
+    return (
+        "Anik TA, Jensen PKM, Begum A. FetchM Global Metadata Insights. "
+        f"Snapshot {summary.get('snapshot_id', 'not recorded')}, derived from canonical bacterial metadata snapshot "
+        f"{methods.get('source_snapshot_id', 'not recorded')}. FetchM Web, 2026. "
+        "FetchM article doi:10.1093/bioadv/vbag124."
+    )
+
+
+def global_insights_citation_payload(summary: dict[str, Any], fmt: str) -> tuple[str, str, str]:
+    snapshot_id = str(summary.get("snapshot_id") or "global-insights")
+    methods = summary.get("methods") or {}
+    source_snapshot = str(methods.get("source_snapshot_id") or "not recorded")
+    generated = str(summary.get("generated_at") or "2026")[:10]
+    url = url_for("global_insights_snapshot", snapshot_id=snapshot_id, _external=True)
+    if fmt == "bibtex":
+        body = (
+            f"@dataset{{fetchm_global_insights_{snapshot_id},\n"
+            "  author = {Anik, Tasnimul Arabi and Jensen, Peter K. M. and Begum, Amina},\n"
+            "  title = {FetchM Global Metadata Insights},\n"
+            f"  year = {{2026}},\n"
+            f"  version = {{{snapshot_id}}},\n"
+            f"  url = {{{url}}},\n"
+            f"  note = {{Derived from canonical bacterial metadata snapshot {source_snapshot}; generated {generated}; FetchM article doi:10.1093/bioadv/vbag124}}\n"
+            "}\n"
+        )
+        return body, "application/x-bibtex; charset=utf-8", f"{snapshot_id}.bib"
+    if fmt == "ris":
+        body = "\n".join([
+            "TY  - DATA",
+            "AU  - Anik, Tasnimul Arabi",
+            "AU  - Jensen, Peter K. M.",
+            "AU  - Begum, Amina",
+            "TI  - FetchM Global Metadata Insights",
+            "PY  - 2026",
+            f"DA  - {generated}",
+            f"SE  - {snapshot_id}",
+            f"UR  - {url}",
+            f"N1  - Derived from canonical bacterial metadata snapshot {source_snapshot}; FetchM article doi:10.1093/bioadv/vbag124",
+            "ER  -",
+            "",
+        ])
+        return body, "application/x-research-info-systems; charset=utf-8", f"{snapshot_id}.ris"
+    return global_insights_citation_text(summary) + "\n", "text/plain; charset=utf-8", f"{snapshot_id}_citation.txt"
+
+
+def global_insights_json_ld(summary: dict[str, Any]) -> str:
+    methods = summary.get("methods") or {}
+    downloads = summary.get("downloads") or {}
+    distributions = []
+    for name, relative in sorted(downloads.items()):
+        if not relative:
+            continue
+        distributions.append({
+            "@type": "DataDownload",
+            "name": name.replace("_", " "),
+            "contentUrl": url_for("download_global_insights_snapshot_file", snapshot_id=summary.get("snapshot_id"), relative_path=relative, _external=True),
+        })
+    payload = {
+        "@context": "https://schema.org",
+        "@type": "Dataset",
+        "name": "FetchM Global Metadata Insights",
+        "description": "Versioned repository-level analysis of public bacterial genome metadata coverage, standardization, representation, and bias in FetchM Web.",
+        "identifier": summary.get("snapshot_id"),
+        "version": summary.get("snapshot_id"),
+        "dateCreated": summary.get("generated_at"),
+        "creator": [
+            {"@type": "Person", "name": "Tasnimul Arabi Anik"},
+            {"@type": "Person", "name": "Peter K. M. Jensen"},
+            {"@type": "Person", "name": "Amina Begum"},
+        ],
+        "citation": global_insights_citation_text(summary),
+        "isBasedOn": methods.get("source_snapshot_id"),
+        "measurementTechnique": "FetchM metadata standardization and Global Insights generator",
+        "keywords": ["bacterial genomes", "metadata standardization", "repository bias", "FetchM"],
+        "variableMeasured": ["assembly count", "country metadata coverage", "host metadata coverage", "isolation source metadata coverage", "collection year coverage"],
+        "distribution": distributions,
+    }
+    overview = summary.get("overview") or {}
+    if overview.get("unique_assemblies") is not None:
+        payload["size"] = f"{overview.get('unique_assemblies')} assemblies"
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
 
 
 def latest_global_insight_task(db: sqlite3.Connection | None = None) -> dict[str, Any] | None:
@@ -26325,9 +26484,7 @@ def healthz() -> Any:
     return {"commit": APP_COMMIT, "status": "ok", "version": APP_VERSION}
 
 
-@app.route("/global-insights")
-def global_insights() -> str:
-    summary, snapshot_dir = load_latest_global_insights_summary()
+def render_global_insights_page(summary: dict[str, Any] | None, snapshot_dir: Path | None, *, immutable: bool = False) -> str:
     simulator_filters = {
         "taxon": (request.args.get("taxon") or "").strip(),
         "country": (request.args.get("country") or "").strip(),
@@ -26341,6 +26498,24 @@ def global_insights() -> str:
         simulator_relative = ((summary.get("downloads") or {}).get("simulator_records") or "").strip()
         if simulator_relative:
             simulator_result = run_standardization_simulator(snapshot_dir / simulator_relative, simulator_filters)
+    snapshot_id = str((summary or {}).get("snapshot_id") or "")
+
+    def download_url(relative_path: str) -> str:
+        if immutable and snapshot_id:
+            return url_for("download_global_insights_snapshot_file", snapshot_id=snapshot_id, relative_path=relative_path)
+        return url_for("download_global_insights_file", relative_path=relative_path)
+
+    def asset_url(relative_path: str) -> str:
+        if snapshot_id:
+            return url_for("inline_global_insights_snapshot_file", snapshot_id=snapshot_id, relative_path=relative_path)
+        return url_for("inline_global_insights_file", relative_path=relative_path)
+
+    def citation_url(fmt: str) -> str:
+        if immutable and snapshot_id:
+            return url_for("download_global_insights_snapshot_citation", snapshot_id=snapshot_id, fmt=fmt)
+        return url_for("download_global_insights_citation", fmt=fmt)
+
+    canonical_url = url_for("global_insights_snapshot", snapshot_id=snapshot_id, _external=True) if snapshot_id else url_for("global_insights", _external=True)
     return render_template(
         "global_insights.html",
         summary=summary,
@@ -26348,34 +26523,88 @@ def global_insights() -> str:
         latest_task=latest_global_insight_task(),
         simulator_filters=simulator_filters,
         simulator_result=simulator_result,
+        fmt=format_display_count,
+        download_url=download_url,
+        asset_url=asset_url,
+        citation_url=citation_url,
+        citation_text=global_insights_citation_text(summary) if summary else "",
+        global_insights_json_ld=global_insights_json_ld(summary) if summary else "",
+        canonical_url=canonical_url,
+        immutable_snapshot=immutable,
     )
+
+
+@app.route("/global-insights")
+def global_insights() -> str:
+    summary, snapshot_dir = load_latest_global_insights_summary()
+    return render_global_insights_page(summary, snapshot_dir, immutable=False)
+
+
+@app.route("/global-insights/snapshots/<snapshot_id>")
+def global_insights_snapshot(snapshot_id: str) -> str:
+    summary, snapshot_dir = load_global_insights_summary_by_snapshot(snapshot_id)
+    if not summary or not snapshot_dir:
+        abort(404)
+    return render_global_insights_page(summary, snapshot_dir, immutable=True)
+
+
+def send_global_insights_file(summary: dict[str, Any] | None, snapshot_dir: Path | None, relative_path: str, *, as_attachment: bool) -> Any:
+    if not summary or not snapshot_dir:
+        abort(404)
+    resolved = resolve_global_insights_file(summary, snapshot_dir, relative_path)
+    if not resolved:
+        abort(404)
+    _path, relative = resolved
+    record_audit_event("download.global_insights", target_type="global_insights", target_id=str(summary.get("snapshot_id") or "latest"), metadata={"file": relative, "as_attachment": as_attachment})
+    return send_from_directory(snapshot_dir, relative, as_attachment=as_attachment)
 
 
 @app.route("/global-insights/download/<path:relative_path>")
 def download_global_insights_file(relative_path: str) -> Any:
     summary, snapshot_dir = load_latest_global_insights_summary()
-    if not summary or not snapshot_dir:
+    return send_global_insights_file(summary, snapshot_dir, relative_path, as_attachment=True)
+
+
+@app.route("/global-insights/snapshots/<snapshot_id>/download/<path:relative_path>")
+def download_global_insights_snapshot_file(snapshot_id: str, relative_path: str) -> Any:
+    summary, snapshot_dir = load_global_insights_summary_by_snapshot(snapshot_id)
+    return send_global_insights_file(summary, snapshot_dir, relative_path, as_attachment=True)
+
+
+@app.route("/global-insights/asset/<path:relative_path>")
+def inline_global_insights_file(relative_path: str) -> Any:
+    summary, snapshot_dir = load_latest_global_insights_summary()
+    return send_global_insights_file(summary, snapshot_dir, relative_path, as_attachment=False)
+
+
+@app.route("/global-insights/snapshots/<snapshot_id>/asset/<path:relative_path>")
+def inline_global_insights_snapshot_file(snapshot_id: str, relative_path: str) -> Any:
+    summary, snapshot_dir = load_global_insights_summary_by_snapshot(snapshot_id)
+    return send_global_insights_file(summary, snapshot_dir, relative_path, as_attachment=False)
+
+
+def send_global_insights_citation(summary: dict[str, Any] | None, fmt: str) -> Response:
+    if not summary:
         abort(404)
-    allowed_files = {str(value) for value in (summary.get("downloads") or {}).values() if value}
-    allowed_files.add("summary.json")
-    for figure in summary.get("figure_exports") or []:
-        files = figure.get("files") or {}
-        allowed_files.update(str(value) for value in files.values() if value)
-        if figure.get("source_data"):
-            allowed_files.add(str(figure["source_data"]))
-        if figure.get("legend_file"):
-            allowed_files.add(str(figure["legend_file"]))
-    normalized = Path(relative_path)
-    if normalized.is_absolute() or ".." in normalized.parts:
+    fmt = re.sub(r"[^a-z0-9]+", "", str(fmt or "").casefold()) or "txt"
+    if fmt in {"text", "plain"}:
+        fmt = "txt"
+    if fmt not in {"txt", "bibtex", "ris"}:
         abort(404)
-    relative = normalized.as_posix()
-    if relative not in allowed_files:
-        abort(404)
-    path = snapshot_dir / relative
-    if not path.exists() or not path.is_file():
-        abort(404)
-    record_audit_event("download.global_insights", target_type="global_insights", target_id=str(summary.get("snapshot_id") or "latest"), metadata={"file": relative})
-    return send_from_directory(snapshot_dir, relative, as_attachment=True)
+    payload, mimetype, filename = global_insights_citation_payload(summary, fmt)
+    return Response(payload, mimetype=mimetype, headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+
+@app.route("/global-insights/citation/<fmt>")
+def download_global_insights_citation(fmt: str) -> Response:
+    summary, _snapshot_dir = load_latest_global_insights_summary()
+    return send_global_insights_citation(summary, fmt)
+
+
+@app.route("/global-insights/snapshots/<snapshot_id>/citation/<fmt>")
+def download_global_insights_snapshot_citation(snapshot_id: str, fmt: str) -> Response:
+    summary, _snapshot_dir = load_global_insights_summary_by_snapshot(snapshot_id)
+    return send_global_insights_citation(summary, fmt)
 
 
 @app.route("/api/taxa/search")

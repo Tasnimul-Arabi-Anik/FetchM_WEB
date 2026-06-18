@@ -1139,6 +1139,27 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         "can recover many useful records but cannot infer reliable biological context from unsupported or ambiguous submitter text. All percentages "
         "therefore describe public repository representation, not true global bacterial abundance, disease burden, or environmental prevalence."
     )
+    structured_dataset = (
+        f"Snapshot {snapshot_id} summarizes {denominator:,} non-redundant public bacterial assemblies from source snapshot "
+        f"{summary.get('methods', {}).get('source_snapshot_id', 'not recorded')}. Assemblies were deduplicated by Assembly Accession and "
+        f"linked to {overview['species_observed']:,} observed species labels, {overview['genera_observed']:,} genera, and "
+        f"{overview['bioprojects_observed']:,} BioProjects."
+    )
+    structured_principal_findings = (
+        f"Standardized country metadata were available for {country.get('standardized_usable_percent', 0)}% of assemblies, collection-year metadata for "
+        f"{year.get('standardized_usable_percent', 0)}%, isolation-source metadata for {source.get('standardized_usable_percent', 0)}%, and sample-type metadata "
+        f"for {sample.get('standardized_usable_percent', 0)}%. Representation was concentrated: the top ten genera accounted for {top10_share}% "
+        f"of assemblies and the largest standardized country category was {top_country['label']} ({top_country['percent']}%)."
+    )
+    structured_interpretation = (
+        "These outputs describe repository composition and metadata usability. They support transparent dataset construction, filtering, and bias checks, "
+        "but they should not be interpreted as estimates of bacterial prevalence, geographic incidence, clinical risk, or causal relationships."
+    )
+    structured_limitations = (
+        "Important limitations include submission and surveillance bias, unequal sequencing capacity, outbreak oversampling, missing or ambiguous metadata, "
+        "heuristic broad host/source groupings, project-defined readiness-index weights, and incomplete current-year release counts."
+    )
+    structured_summary = " ".join([structured_dataset, structured_principal_findings, structured_interpretation, structured_limitations])
     methods_meta = summary.get("methods", {})
     methods = (
         f"Global Metadata Insights snapshot {snapshot_id} was generated from source snapshot "
@@ -1180,6 +1201,11 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         "temporal_growth_and_assembly_quality": temporal_quality_text,
         "metadata_quality_by_taxon": quality_text,
         "bioproject_dominance_and_sampling_bias": bias_text,
+        "structured_dataset": structured_dataset,
+        "structured_principal_findings": structured_principal_findings,
+        "structured_interpretation": structured_interpretation,
+        "structured_limitations": structured_limitations,
+        "structured_summary": structured_summary,
         "methods": methods,
         "limitations": limitations,
         "figure_legend": figure_legend,

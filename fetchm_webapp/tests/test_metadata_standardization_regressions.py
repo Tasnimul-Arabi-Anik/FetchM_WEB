@@ -2974,15 +2974,36 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     page = client.get("/global-insights")
                     self.assertEqual(page.status_code, 200)
                     html = page.data.decode("utf-8")
-                    self.assertIn("Global Metadata Insights", html)
+                    self.assertIn("Global Bacterial Metadata Insights | FetchM", html)
+                    self.assertIn("The public bacterial genome metadata landscape", html)
+                    self.assertIn("Structured summary", html)
+                    self.assertIn("Publication figures", html)
+                    self.assertIn("Cite this snapshot", html)
+                    self.assertIn("application/ld+json", html)
                     self.assertIn("DEMO DATA - NOT REAL RESULTS", html)
                     self.assertIn("Methods & Reproducibility", html)
                     self.assertIn("Raw versus Standardized Dataset-selection Simulator", html)
 
+                    snapshot_page = client.get("/global-insights/snapshots/demo_global_insights")
+                    self.assertEqual(snapshot_page.status_code, 200)
+                    self.assertIn("Cite this snapshot", snapshot_page.data.decode("utf-8"))
+
                     download = client.get("/global-insights/download/summary.json")
                     self.assertEqual(download.status_code, 200)
                     self.assertEqual(download.get_json()["snapshot_id"], "demo_global_insights")
+                    snapshot_download = client.get("/global-insights/snapshots/demo_global_insights/download/summary.json")
+                    self.assertEqual(snapshot_download.status_code, 200)
+                    self.assertEqual(snapshot_download.get_json()["snapshot_id"], "demo_global_insights")
+
+                    inline_asset = client.get("/global-insights/snapshots/demo_global_insights/asset/figures/figure_1_global_snapshot.svg")
+                    self.assertEqual(inline_asset.status_code, 200)
+                    self.assertNotIn("attachment", inline_asset.headers.get("Content-Disposition", "").lower())
+
+                    citation = client.get("/global-insights/snapshots/demo_global_insights/citation/bibtex")
+                    self.assertEqual(citation.status_code, 200)
+                    self.assertIn("@dataset{fetchm_global_insights_demo_global_insights", citation.data.decode("utf-8"))
                     self.assertEqual(client.get("/global-insights/download/../fetchm_webapp.db").status_code, 404)
+                    self.assertEqual(client.get("/global-insights/snapshots/demo_global_insights/asset/../summary.json").status_code, 404)
             finally:
                 fetchm_app.DATA_DIR, fetchm_app.JOBS_DIR, fetchm_app.LOCKS_DIR, fetchm_app.DB_PATH = old_paths
 
