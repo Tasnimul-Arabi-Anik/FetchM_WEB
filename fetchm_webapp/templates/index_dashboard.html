@@ -26,23 +26,34 @@
         <strong>Select your target species or genus, or any higher rank</strong>
       </div>
 
-      <label class="taxon-search selection-search fetchm-search-field">
-        <div class="search-shell">
+      <label class="taxon-search selection-search fetchm-search-field" id="taxon-search-label">
+        <span class="field-label">Taxon search</span>
+        <span class="search-help" id="taxon-search-help">Choose a canonical species, genus, or higher-rank taxon from the suggestions.</span>
+        <div class="search-shell" id="taxon-search-shell">
           <span class="fetchm-search-icon" aria-hidden="true"></span>
-          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
-          <div class="search-results" id="taxon-search-results" hidden></div>
+          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" autocapitalize="none" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="taxon-search-results" aria-describedby="taxon-search-help" aria-busy="false" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
+          <div class="search-results" id="taxon-search-results" role="listbox" aria-label="Taxon search results" hidden></div>
         </div>
       </label>
       <input type="hidden" id="selected-taxon-id">
 
       <p class="dashboard-inline-warning" id="dashboard-warning" hidden></p>
 
+      <section class="selected-taxon-card" id="selected-taxon-card" aria-live="polite" hidden>
+        <div>
+          <p class="eyebrow">Selected taxon</p>
+          <h3 id="selected-taxon-name"></h3>
+          <p id="selected-taxon-meta"></p>
+        </div>
+        <span class="status completed" id="selected-taxon-status">Metadata available</span>
+      </section>
+
       <div class="fetchm-action-row">
-        <a class="fetchm-action-card fetchm-action-primary is-disabled" id="metadata-page-link" href="#" aria-disabled="true">
+        <a class="fetchm-action-card fetchm-action-primary is-disabled" id="metadata-page-link" aria-disabled="true" tabindex="-1">
           <span class="fetchm-action-icon" aria-hidden="true">A</span>
           <strong>Metadata analysis</strong>
         </a>
-        <a class="fetchm-action-card fetchm-action-secondary is-disabled" id="sequence-link" href="#" aria-disabled="true">
+        <a class="fetchm-action-card fetchm-action-secondary is-disabled" id="sequence-link" aria-disabled="true" tabindex="-1">
           <span class="fetchm-action-icon" aria-hidden="true">S</span>
           <strong>Sequence download</strong>
         </a>
@@ -87,7 +98,12 @@
   let activeView = "selection";
   const taxonSearchInput = document.getElementById("taxon-search-input");
   const taxonSearchResults = document.getElementById("taxon-search-results");
+  const taxonSearchShell = document.getElementById("taxon-search-shell");
   const selectedTaxonId = document.getElementById("selected-taxon-id");
+  const selectedTaxonCard = document.getElementById("selected-taxon-card");
+  const selectedTaxonName = document.getElementById("selected-taxon-name");
+  const selectedTaxonMeta = document.getElementById("selected-taxon-meta");
+  const selectedTaxonStatus = document.getElementById("selected-taxon-status");
   const metadataPageLink = document.getElementById("metadata-page-link");
   const dashboardWarning = document.getElementById("dashboard-warning");
   const problemTaxonId = document.getElementById("problem-selected-taxon-id");
@@ -102,6 +118,8 @@
   const MAX_SEARCH_RESULTS = 20;
   let latestSearchToken = 0;
   let searchDebounce = null;
+  let currentMatches = [];
+  let activeResultIndex = -1;
 
   function normalizeQuery(value) {
     return value.trim().toLowerCase();
@@ -117,43 +135,62 @@
     }[char]));
   }
 
+  function formatNumber(value) {
+    return Number(value || 0).toLocaleString();
+  }
+
   function taxonLabelBadge(item) {
     const label = item.taxon_label || (item.taxon_rank === "genus" ? "Canonical genus" : "Canonical species");
     if (!label || label === "Canonical species" || label === "Canonical genus") return "";
     return `<span class="taxonomy-badge ${escapeHtml(item.taxon_label_class || "noncanonical")}" title="${escapeHtml(item.taxon_label_description || "")}">${escapeHtml(label)}</span>`;
   }
 
-  function rankedMatches(query) {
-    if (!query) return [];
-    const items = [];
-    for (const item of taxa) {
-      const name = item.species_name.toLowerCase();
-      const index = name.indexOf(query);
-      if (index === -1) continue;
-      items.push({ item, index });
+  function taxonSourceLabel(item) {
+    if (item.source === "canonical") return `${item.rank_label || item.taxon_rank} · canonical inventory`;
+    if (item.source === "genus_metadata" && item.source_taxon_name) return `species in ${item.source_taxon_name} metadata`;
+    return item.taxon_rank || "taxon";
+  }
+
+  function setSearchState({ expanded = false, busy = false, activeId = "" } = {}) {
+    taxonSearchInput.setAttribute("aria-expanded", String(expanded));
+    taxonSearchInput.setAttribute("aria-busy", String(busy));
+    if (activeId) {
+      taxonSearchInput.setAttribute("aria-activedescendant", activeId);
+    } else {
+      taxonSearchInput.removeAttribute("aria-activedescendant");
     }
-    items.sort((a, b) => {
-      if (a.index !== b.index) return a.index - b.index;
-      if ((b.item.genome_count || 0) !== (a.item.genome_count || 0)) {
-        return (b.item.genome_count || 0) - (a.item.genome_count || 0);
-      }
-      return a.item.species_name.localeCompare(b.item.species_name);
-    });
-    return items.slice(0, MAX_SEARCH_RESULTS).map((entry) => entry.item);
+    taxonSearchShell.classList.toggle("is-searching", busy);
+  }
+
+  function renderSearchMessage(message, className = "") {
+    currentMatches = [];
+    activeResultIndex = -1;
+    taxonSearchResults.innerHTML = `<div class="search-state ${className}" role="status">${escapeHtml(message)}</div>`;
+    taxonSearchResults.hidden = false;
+    setSearchState({ expanded: true, busy: className === "is-loading" });
   }
 
   async function fetchRankedMatches(query, token) {
-    const response = await fetch(`/api/taxa/search?q=${encodeURIComponent(query)}`, {
-      headers: { "Accept": "application/json" },
-    });
-    if (!response.ok || token !== latestSearchToken) return null;
-    const payload = await response.json();
-    return payload.results || [];
+    try {
+      const response = await fetch(`/api/taxa/search?q=${encodeURIComponent(query)}`, {
+        headers: { "Accept": "application/json" },
+      });
+      if (token !== latestSearchToken) return null;
+      if (!response.ok) throw new Error("Search failed");
+      const payload = await response.json();
+      return payload.results || [];
+    } catch (error) {
+      if (token === latestSearchToken) renderSearchMessage("Search unavailable - retry", "is-error");
+      return null;
+    }
   }
 
   function hideResults() {
     taxonSearchResults.hidden = true;
     taxonSearchResults.innerHTML = "";
+    currentMatches = [];
+    activeResultIndex = -1;
+    setSearchState({ expanded: false, busy: false });
   }
 
   function hideWarning() {
@@ -174,9 +211,24 @@
     taxaByName.set(taxon.species_name, taxon);
   }
 
+  function setActionLink(link, url, enabled) {
+    if (enabled && url) {
+      link.href = url;
+      link.classList.remove("is-disabled");
+      link.setAttribute("aria-disabled", "false");
+      link.removeAttribute("tabindex");
+    } else {
+      link.removeAttribute("href");
+      link.classList.add("is-disabled");
+      link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+    }
+  }
+
   async function chooseTaxon(selected) {
+    if (!selected) return;
     if (selected.requires_prepare) {
-      showWarning(`Preparing ${selected.species_name} from ${selected.source_taxon_name} metadata...`);
+      renderSearchMessage(`Preparing ${selected.species_name} metadata...`, "is-loading");
       const formData = new FormData();
       formData.append("species_name", selected.species_name);
       formData.append("source_taxon_id", selected.source_taxon_id);
@@ -187,7 +239,7 @@
       });
       const payload = await response.json();
       if (!response.ok) {
-        showWarning(payload.error || "Could not prepare that species from genus metadata.");
+        renderSearchMessage(payload.error || "Could not prepare that species from genus metadata.", "is-error");
         return;
       }
       selected = payload;
@@ -203,29 +255,47 @@
     });
   }
 
+  function setActiveResult(index) {
+    const buttons = [...taxonSearchResults.querySelectorAll(".search-result")];
+    if (!buttons.length) return;
+    activeResultIndex = (index + buttons.length) % buttons.length;
+    buttons.forEach((button, buttonIndex) => {
+      const isActive = buttonIndex === activeResultIndex;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      if (isActive) {
+        setSearchState({ expanded: true, busy: false, activeId: button.id });
+        button.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+
   function renderResultItems(matches, query) {
+    currentMatches = matches;
+    activeResultIndex = -1;
     if (!matches.length || !query) {
-      hideResults();
+      renderSearchMessage("No matching taxa", "is-empty");
       return;
     }
     taxonSearchResults.innerHTML = "";
-    matches.forEach((item) => {
+    matches.forEach((item, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "search-result";
-      const sourceLabel = item.source === "canonical"
-        ? `${item.rank_label || item.taxon_rank} · canonical inventory`
-        : (item.source === "genus_metadata" && item.source_taxon_name
-          ? `species in ${item.source_taxon_name} metadata`
-          : item.taxon_rank);
-      button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(sourceLabel)} · ${item.genome_count || 0} genomes</span>`;
+      button.id = `taxon-result-${index}`;
+      button.setAttribute("role", "option");
+      button.setAttribute("aria-selected", "false");
+      const sourceLabel = taxonSourceLabel(item);
+      button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(sourceLabel)} · ${formatNumber(item.genome_count)} genomes</span>`;
       button.addEventListener("mousedown", (event) => {
         event.preventDefault();
       });
+      button.addEventListener("mouseenter", () => setActiveResult(index));
       button.addEventListener("click", () => chooseTaxon(item));
       taxonSearchResults.appendChild(button);
     });
     taxonSearchResults.hidden = false;
+    setSearchState({ expanded: true, busy: false });
   }
 
   function renderResults() {
@@ -237,6 +307,7 @@
     const token = ++latestSearchToken;
     window.clearTimeout(searchDebounce);
     searchDebounce = window.setTimeout(async () => {
+      renderSearchMessage("Searching...", "is-loading");
       const remoteMatches = await fetchRankedMatches(query, token);
       if (remoteMatches === null) return;
       renderResultItems(remoteMatches, query);
@@ -254,26 +325,17 @@
     const selected = taxaByName.get(taxonSearchInput.value.trim());
     if (selected) {
       selectedTaxonId.value = selected.id || `${selected.taxon_rank}:${selected.species_name}`;
-      metadataPageLink.href = selected.metadata_url || `/taxa/${selected.id}/metadata`;
-      metadataPageLink.classList.remove("is-disabled");
-      metadataPageLink.setAttribute("aria-disabled", "false");
-      if (selected.sequence_url || (selected.id && selected.source !== "canonical")) {
-        sequenceLink.href = selected.sequence_url || `/taxa/${selected.id}/sequences`;
-        sequenceLink.classList.remove("is-disabled");
-        sequenceLink.setAttribute("aria-disabled", "false");
-      } else {
-        sequenceLink.href = "#";
-        sequenceLink.classList.add("is-disabled");
-        sequenceLink.setAttribute("aria-disabled", "true");
-      }
+      setActionLink(metadataPageLink, selected.metadata_url || `/taxa/${selected.id}/metadata`, true);
+      setActionLink(sequenceLink, selected.sequence_url || (selected.id && selected.source !== "canonical" ? `/taxa/${selected.id}/sequences` : ""), Boolean(selected.sequence_url || (selected.id && selected.source !== "canonical")));
+      selectedTaxonName.textContent = selected.species_name;
+      selectedTaxonMeta.textContent = `${taxonSourceLabel(selected)} · ${formatNumber(selected.genome_count)} genomes${selected.snapshot_id ? ` · Snapshot ${selected.snapshot_id}` : ""}`;
+      selectedTaxonStatus.textContent = selected.requires_prepare ? "Preparing" : "Metadata available";
+      selectedTaxonCard.hidden = false;
     } else {
       selectedTaxonId.value = "";
-      metadataPageLink.href = "#";
-      metadataPageLink.classList.add("is-disabled");
-      metadataPageLink.setAttribute("aria-disabled", "true");
-      sequenceLink.href = "#";
-      sequenceLink.classList.add("is-disabled");
-      sequenceLink.setAttribute("aria-disabled", "true");
+      setActionLink(metadataPageLink, "", false);
+      setActionLink(sequenceLink, "", false);
+      selectedTaxonCard.hidden = true;
     }
     syncProblemForm();
   }
@@ -288,7 +350,7 @@
   metadataPageLink.addEventListener("click", (event) => {
     if (metadataPageLink.classList.contains("is-disabled")) {
       event.preventDefault();
-      showWarning("No taxon has been selected.");
+      showWarning("Select a taxon from the suggestions first.");
       return;
     }
     hideWarning();
@@ -298,7 +360,7 @@
   sequenceLink.addEventListener("click", (event) => {
     if (sequenceLink.classList.contains("is-disabled")) {
       event.preventDefault();
-      showWarning("No taxon has been selected.");
+      showWarning("Select a taxon from the suggestions first.");
       return;
     }
     setActiveView("seq");
@@ -331,6 +393,24 @@
   taxonSearchInput.addEventListener("change", () => {
     setActiveView("selection");
     refreshSelectionSummary();
+  });
+  taxonSearchInput.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (taxonSearchResults.hidden) {
+        renderResults();
+      } else {
+        setActiveResult(activeResultIndex + 1);
+      }
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!taxonSearchResults.hidden) setActiveResult(activeResultIndex - 1);
+    } else if (event.key === "Enter" && !taxonSearchResults.hidden && activeResultIndex >= 0) {
+      event.preventDefault();
+      chooseTaxon(currentMatches[activeResultIndex]);
+    } else if (event.key === "Escape") {
+      hideResults();
+    }
   });
   taxonSearchInput.addEventListener("focus", renderResults);
   document.addEventListener("click", (event) => {
