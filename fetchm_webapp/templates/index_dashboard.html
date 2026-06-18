@@ -26,15 +26,16 @@
         <strong>Select your target species or genus, or any higher rank</strong>
       </div>
 
-      <label class="taxon-search selection-search fetchm-search-field" id="taxon-search-label">
-        <span class="field-label">Taxon search</span>
+      <div class="taxon-search selection-search fetchm-search-field" id="taxon-search-component">
+        <label class="field-label" id="taxon-search-label" for="taxon-search-input">Taxon search</label>
         <span class="search-help" id="taxon-search-help">Choose a canonical species, genus, or higher-rank taxon from the suggestions.</span>
         <div class="search-shell" id="taxon-search-shell">
           <span class="fetchm-search-icon" aria-hidden="true"></span>
-          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" autocapitalize="none" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="taxon-search-results" aria-describedby="taxon-search-help" aria-busy="false" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
+          <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" autocapitalize="none" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="taxon-search-results" aria-describedby="taxon-search-help taxon-search-status" aria-busy="false" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
           <div class="search-results" id="taxon-search-results" role="listbox" aria-label="Taxon search results" hidden></div>
         </div>
-      </label>
+        <div class="search-status-live" id="taxon-search-status" aria-live="polite"></div>
+      </div>
       <input type="hidden" id="selected-taxon-id">
 
       <p class="dashboard-inline-warning" id="dashboard-warning" hidden></p>
@@ -96,9 +97,11 @@
 <script>
   const taxa = [];
   let activeView = "selection";
+  const taxonSearchComponent = document.getElementById("taxon-search-component");
   const taxonSearchInput = document.getElementById("taxon-search-input");
   const taxonSearchResults = document.getElementById("taxon-search-results");
   const taxonSearchShell = document.getElementById("taxon-search-shell");
+  const taxonSearchStatus = document.getElementById("taxon-search-status");
   const selectedTaxonId = document.getElementById("selected-taxon-id");
   const selectedTaxonCard = document.getElementById("selected-taxon-card");
   const selectedTaxonName = document.getElementById("selected-taxon-name");
@@ -117,6 +120,7 @@
   const taxaByName = new Map(taxa.map((item) => [item.species_name, item]));
   const MAX_SEARCH_RESULTS = 20;
   let latestSearchToken = 0;
+  let latestPrepareToken = 0;
   let searchDebounce = null;
   let currentMatches = [];
   let activeResultIndex = -1;
@@ -162,12 +166,22 @@
     taxonSearchShell.classList.toggle("is-searching", busy);
   }
 
-  function renderSearchMessage(message, className = "") {
+  function resetActiveMatches() {
     currentMatches = [];
     activeResultIndex = -1;
-    taxonSearchResults.innerHTML = `<div class="search-state ${className}" role="status">${escapeHtml(message)}</div>`;
-    taxonSearchResults.hidden = false;
-    setSearchState({ expanded: true, busy: className === "is-loading" });
+  }
+
+  function setSearchStatus(message = "", className = "") {
+    taxonSearchStatus.textContent = message;
+    taxonSearchStatus.className = `search-status-live ${className}`.trim();
+  }
+
+  function renderSearchMessage(message, className = "") {
+    resetActiveMatches();
+    taxonSearchResults.innerHTML = "";
+    taxonSearchResults.hidden = true;
+    setSearchStatus(message, className);
+    setSearchState({ expanded: false, busy: className === "is-loading" });
   }
 
   async function fetchRankedMatches(query, token) {
@@ -188,8 +202,8 @@
   function hideResults() {
     taxonSearchResults.hidden = true;
     taxonSearchResults.innerHTML = "";
-    currentMatches = [];
-    activeResultIndex = -1;
+    resetActiveMatches();
+    setSearchStatus();
     setSearchState({ expanded: false, busy: false });
   }
 
@@ -227,23 +241,36 @@
 
   async function chooseTaxon(selected) {
     if (!selected) return;
+    const prepareToken = ++latestPrepareToken;
     if (selected.requires_prepare) {
       renderSearchMessage(`Preparing ${selected.species_name} metadata...`, "is-loading");
       const formData = new FormData();
       formData.append("species_name", selected.species_name);
       formData.append("source_taxon_id", selected.source_taxon_id);
-      const response = await fetch("/api/taxa/prepare-metadata-species", {
-        method: "POST",
-        body: formData,
-        headers: { "Accept": "application/json", "X-CSRF-Token": csrfToken },
-      });
-      const payload = await response.json();
-      if (!response.ok) {
-        renderSearchMessage(payload.error || "Could not prepare that species from genus metadata.", "is-error");
+      try {
+        const response = await fetch("/api/taxa/prepare-metadata-species", {
+          method: "POST",
+          body: formData,
+          headers: { "Accept": "application/json", "X-CSRF-Token": csrfToken },
+        });
+        let payload = null;
+        try {
+          payload = await response.json();
+        } catch (error) {
+          payload = { error: "Could not read the metadata preparation response." };
+        }
+        if (prepareToken !== latestPrepareToken || taxonSearchInput.value.trim() !== selected.species_name) return;
+        if (!response.ok) {
+          renderSearchMessage(payload.error || "Could not prepare that species from genus metadata.", "is-error");
+          return;
+        }
+        selected = payload;
+      } catch (error) {
+        if (prepareToken === latestPrepareToken) renderSearchMessage("Metadata preparation is unavailable - retry", "is-error");
         return;
       }
-      selected = payload;
     }
+    if (prepareToken !== latestPrepareToken && selected.requires_prepare) return;
     rememberTaxon(selected);
     taxonSearchInput.value = selected.species_name;
     refreshSelectionSummary();
@@ -285,6 +312,7 @@
       button.id = `taxon-result-${index}`;
       button.setAttribute("role", "option");
       button.setAttribute("aria-selected", "false");
+      button.setAttribute("tabindex", "-1");
       const sourceLabel = taxonSourceLabel(item);
       button.innerHTML = `<strong>${escapeHtml(item.species_name)} ${taxonLabelBadge(item)}</strong><span>${escapeHtml(sourceLabel)} · ${formatNumber(item.genome_count)} genomes</span>`;
       button.addEventListener("mousedown", (event) => {
@@ -300,12 +328,14 @@
 
   function renderResults() {
     const query = normalizeQuery(taxonSearchInput.value);
+    resetActiveMatches();
+    window.clearTimeout(searchDebounce);
+    latestSearchToken += 1;
     if (!query) {
       hideResults();
       return;
     }
-    const token = ++latestSearchToken;
-    window.clearTimeout(searchDebounce);
+    const token = latestSearchToken;
     searchDebounce = window.setTimeout(async () => {
       renderSearchMessage("Searching...", "is-loading");
       const remoteMatches = await fetchRankedMatches(query, token);
@@ -385,6 +415,8 @@
     }
   });
   taxonSearchInput.addEventListener("input", () => {
+    latestPrepareToken += 1;
+    resetActiveMatches();
     setActiveView("selection");
     refreshSelectionSummary();
     renderResults();
@@ -413,8 +445,13 @@
     }
   });
   taxonSearchInput.addEventListener("focus", renderResults);
+  taxonSearchComponent.addEventListener("focusout", (event) => {
+    if (!taxonSearchComponent.contains(event.relatedTarget)) {
+      hideResults();
+    }
+  });
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".taxon-search")) {
+    if (!event.target.closest("#taxon-search-component")) {
       hideResults();
     }
   });

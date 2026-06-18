@@ -15,13 +15,13 @@
         <a class="brand" href="{{ url_for('index') }}">FetchM Web</a>
         <button type="button" class="mobile-menu-toggle" id="mobile-menu-toggle" aria-expanded="false" aria-controls="primary-navigation">Menu</button>
         <nav class="topbar-actions" id="primary-navigation" aria-label="Primary navigation">
-          <a class="tag ghost-link" href="{{ url_for('index') }}"><strong>Home</strong></a>
-          <a class="tag ghost-link" href="{{ url_for('global_insights') }}"><strong>Global Insights</strong></a>
-          <a class="tag ghost-link" href="{{ url_for('user_jobs') }}"><strong>Track Jobs</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('index') }}" {% if request.endpoint == "index" %}aria-current="page"{% endif %}><strong>Home</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('global_insights') }}" {% if request.endpoint == "global_insights" %}aria-current="page"{% endif %}><strong>Global Insights</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('user_jobs') }}" {% if request.endpoint in ["user_jobs", "job_detail"] %}aria-current="page"{% endif %}><strong>Track Jobs</strong></a>
           <a class="tag ghost-link" href="{{ url_for('index') }}#feedback-form"><strong>Feedback / Report</strong></a>
           {% if g.current_user %}
             {% if g.get("is_admin") %}
-              <a class="ghost-link" href="{{ url_for('admin_dashboard') }}">Admin</a>
+              <a class="ghost-link" href="{{ url_for('admin_dashboard') }}" {% if request.endpoint and request.endpoint.startswith("admin") %}aria-current="page"{% endif %}>Admin</a>
             {% endif %}
             <div class="tag">{{ g.current_user["username"] }}</div>
             <form action="{{ url_for('logout') }}" method="post">
@@ -78,6 +78,12 @@
         });
         nav.addEventListener("click", (event) => {
           if (event.target.closest("a, button")) setOpen(false);
+        });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") setOpen(false);
+        });
+        document.addEventListener("click", (event) => {
+          if (!event.target.closest(".topbar")) setOpen(false);
         });
         window.addEventListener("resize", () => {
           if (window.matchMedia("(min-width: 921px)").matches) setOpen(false);
