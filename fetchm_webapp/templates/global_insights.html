@@ -28,16 +28,12 @@
 {% endmacro %}
 
 {% macro compact_bar_chart(rows, label_name="Label", limit=6) %}
-  {% set ns = namespace(max_count=1) %}
-  {% for row in rows[:limit] %}
-    {% if row.count > ns.max_count %}{% set ns.max_count = row.count %}{% endif %}
-  {% endfor %}
   <div class="insight-chart-list">
     {% for row in rows[:limit] %}
-      {% set width = ((row.count / ns.max_count) * 100) | round(2) %}
+      {% set width = row.percent|default(0) %}
       <div class="insight-chart-row">
         <span title="{{ row.label }}">{{ row.label }}</span>
-        <div class="insight-chart-track"><i style="width: {{ width }}%"></i></div>
+        <div class="insight-chart-track"><i style="width: {{ width if width <= 100 else 100 }}%"></i></div>
         <strong>{{ row.percent }}%</strong>
       </div>
     {% else %}
@@ -53,10 +49,10 @@
   {% endfor %}
   <div class="insight-year-chart">
     {% for row in rows[-10:] %}
-      {% set height = 18 + (((row.assemblies / ns.max_count) * 82) | round(2)) %}
+      {% set height = ((row.assemblies / ns.max_count) * 100) | round(2) %}
       <div class="insight-year-bar">
-        <span style="height: {{ height }}%" title="{{ row.year }}: {{ row.assemblies }} assemblies"></span>
-        <small>{{ row.year }}</small>
+        <span style="height: {{ height }}%" title="{{ row.year }}: {{ row.assemblies }} assemblies{% if row.partial_year %} (partial year){% endif %}"></span>
+        <small>{{ row.year }}{% if row.partial_year %}*{% endif %}</small>
       </div>
     {% else %}
       <p class="job-meta">No release-year data were available in this snapshot.</p>
@@ -490,7 +486,7 @@
         </article>
       </div>
       <p class="insight-explain top-gap">
-        These values describe repository representation, not biological abundance. Expand the supporting analyses below for full tables, methods, and exportable data.
+        These values describe repository representation, not biological abundance. Compact bars use percent of all assemblies, so bar length and printed percentage share the same denominator. Host/source groupings are heuristic descriptive summaries for repository-level exploration, not record-level controlled classifications.
       </p>
     </section>
 
@@ -530,14 +526,15 @@
     </details>
 
     <details class="panel insight-details">
-      <summary><span>Growth of Public Bacterial Genome Sequencing</span><span class="tag">yearly trend</span></summary>
+      <summary><span>Public Bacterial Assemblies Released by Year</span><span class="tag">yearly trend</span></summary>
       <div class="insight-details-body">
       {% set yearly_rows = summary.get("yearly_growth", []) %}
       {% set assembly_levels = (summary.get("assembly_quality") or {}).get("assembly_levels", []) %}
       <div class="grid two-column">
         <div>
-          <h3>Recent genome availability by year</h3>
+          <h3>Recent public assembly releases by year</h3>
           {{ yearly_chart(yearly_rows) }}
+          <p class="insight-note">Bars use a true zero baseline. An asterisk marks the current calendar year, which is incomplete until year end.</p>
           <details class="insight-details top-gap">
             <summary><span>View yearly data table</span><span class="tag">table</span></summary>
             <div class="insight-details-body">
@@ -549,7 +546,7 @@
               <tbody>
                 {% for row in yearly_rows[-10:] %}
                   <tr>
-                    <td>{{ row.year }}</td>
+                    <td>{{ row.year }}{% if row.partial_year %} <small>partial</small>{% endif %}</td>
                     <td>{{ row.assemblies }}</td>
                     <td>{{ row.cumulative_assemblies }}</td>
                   </tr>
@@ -580,6 +577,7 @@
         </div>
         <div>
           <h3>Host/Source Categories</h3>
+          <p class="insight-note">Broad host/source groupings are heuristic descriptive categories derived from available standardized metadata with raw metadata fallback. Use them for repository-level exploration, not record-level classification.</p>
           {{ count_table(summary.host_source_bias.host_categories[:10], "Category") }}
         </div>
       </div>
@@ -731,15 +729,17 @@
     </details>
 
     <details class="panel insight-details">
-      <summary><span>Metadata Quality and Automated Bias Warnings</span><span class="tag">warnings</span></summary>
+      <summary><span>Metadata-readiness Index and Automated Bias Warnings</span><span class="tag">warnings</span></summary>
       <div class="insight-details-body">
+      <p class="insight-note">The FetchM metadata-readiness index is a project-defined descriptive index for comparing metadata usability. It is not a biological genome-quality score, a CheckM/assembly-quality result, or a validated clinical metric.</p>
       <div class="grid two-column">
         <div>
-          <h3>Top Metadata Quality Scores</h3>
+          <h3>Highest Metadata-readiness Index Scores</h3>
+          <p class="insight-explain">Ranked by index among taxa with at least 100 assemblies to avoid tiny taxa dominating the table.</p>
           <div class="table-scroll">
             <table>
               <thead>
-                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Score</th><th>Grade</th></tr>
+                <tr><th>Taxon</th><th>Rank</th><th>Assemblies</th><th>Index</th><th>Grade</th></tr>
               </thead>
               <tbody>
                 {% for row in summary.metadata_quality[:10] %}
@@ -784,11 +784,11 @@
     </details>
 
     <details class="panel insight-details">
-      <summary><span>Pathogen Insights and QC-ready Taxa</span><span class="tag">readiness</span></summary>
+      <summary><span>Priority-taxon Metadata Coverage and Metadata-ready Taxa</span><span class="tag">readiness</span></summary>
       <div class="insight-details-body">
       <div class="grid two-column">
         <div>
-          <h3>Priority Pathogen Metadata Quality</h3>
+          <h3>Priority-taxon Metadata-readiness</h3>
           <div class="table-scroll">
             <table>
               <thead>
@@ -811,7 +811,7 @@
           </div>
         </div>
         <div>
-          <h3>QC-ready Taxa</h3>
+          <h3>Metadata-ready Taxa</h3>
           <div class="table-scroll">
             <table>
               <thead>
@@ -827,7 +827,7 @@
                     <td>{{ row.metadata_quality_grade }}</td>
                   </tr>
                 {% else %}
-                  <tr><td colspan="5">No taxa met the current QC-ready thresholds.</td></tr>
+                  <tr><td colspan="5">No taxa met the current metadata-readiness thresholds.</td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -881,9 +881,9 @@
         <div class="coverage-row"><strong>Field mappings</strong><span>{{ summary.methods.field_mappings }}</span><span></span></div>
         <div class="coverage-row"><strong>Missing values</strong><span>{{ summary.methods.missing_value_rule }}</span><span></span></div>
         <div class="coverage-row"><strong>Species-label policy</strong><span>{{ summary.methods.taxonomy_label_policy|default("Species-level labels are retained for access but canonical and non-canonical labels are reported separately.") }}</span><span></span></div>
-        <div class="coverage-row"><strong>QC-ready rule</strong><span>{{ summary.methods.qc_ready_rule }}</span><span></span></div>
+        <div class="coverage-row"><strong>Metadata-ready rule</strong><span>{{ summary.methods.qc_ready_rule }}</span><span></span></div>
         <div class="coverage-row"><strong>Bias formulas</strong><span>{{ summary.methods.bias_score_formulas }}</span><span></span></div>
-        <div class="coverage-row"><strong>Quality score</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>
+        <div class="coverage-row"><strong>Metadata-readiness index</strong><span>{{ summary.methods.metadata_quality_score }}</span><span></span></div>
         <div class="coverage-row"><strong>Files scanned/skipped</strong><span>{{ summary.methods.files_scanned|default(summary.overview.metadata_files_scanned, true) }} scanned · {{ summary.methods.files_skipped|default(summary.overview.metadata_files_skipped, true) }} skipped</span><span></span></div>
         <div class="coverage-row"><strong>Rows and duplicates</strong><span>{{ summary.methods.metadata_rows_scanned|default(summary.overview.metadata_rows_scanned, true) }} rows scanned · {{ summary.methods.duplicate_rows_skipped|default(summary.overview.duplicate_rows_skipped, true) }} duplicates skipped</span><span></span></div>
         <div class="coverage-row"><strong>Snapshot dates</strong><span>Retrieval/enrichment: {{ summary.methods.retrieval_date|default("not recorded", true) }} · Standardization refresh: {{ summary.methods.standardization_refresh_date|default("not recorded", true) }}</span><span></span></div>
@@ -1016,8 +1016,8 @@
       {{ copy_block("Taxonomic concentration", summary.manuscript.taxonomic_concentration, "copy-taxonomic-concentration") }}
       {{ copy_block("Geographic representation", summary.manuscript.geographic_representation, "copy-geographic-representation") }}
       {{ copy_block("Host/source representation", summary.manuscript.host_source_representation, "copy-host-source") }}
-      {{ copy_block("Temporal growth and assembly quality", summary.manuscript.temporal_growth_and_assembly_quality, "copy-temporal-quality") }}
-      {{ copy_block("Metadata quality by taxon", summary.manuscript.metadata_quality_by_taxon, "copy-quality-taxon") }}
+      {{ copy_block("Temporal release trends and assembly-quality metadata", summary.manuscript.temporal_growth_and_assembly_quality, "copy-temporal-quality") }}
+      {{ copy_block("Metadata-readiness by taxon", summary.manuscript.metadata_quality_by_taxon, "copy-quality-taxon") }}
       {{ copy_block("BioProject dominance and sampling bias", summary.manuscript.bioproject_dominance_and_sampling_bias, "copy-bioproject-bias") }}
       {{ copy_block("Methods paragraph", summary.manuscript.methods, "copy-methods") }}
       {{ copy_block("Limitations paragraph", summary.manuscript.limitations, "copy-limitations") }}

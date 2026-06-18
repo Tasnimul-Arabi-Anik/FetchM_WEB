@@ -1030,6 +1030,7 @@ def calculate_taxon_quality(row: TaxonStats) -> dict[str, Any]:
         "host_or_source_completeness_percent": host_source,
         "collection_year_completeness_percent": year,
         "assembly_quality_availability_percent": quality,
+        "bioproject_concentration_balance_percent": round(diversity, 2),
         "bioproject_diversity_percent": round(diversity, 2),
         "isolation_source_completeness_percent": isolation,
         "standardization_confidence_percent": confidence,
@@ -1114,16 +1115,18 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         "biological host categories so that absent submitter fields are not treated as host dominance."
     )
     temporal_quality_text = (
-        f"Temporal growth and assembly quality. Release-year and collection-year fields were used to summarize temporal coverage, while "
+        f"Temporal release trends and assembly-quality metadata. Release-year and collection-year fields were used to summarize temporal coverage, while "
         f"assembly-level metadata showed {top_assembly['label']} as the largest assembly-level category "
-        f"({top_assembly['count']:,} assemblies; {top_assembly['percent']}%). Assembly-quality availability was incorporated into the "
-        "metadata quality score when completeness, contamination, N50, contig count, genome size, or GC fields were present."
+        f"({top_assembly['count']:,} assemblies; {top_assembly['percent']}%). Assembly-quality field availability contributes to the "
+        "FetchM metadata-readiness index when completeness, contamination, N50, contig count, genome size, or GC fields were present; "
+        "it is not a genome-quality pass/fail score."
     )
     quality_text = (
-        f"Metadata quality and readiness. Under the default readiness rule, {overview['qc_ready_taxa']:,} taxa had at least 100 assemblies, "
+        f"Metadata readiness. Under the default metadata-readiness rule, {overview['qc_ready_taxa']:,} taxa had at least 100 assemblies, "
         "at least 70% standardized country completeness, at least 70% host/source completeness, and at least 50% collection-year completeness. "
-        "The metadata quality score combines country, host/source, collection year, assembly-quality availability, BioProject diversity, "
-        "isolation-source completeness, and standardization-confidence components."
+        "The FetchM metadata-readiness index combines country, host/source, collection year, assembly-quality field availability, "
+        "BioProject concentration balance, isolation-source completeness, and standardization-confidence-field availability. It is a descriptive "
+        "metadata-usability index, not a biological genome-quality score or validated clinical metric."
     )
     bias_text = (
         "BioProject dominance and sampling bias. Bias warnings quantify repository sampling structure, including top BioProject share, "
@@ -1136,9 +1139,11 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         "can recover many useful records but cannot infer reliable biological context from unsupported or ambiguous submitter text. All percentages "
         "therefore describe public repository representation, not true global bacterial abundance, disease burden, or environmental prevalence."
     )
+    methods_meta = summary.get("methods", {})
     methods = (
-        f"Global Metadata Insights snapshot {snapshot_id} was generated from ready FetchM standardized metadata files. Unique assemblies were "
-        "counted by Assembly Accession, with species-level rows preferred over genus-level rows and newer synced taxa scanned first within each rank. "
+        f"Global Metadata Insights snapshot {snapshot_id} was generated from source snapshot "
+        f"{methods_meta.get('source_snapshot_id', 'not recorded')}. {methods_meta.get('generation_scope', 'Ready FetchM standardized metadata files were scanned.')} "
+        f"{methods_meta.get('duplicate_rule', 'Unique assemblies were counted by Assembly Accession.')} "
         "Metadata completeness was calculated separately for raw submitter fields and standardized analysis fields. Empty, absent, unknown, not "
         "collected, not applicable, unidentified, and similarly non-informative values were treated as unusable metadata. Species-level labels "
         "were classified as canonical binomial species, unresolved placeholder labels, provisional Candidatus labels, or non-canonical labels; all "
@@ -1151,7 +1156,7 @@ def build_narrative(summary: dict[str, Any]) -> dict[str, str]:
         "standardized metadata availability, and automated bias warnings. Source data are provided in the snapshot tables."
     )
     table_caption = (
-        f"Table X. Metadata completeness, standardization impact, metadata quality scores, QC-ready taxa, and repository bias warnings for "
+        f"Table X. Metadata completeness, standardization impact, metadata-readiness index scores, metadata-ready taxa, and repository bias warnings for "
         f"FetchM Global Metadata Insights snapshot {snapshot_id}. Denominators use {denominator:,} non-redundant assemblies unless otherwise stated."
     )
     results = " ".join([
@@ -1376,7 +1381,7 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
         {"metric": "Observed genera", "value": overview.get("genera_observed", 0)},
         {"metric": "BioProjects", "value": overview.get("bioprojects_observed", 0)},
         {"metric": "Ready metadata files", "value": overview.get("metadata_files_scanned", 0)},
-        {"metric": "QC-ready taxa", "value": overview.get("qc_ready_taxa", 0)},
+        {"metric": "Metadata-ready taxa", "value": overview.get("qc_ready_taxa", 0)},
     ]
     fig, ax = plt.subplots(figsize=(11, 6.2))
     ax.set_axis_off()
@@ -1449,16 +1454,16 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
         axes[0].set_axis_off()
     assembly_rows = summary.get("assembly_quality", {}).get("assembly_levels", [])[:10]
     _plot_barh(axes[1], assembly_rows, title="Assembly levels", color="#8a5a16")
-    add_figure(fig, "figure_6_temporal_growth_assembly_levels", "Temporal growth and assembly levels", yearly + assembly_rows, "figure_6_temporal_growth_source_data", manuscript.get("temporal_growth_and_assembly_quality", ""))
+    add_figure(fig, "figure_6_temporal_growth_assembly_levels", "Public assembly release trends and assembly levels", yearly + assembly_rows, "figure_6_temporal_growth_source_data", manuscript.get("temporal_growth_and_assembly_quality", ""))
 
-    # Figure 7: metadata quality and QC-ready taxa.
+    # Figure 7: metadata-readiness index and metadata-ready taxa.
     quality_rows = summary.get("metadata_quality", [])[:20]
     fig, ax = plt.subplots(figsize=(11, 8))
     plot_rows = [{"label": row.get("taxon"), "count": row.get("metadata_quality_score", 0)} for row in quality_rows]
-    _plot_barh(ax, plot_rows, title="Top metadata quality scores", color="#165c4e")
-    ax.set_xlabel("Metadata quality score (0-100)")
+    _plot_barh(ax, plot_rows, title="Top metadata-readiness index scores", color="#165c4e")
+    ax.set_xlabel("FetchM metadata-readiness index (0-100)")
     ax.set_xlim(0, 100)
-    add_figure(fig, "figure_7_metadata_quality_qc_ready", "Metadata quality and QC-ready taxa", quality_rows, "figure_7_metadata_quality_source_data", manuscript.get("metadata_quality_by_taxon", ""))
+    add_figure(fig, "figure_7_metadata_quality_qc_ready", "Metadata-readiness index and metadata-ready taxa", quality_rows, "figure_7_metadata_quality_source_data", manuscript.get("metadata_quality_by_taxon", ""))
 
     # Figure 8: bias warning counts.
     warning_rows = summary.get("bias_warnings", [])
@@ -1492,8 +1497,8 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
         ("Taxonomic concentration", manuscript.get("taxonomic_concentration", "")),
         ("Geographic representation", manuscript.get("geographic_representation", "")),
         ("Host/source representation", manuscript.get("host_source_representation", "")),
-        ("Temporal growth and assembly quality", manuscript.get("temporal_growth_and_assembly_quality", "")),
-        ("Metadata quality by taxon", manuscript.get("metadata_quality_by_taxon", "")),
+        ("Temporal release trends and assembly-quality metadata", manuscript.get("temporal_growth_and_assembly_quality", "")),
+        ("Metadata-readiness by taxon", manuscript.get("metadata_quality_by_taxon", "")),
         ("BioProject dominance and sampling bias", manuscript.get("bioproject_dominance_and_sampling_bias", "")),
         ("Methods", manuscript.get("methods", "")),
         ("Limitations", manuscript.get("limitations", "")),
@@ -1559,7 +1564,7 @@ def generate_publication_exports(summary: dict[str, Any], snapshot_dir: Path, ta
             "",
             f"Status: {case.get('status', 'available')}",
             f"Assemblies: {case.get('assemblies', 0)}",
-            f"Metadata quality: {case.get('metadata_quality_score', 'not available')} ({case.get('metadata_quality_grade', 'not available')})",
+            f"Metadata-readiness index: {case.get('metadata_quality_score', 'not available')} ({case.get('metadata_quality_grade', 'not available')})",
             f"Readiness tier: {case.get('metadata_readiness_tier', 'not available')}",
             f"Top countries: {case.get('top_countries', 'not available')}",
             f"Top hosts: {case.get('top_hosts', 'not available')}",
@@ -1796,7 +1801,7 @@ def generate_global_insights_snapshot(
                     update_field_pair_stats(completeness_fields["Sample type"], raw_sample, std_sample)
                     update_field_pair_stats(completeness_fields["Environment"], raw_env, std_env)
                     if collection_year:
-                        update_field_pair_stats(completeness_fields["Collection year from collection-date metadata"], collection_year, collection_year)
+                        update_field_pair_stats(completeness_fields["Collection year from collection-date metadata"], raw_collection_date, collection_year)
                         for stat in row_stats:
                             stat.year_usable += 1
                             stat.years[collection_year] += 1
@@ -1831,7 +1836,7 @@ def generate_global_insights_snapshot(
                         ("Isolation source", raw_source, std_source),
                         ("Sample type", raw_sample, std_sample),
                         ("Environment", raw_env, std_env),
-                        ("Collection year from collection-date metadata", collection_year, collection_year),
+                        ("Collection year from collection-date metadata", raw_collection_date, collection_year),
                     ):
                         raw_display, evidence, confidence = correction_evidence(row, label, raw_value, std_value)
                         field_confidence_counters[label][confidence_bucket(raw_value, std_value, confidence, evidence)] += 1
@@ -1901,7 +1906,7 @@ def generate_global_insights_snapshot(
         tier, tier_definition = readiness_tier(quality_row)
         quality_row["metadata_readiness_tier"] = tier
         quality_row["metadata_readiness_definition"] = tier_definition
-    taxon_quality.sort(key=lambda row: (-int(row["assemblies"]), -float(row["metadata_quality_score"]), row["taxon"]))
+    taxon_quality.sort(key=lambda row: (int(row["assemblies"]) < 100, -float(row["metadata_quality_score"]), -int(row["assemblies"]), row["taxon"]))
     qc_ready_taxa = [row for row in taxon_quality if row.get("metadata_readiness_tier") in {"strict", "standard"}]
     readiness_counter = Counter(row.get("metadata_readiness_tier", "not-ready") for row in taxon_quality)
     readiness_tiers = [
@@ -1910,7 +1915,7 @@ def generate_global_insights_snapshot(
             "taxa": int(readiness_counter.get(tier, 0)),
             "definition": definition,
             "denominator": len(taxon_quality),
-            "denominator_note": denominator_note(len(taxon_quality), "taxa with metadata quality scores"),
+            "denominator_note": denominator_note(len(taxon_quality), "taxa with metadata-readiness index scores"),
         }
         for tier, definition in (
             ("strict", ">=1,000 assemblies, >=80% country, >=80% host/source, >=70% collection year"),
@@ -2022,7 +2027,7 @@ def generate_global_insights_snapshot(
     for year in sorted(year_counter):
         count = int(year_counter[year])
         cumulative += count
-        yearly_growth_rows.append({"year": year, "assemblies": count, "cumulative_assemblies": cumulative, "denominator": unique_total, "denominator_note": denominator_note(unique_total)})
+        yearly_growth_rows.append({"year": year, "assemblies": count, "cumulative_assemblies": cumulative, "partial_year": year == datetime.now(timezone.utc).year, "denominator": unique_total, "denominator_note": denominator_note(unique_total)})
 
     priority_pathogens = load_priority_pathogens()
     taxon_quality_by_name = {normalized_key(row["taxon"]): row for row in taxon_quality}
@@ -2152,9 +2157,9 @@ def generate_global_insights_snapshot(
             "field_mappings": "Country: Geographic Location/Country_Raw -> Country; Host: Host -> Host_SD; Isolation source: Isolation Source -> Isolation_Source_SD; sample type and environment raw comparisons use raw sample/environment fields when present, while standardized coverage is counted from Sample_Type_SD and Environment_*_SD; collection year from collection-date metadata: Collection Date standardized to a 4-digit year, with Collection_Date_Source/Evidence/Recovery_Status retained when available; growth year: Assembly Release Date.",
             "missing_value_rule": "Empty, unknown, not collected, not applicable, unidentified, and similarly non-informative values are treated as unusable metadata.",
             "taxonomy_label_policy": "Species-level labels are retained comprehensively for search and metadata access, but classified as canonical species, unresolved species-level labels, provisional taxonomic labels, or non-canonical species labels for honest reporting.",
-            "qc_ready_rule": "At least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
+            "qc_ready_rule": "Metadata-ready threshold: at least 100 assemblies, >=70% standardized country completeness, >=70% host/source completeness, and >=50% collection-year completeness.",
             "bias_score_formulas": "Dominance scores are calculated as the top category share among assemblies in scope: top 1/5/10 BioProject share, top country share, top host share, and top collection-year share. Warning severity uses low <25%, moderate 25-49.99%, high 50-74.99%, and severe >=75%.",
-            "metadata_quality_score": "0.20 country + 0.20 host/source + 0.15 collection year + 0.15 assembly quality + 0.10 BioProject diversity + 0.10 isolation source + 0.10 standardization confidence.",
+            "metadata_quality_score": "FetchM metadata-readiness index: 0.20 country + 0.20 host/source + 0.15 collection year + 0.15 assembly-quality field availability + 0.10 BioProject concentration balance + 0.10 isolation source + 0.10 standardization-confidence-field availability. This descriptive index is not a biological genome-quality score or validated clinical metric.",
             "retrieval_date": latest_taxon_synced_at or iso_from_timestamp(latest_metadata_mtime),
             "biosample_enrichment_date": latest_taxon_synced_at or iso_from_timestamp(latest_metadata_mtime),
             "standardization_refresh_date": iso_from_timestamp(latest_metadata_mtime),
@@ -2304,7 +2309,7 @@ def generate_global_insights_snapshot(
     write_csv(table_dir / "top_bioprojects.csv", top_bioprojects, ["rank", "bioproject", "count", "percent", "dominant_taxon", "dominant_taxon_records", "dominant_taxon_share_within_bioproject_percent", "denominator", "denominator_note"])
     write_csv(table_dir / "bias_warnings.csv", bias_warnings, ["scope", "scope_type", "assemblies", "bias_type", "severity", "metric_percent", "denominator", "denominator_note", "warning"])
     write_csv(table_dir / "top_corrections.csv", correction_rows, ["field", "primary_raw_value", "raw_value", "standardized_value", "evidence_source", "confidence", "correction_type", "records_rescued", "denominator", "denominator_note"])
-    write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies", "denominator", "denominator_note"])
+    write_csv(table_dir / "yearly_growth.csv", yearly_growth_rows, ["year", "assemblies", "cumulative_assemblies", "partial_year", "denominator", "denominator_note"])
     write_csv(table_dir / "qc_ready_taxa.csv", qc_ready_taxa, list(qc_ready_taxa[0].keys()) if qc_ready_taxa else ["taxon", "rank", "assemblies"])
     write_csv(table_dir / "bioproject_dominance.csv", bioproject_dominance, ["taxon", "rank", "assemblies", "top_1_bioproject_share_percent", "top_5_bioproject_share_percent", "top_10_bioproject_share_percent", "top_bioproject", "denominator", "denominator_note"])
     write_csv(table_dir / "pathogen_insights.csv", pathogen_rows, sorted({key for row in pathogen_rows for key in row.keys()}) if pathogen_rows else ["taxon_name", "rank", "group", "notes"])
@@ -2388,7 +2393,7 @@ def generate_demo_snapshot(output_root: Path, *, app_version: str, app_commit: s
             "taxonomy_label_policy": "DEMO: species-level labels are retained for search but classified separately from canonical species.",
             "qc_ready_rule": "DEMO: >=100 assemblies and adequate standardized metadata completeness.",
             "bias_score_formulas": "DEMO: dominance shares use top BioProject, country, host, and year representation.",
-            "metadata_quality_score": "DEMO: weighted country, host/source, year, quality, BioProject diversity, source, and confidence components.",
+            "metadata_quality_score": "DEMO: FetchM metadata-readiness index weighted by country, host/source, year, assembly-quality field availability, BioProject concentration balance, source, and confidence-field availability.",
             "caution": "DEMO DATA - NOT REAL RESULTS. Repository representation is not global biological prevalence.",
         },
         "taxonomic_landscape": {

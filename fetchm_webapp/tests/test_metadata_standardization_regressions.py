@@ -2827,20 +2827,20 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             genus_csv = root / "genus.csv"
             species_csv.write_text(
                 "Assembly Accession,Organism Name,Geographic Location,Country,Host,Host_SD,"
-                "Isolation Source,Isolation_Source_SD,Collection Date,Assembly Release Date,"
+                "Isolation Source,Isolation_Source_SD,Collection Date,Collection_Date_Evidence,Assembly Release Date,"
                 "Assembly Level,Assembly BioProject Accession,CheckM completeness,Country_Confidence\n"
                 "GCA_000001.1,Escherichia coli,USA,United States,Homo sapiens,Human,"
-                "human stool,feces/stool,2020,2021-01-02,Scaffold,PRJNA1,99,exact\n",
+                "human stool,feces/stool,2020,2020-05-01,2021-01-02,Scaffold,PRJNA1,99,exact\n",
                 encoding="utf-8",
             )
             genus_csv.write_text(
                 "Assembly Accession,Organism Name,Geographic Location,Country,Host,Host_SD,"
-                "Isolation Source,Isolation_Source_SD,Collection Date,Assembly Release Date,"
+                "Isolation Source,Isolation_Source_SD,Collection Date,Collection_Date_Evidence,Assembly Release Date,"
                 "Assembly Level,Assembly BioProject Accession,CheckM completeness,Country_Confidence\n"
                 "GCA_000001.1,Escherichia coli duplicate,USA,United States,Homo sapiens,Human,"
-                "human stool,feces/stool,2020,2021-01-02,Scaffold,PRJNA1,99,exact\n"
+                "human stool,feces/stool,2020,2020-05-01,2021-01-02,Scaffold,PRJNA1,99,exact\n"
                 "GCA_000002.1,Escherichia albertii,Bangladesh: Dhaka,Bangladesh,duck,Anas platyrhynchos,"
-                "pond water,wastewater,2021,2022-04-05,Contig,PRJNA2,96,synonym\n",
+                "pond water,wastewater,2021,,2022-04-05,Contig,PRJNA2,96,synonym\n",
                 encoding="utf-8",
             )
 
@@ -2874,6 +2874,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(summary["overview"]["metadata_files_scanned"], 2)
             self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["label"], "Escherichia")
             self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["count"], 2)
+            collection_year = next(row for row in summary["metadata_completeness"] if row["field"] == "Collection year from collection-date metadata")
+            self.assertEqual(collection_year["raw_usable"], 2)
+            self.assertEqual(collection_year["standardized_usable"], 2)
+            self.assertEqual(collection_year["changed_mappings"], 1)
             corrections = summary["standardization_impact"]["top_corrections"]
             self.assertTrue(any(row["field"] == "Country" and row["raw_value"] == "USA" for row in corrections))
             self.assertTrue((root / "global_insights" / "snapshots" / "unit_global_insights" / "summary.json").exists())
@@ -2911,10 +2915,42 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertEqual(summary["overview"]["duplicate_rows_skipped"], 0)
             self.assertEqual(summary["methods"]["source_snapshot_id"], "root_snapshot")
             self.assertTrue(summary["methods"]["canonical_root_source"])
+            self.assertIn("root_snapshot", summary["manuscript"]["methods"])
+            self.assertIn("scanned once at assembly level", summary["manuscript"]["methods"])
+            self.assertNotIn("species-level rows preferred over genus-level rows", summary["manuscript"]["methods"])
             self.assertEqual(summary["taxonomic_landscape"]["top_genera"][0]["label"], "Prevotella")
             quality_by_taxon = {row["taxon"]: row for row in summary["metadata_quality"]}
             self.assertEqual(quality_by_taxon["Prevotella"]["assemblies"], 2)
             self.assertEqual(quality_by_taxon["Prevotella copri"]["assemblies"], 1)
+
+    def test_global_insights_metadata_readiness_ranking_uses_score_threshold(self) -> None:
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_csv = root / "canonical_root.csv"
+            rows = [
+                "Assembly Accession,Organism Name,Taxonomy Genus,Taxonomy Species,Country,Host_SD,Isolation_Source_SD,Collection Date,Assembly BioProject Accession,CheckM completeness,Country_Confidence",
+            ]
+            for index in range(150):
+                rows.append(f"GCA_LARGE_{index:06d}.1,Large taxon strain {index},Large,Large taxon,United States,Human,feces/stool,2020,PRJNA_L,{90 + index % 10},exact")
+            for index in range(120):
+                rows.append(f"GCA_READY_{index:06d}.1,Ready taxon strain {index},Ready,Ready taxon,United States,Human,feces/stool,2020,PRJNA_R{index % 4},{95 + index % 5},exact")
+            for index in range(5):
+                rows.append(f"GCA_TINY_{index:06d}.1,Tiny taxon strain {index},Tiny,Tiny taxon,United States,Human,feces/stool,2020,PRJNA_T,99,exact")
+            source_csv.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            summary = generate_global_insights_snapshot(
+                [{"id": 0, "species_name": "Bacteria", "taxon_rank": "canonical_root", "genome_count": 275, "metadata_clean_path": str(source_csv)}],
+                root / "global_insights",
+                app_version="test",
+                app_commit="unit",
+                snapshot_id="ranking_unit",
+                canonical_root_source=True,
+                source_snapshot_id="root_snapshot",
+            )
+            ranked_taxa = [row["taxon"] for row in summary["metadata_quality"]]
+            self.assertLess(ranked_taxa.index("Ready taxon"), ranked_taxa.index("Large taxon"))
+            self.assertLess(ranked_taxa.index("Large taxon"), ranked_taxa.index("Tiny taxon"))
+            self.assertIn("FetchM metadata-readiness index", summary["methods"]["metadata_quality_score"])
+            self.assertIn("not a biological genome-quality score", summary["manuscript"]["metadata_quality_by_taxon"])
 
     def test_global_insights_page_and_summary_download_are_public(self) -> None:
         with TemporaryDirectory() as tmp:
