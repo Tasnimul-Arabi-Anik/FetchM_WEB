@@ -129,9 +129,13 @@
     <figcaption>
       <p class="eyebrow">Figure {{ number }}</p>
       <h3>{{ figure.title }}</h3>
-      <p>{{ figure.legend|default(figure.interpretation_note, true) }}</p>
-      <p class="job-meta">Denominator: {{ fmt(figure.denominator) }}{% if figure.denominator_note %} ({{ figure.denominator_note }}){% endif %}. Snapshot: {{ summary.snapshot_id }}.</p>
-      <p class="insight-explain">Interpretation boundary: these figures describe public repository representation and metadata usability, not biological prevalence, incidence, clinical risk, or genome-quality pass/fail status.</p>
+      <p class="figure-summary">{{ figure.interpretation_note|default("Repository-level summary generated from the current snapshot.", true) }}</p>
+      <p class="figure-denominator"><strong>Denominator</strong> {{ fmt(figure.denominator) }}{% if figure.denominator_note %} · {{ figure.denominator_note }}{% endif %} · Snapshot {{ summary.snapshot_id }}</p>
+      <details class="figure-legend">
+        <summary>Full legend</summary>
+        <p>{{ figure.legend|default(figure.interpretation_note, true) }}</p>
+      </details>
+      <p class="insight-explain">Interpretation boundary: repository representation and metadata usability, not biological prevalence, incidence, clinical risk, or genome-quality pass/fail status.</p>
       <div class="file-list figure-downloads">
         {% if figure.source_data %}<a href="{{ download_url(figure.source_data) }}">CSV source data</a>{% endif %}
         {% if figure.files and figure.files.svg %}<a href="{{ download_url(figure.files.svg) }}">SVG</a>{% endif %}
@@ -144,6 +148,36 @@
 
 {% block content %}
 <style>
+  .global-insights-page {
+    --insight-section-gap: clamp(18px, 2.8vw, 34px);
+    --insight-panel-padding: clamp(18px, 2.4vw, 28px);
+    display: grid;
+    gap: var(--insight-section-gap);
+  }
+
+  .global-insights-page,
+  .global-insights-page * {
+    box-sizing: border-box;
+  }
+
+  .global-insights-page > .panel,
+  .global-insights-page > .insight-details {
+    margin-top: 0;
+  }
+
+  .global-insights-page section[id],
+  .global-insights-page details[id] {
+    scroll-margin-top: 96px;
+  }
+
+  .global-insights-page .panel {
+    padding: var(--insight-panel-padding);
+  }
+
+  .global-insights-page h2 {
+    letter-spacing: -0.02em;
+  }
+
   .insight-hero {
     position: relative;
     overflow: hidden;
@@ -365,9 +399,10 @@
     gap: 12px;
     align-items: center;
     cursor: pointer;
-    padding: 16px 18px;
+    padding: 18px 20px;
     font-weight: 800;
     color: var(--accent);
+    min-height: 48px;
   }
 
   .insight-details summary span {
@@ -375,7 +410,17 @@
   }
 
   .insight-details-body {
-    padding: 0 18px 18px;
+    padding: 0 20px 22px;
+  }
+
+  .detail-why {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-left: 4px solid rgba(22, 92, 78, 0.42);
+    border-radius: 12px;
+    background: rgba(234, 243, 237, 0.58);
+    color: var(--accent-strong);
+    font-weight: 650;
   }
 
   .insight-details.compact p {
@@ -409,8 +454,10 @@
   }
 
   .article-nav a:focus,
-  .article-nav a:hover {
-    background: var(--accent-soft);
+  .article-nav a:hover,
+  .article-nav a[aria-current="location"] {
+    background: var(--accent);
+    color: #fff;
     outline: none;
   }
 
@@ -425,11 +472,13 @@
     display: inline-flex;
     gap: 6px;
     align-items: baseline;
+    max-width: 100%;
     padding: 8px 10px;
     border: 1px solid rgba(22, 92, 78, 0.16);
     border-radius: 999px;
     background: rgba(255, 255, 255, 0.72);
     color: var(--muted);
+    overflow-wrap: anywhere;
   }
 
   .provenance-strip strong {
@@ -437,13 +486,46 @@
   }
 
   .article-copy {
-    max-width: 78ch;
+    max-width: 84ch;
     font-size: 1.02rem;
     line-height: 1.72;
   }
 
   .article-copy p {
     margin: 0 0 14px;
+  }
+
+  .summary-prose {
+    max-width: 76ch;
+  }
+
+  .read-first-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 16px 0 20px;
+  }
+
+  .read-first-grid article {
+    padding: 14px;
+    border: 1px solid rgba(22, 92, 78, 0.16);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .read-first-grid strong {
+    display: block;
+    color: var(--accent-strong);
+    font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+    line-height: 1.12;
+  }
+
+  .read-first-grid span {
+    display: block;
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.35;
   }
 
   .section-actions {
@@ -461,12 +543,61 @@
   .publication-figure {
     display: grid;
     grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.8fr);
-    gap: 18px;
+    gap: 20px;
+    width: 100%;
+    max-width: 100%;
     margin: 0;
-    padding: 16px;
-    border: 1px solid var(--line);
+    padding: 14px;
+    border: 1px solid rgba(22, 92, 78, 0.13);
     border-radius: 22px;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.62);
+  }
+
+  .publication-figure figcaption {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .publication-figure figcaption p,
+  .publication-figure figcaption h3 {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .figure-summary {
+    color: var(--ink);
+    line-height: 1.55;
+  }
+
+  .figure-denominator {
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(22, 92, 78, 0.08);
+    color: var(--accent-strong);
+    font-size: 0.9rem;
+  }
+
+  .figure-legend {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .figure-legend summary {
+    cursor: pointer;
+    padding: 10px 12px;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .figure-legend p {
+    padding: 0 12px 12px;
+    color: var(--muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
   }
 
   .publication-figure-media {
@@ -485,6 +616,12 @@
 
   .figure-downloads {
     margin-top: 12px;
+  }
+
+  .figure-downloads a,
+  .citation-box a,
+  .provenance-strip span {
+    overflow-wrap: anywhere;
   }
 
   .limitations-grid {
@@ -543,6 +680,16 @@
     text-align: left;
   }
 
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .table-scroll table {
+    min-width: max-content;
+  }
+
   .table-scroll:focus {
     outline: 3px solid rgba(39, 181, 166, 0.28);
     outline-offset: 3px;
@@ -560,9 +707,16 @@
     .insight-callout-grid,
     .impact-grid,
     .story-grid,
+    .read-first-grid,
     .publication-figure,
     .limitations-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 900px) {
+    .publication-figure {
+      grid-template-columns: 1fr;
     }
   }
 
@@ -570,7 +724,11 @@
     .insight-callout-grid,
     .impact-grid,
     .story-grid,
-    .insight-chart-row {
+    .read-first-grid,
+    .publication-figure,
+    .insight-chart-row,
+    .global-insights-page .grid.two-column,
+    .global-insights-page .grid.three-column {
       grid-template-columns: 1fr;
     }
 
@@ -584,6 +742,13 @@
 
     .article-nav {
       border-radius: 20px;
+      padding: 8px;
+    }
+
+    .article-nav a {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
     }
 
     .table-scroll::after {
@@ -591,7 +756,7 @@
     }
   }
 </style>
-<main class="layout">
+<main class="layout global-insights-page">
   <section class="panel insight-hero manuscript-hero" id="top">
     <p class="eyebrow">Global Insights</p>
     <h1>The public bacterial genome metadata landscape</h1>
@@ -663,10 +828,30 @@
     <section class="panel article-copy" id="summary">
       <p class="eyebrow">Structured summary</p>
       <h2>Snapshot summary</h2>
-      <p><strong>Dataset.</strong> {{ summary.manuscript.structured_dataset|default(summary.manuscript.dataset_overview, true) }}</p>
-      <p><strong>Principal findings.</strong> {{ summary.manuscript.structured_principal_findings|default(summary.manuscript.metadata_completeness, true) }}</p>
-      <p><strong>Interpretation.</strong> {{ summary.manuscript.structured_interpretation|default("These outputs describe repository composition and metadata usability, not biological prevalence.", true) }}</p>
-      <p><strong>Limitations.</strong> {{ summary.manuscript.structured_limitations|default(summary.manuscript.limitations, true) }}</p>
+      <div class="read-first-grid" aria-label="Read this first">
+        <article>
+          <strong>{{ fmt(summary.overview.unique_assemblies) }}</strong>
+          <span>non-redundant assemblies in this snapshot</span>
+        </article>
+        <article>
+          <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong>
+          <span>of assemblies fall in the top ten genera</span>
+        </article>
+        <article>
+          <strong>{{ ns.country_comp.standardized_usable_percent|default("0") }}%</strong>
+          <span>have standardized country metadata</span>
+        </article>
+        <article>
+          <strong>Context first</strong>
+          <span>ambiguous values remain documented rather than forced</span>
+        </article>
+      </div>
+      <div class="summary-prose">
+        <p><strong>Dataset.</strong> {{ summary.manuscript.structured_dataset|default(summary.manuscript.dataset_overview, true) }}</p>
+        <p><strong>Principal findings.</strong> {{ summary.manuscript.structured_principal_findings|default(summary.manuscript.metadata_completeness, true) }}</p>
+        <p><strong>Interpretation.</strong> {{ summary.manuscript.structured_interpretation|default("These outputs describe repository composition and metadata usability, not biological prevalence.", true) }}</p>
+        <p><strong>Limitations.</strong> {{ summary.manuscript.structured_limitations|default(summary.manuscript.limitations, true) }}</p>
+      </div>
       <p id="copy-structured-summary" class="visually-hidden">{{ summary.manuscript.structured_summary|default(summary.manuscript.abstract, true) }}</p>
     </section>
 
@@ -791,6 +976,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Which Bacterial Taxa Dominate Public Sequencing?</span><span class="tag">taxa</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: taxonomic concentration shows where repository depth is high and where representation may be sparse.</p>
       <p>The top 10 genera account for <strong>{{ summary.taxonomic_landscape.top_10_genus_share_percent }}%</strong> of unique assemblies in this snapshot. FetchM keeps provisional and unresolved species-level labels searchable, but reports them separately from canonical binomial species.</p>
       {% set label_rows = summary.taxonomic_landscape.catalog_species_label_classes|default(summary.taxonomic_landscape.species_label_classes|default([])) %}
       {% if label_rows %}
@@ -822,6 +1008,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Public Bacterial Assemblies Released by Year</span><span class="tag">yearly trend</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: release timing shows repository growth, while the current year remains incomplete until year end.</p>
       {% set yearly_rows = summary.get("yearly_growth", []) %}
       {% set assembly_levels = (summary.get("assembly_quality") or {}).get("assembly_levels", []) %}
       <div class="grid two-column">
@@ -865,6 +1052,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Geographic, Host, Source, and Environment Representation</span><span class="tag">bias</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: these tables describe repository representation and standardization coverage, not global incidence or prevalence.</p>
       <div class="grid two-column">
         <div>
           <h3>Top Countries</h3>
@@ -899,6 +1087,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>How Complete Is Public Genome Metadata?</span><span class="tag">completeness</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: raw text is useful only when it can be mapped into analysis-ready standardized fields.</p>
       <p class="insight-note">
         Raw field present means the submitter provided non-empty text. Standardized means FetchM mapped that text into a consistent value for filtering and analysis. Lower standardized percentages identify fields where many raw values remain ambiguous or unmapped.
       </p>
@@ -969,6 +1158,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Raw versus Standardized Dataset-selection Simulator</span><span class="tag">query</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: standardized metadata can recover records that raw-text filters miss.</p>
       <p>Estimate how dataset selection changes when the same query is applied to raw submitter fields versus FetchM standardized metadata fields. This uses the compact simulator table generated with the snapshot.</p>
       <form method="get" action="{{ url_for('global_insights') }}" class="job-form">
         <div class="grid two-column">
@@ -1029,6 +1219,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Metadata-readiness Index and Automated Bias Warnings</span><span class="tag">warnings</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: readiness scores and warnings are triage aids for dataset construction, not genome-quality scores.</p>
       <p class="insight-note">The FetchM metadata-readiness index is a project-defined descriptive index for comparing metadata usability. It is not a biological genome-quality score, a CheckM/assembly-quality result, or a validated clinical metric.</p>
       <div class="grid two-column">
         <div>
@@ -1086,6 +1277,7 @@
     <details class="panel insight-details analysis-detail" data-analysis-detail>
       <summary><span>Priority-taxon Metadata Coverage and Metadata-ready Taxa</span><span class="tag">readiness</span></summary>
       <div class="insight-details-body">
+      <p class="detail-why">Why this matters: priority taxa need both enough assemblies and enough usable metadata for reliable filtering.</p>
       <div class="grid two-column">
         <div>
           <h3>Priority-taxon Metadata-readiness</h3>
@@ -1401,6 +1593,31 @@
     const details = Array.from(document.querySelectorAll("details[data-analysis-detail]"));
     if (expand) expand.addEventListener("click", () => details.forEach((item) => { item.open = true; }));
     if (collapse) collapse.addEventListener("click", () => details.forEach((item) => { item.open = false; }));
+
+    const navLinks = Array.from(document.querySelectorAll(".article-nav a[href^='#']"));
+    const sections = navLinks
+      .map((link) => document.querySelector(link.getAttribute("href")))
+      .filter(Boolean);
+    function setCurrentSection(id) {
+      navLinks.forEach((link) => {
+        if (link.getAttribute("href") === `#${id}`) {
+          link.setAttribute("aria-current", "location");
+        } else {
+          link.removeAttribute("aria-current");
+        }
+      });
+    }
+    if (sections.length && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible && visible.target.id) setCurrentSection(visible.target.id);
+      }, { rootMargin: "-20% 0px -65% 0px", threshold: [0.1, 0.35, 0.6] });
+      sections.forEach((section) => observer.observe(section));
+    }
+    if (window.location.hash) setCurrentSection(window.location.hash.slice(1));
+    window.addEventListener("hashchange", () => setCurrentSection(window.location.hash.slice(1)));
   })();
 </script>
 {% endblock %}
