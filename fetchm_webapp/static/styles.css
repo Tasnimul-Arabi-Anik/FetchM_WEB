@@ -112,6 +112,10 @@ pre {
   display: none;
 }
 
+.topbar-actions a[aria-current="page"] {
+  color: var(--accent-strong);
+}
+
 .ghost-link {
   color: var(--accent);
   text-decoration: none;
@@ -2315,6 +2319,18 @@ pre {
 
   .topbar-actions.is-open {
     display: flex;
+  }
+
+  .topbar-actions .ghost-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+
+  .topbar-actions a[aria-current="page"] {
+    background: rgba(14, 111, 101, 0.1);
   }
 
   .topbar-actions .ghost-link,

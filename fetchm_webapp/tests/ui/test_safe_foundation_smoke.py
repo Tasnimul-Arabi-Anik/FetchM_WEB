@@ -44,10 +44,14 @@ def main() -> int:
             search = page.locator("#taxon-search-input")
             search.fill("salmonella")
             expect(page.locator(".search-result").first).to_be_visible(timeout=15000)
+            expect(page.locator("#taxon-search-status")).to_have_text("")
             assert search.get_attribute("role") == "combobox"
             assert search.get_attribute("aria-expanded") == "true"
+            result_count = page.locator(".search-result").count()
+            search.press("ArrowUp")
+            assert search.get_attribute("aria-activedescendant") == f"taxon-result-{result_count - 1}"
             search.press("ArrowDown")
-            assert search.get_attribute("aria-activedescendant")
+            assert search.get_attribute("aria-activedescendant") == "taxon-result-0"
             search.press("Enter")
             expect(page.locator("#selected-taxon-card")).to_be_visible(timeout=10000)
             expect(page.locator("#selected-taxon-name")).to_contain_text("Salmonella")

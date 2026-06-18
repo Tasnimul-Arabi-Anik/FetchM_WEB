@@ -15,9 +15,9 @@
         <p class="fetchm-intro-lead">FetchM automatically standardizes genome metadata across your target taxon so you can analyze assemblies, apply metadata filters, perform quality checks, and download the right sequences with confidence.</p>
       </div>
       <div class="fetchm-hero-inline-stats" aria-label="Catalog summary">
-        <span class="fetchm-inline-stat"><strong>{{ home_metrics.species_total }}</strong> Canonical species</span>
-        <span class="fetchm-inline-stat"><strong>{{ home_metrics.genus_total }}</strong> Genera</span>
-        <span class="fetchm-inline-stat"><strong>{{ home_metrics.genome_total }}</strong> Unique bacterial assemblies</span>
+        <span class="fetchm-inline-stat"><strong>{{ "{:,}".format(home_metrics.species_total) }}</strong> Canonical species</span>
+        <span class="fetchm-inline-stat"><strong>{{ "{:,}".format(home_metrics.genus_total) }}</strong> Genera</span>
+        <span class="fetchm-inline-stat"><strong>{{ "{:,}".format(home_metrics.genome_total) }}</strong> Unique bacterial assemblies</span>
       </div>
     </section>
 
@@ -304,6 +304,7 @@
       renderSearchMessage("No matching taxa", "is-empty");
       return;
     }
+    setSearchStatus();
     taxonSearchResults.innerHTML = "";
     matches.forEach((item, index) => {
       const button = document.createElement("button");
@@ -436,7 +437,10 @@
       }
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
-      if (!taxonSearchResults.hidden) setActiveResult(activeResultIndex - 1);
+      if (!taxonSearchResults.hidden) {
+        const previousIndex = activeResultIndex < 0 ? currentMatches.length - 1 : activeResultIndex - 1;
+        setActiveResult(previousIndex);
+      }
     } else if (event.key === "Enter" && !taxonSearchResults.hidden && activeResultIndex >= 0) {
       event.preventDefault();
       chooseTaxon(currentMatches[activeResultIndex]);
