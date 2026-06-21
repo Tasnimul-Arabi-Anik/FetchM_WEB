@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+import json
 import subprocess
+import tempfile
 import sys
 import unittest
 
@@ -14,6 +16,7 @@ from domain_profiles import (
 )
 from dataset_production_store import ARCHAEA_TAXON_ID, BACTERIA_TAXON_ID
 from tools import build_canonical_root_inventory as canonical_inventory_tool
+from tools import check_hidden_archaea_release_gate
 
 
 class DomainProfileTests(unittest.TestCase):
@@ -92,6 +95,57 @@ class DomainProfileTests(unittest.TestCase):
         self.assertIn('"public_ui_exposed": False', source)
         self.assertIn('"global_insights_regenerated": False', source)
         self.assertIn('"deployment_run": False', source)
+
+    def test_hidden_archaea_release_gate_blocks_public_release(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_dir = Path(temp_dir)
+            pipeline = {
+                "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+                "visibility": "hidden_staging",
+                "root_unique_assemblies": 41956,
+                "standardized_assemblies": 41956,
+                "missing_standardized_assemblies": 0,
+                "rule_reuse_risk_rows": 0,
+                "rule_reuse_high_risk_rows": 0,
+                "pipeline_pass": True,
+                "public_ui_exposed": False,
+                "global_insights_regenerated": False,
+                "deployment_run": False,
+            }
+            audit = {
+                "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+                "root_unique_assemblies": 41956,
+                "standardized_assemblies": 41956,
+                "missing_standardized_assemblies": 0,
+                "rule_reuse_risk_rows": 0,
+                "rule_reuse_high_risk_rows": 0,
+                "audit_pass": True,
+                "public_ui_exposed": False,
+                "global_insights_regenerated": False,
+                "deployment_run": False,
+            }
+            insights = {
+                "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+                "visibility": "hidden_staging",
+                "root_unique_assemblies": 41956,
+                "standardized_assemblies": 41956,
+                "missing_standardized_assemblies": 0,
+                "public_ui_exposed": False,
+                "global_insights_regenerated": False,
+            }
+            (artifact_dir / "hidden_archaea_pipeline_summary.json").write_text(json.dumps(pipeline), encoding="utf-8")
+            (artifact_dir / "archaea_metadata_audit_summary.json").write_text(json.dumps(audit), encoding="utf-8")
+            (artifact_dir / "hidden_archaea_metadata_insights.json").write_text(json.dumps(insights), encoding="utf-8")
+            (artifact_dir / "rule_reuse_risk.tsv").write_text("risk_category\tfield\tmatched_value\taffected_rows\tseverity\trationale\trecommended_action\n", encoding="utf-8")
+            (artifact_dir / "standardized_field_coverage.tsv").write_text("field_type\tfield\tpresent_count\ttotal_rows\tpresent_percent\n", encoding="utf-8")
+
+            gate = check_hidden_archaea_release_gate.build_gate(artifact_dir)
+
+        self.assertTrue(gate["hidden_staging_ready"])
+        self.assertFalse(gate["public_release_ready"])
+        self.assertFalse(gate["public_ui_exposed"])
+        self.assertFalse(gate["global_insights_regenerated"])
+        self.assertIn("Manual validation", " ".join(gate["public_release_blockers"]))
 
 
 if __name__ == "__main__":

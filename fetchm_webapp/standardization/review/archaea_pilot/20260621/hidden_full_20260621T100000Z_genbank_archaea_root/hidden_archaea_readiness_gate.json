@@ -1,0 +1,30 @@
+{
+  "artifact_dir": "fetchm_webapp/standardization/review/archaea_pilot/20260621/hidden_full_20260621T100000Z_genbank_archaea_root",
+  "deployment_run": false,
+  "domain_profile": "archaea",
+  "generated_at": "2026-06-21T15:35:35.597436+00:00",
+  "global_insights_regenerated": false,
+  "hidden_database_ready": true,
+  "hidden_staging_ready": true,
+  "hidden_standardization_audit_pass": true,
+  "hidden_visibility_pass": true,
+  "missing_required_files": [],
+  "missing_standardized_assemblies": 0,
+  "public_release_blockers": [
+    "Archaea-specific metadata curation batches are not complete.",
+    "Manual validation of Archaea standardized metadata is not complete.",
+    "Public Archaea Global Insights have not been generated or reviewed.",
+    "Public UI scope exposure has not been approved."
+  ],
+  "public_release_ready": false,
+  "public_ui_exposed": false,
+  "recommended_next_step": "Run Archaea-specific hidden curation and manual validation before any public UI or Global Insights exposure.",
+  "required_files_present": true,
+  "root_unique_assemblies": 41956,
+  "rule_reuse_high_risk_rows": 0,
+  "rule_reuse_medium_risk_values": 0,
+  "rule_reuse_risk_rows": 0,
+  "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+  "standardized_assemblies": 41956,
+  "visibility": "hidden_staging"
+}
