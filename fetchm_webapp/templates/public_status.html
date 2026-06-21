@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Status | FetchM{% endblock %}
+{% block meta_description %}FetchM Web public service status, version, snapshot, and scientific QA state.{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
+{% block content %}
+<main class="public-page">
+  <section class="public-hero">
+    <p class="eyebrow">Service status</p>
+    <h1>FetchM public status</h1>
+    <p class="lede">Current application version, public snapshot, and scientific QA state for reviewers and users.</p>
+  </section>
+
+  <section class="metrics-grid">
+    {% for card in cards %}
+      <article class="metric-card public-status-card {{ card.state }}">
+        <span>{{ card.label }}</span>
+        <strong>{{ card.value }}</strong>
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <h2>Operational note</h2>
+    <p>Public browsing and Global Insights do not require registration. Personal sequence-download jobs, job tracking, and administrative routes remain authenticated by design.</p>
+    <p>Deployment remains manual; this page reports the deployed application and latest available Global Insights snapshot rather than triggering refreshes.</p>
+  </section>
+</main>
+{% endblock %}

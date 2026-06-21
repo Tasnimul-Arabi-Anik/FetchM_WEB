@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ page.title }} | FetchM{% endblock %}
+{% block meta_description %}{{ page.description }}{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
+{% block content %}
+<main class="public-page">
+  <section class="public-hero">
+    <p class="eyebrow">{{ page.eyebrow }}</p>
+    <h1>{{ page.title }}</h1>
+    <p class="lede">{{ page.description }}</p>
+    {% if summary %}
+      <div class="public-provenance-strip" aria-label="Current public snapshot">
+        <span><strong>Snapshot</strong> {{ summary.snapshot_id }}</span>
+        <span><strong>Assemblies</strong> {{ fmt(overview.unique_assemblies) }}</span>
+        <span><strong>Source</strong> {{ methods.source_snapshot_id or "not recorded" }}</span>
+      </div>
+    {% endif %}
+    {% if page.actions %}
+      <div class="public-action-row">
+        {% for action in page.actions %}
+          {% if action.endpoint is defined %}
+            <a class="action-pill" href="{{ url_for(action.endpoint) }}">{{ action.label }}</a>
+          {% else %}
+            <a class="action-pill" href="{{ action.href }}">{{ action.label }}</a>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="public-section-grid">
+    {% for section in page.sections %}
+      <article class="panel public-section-card">
+        <h2>{{ section.heading }}</h2>
+        {% for paragraph in section.body or [] %}
+          <p>{{ paragraph }}</p>
+        {% endfor %}
+        {% if section["items"] is defined %}
+          <ul class="public-check-list">
+            {% for item in section["items"] %}
+              <li>{{ item }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+</main>
+{% endblock %}

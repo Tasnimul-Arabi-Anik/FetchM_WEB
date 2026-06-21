@@ -29,6 +29,13 @@
       <div class="taxon-search selection-search fetchm-search-field" id="taxon-search-component">
         <label class="field-label" id="taxon-search-label" for="taxon-search-input">Taxon search</label>
         <span class="search-help" id="taxon-search-help">Choose a canonical species, genus, or higher-rank taxon from the suggestions.</span>
+        <div class="example-query-row" aria-label="Example taxon searches">
+          <span>Examples</span>
+          <button type="button" class="example-query" data-query="Salmonella">Salmonella</button>
+          <button type="button" class="example-query" data-query="Escherichia">Escherichia</button>
+          <button type="button" class="example-query" data-query="Klebsiella">Klebsiella</button>
+          <button type="button" class="example-query" data-query="Pseudomonadota">Pseudomonadota</button>
+        </div>
         <div class="search-shell" id="taxon-search-shell">
           <span class="fetchm-search-icon" aria-hidden="true"></span>
           <input type="text" id="taxon-search-input" name="selected_taxon_name" autocomplete="off" autocapitalize="none" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="taxon-search-results" aria-describedby="taxon-search-help taxon-search-status" aria-busy="false" placeholder="Type Pseudomonadota, Enterobacterales, Escherichia, Salmonella...">
@@ -61,6 +68,9 @@
       </div>
 
       <div class="dashboard-links fetchm-secondary-actions">
+        <a class="ghost-link" href="{{ url_for('tutorial') }}">Tutorial</a>
+        <a class="ghost-link" href="{{ url_for('public_browse') }}">Browse taxa</a>
+        <a class="ghost-link" href="{{ url_for('downloads') }}">Downloads</a>
         <button type="button" class="alt-toggle" id="feedback-toggle" aria-expanded="false">Feedback or Report</button>
       </div>
 
@@ -396,6 +406,18 @@
     }
     setActiveView("seq");
     hideWarning();
+  });
+
+  document.querySelectorAll(".example-query").forEach((button) => {
+    button.addEventListener("click", () => {
+      taxonSearchInput.value = button.dataset.query || "";
+      taxonSearchInput.focus();
+      latestPrepareToken += 1;
+      setActiveView("selection");
+      refreshSelectionSummary();
+      renderResults();
+      hideWarning();
+    });
   });
 
   feedbackToggle.addEventListener("click", () => {

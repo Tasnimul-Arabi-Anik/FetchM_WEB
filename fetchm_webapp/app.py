@@ -115,6 +115,14 @@ PUBLIC_ENDPOINTS = {
     "plotly_js",
     "static",
     "index",
+    "about",
+    "help_page",
+    "tutorial",
+    "public_browse",
+    "downloads",
+    "api_docs",
+    "citation_page",
+    "public_status",
     "api_taxa_search",
     "canonical_metadata_analysis",
     "canonical_metadata_analysis_section",
@@ -26471,6 +26479,370 @@ def index() -> str:
         home_metrics=build_public_home_metrics(),
         taxon_recent_hours=TAXON_RECENT_HOURS,
         taxon_very_old_hours=TAXON_VERY_OLD_HOURS,
+    )
+
+
+PUBLIC_INFO_PAGES: dict[str, dict[str, Any]] = {
+    "about": {
+        "title": "About FetchM",
+        "eyebrow": "Resource overview",
+        "description": "FetchM Web is a public bacterial genome metadata resource for taxon-level discovery, standardized metadata analysis, and reproducible sequence retrieval.",
+        "sections": [
+            {
+                "heading": "What FetchM provides",
+                "body": [
+                    "FetchM indexes public bacterial assemblies, standardizes submitted metadata, and exposes taxon-level metadata reports with provenance, confidence signals, and downloadable source data.",
+                    "The current NAR-facing release is intentionally bacterial. Archaea and viruses should be added later as separate domain profiles so their biological rules and quality thresholds do not disturb the validated bacterial workflow.",
+                ],
+                "items": [
+                    "Taxon search across species, genera, and higher bacterial ranks.",
+                    "Global Metadata Insights for repository-level representation, completeness, and standardization QA.",
+                    "Per-taxon metadata reports and filtered metadata downloads.",
+                    "Authenticated sequence download and quality-check jobs for user-specific workspaces.",
+                ],
+            },
+            {
+                "heading": "Data sources and attribution",
+                "body": [
+                    "FetchM derives bacterial assembly and BioSample metadata from public NCBI resources and retains provenance for generated snapshots, rule fingerprints, source tables, and checksums.",
+                    "Repository-level summaries describe public-data representation, not biological prevalence or disease burden.",
+                ],
+            },
+            {
+                "heading": "Access policy",
+                "body": [
+                    "Core browsing, taxon search, Global Insights, citation files, and public downloads are available without registration. Sign-in is limited to personal job tracking, long-running sequence retrieval, and administrative functions.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Start tutorial", "endpoint": "tutorial"},
+            {"label": "Browse taxa", "endpoint": "public_browse"},
+            {"label": "Open Global Insights", "endpoint": "global_insights"},
+        ],
+    },
+    "help": {
+        "title": "Help for First-Time Users",
+        "eyebrow": "How to use FetchM",
+        "description": "A concise guide for first-time visitors, reviewers, and researchers evaluating the database.",
+        "sections": [
+            {
+                "heading": "Basic workflow",
+                "items": [
+                    "Search for a bacterial taxon on the homepage, for example Salmonella, Escherichia, Klebsiella, or Pseudomonadota.",
+                    "Select a suggestion so FetchM can confirm the exact rank, assembly count, and metadata snapshot.",
+                    "Open Metadata analysis to inspect standardized country, host, source, sample, environment, disease, date, and assembly fields.",
+                    "Download the metadata table or use the authenticated sequence workflow for filtered FASTA retrieval.",
+                ],
+            },
+            {
+                "heading": "Interpreting standardized fields",
+                "body": [
+                    "Standardized fields are conservative. Ambiguous values are retained for review rather than forced into deterministic categories. QA panels report leakage checks, duplicate/conflict rules, and unresolved review queues where applicable.",
+                ],
+            },
+            {
+                "heading": "Troubleshooting",
+                "items": [
+                    "If search suggestions do not appear, wait for the Searching status to clear and try a broader rank such as a genus or order.",
+                    "If a long-running sequence job is needed, sign in so the job can be tracked safely.",
+                    "Use Feedback / Report on the homepage to report unclear metadata, broken pages, or missing documentation.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Try the tutorial", "endpoint": "tutorial"},
+            {"label": "View API notes", "endpoint": "api_docs"},
+        ],
+    },
+    "tutorial": {
+        "title": "FetchM Tutorial",
+        "eyebrow": "Worked examples",
+        "description": "Example searches and expected outputs for reviewers and new users.",
+        "sections": [
+            {
+                "heading": "Example 1: species metadata",
+                "items": [
+                    "Search for Salmonella and choose the best matching taxon suggestion.",
+                    "Open Metadata analysis to review standardized source, sample, host, geography, and collection-year coverage.",
+                    "Use the metadata download to reproduce the table behind the report.",
+                ],
+            },
+            {
+                "heading": "Example 2: broad-rank discovery",
+                "items": [
+                    "Search for Pseudomonadota or Enterobacterales when the research question spans multiple taxa.",
+                    "Confirm the selected rank before opening the report, because rank choice changes denominators and downstream filters.",
+                ],
+            },
+            {
+                "heading": "Example 3: repository-level interpretation",
+                "items": [
+                    "Open Global Insights to inspect the frozen bacterial snapshot, publication figures, checksums, source tables, and citation files.",
+                    "Use limitations notes when interpreting geography, host/source, and temporal representation. FetchM reports public repository composition, not epidemiological prevalence.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Go to homepage search", "endpoint": "index"},
+            {"label": "Global Insights", "endpoint": "global_insights"},
+        ],
+    },
+    "api": {
+        "title": "Programmatic Access",
+        "eyebrow": "API and stable URLs",
+        "description": "Public endpoints for lightweight lookup, snapshot citation, and downloadable Global Insights artifacts.",
+        "sections": [
+            {
+                "heading": "Current public endpoints",
+                "items": [
+                    "/api/taxa/search?q=salmonella returns JSON taxon suggestions for the homepage search.",
+                    "/global-insights and /global-insights/snapshots/<snapshot-id> expose latest and immutable snapshot pages.",
+                    "/global-insights/citation/txt, /bibtex, and /ris provide machine-readable citation files.",
+                    "/global-insights/download/<artifact> exposes allowlisted snapshot tables, manifests, checksums, reports, and figure bundles.",
+                ],
+            },
+            {
+                "heading": "Usage notes",
+                "body": [
+                    "FetchM does not require screen scraping for core snapshot reuse. Prefer the citation, manifest, checksum, figure, and source-table downloads linked from the Downloads page.",
+                    "Large authenticated sequence jobs are intentionally not exposed as anonymous public API calls.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Download data", "endpoint": "downloads"},
+            {"label": "Cite FetchM", "endpoint": "citation_page"},
+        ],
+    },
+    "citation": {
+        "title": "Citation and Reuse",
+        "eyebrow": "How to cite",
+        "description": "Cite both the FetchM article and the exact Global Insights snapshot when reusing generated snapshot outputs.",
+        "sections": [
+            {
+                "heading": "Recommended citation",
+                "body": [
+                    "Anik TA, Jensen PKM, Begum A. FetchM: Streamlining Genome and Metadata Integration for Bacterial Comparative Genomics. Bioinformatics Advances, 2026. doi:10.1093/bioadv/vbag124.",
+                    "For Global Insights outputs, additionally cite the snapshot ID, source canonical bacterial metadata snapshot, generated date, and rule fingerprint shown on the Global Insights page.",
+                ],
+            },
+            {
+                "heading": "Reuse expectations",
+                "body": [
+                    "Use the downloaded manifests and checksums to preserve provenance. Derived NCBI metadata should be reused under the terms of the original public data sources and with clear attribution to those sources.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Plain text citation", "href": "/global-insights/citation/txt"},
+            {"label": "BibTeX", "href": "/global-insights/citation/bibtex"},
+            {"label": "RIS", "href": "/global-insights/citation/ris"},
+        ],
+    },
+}
+
+
+def render_public_info_page(page_key: str) -> str:
+    page = PUBLIC_INFO_PAGES[page_key]
+    summary, _snapshot_dir = load_latest_global_insights_summary()
+    overview = (summary or {}).get("overview") or {}
+    methods = (summary or {}).get("methods") or {}
+    return render_template(
+        "public_info_page.html",
+        page=page,
+        summary=summary,
+        overview=overview,
+        methods=methods,
+        fmt=format_display_count,
+        canonical_url=url_for(page_key if page_key != "help" else "help_page", _external=True) if page_key not in {"api", "citation"} else url_for("api_docs" if page_key == "api" else "citation_page", _external=True),
+    )
+
+
+@app.route("/about")
+def about() -> str:
+    return render_public_info_page("about")
+
+
+@app.route("/help")
+def help_page() -> str:
+    return render_public_info_page("help")
+
+
+@app.route("/tutorial")
+def tutorial() -> str:
+    return render_public_info_page("tutorial")
+
+
+@app.route("/api")
+def api_docs() -> str:
+    return render_public_info_page("api")
+
+
+@app.route("/citation")
+def citation_page() -> str:
+    return render_public_info_page("citation")
+
+
+def public_download_items(summary: dict[str, Any] | None) -> list[dict[str, str]]:
+    if not summary:
+        return []
+    snapshot_id = str(summary.get("snapshot_id") or "")
+    priority = [
+        "summary_json",
+        "provenance_manifest",
+        "archive_manifest",
+        "checksums_sha256",
+        "rule_fingerprint",
+        "metadata_completeness",
+        "metadata_quality",
+        "metadata_readiness_tiers",
+        "countries",
+        "host_categories",
+        "yearly_growth",
+        "top_species",
+        "top_genera",
+        "source_data_for_figures_zip",
+        "global_insights_figures_zip",
+        "global_insights_tables_zip",
+        "global_insights_report_md",
+        "global_insights_report_pdf",
+        "global_insights_report_docx",
+    ]
+    downloads = summary.get("downloads") or {}
+    keys = [key for key in priority if downloads.get(key)]
+    keys.extend(sorted(key for key in downloads if key not in keys and downloads.get(key)))
+    items = []
+    for key in keys:
+        relative = str(downloads.get(key) or "")
+        if not relative:
+            continue
+        endpoint = "download_global_insights_snapshot_file" if snapshot_id else "download_global_insights_file"
+        values = {"relative_path": relative}
+        if snapshot_id:
+            values["snapshot_id"] = snapshot_id
+        items.append({
+            "key": key,
+            "label": key.replace("_", " ").title(),
+            "relative_path": relative,
+            "url": url_for(endpoint, **values),
+        })
+    return items
+
+
+@app.route("/downloads")
+def downloads() -> str:
+    summary, _snapshot_dir = load_latest_global_insights_summary()
+    methods = (summary or {}).get("methods") or {}
+    return render_template(
+        "public_downloads.html",
+        summary=summary,
+        methods=methods,
+        items=public_download_items(summary),
+        citation_text=global_insights_citation_text(summary) if summary else "",
+        fmt=format_display_count,
+        canonical_url=url_for("downloads", _external=True),
+    )
+
+
+def public_browse_rows(query: str, rank: str, sort: str, limit: int) -> list[dict[str, Any]]:
+    clauses = [
+        "is_live = 1",
+        "COALESCE(live_status, status) = 'ready'",
+        "COALESCE(live_tsv_path, tsv_path) IS NOT NULL",
+    ]
+    params: list[Any] = []
+    if rank in {"species", "genus"}:
+        clauses.append("taxon_rank = ?")
+        params.append(rank)
+    if query:
+        clauses.append("lower(species_name) LIKE ?")
+        params.append(f"%{species_search_name(query)}%")
+    order_sql = {
+        "name": "species_name COLLATE NOCASE ASC",
+        "rank": "taxon_rank COLLATE NOCASE ASC, species_name COLLATE NOCASE ASC",
+        "genomes": "COALESCE(live_genome_count, genome_count, 0) DESC, species_name COLLATE NOCASE ASC",
+    }.get(sort, "COALESCE(live_genome_count, genome_count, 0) DESC, species_name COLLATE NOCASE ASC")
+    params.append(limit)
+    rows = get_db().execute(
+        f"""
+        SELECT id, species_name, taxon_rank, COALESCE(live_taxon_id, taxon_id) AS taxon_id,
+               COALESCE(live_genome_count, genome_count, 0) AS genome_count,
+               COALESCE(live_metadata_status, metadata_status) AS metadata_status,
+               COALESCE(live_metadata_clean_path, metadata_clean_path) AS metadata_clean_path
+        FROM species
+        WHERE {' AND '.join(clauses)}
+        ORDER BY {order_sql}
+        LIMIT ?
+        """,
+        params,
+    ).fetchall()
+    return [
+        {
+            "id": int(row["id"]),
+            "name": str(row["species_name"]),
+            "rank": str(row["taxon_rank"]),
+            "taxon_id": row["taxon_id"],
+            "genome_count": int(row["genome_count"] or 0),
+            "metadata_ready": bool(row["metadata_clean_path"]),
+            "metadata_status": str(row["metadata_status"] or "missing"),
+            "metadata_url": url_for("taxon_metadata", species_id=int(row["id"])),
+        }
+        for row in rows
+    ]
+
+
+@app.route("/browse")
+def public_browse() -> str:
+    query = normalize_species_name(request.args.get("q") or "")
+    rank = normalize_taxon_rank(request.args.get("rank") or "")
+    sort = (request.args.get("sort") or "genomes").strip().lower()
+    try:
+        limit = max(10, min(250, int(request.args.get("limit") or "100")))
+    except ValueError:
+        limit = 100
+    rows = public_browse_rows(query, rank, sort, limit)
+    summary, _snapshot_dir = load_latest_global_insights_summary()
+    return render_template(
+        "public_browse.html",
+        rows=rows,
+        query=query,
+        rank=rank if rank in {"species", "genus"} else "",
+        sort=sort if sort in {"genomes", "name", "rank"} else "genomes",
+        limit=limit,
+        summary=summary,
+        fmt=format_display_count,
+        canonical_url=url_for("public_browse", _external=True),
+    )
+
+
+def global_insights_status_cards(summary: dict[str, Any] | None) -> list[dict[str, str]]:
+    overview = (summary or {}).get("overview") or {}
+    methods = (summary or {}).get("methods") or {}
+    qa = (summary or {}).get("qa") or {}
+    checks = qa.get("checks") if isinstance(qa.get("checks"), list) else []
+    failed_checks = [check for check in checks if str(check.get("status") or "").lower() in {"fail", "failed", "error"}]
+    qa_status = str(qa.get("status") or ("pass" if summary and not failed_checks else "not available"))
+    return [
+        {"label": "Web service", "value": "online", "state": "pass"},
+        {"label": "Application version", "value": APP_VERSION, "state": "neutral"},
+        {"label": "Application commit", "value": APP_COMMIT[:12] if APP_COMMIT != "unknown" else "unknown", "state": "neutral"},
+        {"label": "Global Insights snapshot", "value": str((summary or {}).get("snapshot_id") or "not available"), "state": "pass" if summary else "warning"},
+        {"label": "Canonical source snapshot", "value": str(methods.get("source_snapshot_id") or "not recorded"), "state": "neutral"},
+        {"label": "Assemblies in snapshot", "value": format_display_count(overview.get("unique_assemblies")), "state": "neutral"},
+        {"label": "Scientific QA", "value": qa_status, "state": "pass" if qa_status.lower() == "pass" else "warning"},
+    ]
+
+
+@app.route("/status")
+def public_status() -> str:
+    summary, _snapshot_dir = load_latest_global_insights_summary()
+    return render_template(
+        "public_status.html",
+        summary=summary,
+        cards=global_insights_status_cards(summary),
+        fmt=format_display_count,
+        canonical_url=url_for("public_status", _external=True),
     )
 
 

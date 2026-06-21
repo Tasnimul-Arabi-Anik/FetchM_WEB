@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Downloads | FetchM{% endblock %}
+{% block meta_description %}Download FetchM Global Insights manifests, checksums, source tables, figures, and reports for reproducible reuse.{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
+{% block content %}
+<main class="public-page">
+  <section class="public-hero">
+    <p class="eyebrow">Bulk downloads</p>
+    <h1>Download FetchM snapshot outputs</h1>
+    <p class="lede">Use these allowlisted files instead of screen scraping. Each Global Insights snapshot includes manifests, checksums, source tables, figure bundles, reports, and citation exports.</p>
+    {% if summary %}
+      <div class="public-provenance-strip">
+        <span><strong>Snapshot</strong> {{ summary.snapshot_id }}</span>
+        <span><strong>Source</strong> {{ methods.source_snapshot_id or "not recorded" }}</span>
+        <span><strong>Generated</strong> {{ (summary.generated_at or "")[:10] }}</span>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Snapshot files</p>
+        <h2>Reusable data and provenance</h2>
+      </div>
+      <a class="ghost-link" href="{{ url_for('global_insights') }}">Open Global Insights</a>
+    </div>
+    {% if items %}
+      <div class="download-card-grid">
+        {% for item in items %}
+          <a class="download-card" href="{{ item.url }}">
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.relative_path }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No Global Insights snapshot is currently available.</p>
+    {% endif %}
+  </section>
+
+  {% if citation_text %}
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Citation</p>
+          <h2>Cite this snapshot</h2>
+        </div>
+        <div class="public-action-row compact">
+          <a class="ghost-link" href="{{ url_for('download_global_insights_citation', fmt='txt') }}">TXT</a>
+          <a class="ghost-link" href="{{ url_for('download_global_insights_citation', fmt='bibtex') }}">BibTeX</a>
+          <a class="ghost-link" href="{{ url_for('download_global_insights_citation', fmt='ris') }}">RIS</a>
+        </div>
+      </div>
+      <pre class="citation-pre">{{ citation_text }}</pre>
+    </section>
+  {% endif %}
+</main>
+{% endblock %}

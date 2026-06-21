@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Browse Taxa | FetchM{% endblock %}
+{% block meta_description %}Browse public FetchM bacterial taxa with prepared metadata reports and genome counts.{% endblock %}
+{% block canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endblock %}
+{% block content %}
+<main class="public-page">
+  <section class="public-hero">
+    <p class="eyebrow">Browse without searching</p>
+    <h1>Browse prepared bacterial taxa</h1>
+    <p class="lede">This page exposes the live public taxa catalog for first-time visitors. Full canonical snapshot outputs remain available through Global Insights and Downloads.</p>
+  </section>
+
+  <section class="panel">
+    <form method="get" class="public-filter-form" role="search">
+      <label>
+        <span>Taxon name</span>
+        <input type="search" name="q" value="{{ query }}" placeholder="Salmonella, Escherichia, Klebsiella...">
+      </label>
+      <label>
+        <span>Rank</span>
+        <select name="rank">
+          <option value="" {% if not rank %}selected{% endif %}>All public ranks</option>
+          <option value="species" {% if rank == "species" %}selected{% endif %}>Species</option>
+          <option value="genus" {% if rank == "genus" %}selected{% endif %}>Genus</option>
+        </select>
+      </label>
+      <label>
+        <span>Sort</span>
+        <select name="sort">
+          <option value="genomes" {% if sort == "genomes" %}selected{% endif %}>Genome count</option>
+          <option value="name" {% if sort == "name" %}selected{% endif %}>Name</option>
+          <option value="rank" {% if sort == "rank" %}selected{% endif %}>Rank</option>
+        </select>
+      </label>
+      <button class="primary-form-action" type="submit">Browse</button>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">{{ rows|length }} shown</p>
+        <h2>Public taxa</h2>
+      </div>
+      <a class="ghost-link" href="{{ url_for('index') }}">Use taxon search</a>
+    </div>
+    <div class="sequence-table-shell" tabindex="0" aria-label="Scrollable public taxa table">
+      <table class="sequence-table public-table">
+        <caption>Prepared public bacterial taxa available in FetchM Web</caption>
+        <thead>
+          <tr>
+            <th scope="col">Taxon</th>
+            <th scope="col">Rank</th>
+            <th scope="col">TaxID</th>
+            <th scope="col">Assemblies</th>
+            <th scope="col">Metadata</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              <th scope="row"><a href="{{ row.metadata_url }}">{{ row.name }}</a></th>
+              <td>{{ row.rank }}</td>
+              <td>{{ row.taxon_id or "" }}</td>
+              <td>{{ fmt(row.genome_count) }}</td>
+              <td>{{ "ready" if row.metadata_ready else row.metadata_status }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">No public taxa matched the current filters.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+{% endblock %}

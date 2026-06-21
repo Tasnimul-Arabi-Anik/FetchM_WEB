@@ -2307,8 +2307,24 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn("Select your target species or genus", home_html)
         self.assertIn("FetchM automatically standardizes genome metadata", home_html)
         self.assertIn("10.1093/bioadv/vbag124", home_html)
+        self.assertIn("Examples</span>", home_html)
+        self.assertIn("Browse taxa", home_html)
         self.assertNotIn("Start with the managed catalog", home_html)
         self.assertNotIn("Standardized metadata</strong>", home_html)
+
+        for path, phrase in [
+            ("/about", "Resource overview"),
+            ("/help", "How to use FetchM"),
+            ("/tutorial", "Worked examples"),
+            ("/browse", "Browse prepared bacterial taxa"),
+            ("/downloads", "Bulk downloads"),
+            ("/api", "Programmatic Access"),
+            ("/citation", "How to cite"),
+            ("/status", "Service status"),
+        ]:
+            response = client.get(path)
+            self.assertEqual(response.status_code, 200, path)
+            self.assertIn(phrase, response.data.decode("utf-8"), path)
 
         login = client.get("/login")
         self.assertEqual(login.status_code, 200)
