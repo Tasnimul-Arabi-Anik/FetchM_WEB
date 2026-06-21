@@ -1,0 +1,61 @@
+field	standardized_value	row_count	review_signal_type	recommended_action
+Isolation_Source_SD	environmental material	62	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	clinical/host-associated material	15	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	deep-sea hydrothermal vent area at PACMANUS field	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	high-temperature Samotlor oil reservoir	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Derek Lovley (dlovley@microbio.umass.edu)	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	culture	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	solfataric field of Uzon caldera	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	off shore oil field from Gulf of Guinea	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	isolated from slime streamers and attached to pyrite surfaces at a sulfide ore body	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	deep-sea hydrothermal vent chimney at the Iheya Ridge in the Okinawa Trough	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	hot solfataric spring	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	solfataric thermal field close to Moutnovsky volcano, Kamchatka	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Black smoker wall, 3500 m depth	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	shallow subarine vent system at the Kolbeinskey Ridge	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Red heat in salted hides (spoiled fish)	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	East Pacific Ridge	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Microbial mat, Hamelin Pool	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	plant-associated material	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Slag heap at uranium mining site	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Rock salt from Permian period	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	brine samples from the Gomso solar saltern	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	food/food product	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	environmental material	62	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	clinical/host-associated material	15	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	environmental/geologic material	3	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	culture	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	plant-associated material	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD_Broad	food	1	observed_standardized_value	no action in audit-only phase
+Sample_Type_SD	cell culture	46	observed_standardized_value	no action in audit-only phase
+Sample_Type_SD	culture	7	observed_standardized_value	no action in audit-only phase
+Sample_Type_SD	mixed culture	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	sediment	28	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	lake water	12	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	soil	12	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	hot spring water	5	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	agricultural/food-production water	5	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	sludge	2	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	marine	2	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	freshwater	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	surface water	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	marine sediment	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	wastewater	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	sewage	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	seawater	1	observed_standardized_value	no action in audit-only phase
+Environment_Medium_SD	groundwater	1	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	aquatic sediment environment	25	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	freshwater environment	15	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	terrestrial environment	12	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	geologic/extreme environment	11	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	marine environment	6	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	wastewater/sewage	3	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	plant-associated environment	1	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	estuarine environment	1	observed_standardized_value	no action in audit-only phase
+Environment_Broad_Scale_SD	food-associated environment	1	observed_standardized_value	no action in audit-only phase
+Environment_Local_Scale_SD	lake	18	observed_standardized_value	no action in audit-only phase
+Environment_Local_Scale_SD	hot spring	7	observed_standardized_value	no action in audit-only phase
+Environment_Local_Scale_SD	pond	2	observed_standardized_value	no action in audit-only phase
+Environment_Local_Scale_SD	coastal area	2	observed_standardized_value	no action in audit-only phase
+Environment_Local_Scale_SD	groundwater	1	observed_standardized_value	no action in audit-only phase
+Isolation_Site_SD	plant-associated material	1	observed_standardized_value	no action in audit-only phase

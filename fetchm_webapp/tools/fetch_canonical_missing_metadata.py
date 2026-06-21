@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch and standardize canonical bacterial assemblies missing from existing metadata."""
+"""Fetch and standardize canonical assemblies missing from existing metadata."""
 
 from __future__ import annotations
 
@@ -121,6 +121,7 @@ def main() -> int:
     parser.add_argument("--request-workers", type=int, default=0, help="Concurrent NCBI report requests; defaults to two requests per configured API key.")
     parser.add_argument("--standardization-workers", type=int, default=0, help="CPU workers for metadata normalization; defaults to FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS or 10.")
     parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""), help="Fallback when no application key pool is configured.")
+    parser.add_argument("--skip-host-monitoring", action="store_true", help="Skip host-monitoring export side effects for isolated pilots.")
     args = parser.parse_args()
     if not 1 <= args.batch_size <= 100:
         parser.error("--batch-size must be between 1 and 100")
@@ -200,8 +201,10 @@ def main() -> int:
         "configured_api_key_count": len([key for key in api_keys if key]),
         **standardized_metadata_coverage(args.snapshot_id),
     }
-    if not summary["missing_standardized_assemblies"]:
+    if not summary["missing_standardized_assemblies"] and not args.skip_host_monitoring:
         summary["host_standardization_monitoring"] = generate_host_monitoring(args.snapshot_id)
+    elif args.skip_host_monitoring:
+        summary["host_standardization_monitoring"] = "skipped"
     print(json.dumps(summary, sort_keys=True))
     return 0
 

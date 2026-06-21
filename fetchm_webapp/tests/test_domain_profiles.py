@@ -62,6 +62,11 @@ class DomainProfileTests(unittest.TestCase):
         self.assertIn("--domain", result.stdout)
         self.assertIn("--pilot-pages", result.stdout)
 
+    def test_metadata_fetch_cli_can_skip_pilot_side_effect_exports(self) -> None:
+        tool_path = Path(__file__).resolve().parents[1] / "tools" / "fetch_canonical_missing_metadata.py"
+        source = tool_path.read_text(encoding="utf-8")
+        self.assertIn("--skip-host-monitoring", source)
+
 
 if __name__ == "__main__":
     unittest.main()

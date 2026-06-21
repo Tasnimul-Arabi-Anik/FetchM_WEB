@@ -1,0 +1,148 @@
+source_field	raw_value	row_count
+Host	fish	1
+Host	Homo sapiens	1
+Isolation Source	sediment	12
+Isolation Source	saline soil	4
+Isolation Source	Salt lake	3
+Isolation Source	salt	3
+Isolation Source	hot spring	2
+Isolation Source	Kulunda Steppe hypersaline lake	2
+Isolation Source	the red brine of salted Laminaria	2
+Isolation Source	deep-sea hydrothermal vent area at PACMANUS field	1
+Isolation Source	high-temperature Samotlor oil reservoir	1
+Isolation Source	Derek Lovley (dlovley@microbio.umass.edu)	1
+Isolation Source	ATCC 43099	1
+Isolation Source	solfataric field of Uzon caldera	1
+Isolation Source	off shore oil field from Gulf of Guinea	1
+Isolation Source	isolated from slime streamers and attached to pyrite surfaces at a sulfide ore body	1
+Isolation Source	deep-sea hydrothermal vent chimney at the Iheya Ridge in the Okinawa Trough	1
+Isolation Source	hot solfataric spring	1
+Isolation Source	solfataric thermal field close to Moutnovsky volcano, Kamchatka	1
+Isolation Source	Black smoker wall, 3500 m depth	1
+Isolation Source	sulfuric hot spring	1
+Isolation Source	shallow subarine vent system at the Kolbeinskey Ridge	1
+Isolation Source	sediment of Lake Shangmatala	1
+Isolation Source	sediment of alkaline lake	1
+Isolation Source	Ayakekumsalt Lake	1
+Isolation Source	lake water	1
+Isolation Source	Red heat in salted hides (spoiled fish)	1
+Sample Type	cell culture	41
+Sample Type	pure culture	7
+Sample Type	Cell culture	5
+Sample Type	cell cuture	5
+Sample Type	Salt lake	3
+Sample Type	whole organism	2
+Sample Type	MIGS/MIMS/MIMARKS.water	1
+Sample Type	Cyanobacterial mats bottom deposit	1
+Sample Type	Mixed water and sediment samples	1
+Sample Type	Direct from delivered sample	1
+Sample Type	marine sediment	1
+Sample Type	Mixed culture	1
+Sample Type	soil	1
+Collection_Date_Evidence	2018	10
+Collection_Date_Evidence	2012	5
+Collection_Date_Evidence	2017	5
+Collection_Date_Evidence	2014	5
+Collection_Date_Evidence	2011	4
+Collection_Date_Evidence	2010	4
+Collection_Date_Evidence	2006	4
+Collection_Date_Evidence	2013	4
+Collection_Date_Evidence	2015	4
+Collection_Date_Evidence	2021	4
+Collection_Date_Evidence	2009	3
+Collection_Date_Evidence	2008	3
+Collection_Date_Evidence	2019	3
+Collection_Date_Evidence	2007	2
+Collection_Date_Evidence	1995	2
+Collection_Date_Evidence	1980	2
+Collection_Date_Evidence	2016	2
+Collection_Date_Evidence	1994	2
+Collection_Date_Evidence	2022	2
+Collection_Date_Evidence	2023	2
+Collection_Date_Evidence	2020	2
+Collection_Date_Evidence	1993	1
+Collection_Date_Evidence	1962	1
+Collection_Date_Evidence	1983	1
+Collection_Date_Evidence	1966	1
+Geographic Location	China	48
+Geographic Location	Japan	12
+Geographic Location	Russia	9
+Geographic Location	United States	5
+Geographic Location	Austria	4
+Geographic Location	Italy	3
+Geographic Location	Egypt	3
+Geographic Location	South Korea	3
+Geographic Location	Iceland	2
+Geographic Location	Kenya	2
+Geographic Location	Canada	2
+Geographic Location	Pacific Ocean	2
+Geographic Location	Slovenia	2
+Geographic Location	Iran	2
+Geographic Location	Phillipines	1
+Geographic Location	Australia	1
+Geographic Location	Kazakhstan	1
+Geographic Location	France	1
+Geographic Location	Germany	1
+Geographic Location	Spain	1
+Geographic Location	Mexico	1
+Geographic Location	Netherlands	1
+Geographic Location	Belgium	1
+Geographic Location	Thailand	1
+BioSample ENV Package	MIGS/MIMS/MIMARKS.water	1
+BioSample ENV Broad Scale	not provided; submitted under MIGS 2.1	11
+BioSample ENV Broad Scale	mangrove biome	2
+BioSample ENV Broad Scale	Deep sea, Marine	1
+BioSample ENV Broad Scale	soil	1
+BioSample ENV Broad Scale	hydrothermal sample	1
+BioSample ENV Broad Scale	Northern Adriatic Sea	1
+BioSample ENV Broad Scale	hypersaline	1
+BioSample ENV Broad Scale	hypersaline lake	1
+BioSample ENV Broad Scale	Hamelin Pool Shark Bay AUstralia	1
+BioSample ENV Broad Scale	gold-containing arsenopyrite/pyrite ore	1
+BioSample ENV Broad Scale	Hypersaline water, [ENVO:00002012]	1
+BioSample ENV Broad Scale	Acid Hot Spring	1
+BioSample ENV Broad Scale	anoxic hypersaline sediment	1
+BioSample ENV Broad Scale	Uranium Mine	1
+BioSample ENV Broad Scale	marine and hyperthermophilic sediment	1
+BioSample ENV Broad Scale	cropland	1
+BioSample ENV Broad Scale	hot spring	1
+BioSample ENV Broad Scale	ocean biome	1
+BioSample ENV Broad Scale	Boom Clay	1
+BioSample ENV Broad Scale	Austrian salt mine	1
+BioSample ENV Broad Scale	Red sea	1
+BioSample ENV Broad Scale	Soil	1
+BioSample ENV Local Scale	not provided; submitted under MIGS 2.1	11
+BioSample ENV Local Scale	intertidal zone	2
+BioSample ENV Local Scale	Black rust formed on the steel surface of a seafloor borehole observatory (ODP CORK 1026B) exposed to hot ridge flank crustal fluids (64oC, water depth 2658 m)	1
+BioSample ENV Local Scale	garden soil	1
+BioSample ENV Local Scale	hydrothermal chimney-like structure	1
+BioSample ENV Local Scale	Coastal surface water	1
+BioSample ENV Local Scale	lake	1
+BioSample ENV Local Scale	Saline evaporation pond, [ENVO:00000055]	1
+BioSample ENV Local Scale	Headwater	1
+BioSample ENV Local Scale	hypersaline lake	1
+BioSample ENV Local Scale	Mine Tailings	1
+BioSample ENV Local Scale	paddy field	1
+BioSample ENV Local Scale	acid hot spring	1
+BioSample ENV Local Scale	hot abyssal vents	1
+BioSample ENV Local Scale	piezometer water	1
+BioSample ENV Local Scale	Salt mine	1
+BioSample ENV Local Scale	Hyper saline ocean water	1
+BioSample ENV Local Scale	Soil nearby Aswan City	1
+BioSample ENV Medium	not provided; submitted under MIGS 2.1	11
+BioSample ENV Medium	mangrove sediments	2
+BioSample ENV Medium	soil	1
+BioSample ENV Medium	water	1
+BioSample ENV Medium	Sea	1
+BioSample ENV Medium	anoxic sediment	1
+BioSample ENV Medium	Water, [ENVO:00002007]	1
+BioSample ENV Medium	Water	1
+BioSample ENV Medium	sediments	1
+BioSample ENV Medium	Mineral Material	1
+BioSample ENV Medium	paddy field soil	1
+BioSample ENV Medium	acidic water	1
+BioSample ENV Medium	active smoker chimneys	1
+BioSample ENV Medium	pore water	1
+BioSample ENV Medium	Rock salt	1
+BioSample ENV Medium	Hyper saline ocean water	1
+BioSample ENV Medium	hypersaline soil	1
