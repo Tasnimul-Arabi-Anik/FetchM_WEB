@@ -1030,6 +1030,46 @@ def finish_inventory_snapshot(snapshot_id: str, raw_records: int, noncanonical: 
         summary['status'] = status
         return summary
 
+def finish_inventory_pilot_snapshot(
+    snapshot_id: str,
+    raw_records: int,
+    noncanonical: int,
+    duplicates: int,
+    *,
+    page_limit: int,
+) -> dict[str, Any]:
+    with connect() as connection:
+        root_total = int(connection.execute('SELECT COUNT(*) FROM bacterial_inventory_membership WHERE snapshot_id = %s', (snapshot_id,)).fetchone()[0])
+        inventory_row = connection.execute(
+            'SELECT source_database, canonical_accession_namespace, taxon_id FROM bacterial_inventory_snapshot WHERE snapshot_id = %s',
+            (snapshot_id,),
+        ).fetchone()
+        source_database = str(inventory_row[0]) if inventory_row else CANONICAL_SOURCE_DATABASE
+        accession_namespace = str(inventory_row[1]) if inventory_row else CANONICAL_ACCESSION_NAMESPACE
+        taxon_id = int(inventory_row[2]) if inventory_row and inventory_row[2] is not None else BACTERIA_TAXON_ID
+        profile = domain_profile_from_taxon_id(taxon_id)
+        if profile == BACTERIA_PROFILE:
+            profile = domain_profile_from_snapshot_id(snapshot_id)
+        status = 'pilot_completed' if root_total > 0 and noncanonical == 0 else 'failed'
+        summary = {
+            'domain_profile': profile.key, 'domain_label': profile.label,
+            'source_database': source_database, 'canonical_accession_namespace': accession_namespace,
+            'taxon_id': taxon_id, 'root_unique_assemblies': root_total,
+            'raw_records': raw_records, 'noncanonical_records': noncanonical, 'duplicate_records': duplicates,
+            'pilot_page_limit': page_limit, 'inventory_mode': 'rest_page_pilot',
+        }
+        connection.execute(
+            """UPDATE bacterial_inventory_snapshot
+            SET status = %s, completed_at = %s, raw_records = %s, root_unique_assemblies = %s,
+                noncanonical_records = %s, duplicate_records = %s, summary_json = %s
+            WHERE snapshot_id = %s""",
+            (status, utc_now(), raw_records, root_total, noncanonical, duplicates, Jsonb(summary), snapshot_id),
+        )
+        connection.commit()
+        summary['status'] = status
+        return summary
+
+
 def fail_inventory_snapshot(snapshot_id: str, error: str) -> None:
     with connect() as connection:
         connection.execute('UPDATE bacterial_inventory_snapshot SET status = %s, completed_at = %s, error = %s WHERE snapshot_id = %s', ('failed', utc_now(), error[:4000], snapshot_id))

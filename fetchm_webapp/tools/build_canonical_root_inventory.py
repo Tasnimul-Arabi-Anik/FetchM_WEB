@@ -22,6 +22,7 @@ from domain_profiles import DOMAIN_PROFILES, domain_profile, validate_snapshot_i
 from dataset_production_store import (
     fail_inventory_snapshot,
     finish_inventory_page,
+    finish_inventory_pilot_snapshot,
     finish_inventory_snapshot,
     insert_inventory_batch,
     inventory_page_progress,
@@ -72,10 +73,15 @@ def main() -> int:
     parser.add_argument("--retry-sleep", type=float, default=10.0)
     parser.add_argument("--request-timeout", type=float, default=120.0)
     parser.add_argument("--api-key", default=os.environ.get("NCBI_API_KEY", ""))
-    parser.add_argument("--max-pages", type=int, default=0, help="Stop after N pages for validation only; never completes a release snapshot.")
+    parser.add_argument("--max-pages", type=int, default=0, help="Stop after N pages for validation only; marks the snapshot failed.")
+    parser.add_argument("--pilot-pages", type=int, default=0, help="Stop after N pages and mark a bounded non-release pilot snapshot complete.")
     args = parser.parse_args()
     if not 1 <= args.page_size <= 1000:
         parser.error("--page-size must be between 1 and 1000")
+    if args.max_pages and args.pilot_pages:
+        parser.error("--max-pages and --pilot-pages are mutually exclusive")
+    if args.max_pages < 0 or args.pilot_pages < 0:
+        parser.error("--max-pages and --pilot-pages must be non-negative")
     profile = domain_profile(args.domain)
     snapshot_id = (
         validate_snapshot_id_for_profile(args.snapshot_id, profile)
@@ -108,6 +114,19 @@ def main() -> int:
                 snapshot_id, page_number, "completed", next_page_token=next_token, expected_total=expected_total,
                 raw_records=len(reports), canonical_records=written, noncanonical_records=invalid, duplicate_records=duplicates,
             )
+            if args.pilot_pages and page_number >= args.pilot_pages:
+                progress = inventory_page_progress(snapshot_id)
+                summary = finish_inventory_pilot_snapshot(
+                    snapshot_id,
+                    progress["raw_records"],
+                    progress["noncanonical_records"],
+                    progress["duplicate_records"],
+                    page_limit=args.pilot_pages,
+                )
+                summary.update(progress)
+                summary["inventory_mode"] = "rest_page_pilot"
+                print(json.dumps({"snapshot_id": snapshot_id, "domain_profile": profile.key, **summary}, sort_keys=True))
+                return 0 if summary.get("status") == "pilot_completed" else 1
             if args.max_pages and page_number >= args.max_pages:
                 raise RuntimeError("Validation max-pages limit reached; snapshot intentionally not complete.")
             if not next_token:

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 from domain_profiles import (
@@ -52,6 +55,12 @@ class DomainProfileTests(unittest.TestCase):
     def test_canonical_inventory_url_uses_profile_taxon_roots(self) -> None:
         self.assertIn(f"/taxon/{BACTERIA_TAXON_ID}/", canonical_inventory_tool.api_url(domain_profile("bacteria").ncbi_taxon_id))
         self.assertIn(f"/taxon/{ARCHAEA_TAXON_ID}/", canonical_inventory_tool.api_url(domain_profile("archaea").ncbi_taxon_id))
+
+    def test_canonical_inventory_cli_exposes_hidden_pilot_mode(self) -> None:
+        tool_path = Path(__file__).resolve().parents[1] / "tools" / "build_canonical_root_inventory.py"
+        result = subprocess.run([sys.executable, str(tool_path), "--help"], check=True, capture_output=True, text=True)
+        self.assertIn("--domain", result.stdout)
+        self.assertIn("--pilot-pages", result.stdout)
 
 
 if __name__ == "__main__":
