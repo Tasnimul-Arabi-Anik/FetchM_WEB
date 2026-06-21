@@ -9,7 +9,6 @@ Isolation_Source_SD	hindguts	2	observed_standardized_value	no action in audit-on
 Isolation_Source_SD	deep-sea hydrothermal vent	2	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD	deep-sea hydrothermal vent area at PACMANUS field	1	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD	high-temperature Samotlor oil reservoir	1	observed_standardized_value	no action in audit-only phase
-Isolation_Source_SD	Derek Lovley (dlovley@microbio.umass.edu)	1	person_or_email_in_standardized_field	review as provenance/metadata descriptor, not source
 Isolation_Source_SD	culture	1	process_descriptor_in_source_field	review culture/process wording before source promotion
 Isolation_Source_SD	solfataric field of Uzon caldera	1	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD	off shore oil field from Gulf of Guinea	1	observed_standardized_value	no action in audit-only phase
@@ -49,6 +48,7 @@ Isolation_Source_SD	subsurface	1	observed_standardized_value	no action in audit-
 Isolation_Source_SD	Canadian salted buffalo hide	1	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD	Rock salt from Permian period	1	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD	brine samples from the Gomso solar saltern	1	observed_standardized_value	no action in audit-only phase
+Isolation_Source_SD	Qidong intertidal zone	1	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD_Broad	environmental material	361	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD_Broad	clinical/host-associated material	124	observed_standardized_value	no action in audit-only phase
 Isolation_Source_SD_Broad	environmental/geologic material	6	observed_standardized_value	no action in audit-only phase

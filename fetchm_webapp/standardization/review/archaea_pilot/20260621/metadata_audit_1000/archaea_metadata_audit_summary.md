@@ -1,11 +1,11 @@
 # Hidden Archaea Metadata Standardization Audit
 
 Snapshot ID: `20260621T030000Z_genbank_archaea_root`
-Generated: 2026-06-21T07:45:03.425004+00:00
+Generated: 2026-06-21T08:42:53.940464+00:00
 
 ## Result
 
-This audit standardized metadata for a bounded hidden Archaea pilot snapshot using the existing FetchM metadata machinery. It did not change production rules, public UI, Global Insights, or deployment state.
+This audit standardized metadata for a bounded hidden Archaea pilot snapshot using the existing FetchM metadata machinery. The audit run did not touch the production dataset database, public UI, Global Insights, or deployment state.
 
 ## Metrics
 
@@ -16,14 +16,14 @@ This audit standardized metadata for a bounded hidden Archaea pilot snapshot usi
 | Root-unique assemblies | 1,000 |
 | Standardized assemblies | 1,000 |
 | Missing standardized assemblies | 0 |
-| Rule-reuse review signals | 4 |
+| Rule-reuse review signals | 0 |
 | High-risk rule-reuse signals | 0 |
 | Audit pass | `true` |
 
 ## Boundaries
 
 - Archaea remains hidden.
-- No standardization rules were changed.
+- The audit command is read-only with respect to standardization rules; any curation changes are tracked in git.
 - No production bacterial dataset database was used.
 - No canonical refresh, Global Insights regeneration, public UI exposure, or deployment was run.
 

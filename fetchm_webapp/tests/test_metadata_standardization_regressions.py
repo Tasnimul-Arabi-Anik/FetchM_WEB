@@ -2045,6 +2045,16 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(derived_strain["Isolation_Source_SD"], "culture")
         self.assertEqual(derived_strain["Host_SD"], "")
 
+        provenance_email = ensure_managed_metadata_schema(
+            {"Host": "", "Isolation Source": "Derek Lovley (dlovley@microbio.umass.edu)"}
+        )
+        self.assertEqual(provenance_email["Isolation_Source_SD"], "")
+        self.assertEqual(provenance_email["Sample_Type_SD"], "")
+
+        culture_provider = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "bought from DSMZ"})
+        self.assertEqual(culture_provider["Isolation_Source_SD"], "")
+        self.assertEqual(culture_provider["Sample_Type_SD"], "")
+
         spreadsheet_error = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "#REF!"})
         self.assertEqual(spreadsheet_error["Isolation_Source_SD"], "")
         self.assertEqual(spreadsheet_error["Sample_Type_SD"], "")

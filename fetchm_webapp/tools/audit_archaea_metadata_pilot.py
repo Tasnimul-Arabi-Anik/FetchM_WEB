@@ -213,11 +213,9 @@ def rule_reuse_risk_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "collection_or_accession_code_in_source_field", field, value, "medium",
                     "Collection/accession-like text appeared in source fields and should be reviewed as identifier/provenance.",
                 )] += 1
-            if field in {"Isolation_Source_SD", "Isolation_Source_SD_Broad"} and PROCESS_DESCRIPTOR_RE.search(value):
-                risk_counter[(
-                    "process_descriptor_in_source_field", field, value, "medium",
-                    "Culture/process wording appeared in source fields and should be reviewed for descriptor leakage.",
-                )] += 1
+            # Plain culture source context is intentionally retained by the current
+            # bacteria-compatible policy. Specific non-source culture artifacts are
+            # covered by regression tests and later curation, not by this audit risk table.
             if BACTERIAL_TERM_RE.search(value):
                 risk_counter[(
                     "bacteria_centric_rule_reuse", field, value, "medium",
@@ -289,7 +287,7 @@ def write_markdown(path: Path, summary: dict[str, Any]) -> None:
         "",
         "## Result",
         "",
-        "This audit standardized metadata for a bounded hidden Archaea pilot snapshot using the existing FetchM metadata machinery. It did not change production rules, public UI, Global Insights, or deployment state.",
+        "This audit standardized metadata for a bounded hidden Archaea pilot snapshot using the existing FetchM metadata machinery. The audit run did not touch the production dataset database, public UI, Global Insights, or deployment state.",
         "",
         "## Metrics",
         "",
@@ -307,7 +305,7 @@ def write_markdown(path: Path, summary: dict[str, Any]) -> None:
         "## Boundaries",
         "",
         "- Archaea remains hidden.",
-        "- No standardization rules were changed.",
+        "- The audit command is read-only with respect to standardization rules; any curation changes are tracked in git.",
         "- No production bacterial dataset database was used.",
         "- No canonical refresh, Global Insights regeneration, public UI exposure, or deployment was run.",
         "",

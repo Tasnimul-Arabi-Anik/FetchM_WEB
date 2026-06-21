@@ -3801,6 +3801,10 @@ def source_context_for_lab_or_metadata_artifact(value: Any) -> tuple[str, str] |
         return "healthcare-associated environment", "facility_code_router"
     if cleaned in {"cxwnd", "roar", "cipa", "esba", "bk", "o"}:
         return "metadata descriptor / non-source", "metadata_code_router"
+    if re.search(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", str(value), re.IGNORECASE):
+        return "", "provenance_descriptor_router"
+    if cleaned in {"bought from dsmz"}:
+        return "", "provenance_descriptor_router"
     if re.search(r"\b(?:derived from|parent strain|resistant derivatives|exposed to|ciprofloxacin|atcc)\b", cleaned):
         return "culture", "lab_artifact_router"
     if cleaned in {"isolated clone", "isolated organism"}:
