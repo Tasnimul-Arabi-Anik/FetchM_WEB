@@ -1,0 +1,501 @@
+{
+  "coverage": {
+    "Collection Date": {
+      "present_count": 34787,
+      "present_percent": 82.91,
+      "total_rows": 41956
+    },
+    "Continent": {
+      "present_count": 37302,
+      "present_percent": 88.91,
+      "total_rows": 41956
+    },
+    "Country": {
+      "present_count": 37302,
+      "present_percent": 88.91,
+      "total_rows": 41956
+    },
+    "Environment_Broad_Scale_SD": {
+      "present_count": 32116,
+      "present_percent": 76.55,
+      "total_rows": 41956
+    },
+    "Environment_Local_Scale_SD": {
+      "present_count": 14678,
+      "present_percent": 34.98,
+      "total_rows": 41956
+    },
+    "Environment_Medium_SD": {
+      "present_count": 33279,
+      "present_percent": 79.32,
+      "total_rows": 41956
+    },
+    "Host_Disease_SD": {
+      "present_count": 12,
+      "present_percent": 0.03,
+      "total_rows": 41956
+    },
+    "Host_Health_State_SD": {
+      "present_count": 29,
+      "present_percent": 0.07,
+      "total_rows": 41956
+    },
+    "Host_SD": {
+      "present_count": 1955,
+      "present_percent": 4.66,
+      "total_rows": 41956
+    },
+    "Isolation_Site_SD": {
+      "present_count": 906,
+      "present_percent": 2.16,
+      "total_rows": 41956
+    },
+    "Isolation_Source_SD": {
+      "present_count": 32282,
+      "present_percent": 76.94,
+      "total_rows": 41956
+    },
+    "Isolation_Source_SD_Broad": {
+      "present_count": 30669,
+      "present_percent": 73.1,
+      "total_rows": 41956
+    },
+    "Sample_Type_SD": {
+      "present_count": 6358,
+      "present_percent": 15.15,
+      "total_rows": 41956
+    },
+    "Subcontinent": {
+      "present_count": 37302,
+      "present_percent": 88.91,
+      "total_rows": 41956
+    }
+  },
+  "domain_label": "Archaea",
+  "domain_profile": "archaea",
+  "generated_at": "2026-06-21T10:46:40.972939+00:00",
+  "global_insights_regenerated": false,
+  "interpretation_boundary": "Repository-level Archaea metadata coverage and representation, not biological prevalence or public FetchM Global Insights.",
+  "missing_standardized_assemblies": 0,
+  "public_ui_exposed": false,
+  "root_unique_assemblies": 41956,
+  "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+  "standardized_assemblies": 41956,
+  "top_bioprojects": [
+    {
+      "row_count": 3746,
+      "row_percent": 8.93,
+      "value": "PRJEB104710"
+    },
+    {
+      "row_count": 3054,
+      "row_percent": 7.28,
+      "value": "PRJNA544494"
+    },
+    {
+      "row_count": 2920,
+      "row_percent": 6.96,
+      "value": "PRJEB82487"
+    },
+    {
+      "row_count": 1673,
+      "row_percent": 3.99,
+      "value": "PRJNA834572"
+    },
+    {
+      "row_count": 786,
+      "row_percent": 1.87,
+      "value": "PRJNA1176337"
+    },
+    {
+      "row_count": 720,
+      "row_percent": 1.72,
+      "value": "PRJNA983538"
+    },
+    {
+      "row_count": 651,
+      "row_percent": 1.55,
+      "value": "PRJNA821212"
+    },
+    {
+      "row_count": 623,
+      "row_percent": 1.48,
+      "value": "PRJNA348753"
+    },
+    {
+      "row_count": 597,
+      "row_percent": 1.42,
+      "value": "PRJEB58634"
+    },
+    {
+      "row_count": 569,
+      "row_percent": 1.36,
+      "value": "PRJNA950938"
+    }
+  ],
+  "top_collection_years": [
+    {
+      "row_count": 4180,
+      "row_percent": 9.96,
+      "value": "2018"
+    },
+    {
+      "row_count": 4048,
+      "row_percent": 9.65,
+      "value": "2017"
+    },
+    {
+      "row_count": 3546,
+      "row_percent": 8.45,
+      "value": "2019"
+    },
+    {
+      "row_count": 3322,
+      "row_percent": 7.92,
+      "value": "2016"
+    },
+    {
+      "row_count": 2409,
+      "row_percent": 5.74,
+      "value": "2021"
+    },
+    {
+      "row_count": 2148,
+      "row_percent": 5.12,
+      "value": "2015"
+    },
+    {
+      "row_count": 2129,
+      "row_percent": 5.07,
+      "value": "2020"
+    },
+    {
+      "row_count": 1549,
+      "row_percent": 3.69,
+      "value": "2011"
+    },
+    {
+      "row_count": 1459,
+      "row_percent": 3.48,
+      "value": "2023"
+    },
+    {
+      "row_count": 1453,
+      "row_percent": 3.46,
+      "value": "2014"
+    }
+  ],
+  "top_countries": [
+    {
+      "row_count": 11810,
+      "row_percent": 28.15,
+      "value": "China"
+    },
+    {
+      "row_count": 5638,
+      "row_percent": 13.44,
+      "value": "United States"
+    },
+    {
+      "row_count": 3856,
+      "row_percent": 9.19,
+      "value": "Pacific Ocean"
+    },
+    {
+      "row_count": 2320,
+      "row_percent": 5.53,
+      "value": "Mexico"
+    },
+    {
+      "row_count": 2291,
+      "row_percent": 5.46,
+      "value": "Atlantic Ocean"
+    },
+    {
+      "row_count": 1083,
+      "row_percent": 2.58,
+      "value": "Canada"
+    },
+    {
+      "row_count": 1066,
+      "row_percent": 2.54,
+      "value": "Denmark"
+    },
+    {
+      "row_count": 861,
+      "row_percent": 2.05,
+      "value": "Russia"
+    },
+    {
+      "row_count": 668,
+      "row_percent": 1.59,
+      "value": "Australia"
+    },
+    {
+      "row_count": 599,
+      "row_percent": 1.43,
+      "value": "Germany"
+    }
+  ],
+  "top_environment_broad_scale": [
+    {
+      "row_count": 9759,
+      "row_percent": 23.26,
+      "value": "marine environment"
+    },
+    {
+      "row_count": 6851,
+      "row_percent": 16.33,
+      "value": "aquatic sediment environment"
+    },
+    {
+      "row_count": 5641,
+      "row_percent": 13.45,
+      "value": "geologic/extreme environment"
+    },
+    {
+      "row_count": 4379,
+      "row_percent": 10.44,
+      "value": "terrestrial environment"
+    },
+    {
+      "row_count": 2080,
+      "row_percent": 4.96,
+      "value": "freshwater environment"
+    },
+    {
+      "row_count": 1135,
+      "row_percent": 2.71,
+      "value": "wastewater/sewage"
+    },
+    {
+      "row_count": 806,
+      "row_percent": 1.92,
+      "value": "estuarine environment"
+    },
+    {
+      "row_count": 714,
+      "row_percent": 1.7,
+      "value": "host-associated gut/oral/fecal environment"
+    },
+    {
+      "row_count": 243,
+      "row_percent": 0.58,
+      "value": "environmental sample"
+    },
+    {
+      "row_count": 151,
+      "row_percent": 0.36,
+      "value": "host-associated gut environment"
+    }
+  ],
+  "top_environment_media": [
+    {
+      "row_count": 11828,
+      "row_percent": 28.19,
+      "value": "sediment"
+    },
+    {
+      "row_count": 4222,
+      "row_percent": 10.06,
+      "value": "marine"
+    },
+    {
+      "row_count": 3948,
+      "row_percent": 9.41,
+      "value": "soil"
+    },
+    {
+      "row_count": 2548,
+      "row_percent": 6.07,
+      "value": "seawater"
+    },
+    {
+      "row_count": 2040,
+      "row_percent": 4.86,
+      "value": "groundwater"
+    },
+    {
+      "row_count": 1890,
+      "row_percent": 4.5,
+      "value": "agricultural/food-production water"
+    },
+    {
+      "row_count": 1143,
+      "row_percent": 2.72,
+      "value": "marine sediment"
+    },
+    {
+      "row_count": 799,
+      "row_percent": 1.9,
+      "value": "wastewater"
+    },
+    {
+      "row_count": 723,
+      "row_percent": 1.72,
+      "value": "hot spring water"
+    },
+    {
+      "row_count": 561,
+      "row_percent": 1.34,
+      "value": "lake water"
+    }
+  ],
+  "top_host_contexts": [
+    {
+      "row_count": 282,
+      "row_percent": 0.67,
+      "value": "human-associated"
+    },
+    {
+      "row_count": 184,
+      "row_percent": 0.44,
+      "value": "plant-associated"
+    },
+    {
+      "row_count": 130,
+      "row_percent": 0.31,
+      "value": "livestock/cattle"
+    },
+    {
+      "row_count": 53,
+      "row_percent": 0.13,
+      "value": "livestock/small ruminant"
+    },
+    {
+      "row_count": 48,
+      "row_percent": 0.11,
+      "value": "livestock/swine"
+    },
+    {
+      "row_count": 28,
+      "row_percent": 0.07,
+      "value": "poultry"
+    },
+    {
+      "row_count": 4,
+      "row_percent": 0.01,
+      "value": "fish"
+    },
+    {
+      "row_count": 2,
+      "row_percent": 0.0,
+      "value": "pet/companion animal"
+    },
+    {
+      "row_count": 1,
+      "row_percent": 0.0,
+      "value": "aquatic invertebrate"
+    },
+    {
+      "row_count": 1,
+      "row_percent": 0.0,
+      "value": "livestock/horse"
+    }
+  ],
+  "top_isolation_sources": [
+    {
+      "row_count": 26862,
+      "row_percent": 64.02,
+      "value": "environmental material"
+    },
+    {
+      "row_count": 3187,
+      "row_percent": 7.6,
+      "value": "clinical/host-associated material"
+    },
+    {
+      "row_count": 212,
+      "row_percent": 0.51,
+      "value": "wastewater/organic waste"
+    },
+    {
+      "row_count": 146,
+      "row_percent": 0.35,
+      "value": "mud"
+    },
+    {
+      "row_count": 87,
+      "row_percent": 0.21,
+      "value": "Canada Basin,western Arctic Ocean"
+    },
+    {
+      "row_count": 78,
+      "row_percent": 0.19,
+      "value": "temperate grassland biome"
+    },
+    {
+      "row_count": 72,
+      "row_percent": 0.17,
+      "value": "salt crust"
+    },
+    {
+      "row_count": 69,
+      "row_percent": 0.16,
+      "value": "fetilized topsoil"
+    },
+    {
+      "row_count": 53,
+      "row_percent": 0.13,
+      "value": "Northwest Arabian Sea Upwelling Province"
+    },
+    {
+      "row_count": 52,
+      "row_percent": 0.12,
+      "value": "South Atlantic Ocean"
+    }
+  ],
+  "top_sample_types": [
+    {
+      "row_count": 900,
+      "row_percent": 2.15,
+      "value": "drainage"
+    },
+    {
+      "row_count": 862,
+      "row_percent": 2.05,
+      "value": "cold seep"
+    },
+    {
+      "row_count": 804,
+      "row_percent": 1.92,
+      "value": "feces/stool"
+    },
+    {
+      "row_count": 737,
+      "row_percent": 1.76,
+      "value": "deep-sea hydrothermal deposit"
+    },
+    {
+      "row_count": 627,
+      "row_percent": 1.49,
+      "value": "cell culture"
+    },
+    {
+      "row_count": 529,
+      "row_percent": 1.26,
+      "value": "gut content"
+    },
+    {
+      "row_count": 251,
+      "row_percent": 0.6,
+      "value": "saline water"
+    },
+    {
+      "row_count": 230,
+      "row_percent": 0.55,
+      "value": "single cell"
+    },
+    {
+      "row_count": 213,
+      "row_percent": 0.51,
+      "value": "enrichment culture"
+    },
+    {
+      "row_count": 146,
+      "row_percent": 0.35,
+      "value": "produced fluids from hydraulically fractured shales"
+    }
+  ],
+  "visibility": "hidden_staging"
+}

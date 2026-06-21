@@ -8,12 +8,14 @@ import json
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import normalize_managed_metadata_row, standardize_secondary_metadata
+from domain_profiles import domain_profile_from_snapshot_id
 from dataset_production_store import connect, seed_standardized_metadata_batch, standardized_metadata_coverage
 from global_insights.generator import standardization_rule_manifest
 from tools.host_standardization_monitoring import generate_host_monitoring
@@ -47,8 +49,12 @@ def rows_to_restandardize(snapshot_id: str, last_accession: str, limit: int) -> 
     return payloads
 
 
-def restandardize_row(row: dict[str, Any]) -> dict[str, Any]:
-    normalized, _report = normalize_managed_metadata_row(row, force_standardization=True)
+def restandardize_row(row: dict[str, Any], domain_profile_key: str | None = None) -> dict[str, Any]:
+    normalized, _report = normalize_managed_metadata_row(
+        row,
+        force_standardization=True,
+        domain_profile=domain_profile_key,
+    )
     return normalized
 
 
@@ -69,6 +75,7 @@ def main() -> int:
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for validation runs only.")
     parser.add_argument("--standardization-workers", type=int, default=0)
     parser.add_argument("--rule-fingerprint", default="")
+    parser.add_argument("--skip-host-monitoring", action="store_true", help="Skip host-monitoring export side effects for hidden/staging runs.")
     parser.add_argument(
         "--secondary-only",
         action="store_true",
@@ -79,6 +86,7 @@ def main() -> int:
         parser.error("--batch-size must be between 1 and 50000")
     worker_default = int(os.environ.get("FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS", "10") or "10")
     workers = min(32, max(1, args.standardization_workers or worker_default))
+    active_domain_profile = domain_profile_from_snapshot_id(args.snapshot_id)
     rule_fingerprint = current_rule_fingerprint(args.rule_fingerprint or None)
     processed = updated = batches = 0
     last_accession = ""
@@ -93,9 +101,18 @@ def main() -> int:
             last_accession = str(payloads[-1].get("Assembly Accession") or last_accession)
             standardizer = restandardize_secondary_row if args.secondary_only else restandardize_row
             if executor is None or len(payloads) <= 1:
-                standardized = [standardizer(row) for row in payloads]
+                standardized = [
+                    standardizer(row) if args.secondary_only else standardizer(row, active_domain_profile.key)
+                    for row in payloads
+                ]
             else:
-                standardized = list(executor.map(standardizer, payloads, chunksize=max(1, len(payloads) // (workers * 4))))
+                if args.secondary_only:
+                    standardized = list(executor.map(standardizer, payloads, chunksize=max(1, len(payloads) // (workers * 4))))
+                else:
+                    standardized = list(executor.map(
+                        standardizer, payloads, repeat(active_domain_profile.key),
+                        chunksize=max(1, len(payloads) // (workers * 4)),
+                    ))
             result = seed_standardized_metadata_batch(
                 args.snapshot_id,
                 standardized,
@@ -113,6 +130,7 @@ def main() -> int:
     summary = {
         "snapshot_id": args.snapshot_id,
         "standardization_status": "restandardized_current_rules",
+        "domain_profile": active_domain_profile.key,
         "rule_fingerprint": rule_fingerprint,
         "batches_complete": batches,
         "processed_rows": processed,
@@ -121,7 +139,7 @@ def main() -> int:
         "secondary_only": bool(args.secondary_only),
         **standardized_metadata_coverage(args.snapshot_id),
     }
-    summary["host_standardization_monitoring"] = generate_host_monitoring(args.snapshot_id)
+    summary["host_standardization_monitoring"] = "skipped" if args.skip_host_monitoring else generate_host_monitoring(args.snapshot_id)
     print(json.dumps(summary, sort_keys=True))
     return 0
 

@@ -1,0 +1,17 @@
+{
+  "audit_pass": true,
+  "deployment_run": false,
+  "domain_profile": "archaea",
+  "generated_at": "2026-06-21T10:46:41.512255+00:00",
+  "global_insights_regenerated": false,
+  "inventory_status": "completed",
+  "missing_standardized_assemblies": 0,
+  "pipeline_pass": true,
+  "public_ui_exposed": false,
+  "root_unique_assemblies": 41956,
+  "rule_reuse_high_risk_rows": 0,
+  "rule_reuse_risk_rows": 0,
+  "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+  "standardized_assemblies": 41956,
+  "visibility": "hidden_staging"
+}

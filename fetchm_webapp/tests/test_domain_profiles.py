@@ -75,6 +75,24 @@ class DomainProfileTests(unittest.TestCase):
         self.assertIn("domain_profile_from_snapshot_id", source)
         self.assertIn("domain_profile=domain_profile_key", source)
 
+    def test_restandardization_cli_can_use_snapshot_domain_without_side_effect_exports(self) -> None:
+        tool_path = Path(__file__).resolve().parents[1] / "tools" / "restandardize_canonical_metadata.py"
+        source = tool_path.read_text(encoding="utf-8")
+        self.assertIn("domain_profile_from_snapshot_id", source)
+        self.assertIn("domain_profile=domain_profile_key", source)
+        self.assertIn("--skip-host-monitoring", source)
+
+    def test_hidden_archaea_pipeline_runner_keeps_outputs_non_public(self) -> None:
+        tool_path = Path(__file__).resolve().parents[1] / "tools" / "run_hidden_archaea_database_pipeline.py"
+        result = subprocess.run([sys.executable, str(tool_path), "--help"], check=True, capture_output=True, text=True)
+        self.assertIn("--snapshot-id", result.stdout)
+        self.assertIn("--skip-fetch", result.stdout)
+        source = tool_path.read_text(encoding="utf-8")
+        self.assertIn('"visibility": "hidden_staging"', source)
+        self.assertIn('"public_ui_exposed": False', source)
+        self.assertIn('"global_insights_regenerated": False', source)
+        self.assertIn('"deployment_run": False', source)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit hidden Archaea pilot metadata standardization without changing rules."""
+"""Audit hidden Archaea metadata standardization without changing rules."""
 
 from __future__ import annotations
 
@@ -42,6 +42,7 @@ SOURCE_SAMPLE_ENV_FIELDS = [
     "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD", "Isolation_Site_SD",
 ]
 DOMAIN_TERM_RE = re.compile(r"\b(archaea|archaeon|archaeal|methanogen|methanogenic)\b", re.I)
+DOMAIN_LABEL_ONLY_RE = re.compile(r"^(archaea|archaeon|archaeal|methanogen|methanogenic)$", re.I)
 BACTERIAL_TERM_RE = re.compile(r"\b(bacteria|bacterium|bacterial)\b", re.I)
 EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I)
 ACCESSION_OR_COLLECTION_RE = re.compile(r"\b(ATCC|DSM|JCM|NBRC|NCTC|KCTC|GCA_|GCF_)\s*[-A-Z0-9_.]*", re.I)
@@ -221,7 +222,7 @@ def rule_reuse_risk_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "bacteria_centric_rule_reuse", field, value, "medium",
                     "A bacteria-specific term appeared in a standardized field for an Archaea pilot record.",
                 )] += 1
-            if DOMAIN_TERM_RE.search(value) and field in {"Isolation_Source_SD", "Sample_Type_SD", "Isolation_Site_SD"}:
+            if DOMAIN_LABEL_ONLY_RE.fullmatch(value.strip()) and field in {"Isolation_Source_SD", "Sample_Type_SD", "Isolation_Site_SD"}:
                 risk_counter[(
                     "domain_label_as_source_or_sample", field, value, "medium",
                     "Domain labels should not be promoted to source/sample/site rules without archaeal review.",
@@ -239,6 +240,114 @@ def rule_reuse_risk_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for key, count in risk_counter.items()
     ]
     return sorted(rows, key=lambda row: (-int(row["affected_rows"]), row["risk_category"], row["field"], row["matched_value"]))
+
+
+def top_standardized_values(records: list[dict[str, Any]], field: str, limit: int = 10) -> list[dict[str, Any]]:
+    counter: Counter[str] = Counter()
+    for record in records:
+        value = clean(record["payload"].get(field))
+        if present(value):
+            counter[value] += 1
+    total = len(records)
+    return [
+        {"value": value, "row_count": count, "row_percent": pct(count, total)}
+        for value, count in counter.most_common(limit)
+    ]
+
+
+def build_hidden_insights(snapshot: dict[str, Any], records: list[dict[str, Any]], summary: dict[str, Any]) -> dict[str, Any]:
+    total = len(records)
+    coverage = {
+        field: {
+            "present_count": sum(1 for record in records if present(record["payload"].get(field))),
+            "total_rows": total,
+            "present_percent": pct(sum(1 for record in records if present(record["payload"].get(field))), total),
+        }
+        for field in [
+            "Country", "Continent", "Subcontinent", "Collection Date", "Host_SD",
+            "Isolation_Source_SD", "Isolation_Source_SD_Broad", "Sample_Type_SD",
+            "Environment_Medium_SD", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD",
+            "Isolation_Site_SD", "Host_Disease_SD", "Host_Health_State_SD",
+        ]
+    }
+    bioproject_counter: Counter[str] = Counter()
+    for record in records:
+        payload = record["payload"]
+        for field in ("BioProject Accession", "BioProject", "Assembly BioProject Accession"):
+            value = clean(payload.get(field))
+            if present(value):
+                bioproject_counter[value] += 1
+                break
+    top_bioproject = [
+        {"value": value, "row_count": count, "row_percent": pct(count, total)}
+        for value, count in bioproject_counter.most_common(10)
+    ]
+    return {
+        "generated_at": utc_now(),
+        "snapshot_id": snapshot["snapshot_id"],
+        "domain_profile": summary["domain_profile"],
+        "domain_label": summary["domain_label"],
+        "visibility": "hidden_staging",
+        "public_ui_exposed": False,
+        "global_insights_regenerated": False,
+        "root_unique_assemblies": summary["root_unique_assemblies"],
+        "standardized_assemblies": summary["standardized_assemblies"],
+        "missing_standardized_assemblies": summary["missing_standardized_assemblies"],
+        "coverage": coverage,
+        "top_countries": top_standardized_values(records, "Country"),
+        "top_collection_years": top_standardized_values(records, "Collection Date"),
+        "top_isolation_sources": top_standardized_values(records, "Isolation_Source_SD"),
+        "top_sample_types": top_standardized_values(records, "Sample_Type_SD"),
+        "top_environment_media": top_standardized_values(records, "Environment_Medium_SD"),
+        "top_environment_broad_scale": top_standardized_values(records, "Environment_Broad_Scale_SD"),
+        "top_host_contexts": top_standardized_values(records, "Host_Context_SD"),
+        "top_bioprojects": top_bioproject,
+        "interpretation_boundary": "Repository-level Archaea metadata coverage and representation, not biological prevalence or public FetchM Global Insights.",
+    }
+
+
+def write_hidden_insights_markdown(path: Path, insights: dict[str, Any]) -> None:
+    def coverage_line(field: str) -> str:
+        row = insights["coverage"].get(field, {})
+        return f"| {field} | {int(row.get('present_count') or 0):,} | {float(row.get('present_percent') or 0):.2f}% |"
+
+    lines = [
+        "# Hidden Archaea Metadata Insights",
+        "",
+        f"Snapshot ID: `{insights['snapshot_id']}`",
+        f"Generated: {insights['generated_at']}",
+        "",
+        "## Boundary",
+        "",
+        "This is a hidden staging analysis for Archaea metadata standardization. It is not public Global Insights, not NAR-facing, and not a deployment artifact.",
+        "",
+        "## Metrics",
+        "",
+        "| Metric | Value |",
+        "| --- | ---: |",
+        f"| Root-unique assemblies | {insights['root_unique_assemblies']:,} |",
+        f"| Standardized assemblies | {insights['standardized_assemblies']:,} |",
+        f"| Missing standardized assemblies | {insights['missing_standardized_assemblies']:,} |",
+        "",
+        "## Coverage",
+        "",
+        "| Field | Present rows | Coverage |",
+        "| --- | ---: | ---: |",
+    ]
+    for field in [
+        "Country", "Collection Date", "Host_SD", "Isolation_Source_SD", "Sample_Type_SD",
+        "Environment_Medium_SD", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD",
+        "Isolation_Site_SD", "Host_Disease_SD", "Host_Health_State_SD",
+    ]:
+        lines.append(coverage_line(field))
+    lines.extend([
+        "",
+        "## Interpretation",
+        "",
+        insights["interpretation_boundary"],
+        "",
+    ])
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def build_summary(snapshot: dict[str, Any], records: list[dict[str, Any]], coverage: dict[str, int], risks: list[dict[str, Any]]) -> dict[str, Any]:
@@ -274,6 +383,7 @@ def build_summary(snapshot: dict[str, Any], records: list[dict[str, Any]], cover
         "canonical_refresh_run": False,
         "global_insights_regenerated": False,
         "deployment_run": False,
+        "analysis_scope": "hidden_full" if snapshot["status"] == "completed" else "hidden_pilot",
         "next_step": "Review audit signals before any Archaea-specific rule curation or public exposure.",
     }
 
@@ -287,7 +397,7 @@ def write_markdown(path: Path, summary: dict[str, Any]) -> None:
         "",
         "## Result",
         "",
-        "This audit standardized metadata for a bounded hidden Archaea pilot snapshot using the existing FetchM metadata machinery. The audit run did not touch the production dataset database, public UI, Global Insights, or deployment state.",
+        "This audit standardized metadata for a hidden Archaea snapshot using the existing FetchM metadata machinery. The audit run did not touch public UI, Global Insights, or deployment state.",
         "",
         "## Metrics",
         "",
@@ -301,12 +411,13 @@ def write_markdown(path: Path, summary: dict[str, Any]) -> None:
         f"| Rule-reuse review signals | {summary['rule_reuse_risk_rows']:,} |",
         f"| High-risk rule-reuse signals | {summary['rule_reuse_high_risk_rows']:,} |",
         f"| Audit pass | `{str(summary['audit_pass']).lower()}` |",
+        f"| Analysis scope | `{summary['analysis_scope']}` |",
         "",
         "## Boundaries",
         "",
         "- Archaea remains hidden.",
         "- The audit command is read-only with respect to standardization rules; any curation changes are tracked in git.",
-        "- No production bacterial dataset database was used.",
+        "- Hidden Archaea outputs remain non-public and separate from the NAR-facing bacterial release.",
         "- No canonical refresh, Global Insights regeneration, public UI exposure, or deployment was run.",
         "",
         "## Outputs",
@@ -339,6 +450,7 @@ def main() -> int:
     sse_rows = source_sample_environment_rows(records, args.top_limit)
     risk_rows = rule_reuse_risk_rows(records)
     summary = build_summary(snapshot, records, coverage, risk_rows)
+    insights = build_hidden_insights(snapshot, records, summary)
 
     output_dir = args.output_dir
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -348,6 +460,8 @@ def main() -> int:
     write_tsv(output_dir / "rule_reuse_risk.tsv", ["risk_category", "field", "matched_value", "affected_rows", "severity", "rationale", "recommended_action"], risk_rows)
     (output_dir / "archaea_metadata_audit_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_markdown(output_dir / "archaea_metadata_audit_summary.md", summary)
+    (output_dir / "hidden_archaea_metadata_insights.json").write_text(json.dumps(insights, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_hidden_insights_markdown(output_dir / "hidden_archaea_metadata_insights.md", insights)
     print(json.dumps(summary, sort_keys=True))
     return 0 if summary["audit_pass"] else 1
 

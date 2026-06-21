@@ -1,0 +1,765 @@
+source_field	raw_value	row_count
+Host	Homo sapiens	165
+Host	Subsurface shale	97
+Host	Metopus sp.	64
+Host	goat	36
+Host	sheep	35
+Host	Bos taurus	35
+Host	Tibetan Yak	30
+Host	yak	27
+Host	San Clemente Island Goat	25
+Host	water buffalo	25
+Host	Sus scrofa	24
+Host	Vazella pourtalesii	21
+Host	Sus scrofa domesticus	20
+Host	Porites lutea	17
+Host	Equus caballus	17
+Host	cattle	16
+Host	Tibetan Sheep	16
+Host	roe deer	15
+Host	water deer	15
+Host	Ircinia ramosa	14
+Host	Gallus gallus	14
+Host	Tibetan Ass	14
+Host	Tibetan Antelope	14
+Host	Ianthella basta	13
+Host	Labiotermes labralis	12
+Host	Tibetan Horse	10
+Host	Ovis aries	9
+Host	Populus alba	9
+Host	plankton	9
+Host	tibetan pig	9
+Host	dairy cattle	9
+Host	swine	9
+Host	Geodia parva	9
+Host	Stylissa flabelliformis	8
+Host	Termes hospes	8
+Host	Sus scrofa vittatus	8
+Host	Urostomides striatus	8
+Host	Neocapritermes taracua	7
+Host	Sporobolus alterniflorus	7
+Host	Petaurus gracilis	6
+Host	Lasiorhinus latifrons	6
+Host	Rhopaloeides odorabile	6
+Host	Tibetan Cattle	6
+Host	Plagiopyla sp.	6
+Host	Anaerocyclidium porcatum	6
+Host	Pachastrella ovisternata	6
+Host	Reticulitermes flavipes	5
+Host	Petrosia ficiformis	5
+Host	Periplaneta americana	5
+Host	Heterometopus palaeformis	5
+Host	Plagiopyla sp. strain OYSTR	5
+Host	Bos indicus	4
+Host	Embiratermes neotenicus	4
+Host	Cornitermes sp.	4
+Host	Geodia phlegraei	4
+Host	Neoschrammeniella cf bowerbankii	4
+Host	ovine	3
+Host	Coelocarteria singaporensis	3
+Host	Isognathotermes ugandensis	3
+Host	Mycale hentscheli	3
+Host	Coscinoderma mathewsi	3
+Host	Theonella swinhoei	3
+Host	pig	3
+Host	Saimiri boliviensis	3
+Host	Macaca fascicularis	3
+Host	Gorilla gorilla	3
+Host	Astalotermes quietus	3
+Host	Hodotermes mossambicus	3
+Host	Myxilla lissostyla	3
+Host	Tetillidae sp.	3
+Host	Calyx sp.	3
+Host	Plagiopyla frontata	3
+Host	Cinachyrella kuekenthali	3
+Host	Stryphnus fortis	3
+Host	Calthropella geodioides	3
+Host	Themiste lageniformis	3
+Host	Penares turmericolor	3
+Host	Bolosoma cyanae	3
+Host	Petrosia crassa	3
+Host	Craniella infrequens	3
+Host	bovine	2
+Host	Acidulobus	2
+Host	Hexadella cf. dedritifera	2
+Host	Hexadella dedritifera	2
+Host	Laminaria	2
+Host	Nasutitermes corniger	2
+Host	Candia tropicalis	2
+Host	Isopora palifera	2
+Host	Aldabrachelys gigantea	2
+Host	Equus quagga chapmani	2
+Host	Cyclura cornuta	2
+Host	Polyspathotermes sulcifrons	2
+Host	Coatitermes kartaboensis	2
+Host	Cornitermes pugnax	2
+Host	Mastotermes darwiniensis	2
+Host	Jugositermes tuberculatus	2
+Host	Nasutitermes lujae	2
+Host	Zootermopsis nevadensis	2
+Host	Dicuspiditermes spinitibialis	2
+Host	Porotermes quadricollis	2
+Isolation Source	Hot spring sediment	2960
+Isolation Source	marine metagenome	2542
+Isolation Source	sediment	2285
+Isolation Source	soil	1710
+Isolation Source	groundwater	830
+Isolation Source	mangrove wetland sediment	779
+Isolation Source	seawater	737
+Isolation Source	deep-sea hydrothermal deposit	737
+Isolation Source	marine sediment	720
+Isolation Source	marine hydrothermal vent	651
+Isolation Source	cold seep	628
+Isolation Source	acid mine drainage sediment	558
+Isolation Source	groundwater metagenome	537
+Isolation Source	sediment metagenome	484
+Isolation Source	hydrothermal vent metagenome	478
+Isolation Source	marine sediment metagenome	469
+Isolation Source	hot spring sediment	438
+Isolation Source	brackish groundwater	390
+Isolation Source	coastal marine sediment	334
+Isolation Source	marine hydrothermal sediment	319
+Isolation Source	hypoxic seawater	296
+Isolation Source	marine water	286
+Isolation Source	Activated sludge of municipal wastewater treatment plants	277
+Isolation Source	metagenome	272
+Isolation Source	peat soil	269
+Isolation Source	deep sea sediment	216
+Isolation Source	terrestrial hot spring	210
+Isolation Source	saline water (ENVO:00002010), including plankton (ENVO:xxxxxxxx)	201
+Isolation Source	marine water sample	190
+Isolation Source	freshwater sediment	188
+Isolation Source	groundwater from Aspo HRL borehole	188
+Isolation Source	sea water	183
+Isolation Source	ruminant gastrointestinal tract	160
+Isolation Source	hot springs metagenome	158
+Isolation Source	feces	152
+Isolation Source	hot spring	151
+Isolation Source	water column	151
+Isolation Source	salt marsh metagenome	148
+Isolation Source	mud	146
+Isolation Source	fecal sample	144
+Isolation Source	Coastal bare tidal sandflat sediment	136
+Isolation Source	Seawater from oxygen minimum zone	134
+Isolation Source	single cell amplified by WGA-X; Bigelow Laboratory Dock	133
+Isolation Source	Produced fluids from hydraulically fractured shales	131
+Isolation Source	microbial mat metagenome	128
+Isolation Source	water	126
+Isolation Source	cattle rumen	125
+Isolation Source	human gut metagenome	125
+Isolation Source	permafrost soil	117
+Isolation Source	acid mine drainage	112
+Isolation Source	hot spring sediments from shelf	111
+Isolation Source	hypersaline soda lake sediment	108
+Isolation Source	Guaymas Basin sediment from dive 4484 depth 3-4 cm	106
+Isolation Source	cold seep surface sediment	105
+Isolation Source	Aspo HRL	103
+Isolation Source	estuary	101
+Isolation Source	cold seep sediments	97
+Isolation Source	permafrost active layer soil	95
+Isolation Source	wetland soil	95
+Isolation Source	lake sediment	93
+Isolation Source	freshwater wetland soil	90
+Isolation Source	Guaymas Basin sediment from dive 4484 depth 0-1 cm	90
+Isolation Source	high altitude fresh fecal sample	90
+Isolation Source	Fankou acid mine drainage sediment Core B	87
+Isolation Source	Canada Basin,western Arctic Ocean	87
+Isolation Source	lake water	86
+Isolation Source	seawater from oxygen minimum zone	84
+Isolation Source	hot springs sediment	82
+Isolation Source	Estuarine surface sediment	81
+Isolation Source	anoxic seawater	80
+Isolation Source	temperate grassland biome	78
+Isolation Source	Peat samples collected from the inside of the SPRUCE enclosures	77
+Isolation Source	lake water metagenome	77
+Isolation Source	biofilm from cave	76
+Isolation Source	Coastal bare tidal mudflat sediment	75
+Isolation Source	salt crust	74
+Isolation Source	leachate from a leachate well at an active municipal landfill in Southern Ontario	74
+Isolation Source	soil metagenome	74
+Isolation Source	wastewater metagenome	71
+Isolation Source	anoxic sediment	70
+Isolation Source	fetilized topsoil	69
+Isolation Source	Fankou acid mine drainage sediment Core A	68
+Isolation Source	seawater metagenome	68
+Isolation Source	stool	65
+Isolation Source	Soil from Agriculture Fields	65
+Isolation Source	freshwater sediment metagenome	64
+Isolation Source	human gut	62
+Isolation Source	White biofilm from Aegir hydrothermal vent field - GS20-ROV9-BS1	60
+Isolation Source	freshwater metagenome	60
+Isolation Source	waste water	59
+Isolation Source	hot spring microbial mat	58
+Isolation Source	sediments	57
+Isolation Source	rare earth elements-acid mine drainage (REEs-AMD) contaminated river water	57
+Isolation Source	mesophilic anaerobic digester	57
+Isolation Source	Hydrothermal vent field- Sediment	56
+Isolation Source	anaerobic digestion of organic wastes under variable temperature conditions and feedstocks	55
+Isolation Source	Grassland soil	55
+Isolation Source	Hot spring water	54
+Isolation Source	Northwest Arabian Sea Upwelling Province	53
+Isolation Source	South Atlantic Ocean	52
+Sample Type	metagenomic assembly	25440
+Sample Type	cell culture	587
+Sample Type	single cell	88
+Sample Type	MIGS/MIMS/MIMARKS.sediment	63
+Sample Type	pure culture	51
+Sample Type	Single Cell	45
+Sample Type	Metagenomic assembly	38
+Sample Type	isolate monoculture	35
+Sample Type	Cell culture	33
+Sample Type	cell cuture	31
+Sample Type	whole organism	30
+Sample Type	metagenome assembly	28
+Sample Type	strain	26
+Sample Type	Metagenomic Assembly	24
+Sample Type	metagenome assembled genome	20
+Sample Type	Pure culture of isolated strains	20
+Sample Type	isolated culture	19
+Sample Type	mixed culture	17
+Sample Type	Whole organism	15
+Sample Type	pure isolate	15
+Sample Type	metagenomic source	13
+Sample Type	MIGS/MIMS/MIMARKS.microbial	11
+Sample Type	clonal isolate	10
+Sample Type	MIGS/MIMS/MIMARKS.water	9
+Sample Type	saline water	9
+Sample Type	Haloarchaeal cells	7
+Sample Type	Single cell	6
+Sample Type	sediment	6
+Sample Type	Saline soil	6
+Sample Type	Mixed culture	5
+Sample Type	sediments	5
+Sample Type	isolate	5
+Sample Type	salt lake	5
+Sample Type	Metagenome Assembled Genome	4
+Sample Type	Salt lake	4
+Sample Type	anaerobic sediment	4
+Sample Type	brine water	3
+Sample Type	sediment sample	3
+Sample Type	Saline Water	3
+Sample Type	Cell Culture	3
+Sample Type	archaea	3
+Sample Type	aerobic sediments	3
+Sample Type	monoisolate	2
+Sample Type	metagenomic asssembly	2
+Sample Type	Sediment	2
+Sample Type	Enrichment culture	2
+Sample Type	metagenomic assemly	2
+Sample Type	archaea culture	2
+Sample Type	microbes	2
+Sample Type	Genomic DNA	2
+Sample Type	Bioreactor_metagenome	2
+Sample Type	metagenomic sample	2
+Sample Type	axenic culture	2
+Sample Type	enrichment culture	2
+Sample Type	Liophile	2
+Sample Type	lyophilic	2
+Sample Type	marine sediment	2
+Sample Type	environmental sample	2
+Sample Type	liquid culture	2
+Sample Type	sediments from hypersaline soda lakes	2
+Sample Type	Pure microbial cell culture	2
+Sample Type	Solar saltern	2
+Sample Type	nd	1
+Sample Type	culture	1
+Sample Type	whole genome	1
+Sample Type	Soil	1
+Sample Type	Isolate	1
+Sample Type	Microbe	1
+Sample Type	tissue samples	1
+Sample Type	hydrothermal vent chimney fragment (Pl 1747-BIG03E01)	1
+Sample Type	black smoker chimney fragment	1
+Sample Type	Solar Saltern Sample	1
+Sample Type	water column	1
+Sample Type	pure microbial culture	1
+Sample Type	Cyanobacterial mats bottom deposit	1
+Sample Type	type species	1
+Sample Type	Mixed water and sediment samples	1
+Sample Type	single colony isolated from feacal sample	1
+Sample Type	whole organisms	1
+Sample Type	stool	1
+Sample Type	rumen fluid	1
+Sample Type	metagenome-assembled genome	1
+Sample Type	solar salt	1
+Sample Type	saline soil	1
+Sample Type	salt water	1
+Sample Type	Brine sample	1
+Sample Type	culture of archaeon	1
+Sample Type	Mixed culture (from sediment)	1
+Sample Type	Archaea	1
+Sample Type	soil sample	1
+Sample Type	Environmental sample	1
+Sample Type	bottom mud	1
+Sample Type	Culture	1
+Sample Type	cultured organism	1
+Sample Type	water and sediment mix sampled in hot spring	1
+Sample Type	Salt Microbe	1
+Sample Type	Salt	1
+Sample Type	Brine	1
+Sample Type	sea water	1
+Sample Type	water sample	1
+Collection_Date_Evidence	2018	4180
+Collection_Date_Evidence	2017	4048
+Collection_Date_Evidence	2019	3546
+Collection_Date_Evidence	2016	3319
+Collection_Date_Evidence	2021	2409
+Collection_Date_Evidence	2015	2148
+Collection_Date_Evidence	2020	2129
+Collection_Date_Evidence	2011	1549
+Collection_Date_Evidence	2023	1459
+Collection_Date_Evidence	2014	1453
+Collection_Date_Evidence	2022	1317
+Collection_Date_Evidence	2013	1292
+Collection_Date_Evidence	2009	1289
+Collection_Date_Evidence	2012	1099
+Collection_Date_Evidence	2010	1012
+Collection_Date_Evidence	2008	754
+Collection_Date_Evidence	2004	431
+Collection_Date_Evidence	2003	311
+Collection_Date_Evidence	2007	156
+Collection_Date_Evidence	2024	140
+Collection_Date_Evidence	2001	137
+Collection_Date_Evidence	2006	118
+Collection_Date_Evidence	2025	100
+Collection_Date_Evidence	2005	98
+Collection_Date_Evidence	2000	60
+Collection_Date_Evidence	2002	42
+Collection_Date_Evidence	s from lakes and estuaries along the Chattahoochee River collected between June/2010 and December/2014	22
+Collection_Date_Evidence	1995	21
+Collection_Date_Evidence	1988	21
+Collection_Date_Evidence	1998	20
+Collection_Date_Evidence	1997	16
+Collection_Date_Evidence	1993	15
+Collection_Date_Evidence	1999	10
+Collection_Date_Evidence	activated sludge from Shatin waste water treatment plant collected monthly from 2007 through 2015	10
+Collection_Date_Evidence	1984	7
+Collection_Date_Evidence	1994	6
+Collection_Date_Evidence	1982	5
+Collection_Date_Evidence	1985	5
+Collection_Date_Evidence	1990	4
+Collection_Date_Evidence	1992	4
+Collection_Date_Evidence	1991	4
+Collection_Date_Evidence	1983	3
+Collection_Date_Evidence	1980	3
+Collection_Date_Evidence	1986	3
+Collection_Date_Evidence	subsea tunnel biofilm collected in 2016, 2017, 2019 and 2020	3
+Collection_Date_Evidence	1934	2
+Collection_Date_Evidence	1962	1
+Collection_Date_Evidence	1996	1
+Collection_Date_Evidence	1966	1
+Collection_Date_Evidence	1968	1
+Collection_Date_Evidence	1972	1
+Collection_Date_Evidence	1989	1
+Collection_Date_Evidence	1971	1
+Geographic Location	China	11805
+Geographic Location	United States	5638
+Geographic Location	Pacific Ocean	3856
+Geographic Location	Mexico	2320
+Geographic Location	Atlantic Ocean	2291
+Geographic Location	Canada	1083
+Geographic Location	Denmark	1066
+Geographic Location	Russia	861
+Geographic Location	Australia	667
+Geographic Location	Germany	593
+Geographic Location	Sweden	484
+Geographic Location	Japan	384
+Geographic Location	Arctic Ocean	365
+Geographic Location	Spain	358
+Geographic Location	United Kingdom	332
+Geographic Location	Indonesia	314
+Geographic Location	Indian Ocean	308
+Geographic Location	Finland	266
+Geographic Location	Chile	257
+Geographic Location	Estonia	246
+Geographic Location	India	223
+Geographic Location	Malaysia	222
+Geographic Location	New Zealand	197
+Geographic Location	Italy	177
+Geographic Location	Saudi Arabia	177
+Geographic Location	Israel	164
+Geographic Location	Antarctica	152
+Geographic Location	Brazil	151
+Geographic Location	Ethiopia	149
+Geographic Location	South Korea	138
+Geographic Location	France	116
+Geographic Location	Venezuela	111
+Geographic Location	missing: third party data	106
+Geographic Location	Baltic Sea	101
+Geographic Location	North Sea	99
+Geographic Location	Costa Rica	95
+Geographic Location	Iran	88
+Geographic Location	South Africa	88
+Geographic Location	Colombia	82
+Geographic Location	Mediterranean Sea	75
+Geographic Location	Uganda	60
+Geographic Location	Switzerland	55
+Geographic Location	Netherlands	53
+Geographic Location	Hong Kong	50
+Geographic Location	Turkey	47
+Geographic Location	Norway	45
+Geographic Location	Greece	45
+Geographic Location	Romania	45
+Geographic Location	Taiwan	43
+Geographic Location	Puerto Rico	43
+Geographic Location	Tanzania	42
+Geographic Location	Ecuador	42
+Geographic Location	Singapore	41
+Geographic Location	Bulgaria	34
+Geographic Location	French Guiana	33
+Geographic Location	missing: sample group	33
+Geographic Location	Rwanda	32
+Geographic Location	Austria	27
+Geographic Location	Kenya	24
+Geographic Location	Iceland	20
+Geographic Location	Tunisia	18
+Geographic Location	Republic of the Congo	18
+Geographic Location	Svalbard	18
+Geographic Location	Democratic Republic of the Congo	18
+Geographic Location	Southern Ocean	16
+Geographic Location	Mayotte	15
+Geographic Location	Portugal	14
+Geographic Location	Ukraine	13
+Geographic Location	Cameroon	13
+Geographic Location	Philippines	12
+Geographic Location	Oman	12
+Geographic Location	Gabon	11
+Geographic Location	Ivory Coast	11
+Geographic Location	Czech Republic	10
+Geographic Location	Cayman Islands	10
+Geographic Location	Vietnam	10
+Geographic Location	Thailand	9
+Geographic Location	Ireland	9
+Geographic Location	Nigeria	9
+Geographic Location	Namibia	8
+Geographic Location	Poland	8
+Geographic Location	Cuba	8
+Geographic Location	Luxembourg	8
+Geographic Location	Fiji	8
+Geographic Location	Egypt	7
+Geographic Location	Kyrgyzstan	7
+Geographic Location	Hungary	7
+Geographic Location	Nepal	7
+Geographic Location	Argentina	6
+Geographic Location	Slovenia	6
+Geographic Location	Kazakhstan	6
+Geographic Location	Uzbekistan	6
+Geographic Location	Papua New Guinea	5
+Geographic Location	Mongolia	5
+Geographic Location	Bolivia	5
+Geographic Location	Panama	5
+Geographic Location	Madagascar	4
+Geographic Location	Reunion	4
+Geographic Location	Paracel Islands	4
+Geographic Location	missing: lab stock	4
+BioSample ENV Package	MIGS/MIMS/MIMARKS.sediment	63
+BioSample ENV Package	MIGS/MIMS/MIMARKS.microbial	11
+BioSample ENV Package	MIGS/MIMS/MIMARKS.water	9
+BioSample ENV Package	sediment	2
+BioSample ENV Package	Sediment	1
+BioSample ENV Broad Scale	Hot spring	3095
+BioSample ENV Broad Scale	aquatic	1888
+BioSample ENV Broad Scale	terrestrial	822
+BioSample ENV Broad Scale	mangrove wetland	779
+BioSample ENV Broad Scale	marine hydrothermal vent biome [ENVO:01000030]	756
+BioSample ENV Broad Scale	soil biome [ENVO:01001044]	720
+BioSample ENV Broad Scale	aquatic biome	702
+BioSample ENV Broad Scale	marine benthic biome [ENVO:01000024]	617
+BioSample ENV Broad Scale	marine	574
+BioSample ENV Broad Scale	sediments	557
+BioSample ENV Broad Scale	ocean_biome	502
+BioSample ENV Broad Scale	marine biome [ENVO:00000447]	496
+BioSample ENV Broad Scale	water	478
+BioSample ENV Broad Scale	ocean biome	403
+BioSample ENV Broad Scale	aquatic biome [ENVO:00002030]	397
+BioSample ENV Broad Scale	wetland ecosystem [ENVO_01001209]	364
+BioSample ENV Broad Scale	sediment	342
+BioSample ENV Broad Scale	landfill [ENVO:00000533]	336
+BioSample ENV Broad Scale	Aquatic	322
+BioSample ENV Broad Scale	ENVO:00000051	316
+BioSample ENV Broad Scale	groundwater	302
+BioSample ENV Broad Scale	seawater	289
+BioSample ENV Broad Scale	marine pelagic biome	276
+BioSample ENV Broad Scale	Freshwater	275
+BioSample ENV Broad Scale	contaminated water	260
+BioSample ENV Broad Scale	Tidal Flat	252
+BioSample ENV Broad Scale	groundwater planktonic microbiome	247
+BioSample ENV Broad Scale	hot spring [ENVO:00000051]	239
+BioSample ENV Broad Scale	mangrove biome	229
+BioSample ENV Broad Scale	tropical biome [ENVO:01001830]|peatland [ENVO:00000044]	227
+BioSample ENV Broad Scale	Soil	210
+BioSample ENV Broad Scale	estuarine biome [ENVO:01000020]	202
+BioSample ENV Broad Scale	deep-sea sediment	192
+BioSample ENV Broad Scale	lentic water body	191
+BioSample ENV Broad Scale	engineered	184
+BioSample ENV Broad Scale	deep sea biome	171
+BioSample ENV Broad Scale	marine water column	169
+BioSample ENV Broad Scale	marine biome [ENVO_00000447]	162
+BioSample ENV Broad Scale	Environmental	152
+BioSample ENV Broad Scale	human	148
+BioSample ENV Broad Scale	estuarine biome	147
+BioSample ENV Broad Scale	riverine biome	135
+BioSample ENV Broad Scale	hot spring biome	134
+BioSample ENV Broad Scale	ENVO:00002012	131
+BioSample ENV Broad Scale	soil	128
+BioSample ENV Broad Scale	ENVO:01000030 (marine hydrothermal vent biome)	126
+BioSample ENV Broad Scale	Bos taurus	125
+BioSample ENV Broad Scale	marine biome	119
+BioSample ENV Broad Scale	hydrothermal vent field	119
+BioSample ENV Broad Scale	hypersaline lake	116
+BioSample ENV Broad Scale	subsurface metagenome	116
+BioSample ENV Broad Scale	hominid body	111
+BioSample ENV Broad Scale	hot spring	110
+BioSample ENV Broad Scale	permafrost soil	108
+BioSample ENV Broad Scale	subsurface	105
+BioSample ENV Broad Scale	marine biome (ENVO:00000447)	105
+BioSample ENV Broad Scale	marine sediment biome	100
+BioSample ENV Broad Scale	ENVO:00000428	93
+BioSample ENV Broad Scale	terrestrial biome	91
+BioSample ENV Broad Scale	soda lake	90
+BioSample ENV Broad Scale	Digestive tract enviroment	90
+BioSample ENV Broad Scale	ENVO:00000447	89
+BioSample ENV Broad Scale	anthropogenic terrestrial	88
+BioSample ENV Broad Scale	freshwater wetland soil	87
+BioSample ENV Broad Scale	terrestrial biome [ENVO:00000446]	81
+BioSample ENV Broad Scale	Estuarine Biome	81
+BioSample ENV Broad Scale	wetland ecosystem [ENVO:01001209] | peatland[ENVO:00000044]	77
+BioSample ENV Broad Scale	Naturally formed, subterranean open area or chamber [ENVO: 00000067]	76
+BioSample ENV Broad Scale	desert	72
+BioSample ENV Broad Scale	Anoxic sediment	70
+BioSample ENV Broad Scale	Freshwater sediment biome	69
+BioSample ENV Broad Scale	anaerobic digester microbiome	69
+BioSample ENV Broad Scale	groundwater microbiome	67
+BioSample ENV Broad Scale	Fields	67
+BioSample ENV Broad Scale	freshwater ecosystem	65
+BioSample ENV Broad Scale	Deepsea	64
+BioSample ENV Broad Scale	Estuary	63
+BioSample ENV Broad Scale	human-associated habitat	62
+BioSample ENV Broad Scale	ENVO:00001998	61
+BioSample ENV Broad Scale	Water	61
+BioSample ENV Broad Scale	digestive tract environment	60
+BioSample ENV Broad Scale	mine [ENVO: 00000076]|mine drainage [ENVO: 00001996]	57
+BioSample ENV Broad Scale	Bogs, mires and fens	57
+BioSample ENV Broad Scale	Sediment	52
+BioSample ENV Broad Scale	Sheep digestive system	50
+BioSample ENV Broad Scale	lake sediment microbiome	48
+BioSample ENV Broad Scale	temperate woodland biome [ENVO:01000221]	48
+BioSample ENV Broad Scale	acidic hot spring	47
+BioSample ENV Broad Scale	oceanic epipelagic zone biome	47
+BioSample ENV Broad Scale	Chihuahua desert | Cuatro Cienegas basin	47
+BioSample ENV Broad Scale	marine benthic biome (ENVO:01000024)	47
+BioSample ENV Broad Scale	ENVO:01001020	46
+BioSample ENV Broad Scale	Pig digestive system	46
+BioSample ENV Broad Scale	hydrothermal fluid	45
+BioSample ENV Broad Scale	Human digestive system	45
+BioSample ENV Broad Scale	Coastal	44
+BioSample ENV Broad Scale	host	44
+BioSample ENV Broad Scale	Terrestrial biome [ENVO:00000446]	43
+BioSample ENV Broad Scale	subsurface sediment biome	42
+BioSample ENV Broad Scale	desert biome [ENVO:01000179]	42
+BioSample ENV Local Scale	Hot spring sediment	3065
+BioSample ENV Local Scale	marine hydrothermal vent [ENVO:01000122]	736
+BioSample ENV Local Scale	marine environmental zone [ENVO:01001201]	606
+BioSample ENV Local Scale	mudflat	508
+BioSample ENV Local Scale	aquifer [ENVO:00012408]	397
+BioSample ENV Local Scale	landfill [ENVO:00000533]	336
+BioSample ENV Local Scale	Intertidal zone	324
+BioSample ENV Local Scale	Activated sludge	287
+BioSample ENV Local Scale	offshore	280
+BioSample ENV Local Scale	mangrove forest	271
+BioSample ENV Local Scale	waste water	260
+BioSample ENV Local Scale	oil palm plantation [ENVO:00000120]	227
+BioSample ENV Local Scale	intertide zone	223
+BioSample ENV Local Scale	cold seep	211
+BioSample ENV Local Scale	ENVO:0000207	196
+BioSample ENV Local Scale	groundwater	192
+BioSample ENV Local Scale	Agricultural Land	188
+BioSample ENV Local Scale	underground water	188
+BioSample ENV Local Scale	Artificial Surfaces	187
+BioSample ENV Local Scale	Wetland	182
+BioSample ENV Local Scale	shoreline [ENVO:00000486]	175
+BioSample ENV Local Scale	hypersaline lake	170
+BioSample ENV Local Scale	lake	170
+BioSample ENV Local Scale	oxygen minimum zone	169
+BioSample ENV Local Scale	Hainich Critical Zone Exploratory (CZE)	164
+BioSample ENV Local Scale	coastal sea water [ENVO_00002150]	162
+BioSample ENV Local Scale	lake [ENVO:00000020]	158
+BioSample ENV Local Scale	Aquatic	150
+BioSample ENV Local Scale	sediment	144
+BioSample ENV Local Scale	floodplain	139
+BioSample ENV Local Scale	alkaline hot spring [ENVO:00002119]	134
+BioSample ENV Local Scale	coastal	133
+BioSample ENV Local Scale	ENVO:06105011	131
+BioSample ENV Local Scale	hot spring [ENVO:00000051]	128
+BioSample ENV Local Scale	ENVO:00000215 (hydrothermal vent )	126
+BioSample ENV Local Scale	stomach	125
+BioSample ENV Local Scale	marine hydrothermal sediment	119
+BioSample ENV Local Scale	cold seep sediment	109
+BioSample ENV Local Scale	methane hotspot	108
+BioSample ENV Local Scale	human gut	105
+BioSample ENV Local Scale	shoreline	104
+BioSample ENV Local Scale	aquifer	103
+BioSample ENV Local Scale	Grassland	102
+BioSample ENV Local Scale	shoreline | intertidal zone | water current	100
+BioSample ENV Local Scale	estuary	100
+BioSample ENV Local Scale	Intestinal	90
+BioSample ENV Local Scale	Alberta groundwater	89
+BioSample ENV Local Scale	microbial feature [ENVO:00002150]	89
+BioSample ENV Local Scale	marine layer	82
+BioSample ENV Local Scale	submerged	77
+BioSample ENV Local Scale	summer [NCIT:C94732]	77
+BioSample ENV Local Scale	salt flat (salar)	71
+BioSample ENV Local Scale	Kulunda Steppe	69
+BioSample ENV Local Scale	agriculture	69
+BioSample ENV Local Scale	paddy field [ENVO:00000297]	69
+BioSample ENV Local Scale	Agriculture Fields	65
+BioSample ENV Local Scale	Hydrothermal vents	64
+BioSample ENV Local Scale	River	63
+BioSample ENV Local Scale	intertidal zone [ENVO:00000316]	60
+BioSample ENV Local Scale	open ocean	58
+BioSample ENV Local Scale	water [CHEBI:15377]	57
+BioSample ENV Local Scale	mesophilic| wastewater treatment plant	57
+BioSample ENV Local Scale	ENVO:01001055	55
+BioSample ENV Local Scale	ENVO:01000224	55
+BioSample ENV Local Scale	ENVO:00000126	53
+BioSample ENV Local Scale	terrestrial hot spring	50
+BioSample ENV Local Scale	Urban Biogas	48
+BioSample ENV Local Scale	woodland biome	46
+BioSample ENV Local Scale	ENVO:00000486	46
+BioSample ENV Local Scale	hot spring sediment	44
+BioSample ENV Local Scale	area of woody wetland [ENVO:01000893]	44
+BioSample ENV Local Scale	Grassland ecosystem [ENVO:01001206]	43
+BioSample ENV Local Scale	subseafloor	42
+BioSample ENV Local Scale	Natural Bogs, mires and fens	42
+BioSample ENV Local Scale	blanket bog [ENVO:00000511]	42
+BioSample ENV Local Scale	marine pelagic biome [ENVO:01000023]	41
+BioSample ENV Local Scale	ENVO:01000047	41
+BioSample ENV Local Scale	Boiling vent-water microbiome of a Trans-Himalayan hot spring	41
+BioSample ENV Local Scale	Mariana Trench sediment	40
+BioSample ENV Local Scale	acid hot spring	39
+BioSample ENV Local Scale	intertidal zone	39
+BioSample ENV Local Scale	seawater	39
+BioSample ENV Local Scale	tropical woodland biome	38
+BioSample ENV Local Scale	ENVO:00002120	38
+BioSample ENV Local Scale	Arctic Mid-Ocean ridge hydrothermal sediment	38
+BioSample ENV Local Scale	South China Sea sediment	38
+BioSample ENV Local Scale	sea water environment	38
+BioSample ENV Local Scale	not provided; submitted under MIGS 2.1	37
+BioSample ENV Local Scale	soil	37
+BioSample ENV Local Scale	hypersaline water environment [ENVO:01001043]	37
+BioSample ENV Local Scale	Deep Mine Microbial Observatory	37
+BioSample ENV Local Scale	Polymetallic nodule area	37
+BioSample ENV Local Scale	large lake	37
+BioSample ENV Local Scale	permafrost thawing process [ENVO:01001613]	36
+BioSample ENV Local Scale	Forest	36
+BioSample ENV Local Scale	thermophilic sediment [ENVO:01000132] | hyperthermophilic sediment [ENVO:01000133] | hydrothermal field [ENVO:01001854]	35
+BioSample ENV Local Scale	river [ENVO:00000022]	35
+BioSample ENV Local Scale	ENVO:00000209|ENVO:01000036	34
+BioSample ENV Local Scale	saline spring	34
+BioSample ENV Local Scale	coastal zone	34
+BioSample ENV Medium	Hot spring sediment	3085
+BioSample ENV Medium	aquatic	1886
+BioSample ENV Medium	sediment	1183
+BioSample ENV Medium	water	1107
+BioSample ENV Medium	soil	946
+BioSample ENV Medium	terrestrial	806
+BioSample ENV Medium	deep-sea hydrothermal deposit	736
+BioSample ENV Medium	seawater	666
+BioSample ENV Medium	marine sediment [ENVO:03000033]	643
+BioSample ENV Medium	groundwater	575
+BioSample ENV Medium	marine sediment	496
+BioSample ENV Medium	groundwater [ENVO:01001004]	390
+BioSample ENV Medium	leachate [ENVO:00002141]	320
+BioSample ENV Medium	soil [ENVO:00001998]	300
+BioSample ENV Medium	peat soil [ENVO:00005774]	269
+BioSample ENV Medium	sea water	265
+BioSample ENV Medium	industrial wastewater	260
+BioSample ENV Medium	Mangrove wetland sediment	258
+BioSample ENV Medium	Tidal Flat Sediment	252
+BioSample ENV Medium	tara	245
+BioSample ENV Medium	sediment [ENVO:00002007]	229
+BioSample ENV Medium	mangrove sediment	210
+BioSample ENV Medium	estuarine water [ENVO:01000301]	205
+BioSample ENV Medium	feces	203
+BioSample ENV Medium	ocean water	202
+BioSample ENV Medium	ENVO:0000207	196
+BioSample ENV Medium	sediment core	192
+BioSample ENV Medium	Agricultural Land	188
+BioSample ENV Medium	Artificial Surfaces	187
+BioSample ENV Medium	Hot (42-90C)	187
+BioSample ENV Medium	engineered	184
+BioSample ENV Medium	Wetland	182
+BioSample ENV Medium	estuarine biome	174
+BioSample ENV Medium	deep sea sediment	169
+BioSample ENV Medium	brine [ENVO_00003044]	162
+BioSample ENV Medium	fecal material	155
+BioSample ENV Medium	riparian sediment	135
+BioSample ENV Medium	ENVO:06105011	131
+BioSample ENV Medium	Marine	129
+BioSample ENV Medium	ENVO:01000157 (microbial mat material)	125
+BioSample ENV Medium	bodily fluid	125
+BioSample ENV Medium	estuarine water	122
+BioSample ENV Medium	marine photic zone	120
+BioSample ENV Medium	ENVO:00002007	117
+BioSample ENV Medium	Sediment	100
+BioSample ENV Medium	Estuarine surface sediment	100
+BioSample ENV Medium	hypersaline lake	100
+BioSample ENV Medium	microbial mat|sediment	100
+BioSample ENV Medium	sea water (ENVO:00002149 )	100
+BioSample ENV Medium	intestine	99
+BioSample ENV Medium	coastal sea water [ENVO:00002150]	98
+BioSample ENV Medium	Deep Atlantic Ocean	98
+BioSample ENV Medium	Seawater	96
+BioSample ENV Medium	Grassland	96
+BioSample ENV Medium	ocean	90
+BioSample ENV Medium	faeces	88
+BioSample ENV Medium	Biofilm [ENVO:01000156]	88
+BioSample ENV Medium	Wastewater	88
+BioSample ENV Medium	adult sponge tissue	82
+BioSample ENV Medium	Biofilm	77
+BioSample ENV Medium	soil [ENVO:00001998] |sphagnum bog [ENVO:00002268]	77
+BioSample ENV Medium	salt crust	75
+BioSample ENV Medium	ENVO:00001998	74
+BioSample ENV Medium	go-ship	68
+BioSample ENV Medium	Soil	66
+BioSample ENV Medium	active layer soil	66
+BioSample ENV Medium	Agriculture Fields	65
+BioSample ENV Medium	Deepsea hydrothermal vents microbial mat	64
+BioSample ENV Medium	sludge	60
+BioSample ENV Medium	hot spring sediment	57
+BioSample ENV Medium	thermophilic sediment	57
+BioSample ENV Medium	water [CHEBI:15377]	57
+BioSample ENV Medium	saline water [ENVO:00002010]	56
+BioSample ENV Medium	ENVO_00002003	54
+BioSample ENV Medium	ENVO:00000126	53
+BioSample ENV Medium	Rumen content	50
+BioSample ENV Medium	Water [ENVO:00002006]	49
+BioSample ENV Medium	Urban Biogas	48
+BioSample ENV Medium	lake bottom mud [ENVO:00005797]	47
+BioSample ENV Medium	hypersaline lake | microbial mat	47
+BioSample ENV Medium	marine sediment (ENVO:00002113)	47
+BioSample ENV Medium	deep marine sediment [ENVO:00002113]	44
+BioSample ENV Medium	lake sediment [ENVO:00000546]	44
+BioSample ENV Medium	mine tailing [ENVO:00000003]	44
+BioSample ENV Medium	host	44
+BioSample ENV Medium	tropical woodland biome	43
+BioSample ENV Medium	fjord	43
+BioSample ENV Medium	Natural Bogs, mires and fens	42
+BioSample ENV Medium	ENVO:00000369	41
+BioSample ENV Medium	Water discharged at the venting epicenter of the hot spring	41
+BioSample ENV Medium	ENVO:00002151	39
+BioSample ENV Medium	digestive tract	38
+BioSample ENV Medium	fresh water	38
+BioSample ENV Medium	not provided; submitted under MIGS 2.1	37
+BioSample ENV Medium	environment determined by a biofilm on a saline surface [ENVO:01001056]	37
+BioSample ENV Medium	fracture fluid	37
+BioSample ENV Medium	hydrothermal sediment enrichment	37
+BioSample ENV Medium	Acidic soil	36
+BioSample ENV Medium	Forest	36
+BioSample ENV Medium	sea water [ENVO:00002149]	35
+BioSample Host Disease	NASH/Fibrosis stage >=2	6
+BioSample Host Disease	NAFL/Fibrosis stage <2	5
+BioSample Host Disease	Control/Fibrosis stage <2	4
+BioSample Host Disease	NASH/Fibrosis stage <2	4
+BioSample Host Disease	NAFL/Fibrosis stage >=2	2
+BioSample Host Disease	NAFL/Fibrosis stage 0	1

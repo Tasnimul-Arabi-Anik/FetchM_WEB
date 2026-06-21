@@ -1,0 +1,30 @@
+{
+  "analysis_scope": "hidden_full",
+  "audit_pass": true,
+  "canonical_accession_namespace": "GCA",
+  "canonical_refresh_run": false,
+  "deployment_run": false,
+  "domain_label": "Archaea",
+  "domain_profile": "archaea",
+  "generated_at": "2026-06-21T10:46:39.918438+00:00",
+  "global_insights_regenerated": false,
+  "missing_standardized_assemblies": 0,
+  "next_step": "Review audit signals before any Archaea-specific rule curation or public exposure.",
+  "pass_criteria": {
+    "all_pilot_rows_standardized": true,
+    "no_high_risk_rule_reuse_signals": true,
+    "snapshot_has_rows": true,
+    "snapshot_suffix_is_archaea": true,
+    "taxon_id_is_archaea_root": true
+  },
+  "production_database_touched": false,
+  "public_ui_exposed": false,
+  "root_unique_assemblies": 41956,
+  "rule_reuse_high_risk_rows": 0,
+  "rule_reuse_risk_rows": 0,
+  "snapshot_id": "20260621T100000Z_genbank_archaea_root",
+  "snapshot_status": "completed",
+  "source_database": "genbank",
+  "standardized_assemblies": 41956,
+  "taxon_id": 2157
+}
