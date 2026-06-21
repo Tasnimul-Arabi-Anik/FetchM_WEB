@@ -5,7 +5,7 @@
   "deployment_run": false,
   "domain_label": "Archaea",
   "domain_profile": "archaea",
-  "generated_at": "2026-06-21T08:42:53.940464+00:00",
+  "generated_at": "2026-06-21T09:00:17.232383+00:00",
   "global_insights_regenerated": false,
   "missing_standardized_assemblies": 0,
   "next_step": "Review audit signals before any Archaea-specific rule curation or public exposure.",

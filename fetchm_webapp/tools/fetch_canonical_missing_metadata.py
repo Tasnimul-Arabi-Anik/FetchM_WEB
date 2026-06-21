@@ -13,12 +13,14 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from itertools import repeat
 from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import NCBI_API_KEYS, build_species_tsv_row, normalize_managed_metadata_row
+from domain_profiles import domain_profile_from_snapshot_id
 from dataset_production_store import (
     insert_inventory_batch,
     inventory_accession_batch,
@@ -57,7 +59,7 @@ def biosample_attributes(biosample: dict[str, Any]) -> dict[str, str]:
     return attributes
 
 
-def standardizable_row(report: dict[str, Any]) -> dict[str, Any]:
+def standardizable_row(report: dict[str, Any], domain_profile_key: str | None = None) -> dict[str, Any]:
     row = build_species_tsv_row(report)
     biosample = ((report.get("assembly_info") or {}).get("biosample") or {})
     attributes = biosample_attributes(biosample)
@@ -69,7 +71,11 @@ def standardizable_row(report: dict[str, Any]) -> dict[str, Any]:
     if isinstance(description, dict):
         row["BioSample Title"] = description.get("title")
         row["BioSample Description"] = description.get("comment") or description.get("title")
-    normalized, _ = normalize_managed_metadata_row(row, force_standardization=True)
+    normalized, _ = normalize_managed_metadata_row(
+        row,
+        force_standardization=True,
+        domain_profile=domain_profile_key,
+    )
     return normalized
 
 
@@ -131,6 +137,7 @@ def main() -> int:
     request_workers = min(worker_limit, max(1, args.request_workers or worker_limit))
     standardization_default = int(os.environ.get("FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS", "10") or "10")
     standardization_workers = min(32, max(1, args.standardization_workers or standardization_default))
+    active_domain_profile = domain_profile_from_snapshot_id(args.snapshot_id)
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
     fetched = standardized = batches = 0
     last_accession = ""
@@ -166,10 +173,11 @@ def main() -> int:
                     reports.extend(future.result())
                 insert_inventory_batch(args.snapshot_id, reports)
                 if standardization_executor is None or len(reports) <= 1:
-                    rows = [standardizable_row(report) for report in reports]
+                    rows = [standardizable_row(report, active_domain_profile.key) for report in reports]
                 else:
                     rows = list(standardization_executor.map(
-                        standardizable_row, reports, chunksize=max(1, len(reports) // (standardization_workers * 4))
+                        standardizable_row, reports, repeat(active_domain_profile.key),
+                        chunksize=max(1, len(reports) // (standardization_workers * 4))
                     ))
                 seeded = seed_standardized_metadata_batch(
                     args.snapshot_id, rows, rule_fingerprint=fingerprint, status="fetched_ncbi_full_report"
@@ -191,6 +199,7 @@ def main() -> int:
     summary = {
         "snapshot_id": args.snapshot_id,
         "metadata_source": "NCBI Datasets REST API v2 full accession report",
+        "domain_profile": active_domain_profile.key,
         "standardization_status": "refetched_all_ncbi_full_report" if args.refetch_all else "fetched_ncbi_full_report",
         "refetch_all": bool(args.refetch_all),
         "batches_complete": batches,

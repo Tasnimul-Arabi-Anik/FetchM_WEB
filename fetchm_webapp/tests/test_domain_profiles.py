@@ -26,6 +26,12 @@ class DomainProfileTests(unittest.TestCase):
         self.assertEqual(archaea.key, "archaea")
         self.assertEqual(archaea.ncbi_taxon_id, ARCHAEA_TAXON_ID)
         self.assertFalse(archaea.public_enabled)
+        self.assertEqual(bacteria.rule_scopes, ("common", "prokaryote", "bacteria"))
+        self.assertEqual(archaea.rule_scopes, ("common", "prokaryote", "archaea"))
+        self.assertTrue(bacteria.applies_rule_scope("bacteria"))
+        self.assertFalse(bacteria.applies_rule_scope("archaea"))
+        self.assertTrue(archaea.applies_rule_scope("archaea"))
+        self.assertFalse(archaea.applies_rule_scope("bacteria"))
         timestamp = datetime(2026, 6, 19, tzinfo=timezone.utc)
         self.assertEqual(bacteria.snapshot_id(timestamp), "20260619T000000Z_genbank_bacteria_root")
         self.assertEqual(archaea.snapshot_id(timestamp), "20260619T000000Z_genbank_archaea_root")
@@ -66,6 +72,8 @@ class DomainProfileTests(unittest.TestCase):
         tool_path = Path(__file__).resolve().parents[1] / "tools" / "fetch_canonical_missing_metadata.py"
         source = tool_path.read_text(encoding="utf-8")
         self.assertIn("--skip-host-monitoring", source)
+        self.assertIn("domain_profile_from_snapshot_id", source)
+        self.assertIn("domain_profile=domain_profile_key", source)
 
 
 if __name__ == "__main__":

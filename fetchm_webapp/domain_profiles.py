@@ -13,10 +13,14 @@ class DomainProfile:
     ncbi_taxon_id: int
     snapshot_suffix: str
     user_agent_token: str
+    rule_scopes: tuple[str, ...]
     public_enabled: bool = False
 
     def snapshot_id(self, timestamp: datetime) -> str:
         return f"{timestamp.strftime('%Y%m%dT%H%M%SZ')}_{self.snapshot_suffix}"
+
+    def applies_rule_scope(self, scope: str) -> bool:
+        return scope.strip().lower() in self.rule_scopes
 
 
 BACTERIA_PROFILE = DomainProfile(
@@ -25,6 +29,7 @@ BACTERIA_PROFILE = DomainProfile(
     ncbi_taxon_id=2,
     snapshot_suffix="genbank_bacteria_root",
     user_agent_token="canonical-bacterial-inventory",
+    rule_scopes=("common", "prokaryote", "bacteria"),
     public_enabled=True,
 )
 
@@ -34,6 +39,7 @@ ARCHAEA_PROFILE = DomainProfile(
     ncbi_taxon_id=2157,
     snapshot_suffix="genbank_archaea_root",
     user_agent_token="canonical-archaea-inventory",
+    rule_scopes=("common", "prokaryote", "archaea"),
     public_enabled=False,
 )
 

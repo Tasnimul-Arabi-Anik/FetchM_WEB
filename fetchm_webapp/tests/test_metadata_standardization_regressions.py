@@ -2055,6 +2055,23 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(culture_provider["Isolation_Source_SD"], "")
         self.assertEqual(culture_provider["Sample_Type_SD"], "")
 
+        bacterial_culture_default = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "E. coli culture"})
+        self.assertEqual(bacterial_culture_default["Sample_Type_SD"], "bacterial culture")
+
+        bacterial_culture_archaea = ensure_managed_metadata_schema(
+            {"Host": "", "Isolation Source": "E. coli culture"},
+            domain_profile="archaea",
+        )
+        self.assertEqual(bacterial_culture_archaea["Sample_Type_SD"], "")
+        self.assertEqual(bacterial_culture_archaea["Isolation_Source_SD"], "")
+
+        archaeal_culture = ensure_managed_metadata_schema(
+            {"Host": "", "Isolation Source": "enrichment culture"},
+            domain_profile="archaea",
+        )
+        self.assertEqual(archaeal_culture["Sample_Type_SD"], "enrichment culture")
+        self.assertEqual(archaeal_culture["Isolation_Source_SD"], "culture")
+
         spreadsheet_error = ensure_managed_metadata_schema({"Host": "", "Isolation Source": "#REF!"})
         self.assertEqual(spreadsheet_error["Isolation_Source_SD"], "")
         self.assertEqual(spreadsheet_error["Sample_Type_SD"], "")

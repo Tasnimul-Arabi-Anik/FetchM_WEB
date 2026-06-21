@@ -62,6 +62,7 @@ from global_insights import (
     generate_global_insights_snapshot,
     run_standardization_simulator,
 )
+from domain_profiles import ARCHAEA_PROFILE, BACTERIA_PROFILE, DomainProfile, domain_profile as resolve_domain_profile
 
 APP_VERSION = "2026.05-canonical-root-v0.16"
 APP_COMMIT = (os.environ.get("FETCHM_WEBAPP_GIT_COMMIT") or "unknown").strip() or "unknown"
@@ -1833,8 +1834,14 @@ METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | se
 }
 
 
-def metadata_standardization_input_fingerprint(row: Mapping[str, Any]) -> str:
+def metadata_standardization_input_fingerprint(
+    row: Mapping[str, Any],
+    *,
+    active_domain_profile: DomainProfile | None = None,
+) -> str:
     payload: dict[str, Any] = {}
+    if active_domain_profile is not None and active_domain_profile.key != BACTERIA_PROFILE.key:
+        payload["_fetchm_domain_profile"] = active_domain_profile.key
     for key, value in row.items():
         column = str(key)
         if column in METADATA_STANDARDIZATION_INTERNAL_COLUMNS:
@@ -1855,20 +1862,53 @@ def row_has_reusable_standardization(row: Mapping[str, Any]) -> bool:
     return all(column in row for column in SECONDARY_STANDARDIZATION_COLUMNS)
 
 
+ARCHAEA_INCOMPATIBLE_SAMPLE_TYPE_VALUES = {
+    "bacterial culture",
+    "unicyanobacterial culture",
+}
+
+
+def clear_secondary_standardization_concept(values: dict[str, str], concept_prefix: str) -> None:
+    prefix = f"{concept_prefix}_"
+    for column in SECONDARY_STANDARDIZATION_COLUMNS:
+        if column == concept_prefix or column.startswith(prefix):
+            values[column] = ""
+
+
+def apply_domain_secondary_standardization_scope(
+    values: dict[str, str],
+    active_domain_profile: DomainProfile,
+) -> dict[str, str]:
+    if active_domain_profile.key == ARCHAEA_PROFILE.key:
+        sample_type = normalize_standardization_lookup(values.get("Sample_Type_SD"))
+        if sample_type in ARCHAEA_INCOMPATIBLE_SAMPLE_TYPE_VALUES:
+            source_method = str(values.get("Isolation_Source_SD_Method") or "")
+            clear_secondary_standardization_concept(values, "Sample_Type_SD")
+            if source_method == "sample_context_router":
+                clear_secondary_standardization_concept(values, "Isolation_Source_SD")
+    return values
+
+
 def normalize_managed_metadata_row(
     row: dict[str, Any],
     *,
     force_standardization: bool = False,
+    domain_profile: str | DomainProfile | None = None,
 ) -> tuple[dict[str, Any], bool]:
+    active_domain_profile = domain_profile if isinstance(domain_profile, DomainProfile) else resolve_domain_profile(domain_profile)
     normalized = harmonize_primary_metadata_aliases(dict(row))
     for column in SPECIES_TSV_COLUMNS:
         normalized.setdefault(column, None)
-    fingerprint = metadata_standardization_input_fingerprint(normalized)
+    fingerprint = metadata_standardization_input_fingerprint(
+        normalized,
+        active_domain_profile=active_domain_profile,
+    )
     previous_fingerprint = str(row.get(METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN) or "").strip()
+    allow_legacy_reuse_without_fingerprint = active_domain_profile.key == BACTERIA_PROFILE.key
     if (
         not force_standardization
         and row_has_reusable_standardization(row)
-        and (previous_fingerprint == fingerprint or not previous_fingerprint)
+        and (previous_fingerprint == fingerprint or (not previous_fingerprint and allow_legacy_reuse_without_fingerprint))
     ):
         normalized.update(
             {
@@ -1898,7 +1938,10 @@ def normalize_managed_metadata_row(
     for column, value in source_host_context.items():
         if value and not str(normalized.get(column) or "").strip():
             normalized[column] = value
-    secondary_standardization = standardize_secondary_metadata(normalized, host_standardization)
+    secondary_standardization = apply_domain_secondary_standardization_scope(
+        standardize_secondary_metadata(normalized, host_standardization),
+        active_domain_profile,
+    )
     for column in SECONDARY_STANDARDIZATION_COLUMNS:
         normalized[column] = secondary_standardization[column]
     if not str(normalized.get("Host_Anatomical_Site_SD") or "").strip():
@@ -6485,10 +6528,16 @@ def harmonize_geography_metadata(row: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
-def ensure_managed_metadata_schema(row: dict[str, Any], *, force_standardization: bool = False) -> dict[str, Any]:
+def ensure_managed_metadata_schema(
+    row: dict[str, Any],
+    *,
+    force_standardization: bool = False,
+    domain_profile: str | DomainProfile | None = None,
+) -> dict[str, Any]:
     normalized, _standardized = normalize_managed_metadata_row(
         row,
         force_standardization=force_standardization,
+        domain_profile=domain_profile,
     )
     return normalized
 
