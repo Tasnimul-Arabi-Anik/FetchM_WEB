@@ -2320,11 +2320,26 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("/downloads", "Bulk downloads"),
             ("/api", "Programmatic Access"),
             ("/citation", "How to cite"),
+            ("/nar-readiness", "Submission checklist"),
             ("/status", "Service status"),
         ]:
             response = client.get(path)
             self.assertEqual(response.status_code, 200, path)
             self.assertIn(phrase, response.data.decode("utf-8"), path)
+
+        with client.session_transaction() as session:
+            session["_csrf_token"] = "token"
+        with patch.object(fetchm_app, "create_problem_report", return_value=1) as create_report, patch.object(fetchm_app, "mail_is_configured", return_value=False):
+            report = client.post(
+                "/report-problem",
+                data={"_csrf_token": "token", "message": "This public feedback route should not require sign in."},
+                follow_redirects=False,
+            )
+        self.assertEqual(report.status_code, 302)
+        self.assertNotIn("/login", report.headers.get("Location", ""))
+        create_report.assert_called_once()
+        self.assertIsNone(create_report.call_args.kwargs["user_id"])
+        self.assertEqual(create_report.call_args.kwargs["username"], "anonymous")
 
         login = client.get("/login")
         self.assertEqual(login.status_code, 200)

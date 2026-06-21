@@ -39,6 +39,18 @@
     {% endif %}
   </section>
 
+  <section class="panel">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Formats and terms</p>
+        <h2>Data availability statement support</h2>
+      </div>
+      <a class="ghost-link" href="{{ url_for('nar_readiness') }}">NAR readiness</a>
+    </div>
+    <p>Snapshot artifacts are distributed as CSV, TSV, JSON, ZIP, SVG, PNG, PDF, DOCX, Markdown, BibTeX, and RIS where applicable. Manifests and SHA-256 checksums are provided to support reproducible reuse.</p>
+    <p>FetchM-derived summaries and figures preserve source provenance. Underlying assembly and BioSample metadata originate from public NCBI resources and should be reused with attribution to the original public data sources and their terms. A permanent DOI archive of the exact manuscript snapshot should be prepared before formal NAR submission.</p>
+  </section>
+
   {% if citation_text %}
     <section class="panel">
       <div class="section-heading">

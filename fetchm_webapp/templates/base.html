@@ -23,7 +23,7 @@
           <a class="tag ghost-link" href="{{ url_for('about') }}" {% if request.endpoint == "about" %}aria-current="page"{% endif %}><strong>About</strong></a>
           <a class="tag ghost-link" href="{{ url_for('global_insights') }}" {% if request.endpoint in ["global_insights", "global_insights_snapshot"] %}aria-current="page"{% endif %}><strong>Global Insights</strong></a>
           <a class="tag ghost-link" href="{{ url_for('public_browse') }}" {% if request.endpoint == "public_browse" %}aria-current="page"{% endif %}><strong>Browse</strong></a>
-          <a class="tag ghost-link" href="{{ url_for('help_page') }}" {% if request.endpoint in ["help_page", "tutorial", "api_docs", "citation_page", "public_status"] %}aria-current="page"{% endif %}><strong>Help</strong></a>
+          <a class="tag ghost-link" href="{{ url_for('help_page') }}" {% if request.endpoint in ["help_page", "tutorial", "api_docs", "citation_page", "nar_readiness", "public_status"] %}aria-current="page"{% endif %}><strong>Help</strong></a>
           <a class="tag ghost-link" href="{{ url_for('downloads') }}" {% if request.endpoint == "downloads" %}aria-current="page"{% endif %}><strong>Downloads</strong></a>
           {% if g.current_user %}
             <a class="tag ghost-link" href="{{ url_for('user_jobs') }}" {% if request.endpoint in ["user_jobs", "job_detail"] %}aria-current="page"{% endif %}><strong>Track Jobs</strong></a>

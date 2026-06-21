@@ -79,13 +79,19 @@
           <div>
             <p class="eyebrow">Support</p>
             <h3>Feedback or Report</h3>
-            <p class="fetchm-feedback-note">Your feedback helps refine FetchM for real research use. Report anything unclear, missing, or broken.</p>
+            <p class="fetchm-feedback-note">Your feedback helps refine FetchM for real research use. Report anything unclear, missing, or broken. You can submit without signing in; email is optional.</p>
           </div>
           <span class="job-meta">{{ home_metrics.open_reports }} open reports</span>
         </div>
         <input type="hidden" name="selected_taxon_id" id="problem-selected-taxon-id">
         <input type="hidden" name="selected_taxon_name" id="problem-selected-taxon-name">
         <input type="hidden" name="requested_action" id="problem-requested-action">
+        {% if not g.current_user %}
+          <label>
+            <span>Email (optional)</span>
+            <input type="email" name="email" autocomplete="email" placeholder="Only if you want us to follow up">
+          </label>
+        {% endif %}
         <label>
           <span>Message</span>
           <textarea name="message" rows="4" placeholder="Describe the issue, missing feature, or confusing result."></textarea>

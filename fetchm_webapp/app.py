@@ -122,7 +122,9 @@ PUBLIC_ENDPOINTS = {
     "downloads",
     "api_docs",
     "citation_page",
+    "nar_readiness",
     "public_status",
+    "report_problem",
     "api_taxa_search",
     "canonical_metadata_analysis",
     "canonical_metadata_analysis_section",
@@ -26511,13 +26513,26 @@ PUBLIC_INFO_PAGES: dict[str, dict[str, Any]] = {
             {
                 "heading": "Access policy",
                 "body": [
-                    "Core browsing, taxon search, Global Insights, citation files, and public downloads are available without registration. Sign-in is limited to personal job tracking, long-running sequence retrieval, and administrative functions.",
+                    "Core browsing, taxon search, Global Insights, citation files, public downloads, and feedback submission are available without registration. Sign-in is limited to personal job tracking, long-running sequence retrieval, and administrative functions.",
+                ],
+            },
+            {
+                "heading": "Long-term availability",
+                "body": [
+                    "FetchM is served from a stable HTTPS domain and the authors intend to maintain the public database under this URL for at least five years after publication. Snapshot pages are versioned so cited analyses can remain identifiable after future updates.",
+                ],
+            },
+            {
+                "heading": "Data formats and reuse terms",
+                "body": [
+                    "Downloadable outputs are exposed as CSV, TSV, JSON, ZIP, SVG, PNG, PDF, DOCX, Markdown, BibTeX, and RIS where appropriate. Derived NCBI metadata should be reused under the terms of the original public sources; FetchM-generated summaries, manifests, checksums, and citation files preserve provenance for reuse.",
                 ],
             },
         ],
         "actions": [
             {"label": "Start tutorial", "endpoint": "tutorial"},
             {"label": "Browse taxa", "endpoint": "public_browse"},
+            {"label": "NAR readiness", "endpoint": "nar_readiness"},
             {"label": "Open Global Insights", "endpoint": "global_insights"},
         ],
     },
@@ -26546,7 +26561,7 @@ PUBLIC_INFO_PAGES: dict[str, dict[str, Any]] = {
                 "items": [
                     "If search suggestions do not appear, wait for the Searching status to clear and try a broader rank such as a genus or order.",
                     "If a long-running sequence job is needed, sign in so the job can be tracked safely.",
-                    "Use Feedback / Report on the homepage to report unclear metadata, broken pages, or missing documentation.",
+                    "Use Feedback / Report on the homepage to report unclear metadata, broken pages, or missing documentation. Public feedback can be submitted without signing in; an email address is optional.",
                 ],
             },
         ],
@@ -26606,7 +26621,7 @@ PUBLIC_INFO_PAGES: dict[str, dict[str, Any]] = {
                 "heading": "Usage notes",
                 "body": [
                     "FetchM does not require screen scraping for core snapshot reuse. Prefer the citation, manifest, checksum, figure, and source-table downloads linked from the Downloads page.",
-                    "Large authenticated sequence jobs are intentionally not exposed as anonymous public API calls.",
+                    "Large sequence jobs are authenticated because they create user-specific workspaces, but core database pages, browse, citation, status, downloads, and feedback do not require login.",
                 ],
             },
         ],
@@ -26638,6 +26653,45 @@ PUBLIC_INFO_PAGES: dict[str, dict[str, Any]] = {
             {"label": "Plain text citation", "href": "/global-insights/citation/txt"},
             {"label": "BibTeX", "href": "/global-insights/citation/bibtex"},
             {"label": "RIS", "href": "/global-insights/citation/ris"},
+        ],
+    },
+    "nar_readiness": {
+        "title": "NAR Database Issue Readiness",
+        "eyebrow": "Submission checklist",
+        "description": "A reviewer-facing summary of how FetchM meets NAR Database Issue web-resource expectations and what remains outside the web app before manuscript submission.",
+        "sections": [
+            {
+                "heading": "Web-resource criteria addressed",
+                "items": [
+                    "Working HTTPS web database with stable public URL and versioned Global Insights snapshots.",
+                    "Core database access, browsing, taxon search, help, tutorial, citation files, status, feedback, and downloads available without login or registration.",
+                    "First-time visitor help, worked examples, example search terms, and browse-without-search entry point are available from the main navigation.",
+                    "Bulk reusable artifacts include manifests, checksums, source tables, figures, reports, and citation files in documented formats.",
+                    "Public pages state data provenance, reuse terms, confidence/QA framing, and interpretation boundaries for repository-level analyses.",
+                    "Feedback/report submission is available from the homepage without requiring an account.",
+                ],
+            },
+            {
+                "heading": "Scientific scope for the current release",
+                "body": [
+                    "The current NAR-facing release is bacterial and should be presented as a public bacterial genome metadata resource. Archaea and viruses should be added later through separate domain profiles rather than mixed into this validated bacterial release.",
+                    "Global Metadata Insights describe public repository composition, metadata completeness, and standardization quality. They should not be interpreted as biological prevalence, disease burden, clinical risk, or genome-quality pass/fail status.",
+                ],
+            },
+            {
+                "heading": "Remaining submission tasks outside the live web app",
+                "items": [
+                    "Send the NAR pre-submission inquiry with the FetchM URL and a concise explanation of how FetchM differs from and improves on similar resources.",
+                    "Archive the exact manuscript snapshot, source code, and generated data bundle in a permanent repository with DOI before formal submission.",
+                    "Prepare the required graphical abstract and manuscript text using the current bacterial scope and stable URL.",
+                    "List six independent suggested referees and disclose related publications in the pre-submission/manuscript materials.",
+                ],
+            },
+        ],
+        "actions": [
+            {"label": "Downloads", "endpoint": "downloads"},
+            {"label": "Status", "endpoint": "public_status"},
+            {"label": "Citation", "endpoint": "citation_page"},
         ],
     },
 }
@@ -26682,6 +26736,11 @@ def api_docs() -> str:
 @app.route("/citation")
 def citation_page() -> str:
     return render_public_info_page("citation")
+
+
+@app.route("/nar-readiness")
+def nar_readiness() -> str:
+    return render_public_info_page("nar_readiness")
 
 
 def public_download_items(summary: dict[str, Any] | None) -> list[dict[str, str]]:
@@ -27110,7 +27169,6 @@ def api_prepare_metadata_species() -> Any:
 @app.route("/report-problem", methods=["POST"])
 def report_problem() -> Any:
     user = g.current_user
-    assert user is not None
     message = (request.form.get("message") or "").strip()
     requested_action = (request.form.get("requested_action") or "").strip() or None
     selected_taxon_name = (request.form.get("selected_taxon_name") or "").strip() or None
@@ -27123,12 +27181,24 @@ def report_problem() -> Any:
             taxon_name = species.species_name
     if len(message) < 12:
         flash("Please include a short description of the problem.", "error")
-        return redirect(url_for("index"))
+        return redirect(url_for("index", _anchor="feedback-form"))
+
+    if user is not None:
+        user_id = int(user["id"])
+        username = str(user["username"])
+        email = str(user["email"]) if user["email"] else None
+    else:
+        user_id = None
+        username = "anonymous"
+        email = normalize_email(request.form.get("email") or "") or None
+        if email and ("@" not in email or "." not in email):
+            flash("Enter a valid email address or leave the email field blank.", "error")
+            return redirect(url_for("index", _anchor="feedback-form"))
 
     create_problem_report(
-        user_id=int(user["id"]),
-        username=str(user["username"]),
-        email=str(user["email"]) if user["email"] else None,
+        user_id=user_id,
+        username=username,
+        email=email,
         taxon_id=taxon_id,
         taxon_name=taxon_name,
         requested_action=requested_action,
@@ -27137,15 +27207,15 @@ def report_problem() -> Any:
     if mail_is_configured():
         try:
             send_problem_report_email(
-                username=str(user["username"]),
-                email=str(user["email"]) if user["email"] else None,
+                username=username,
+                email=email,
                 taxon_name=taxon_name,
                 requested_action=requested_action,
                 message=message,
             )
         except Exception:
             pass
-    flash("Problem report submitted. It is now visible in admin.", "success")
+    flash("Feedback submitted. Thank you for helping improve FetchM.", "success")
     return redirect(url_for("index"))
 
 
