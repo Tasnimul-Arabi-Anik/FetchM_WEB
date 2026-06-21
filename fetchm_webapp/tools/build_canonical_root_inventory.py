@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the canonical GenBank bacterial inventory with restartable NCBI REST pages."""
+"""Build a canonical GenBank domain inventory with restartable NCBI REST pages."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from domain_profiles import DOMAIN_PROFILES, domain_profile, validate_snapshot_id_for_profile
 from dataset_production_store import (
-    BACTERIA_TAXON_ID,
     fail_inventory_snapshot,
     finish_inventory_page,
     finish_inventory_snapshot,
@@ -30,7 +30,8 @@ from dataset_production_store import (
     start_inventory_snapshot,
 )
 
-API_URL = f"https://api.ncbi.nlm.nih.gov/datasets/v2/genome/taxon/{BACTERIA_TAXON_ID}/dataset_report"
+def api_url(taxon_id: int) -> str:
+    return f"https://api.ncbi.nlm.nih.gov/datasets/v2/genome/taxon/{taxon_id}/dataset_report"
 
 
 def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, Any]:
@@ -42,8 +43,9 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
     }
     if page_token:
         params["page_token"] = page_token
-    url = API_URL + "?" + urllib.parse.urlencode(params)
-    headers = {"Accept": "application/json", "User-Agent": "FetchM-WEB/canonical-bacterial-inventory"}
+    profile = domain_profile(args.domain)
+    url = api_url(profile.ncbi_taxon_id) + "?" + urllib.parse.urlencode(params)
+    headers = {"Accept": "application/json", "User-Agent": f"FetchM-WEB/{profile.user_agent_token}"}
     if args.api_key:
         headers["api-key"] = args.api_key
     request = urllib.request.Request(url, headers=headers)
@@ -63,6 +65,7 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", default=None)
+    parser.add_argument("--domain", default="bacteria", choices=sorted(DOMAIN_PROFILES), help="Canonical domain profile to inventory.")
     parser.add_argument("--datasets-bin", default="datasets", help=argparse.SUPPRESS)
     parser.add_argument("--page-size", type=int, default=1000)
     parser.add_argument("--max-attempts", type=int, default=5)
@@ -73,19 +76,24 @@ def main() -> int:
     args = parser.parse_args()
     if not 1 <= args.page_size <= 1000:
         parser.error("--page-size must be between 1 and 1000")
-    snapshot_id = args.snapshot_id or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ_genbank_bacteria_root")
+    profile = domain_profile(args.domain)
+    snapshot_id = (
+        validate_snapshot_id_for_profile(args.snapshot_id, profile)
+        if args.snapshot_id
+        else profile.snapshot_id(datetime.now(timezone.utc))
+    )
     invocation = (
-        f"GET {API_URL}?filters.assembly_source=GENBANK&filters.assembly_version=CURRENT"
+        f"GET {api_url(profile.ncbi_taxon_id)}?filters.assembly_source=GENBANK&filters.assembly_version=CURRENT"
         f"&returned_content=ASSM_ACC&page_size={args.page_size}&page_token=<checkpoint>"
     )
-    start_inventory_snapshot(snapshot_id, invocation, "NCBI Datasets REST API v2")
+    start_inventory_snapshot(snapshot_id, invocation, "NCBI Datasets REST API v2", profile_key=profile.key)
     checkpoint = latest_inventory_page_checkpoint(snapshot_id)
     page_number = int(checkpoint["page_number"] if checkpoint else 0)
     page_token = checkpoint["next_page_token"] if checkpoint else None
     if checkpoint and not page_token:
         progress = inventory_page_progress(snapshot_id)
         summary = finish_inventory_snapshot(snapshot_id, progress["raw_records"], progress["noncanonical_records"], progress["duplicate_records"])
-        print(json.dumps({"snapshot_id": snapshot_id, **summary, **progress, "inventory_mode": "rest_page_checkpoints"}, sort_keys=True))
+        print(json.dumps({"snapshot_id": snapshot_id, "domain_profile": profile.key, **summary, **progress, "inventory_mode": "rest_page_checkpoints"}, sort_keys=True))
         return 0 if summary.get("status") == "completed" else 1
     try:
         while True:
@@ -109,7 +117,7 @@ def main() -> int:
         summary = finish_inventory_snapshot(snapshot_id, progress["raw_records"], progress["noncanonical_records"], progress["duplicate_records"])
         summary.update(progress)
         summary["inventory_mode"] = "rest_page_checkpoints"
-        print(json.dumps({"snapshot_id": snapshot_id, **summary}, sort_keys=True))
+        print(json.dumps({"snapshot_id": snapshot_id, "domain_profile": profile.key, **summary}, sort_keys=True))
         return 0 if summary.get("status") == "completed" else 1
     except Exception as exc:
         fail_inventory_snapshot(snapshot_id, str(exc))

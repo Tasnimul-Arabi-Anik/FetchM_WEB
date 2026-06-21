@@ -1,4 +1,4 @@
-"""PostgreSQL storage for canonical bacterial inventory and release accounting."""
+"""PostgreSQL storage for canonical GenBank inventory and release accounting."""
 
 from __future__ import annotations
 
@@ -11,6 +11,15 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterable, Iterator
 
+from domain_profiles import (
+    ARCHAEA_PROFILE,
+    BACTERIA_PROFILE,
+    domain_profile,
+    domain_profile_from_snapshot_id,
+    domain_profile_from_taxon_id,
+    validate_snapshot_id_for_profile,
+)
+
 try:
     import psycopg
     from psycopg.types.json import Jsonb
@@ -21,7 +30,8 @@ except ImportError:  # Runtime dependency is installed in the application image.
 DATASET_DATABASE_URL_ENV = "FETCHM_WEBAPP_DATASET_DATABASE_URL"
 CANONICAL_SOURCE_DATABASE = "genbank"
 CANONICAL_ACCESSION_NAMESPACE = "GCA"
-BACTERIA_TAXON_ID = 2
+BACTERIA_TAXON_ID = BACTERIA_PROFILE.ncbi_taxon_id
+ARCHAEA_TAXON_ID = ARCHAEA_PROFILE.ncbi_taxon_id
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS canonical_inventory_task (
@@ -337,9 +347,15 @@ def active_canonical_pipeline_task(connection: Any | None = None) -> tuple[str, 
     return str(row[0]), str(row[1]), str(row[2])
 
 
-def queue_inventory_task(requested_by: str | None = None, *, continue_after: bool = False) -> tuple[str | None, str | None]:
+def queue_inventory_task(
+    requested_by: str | None = None,
+    *,
+    continue_after: bool = False,
+    profile_key: str = BACTERIA_PROFILE.key,
+) -> tuple[str | None, str | None]:
     bootstrap_schema()
-    snapshot_id = utc_now().strftime('%Y%m%dT%H%M%SZ_genbank_bacteria_root')
+    profile = domain_profile(profile_key)
+    snapshot_id = profile.snapshot_id(utc_now())
     with connect() as connection:
         active = active_canonical_pipeline_task(connection)
         if active is not None:
@@ -769,8 +785,16 @@ def missing_standardized_accession_batch(snapshot_id: str, *, limit: int = 100) 
         ).fetchall()
     return [str(row[0]) for row in rows]
 
-def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version: str | None) -> None:
+def start_inventory_snapshot(
+    snapshot_id: str,
+    invocation: str,
+    datasets_version: str | None,
+    *,
+    profile_key: str = BACTERIA_PROFILE.key,
+) -> None:
     bootstrap_schema()
+    profile = domain_profile(profile_key)
+    snapshot_id = validate_snapshot_id_for_profile(snapshot_id, profile)
     with connect() as connection:
         connection.execute(
             """
@@ -780,9 +804,10 @@ def start_inventory_snapshot(snapshot_id: str, invocation: str, datasets_version
             ) VALUES (%s, 'running', %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (snapshot_id) DO UPDATE SET
                 status = 'running', started_at = EXCLUDED.started_at, completed_at = NULL,
-                invocation = EXCLUDED.invocation, datasets_version = EXCLUDED.datasets_version, error = NULL
+                taxon_id = EXCLUDED.taxon_id, invocation = EXCLUDED.invocation,
+                datasets_version = EXCLUDED.datasets_version, error = NULL
             """,
-            (snapshot_id, utc_now(), utc_now(), CANONICAL_SOURCE_DATABASE, CANONICAL_ACCESSION_NAMESPACE, BACTERIA_TAXON_ID, invocation, datasets_version),
+            (snapshot_id, utc_now(), utc_now(), CANONICAL_SOURCE_DATABASE, CANONICAL_ACCESSION_NAMESPACE, profile.ncbi_taxon_id, invocation, datasets_version),
         )
         connection.commit()
 
@@ -977,10 +1002,21 @@ def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) 
 def finish_inventory_snapshot(snapshot_id: str, raw_records: int, noncanonical: int, duplicates: int) -> dict[str, Any]:
     with connect() as connection:
         root_total = int(connection.execute('SELECT COUNT(*) FROM bacterial_inventory_membership WHERE snapshot_id = %s', (snapshot_id,)).fetchone()[0])
+        inventory_row = connection.execute(
+            'SELECT source_database, canonical_accession_namespace, taxon_id FROM bacterial_inventory_snapshot WHERE snapshot_id = %s',
+            (snapshot_id,),
+        ).fetchone()
+        source_database = str(inventory_row[0]) if inventory_row else CANONICAL_SOURCE_DATABASE
+        accession_namespace = str(inventory_row[1]) if inventory_row else CANONICAL_ACCESSION_NAMESPACE
+        taxon_id = int(inventory_row[2]) if inventory_row and inventory_row[2] is not None else BACTERIA_TAXON_ID
+        profile = domain_profile_from_taxon_id(taxon_id)
+        if profile == BACTERIA_PROFILE:
+            profile = domain_profile_from_snapshot_id(snapshot_id)
         status = 'completed' if root_total > 0 and noncanonical == 0 else 'failed'
         summary = {
-            'source_database': CANONICAL_SOURCE_DATABASE, 'canonical_accession_namespace': CANONICAL_ACCESSION_NAMESPACE,
-            'taxon_id': BACTERIA_TAXON_ID, 'root_unique_assemblies': root_total,
+            'domain_profile': profile.key, 'domain_label': profile.label,
+            'source_database': source_database, 'canonical_accession_namespace': accession_namespace,
+            'taxon_id': taxon_id, 'root_unique_assemblies': root_total,
             'raw_records': raw_records, 'noncanonical_records': noncanonical, 'duplicate_records': duplicates,
         }
         connection.execute(
