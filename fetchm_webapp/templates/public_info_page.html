@@ -32,12 +32,14 @@
     {% for section in page.sections %}
       <article class="panel public-section-card">
         <h2>{{ section.heading }}</h2>
-        {% for paragraph in section.body or [] %}
+        {% set section_body = section.get("body", []) %}
+        {% for paragraph in section_body %}
           <p>{{ paragraph }}</p>
         {% endfor %}
-        {% if section["items"] is defined %}
+        {% set section_items = section.get("items", []) %}
+        {% if section_items %}
           <ul class="public-check-list">
-            {% for item in section["items"] %}
+            {% for item in section_items %}
               <li>{{ item }}</li>
             {% endfor %}
           </ul>
