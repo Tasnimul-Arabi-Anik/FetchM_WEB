@@ -43,6 +43,9 @@ SOURCE_SAMPLE_ENV_FIELDS = [
 ]
 DOMAIN_TERM_RE = re.compile(r"\b(archaea|archaeon|archaeal|methanogen|methanogenic)\b", re.I)
 BACTERIAL_TERM_RE = re.compile(r"\b(bacteria|bacterium|bacterial)\b", re.I)
+EMAIL_RE = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.I)
+ACCESSION_OR_COLLECTION_RE = re.compile(r"\b(ATCC|DSM|JCM|NBRC|NCTC|KCTC|GCA_|GCF_)\s*[-A-Z0-9_.]*", re.I)
+PROCESS_DESCRIPTOR_RE = re.compile(r"\b(culture|cell culture|pure culture|mixed culture|whole organism)\b", re.I)
 MICROBIAL_SUPERKINGDOMS = {"Bacteria", "Archaea", "Viruses"}
 
 
@@ -160,12 +163,21 @@ def source_sample_environment_rows(records: list[dict[str, Any]], limit: int) ->
         for value, count in counter.most_common(limit):
             signal = "observed_standardized_value"
             action = "no action in audit-only phase"
-            if DOMAIN_TERM_RE.search(value):
+            if EMAIL_RE.search(value):
+                signal = "person_or_email_in_standardized_field"
+                action = "review as provenance/metadata descriptor, not source"
+            elif ACCESSION_OR_COLLECTION_RE.search(value):
+                signal = "collection_or_accession_code_in_standardized_field"
+                action = "review as strain/provenance identifier, not source"
+            elif DOMAIN_TERM_RE.search(value):
                 signal = "domain_term_in_source_sample_environment_field"
                 action = "review before promoting Archaea rules"
             elif BACTERIAL_TERM_RE.search(value):
                 signal = "bacterial_term_in_archaea_standardized_field"
                 action = "review for bacteria-centric rule reuse"
+            elif field in {"Isolation_Source_SD", "Isolation_Source_SD_Broad"} and PROCESS_DESCRIPTOR_RE.search(value):
+                signal = "process_descriptor_in_source_field"
+                action = "review culture/process wording before source promotion"
             rows.append({
                 "field": field,
                 "standardized_value": value,
@@ -191,6 +203,21 @@ def rule_reuse_risk_rows(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
             value = clean(payload.get(field))
             if not value:
                 continue
+            if EMAIL_RE.search(value):
+                risk_counter[(
+                    "person_or_email_in_standardized_field", field, value, "medium",
+                    "Person/email-like text appeared in a standardized field and should remain provenance, not source.",
+                )] += 1
+            if ACCESSION_OR_COLLECTION_RE.search(value) and field in {"Isolation_Source_SD", "Isolation_Source_SD_Broad"}:
+                risk_counter[(
+                    "collection_or_accession_code_in_source_field", field, value, "medium",
+                    "Collection/accession-like text appeared in source fields and should be reviewed as identifier/provenance.",
+                )] += 1
+            if field in {"Isolation_Source_SD", "Isolation_Source_SD_Broad"} and PROCESS_DESCRIPTOR_RE.search(value):
+                risk_counter[(
+                    "process_descriptor_in_source_field", field, value, "medium",
+                    "Culture/process wording appeared in source fields and should be reviewed for descriptor leakage.",
+                )] += 1
             if BACTERIAL_TERM_RE.search(value):
                 risk_counter[(
                     "bacteria_centric_rule_reuse", field, value, "medium",

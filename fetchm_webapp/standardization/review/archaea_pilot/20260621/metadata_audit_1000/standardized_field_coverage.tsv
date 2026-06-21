@@ -1,0 +1,28 @@
+field_type	field	present_count	total_rows	present_percent
+raw	Host	34	1000	3.4
+raw	Isolation Source	566	1000	56.6
+raw	Sample Type	491	1000	49.1
+raw	Collection_Date_Evidence	608	1000	60.8
+raw	Geographic Location	696	1000	69.6
+raw	BioSample ENV Package	3	1000	0.3
+raw	BioSample ENV Broad Scale	181	1000	18.1
+raw	BioSample ENV Local Scale	163	1000	16.3
+raw	BioSample ENV Medium	163	1000	16.3
+raw	BioSample ENV Material	0	1000	0.0
+raw	BioSample Host Disease	0	1000	0.0
+standardized	Host_SD	48	1000	4.8
+standardized	Host_Context_SD	9	1000	0.9
+standardized	Host_Superkingdom	0	1000	0.0
+standardized	Country	703	1000	70.3
+standardized	Continent	703	1000	70.3
+standardized	Subcontinent	703	1000	70.3
+standardized	Collection Date	608	1000	60.8
+standardized	Isolation_Source_SD	556	1000	55.6
+standardized	Isolation_Source_SD_Broad	497	1000	49.7
+standardized	Sample_Type_SD	404	1000	40.4
+standardized	Environment_Medium_SD	433	1000	43.3
+standardized	Environment_Broad_Scale_SD	444	1000	44.4
+standardized	Environment_Local_Scale_SD	171	1000	17.1
+standardized	Isolation_Site_SD	11	1000	1.1
+standardized	Host_Disease_SD	1	1000	0.1
+standardized	Host_Health_State_SD	1	1000	0.1

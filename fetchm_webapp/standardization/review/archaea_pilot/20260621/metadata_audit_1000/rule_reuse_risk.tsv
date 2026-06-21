@@ -1,0 +1,5 @@
+risk_category	field	matched_value	affected_rows	severity	rationale	recommended_action
+collection_or_accession_code_in_source_field	Isolation_Source_SD	bought from DSMZ	1	medium	Collection/accession-like text appeared in source fields and should be reviewed as identifier/provenance.	document for later Archaea curation; do not change rules in this audit
+person_or_email_in_standardized_field	Isolation_Source_SD	Derek Lovley (dlovley@microbio.umass.edu)	1	medium	Person/email-like text appeared in a standardized field and should remain provenance, not source.	document for later Archaea curation; do not change rules in this audit
+process_descriptor_in_source_field	Isolation_Source_SD	culture	1	medium	Culture/process wording appeared in source fields and should be reviewed for descriptor leakage.	document for later Archaea curation; do not change rules in this audit
+process_descriptor_in_source_field	Isolation_Source_SD_Broad	culture	1	medium	Culture/process wording appeared in source fields and should be reviewed for descriptor leakage.	document for later Archaea curation; do not change rules in this audit

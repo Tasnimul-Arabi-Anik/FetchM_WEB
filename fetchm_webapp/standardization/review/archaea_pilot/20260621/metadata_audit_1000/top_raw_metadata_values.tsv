@@ -1,0 +1,375 @@
+source_field	raw_value	row_count
+Host	Homo sapiens	9
+Host	Ovis aries	2
+Host	Reticulitermes flavipes	2
+Host	Laminaria	2
+Host	Archispirostreptus gigas	2
+Host	fish	1
+Host	Paralvinella sp.	1
+Host	cow rumen	1
+Host	bovine	1
+Host	Cui Henglin	1
+Host	soil	1
+Host	cow	1
+Host	Metopus contortus	1
+Host	Vombatus ursinus	1
+Host	Petaurus gracilis	1
+Host	Sus scrofa domesticus	1
+Host	Henschoutedenia flexivitta	1
+Host	Atopochetus caudulanus	1
+Host	Anadenobolus monilicornis	1
+Host	Eublaberus serranus	1
+Host	Centrobolus splendidus	1
+Host	Archimandrita tessellata	1
+Isolation Source	sediment	68
+Isolation Source	saline soil	23
+Isolation Source	solar saltern	16
+Isolation Source	salt	13
+Isolation Source	salt lake	11
+Isolation Source	marine solar saltern	9
+Isolation Source	hot spring	8
+Isolation Source	Salt mine	8
+Isolation Source	marine sediment	7
+Isolation Source	soil	6
+Isolation Source	solar salt	6
+Isolation Source	Hot spring in Mutnovsky Volcano	5
+Isolation Source	Salt lake	5
+Isolation Source	salt mine	4
+Isolation Source	hydrothermal vent	4
+Isolation Source	environmental sample	4
+Isolation Source	coastal saline-alkali land	4
+Isolation Source	gut content	4
+Isolation Source	deep-sea hydrothermal vent	4
+Isolation Source	Kulunda Steppe hypersaline lake	3
+Isolation Source	fecal sample	3
+Isolation Source	isolated from salted brown alga Laminaria	3
+Isolation Source	water	3
+Isolation Source	salt lake sediment	3
+Isolation Source	saline-alkali soil	3
+Isolation Source	aquaculture farm	3
+Isolation Source	sediment and brine samples obtained from hypersaline lake	3
+Isolation Source	human gut	3
+Isolation Source	hot solfataric spring	2
+Isolation Source	freshwater hot spring	2
+Isolation Source	hot springs	2
+Isolation Source	deep-sea sediment	2
+Isolation Source	brine-seawater interface	2
+Isolation Source	hindguts	2
+Isolation Source	soda lake	2
+Isolation Source	endorheic salt-lake	2
+Isolation Source	inland saline soil	2
+Isolation Source	salted brown alga Laminaria	2
+Isolation Source	inland salt lake	2
+Isolation Source	isolated from salted brown alga	2
+Isolation Source	Salt Lake	2
+Isolation Source	tidal flat	2
+Isolation Source	hypersaline soil	2
+Isolation Source	the red brine of salted Laminaria	2
+Isolation Source	gobi saline soil	2
+Isolation Source	commercial salt	2
+Isolation Source	hypersaline soda lake	2
+Isolation Source	Zhoushan marine solar saltern	2
+Isolation Source	groundwater	2
+Isolation Source	Estuarine environment	2
+Sample Type	cell culture	261
+Sample Type	pure culture	33
+Sample Type	cell cuture	25
+Sample Type	whole organism	19
+Sample Type	pure isolate	14
+Sample Type	Cell culture	13
+Sample Type	clonal isolate	10
+Sample Type	strain	10
+Sample Type	single cell	9
+Sample Type	saline water	6
+Sample Type	Saline soil	4
+Sample Type	Salt lake	4
+Sample Type	brine water	3
+Sample Type	Mixed culture	3
+Sample Type	sediment sample	3
+Sample Type	mixed culture	3
+Sample Type	Saline Water	3
+Sample Type	monoisolate	2
+Sample Type	Sediment	2
+Sample Type	Single cell	2
+Sample Type	Cell Culture	2
+Sample Type	Genomic DNA	2
+Sample Type	Haloarchaeal cells	2
+Sample Type	isolate	2
+Sample Type	marine sediment	2
+Sample Type	liquid culture	2
+Sample Type	Solar saltern	2
+Sample Type	MIGS/MIMS/MIMARKS.water	1
+Sample Type	nd	1
+Sample Type	whole genome	1
+Sample Type	Microbe	1
+Sample Type	hydrothermal vent chimney fragment (Pl 1747-BIG03E01)	1
+Sample Type	black smoker chimney fragment	1
+Sample Type	Cyanobacterial mats bottom deposit	1
+Sample Type	type species	1
+Sample Type	Mixed water and sediment samples	1
+Sample Type	single colony isolated from feacal sample	1
+Sample Type	Single Cell	1
+Sample Type	sediment	1
+Sample Type	solar salt	1
+Sample Type	saline soil	1
+Sample Type	Brine sample	1
+Sample Type	Archaea	1
+Sample Type	microbes	1
+Sample Type	soil sample	1
+Sample Type	Environmental sample	1
+Sample Type	cultured organism	1
+Sample Type	Salt Microbe	1
+Sample Type	sea water	1
+Sample Type	water sample	1
+Collection_Date_Evidence	2018	72
+Collection_Date_Evidence	2013	47
+Collection_Date_Evidence	2017	39
+Collection_Date_Evidence	2016	35
+Collection_Date_Evidence	2021	35
+Collection_Date_Evidence	2014	34
+Collection_Date_Evidence	2012	31
+Collection_Date_Evidence	2015	31
+Collection_Date_Evidence	2011	30
+Collection_Date_Evidence	2009	28
+Collection_Date_Evidence	2019	27
+Collection_Date_Evidence	2010	25
+Collection_Date_Evidence	2020	15
+Collection_Date_Evidence	2023	15
+Collection_Date_Evidence	2000	11
+Collection_Date_Evidence	2008	11
+Collection_Date_Evidence	1997	10
+Collection_Date_Evidence	2022	10
+Collection_Date_Evidence	2005	9
+Collection_Date_Evidence	2002	9
+Collection_Date_Evidence	2006	7
+Collection_Date_Evidence	2001	7
+Collection_Date_Evidence	1994	6
+Collection_Date_Evidence	1982	5
+Collection_Date_Evidence	2004	5
+Collection_Date_Evidence	1995	5
+Collection_Date_Evidence	1993	4
+Collection_Date_Evidence	2007	4
+Collection_Date_Evidence	2003	4
+Collection_Date_Evidence	1999	4
+Collection_Date_Evidence	1984	4
+Collection_Date_Evidence	1991	4
+Collection_Date_Evidence	1990	3
+Collection_Date_Evidence	1985	3
+Collection_Date_Evidence	1934	2
+Collection_Date_Evidence	1980	2
+Collection_Date_Evidence	1986	2
+Collection_Date_Evidence	2024	2
+Collection_Date_Evidence	1962	1
+Collection_Date_Evidence	1996	1
+Collection_Date_Evidence	1983	1
+Collection_Date_Evidence	1966	1
+Collection_Date_Evidence	1968	1
+Collection_Date_Evidence	1972	1
+Collection_Date_Evidence	1989	1
+Collection_Date_Evidence	1971	1
+Collection_Date_Evidence	2025	1
+Collection_Date_Evidence	1992	1
+Collection_Date_Evidence	1998	1
+Geographic Location	China	269
+Geographic Location	Russia	50
+Geographic Location	Japan	48
+Geographic Location	United States	43
+Geographic Location	South Korea	30
+Geographic Location	Spain	25
+Geographic Location	Italy	24
+Geographic Location	Taiwan	18
+Geographic Location	Germany	17
+Geographic Location	Pacific Ocean	14
+Geographic Location	Iceland	11
+Geographic Location	Atlantic Ocean	9
+Geographic Location	New Zealand	8
+Geographic Location	Iran	8
+Geographic Location	Australia	7
+Geographic Location	Mexico	7
+Geographic Location	India	7
+Geographic Location	Canada	6
+Geographic Location	Austria	6
+Geographic Location	Indian Ocean	6
+Geographic Location	Egypt	5
+Geographic Location	Israel	5
+Geographic Location	Chile	4
+Geographic Location	France	4
+Geographic Location	Slovenia	4
+Geographic Location	Philippines	4
+Geographic Location	Kazakhstan	4
+Geographic Location	Bolivia	4
+Geographic Location	Kenya	3
+Geographic Location	Norway	3
+Geographic Location	Saudi Arabia	3
+Geographic Location	Portugal	3
+Geographic Location	Indonesia	3
+Geographic Location	missing: lab stock	3
+Geographic Location	Brazil	2
+Geographic Location	Puerto Rico	2
+Geographic Location	Mediterranean Sea	2
+Geographic Location	Romania	2
+Geographic Location	Sweden	2
+Geographic Location	Thailand	2
+Geographic Location	Czech Republic	2
+Geographic Location	Greece	2
+Geographic Location	Phillipines	1
+Geographic Location	Argentina	1
+Geographic Location	Myanmar	1
+Geographic Location	United Kingdom	1
+Geographic Location	Papua New Guinea	1
+Geographic Location	Mongolia	1
+Geographic Location	Senegal	1
+Geographic Location	New Caledonia	1
+BioSample ENV Package	MIGS/MIMS/MIMARKS.water	1
+BioSample ENV Package	Sediment	1
+BioSample ENV Package	sediment	1
+BioSample ENV Broad Scale	not provided; submitted under MIGS 2.1	19
+BioSample ENV Broad Scale	Marine hydrothermal vent	11
+BioSample ENV Broad Scale	terrestrial	8
+BioSample ENV Broad Scale	ENVO:01001040	7
+BioSample ENV Broad Scale	mangrove biome	5
+BioSample ENV Broad Scale	anoxic hypersaline sediment	4
+BioSample ENV Broad Scale	brine-seawater interface	3
+BioSample ENV Broad Scale	ENVO:00000569	3
+BioSample ENV Broad Scale	hot spring	3
+BioSample ENV Broad Scale	Hot spring	3
+BioSample ENV Broad Scale	alkaline salt lake	3
+BioSample ENV Broad Scale	freshwater biome	3
+BioSample ENV Broad Scale	cropland	3
+BioSample ENV Broad Scale	human-associated habitat	3
+BioSample ENV Broad Scale	ruminant	2
+BioSample ENV Broad Scale	Northern Adriatic Sea	2
+BioSample ENV Broad Scale	Biogas plant	2
+BioSample ENV Broad Scale	Solar saltern	2
+BioSample ENV Broad Scale	Acid Hot Spring	2
+BioSample ENV Broad Scale	Fumarole	2
+BioSample ENV Broad Scale	Spring	2
+BioSample ENV Broad Scale	Solfataric Field	2
+BioSample ENV Broad Scale	hypersaline soil	2
+BioSample ENV Broad Scale	Sediment	2
+BioSample ENV Broad Scale	hydrothermal vent	2
+BioSample ENV Broad Scale	saline lake [ENVO:00000019]	2
+BioSample ENV Broad Scale	ocean biome	2
+BioSample ENV Broad Scale	desert area [ENVO:00000097]	2
+BioSample ENV Broad Scale	subsurface biome	2
+BioSample ENV Broad Scale	Deep sea, Marine	1
+BioSample ENV Broad Scale	hyperacidic hyperthermal water	1
+BioSample ENV Broad Scale	freshwater sediment	1
+BioSample ENV Broad Scale	soil	1
+BioSample ENV Broad Scale	marine sediment	1
+BioSample ENV Broad Scale	hydrothermal sample	1
+BioSample ENV Broad Scale	saltern	1
+BioSample ENV Broad Scale	taiga	1
+BioSample ENV Broad Scale	marine hydrothermal vent	1
+BioSample ENV Broad Scale	hypersaline	1
+BioSample ENV Broad Scale	bovine	1
+BioSample ENV Broad Scale	anthropogenic terrestrial biome	1
+BioSample ENV Broad Scale	deep-sea hypersaline lake	1
+BioSample ENV Broad Scale	young ruminant	1
+BioSample ENV Broad Scale	marine hydrothermal vent(ENVO:01000122);black smoker(ENVO:00000218)	1
+BioSample ENV Broad Scale	hypersaline lake	1
+BioSample ENV Broad Scale	Hamelin Pool Shark Bay AUstralia	1
+BioSample ENV Broad Scale	gold-containing arsenopyrite/pyrite ore	1
+BioSample ENV Broad Scale	dry steppe	1
+BioSample ENV Broad Scale	marine habitat	1
+BioSample ENV Broad Scale	feces	1
+BioSample ENV Local Scale	not provided; submitted under MIGS 2.1	19
+BioSample ENV Local Scale	Black smoker	10
+BioSample ENV Local Scale	digestive tract	8
+BioSample ENV Local Scale	hypersaline lake	6
+BioSample ENV Local Scale	ENVO:01001050	6
+BioSample ENV Local Scale	rumen	4
+BioSample ENV Local Scale	acid hot spring	4
+BioSample ENV Local Scale	human gut	4
+BioSample ENV Local Scale	ENVO:00000055	3
+BioSample ENV Local Scale	lake sediment	3
+BioSample ENV Local Scale	paddy field	3
+BioSample ENV Local Scale	intertidal zone	3
+BioSample ENV Local Scale	Coastal surface water	2
+BioSample ENV Local Scale	lake	2
+BioSample ENV Local Scale	Biogas plant	2
+BioSample ENV Local Scale	Salt mine	2
+BioSample ENV Local Scale	marine hydrothermal vent ENVO:01000122	2
+BioSample ENV Local Scale	Solfatara	2
+BioSample ENV Local Scale	Hot Spring	2
+BioSample ENV Local Scale	hypersaline soil	2
+BioSample ENV Local Scale	marine sediment	2
+BioSample ENV Local Scale	hypersaline lake [ENVO:01001020]	2
+BioSample ENV Local Scale	Intertidal zone	2
+BioSample ENV Local Scale	sandy desert [ENVO:00000172]	2
+BioSample ENV Local Scale	Surface of the sediment	2
+BioSample ENV Local Scale	anaerobic	2
+BioSample ENV Local Scale	Black rust formed on the steel surface of a seafloor borehole observatory (ODP CORK 1026B) exposed to hot ridge flank crustal fluids (64oC, water depth 2658 m)	1
+BioSample ENV Local Scale	freshwater lake sediment	1
+BioSample ENV Local Scale	garden soil	1
+BioSample ENV Local Scale	Extremely halophilic archaeon	1
+BioSample ENV Local Scale	hydrothermal chimney-like structure	1
+BioSample ENV Local Scale	saltern	1
+BioSample ENV Local Scale	oil sludge	1
+BioSample ENV Local Scale	oil storage tank	1
+BioSample ENV Local Scale	caldera	1
+BioSample ENV Local Scale	marine hydrothermal vent	1
+BioSample ENV Local Scale	anaerobic digester	1
+BioSample ENV Local Scale	volcano	1
+BioSample ENV Local Scale	hypersaline soda lakes	1
+BioSample ENV Local Scale	Hydrothermal vent flange formation	1
+BioSample ENV Local Scale	saline evaporation pond	1
+BioSample ENV Local Scale	microbial mat	1
+BioSample ENV Local Scale	Saline evaporation pond, [ENVO:00000055]	1
+BioSample ENV Local Scale	Spring	1
+BioSample ENV Local Scale	Littoral Zone	1
+BioSample ENV Local Scale	Headwater	1
+BioSample ENV Local Scale	deep-sea hydrothermal vent	1
+BioSample ENV Local Scale	acid hot spring [ENVO:00002120]	1
+BioSample ENV Local Scale	Isolated environment (far from tourists)	1
+BioSample ENV Local Scale	hydrothermal vent	1
+BioSample ENV Medium	not provided; submitted under MIGS 2.1	19
+BioSample ENV Medium	gut content	8
+BioSample ENV Medium	soil	7
+BioSample ENV Medium	water	7
+BioSample ENV Medium	ENVO:01001050	7
+BioSample ENV Medium	Water	6
+BioSample ENV Medium	sediment	5
+BioSample ENV Medium	hydrothermal fluid	5
+BioSample ENV Medium	sediments	5
+BioSample ENV Medium	rumen contents	3
+BioSample ENV Medium	ENVO:00002002	3
+BioSample ENV Medium	hypersaline soil	3
+BioSample ENV Medium	paddy field soil	3
+BioSample ENV Medium	Mangrove sediments	3
+BioSample ENV Medium	mangrove sediments	3
+BioSample ENV Medium	Sea	2
+BioSample ENV Medium	hydrothermal sediment	2
+BioSample ENV Medium	hydrothermal chimney sample	2
+BioSample ENV Medium	marine hydrothermal vent chimney ENVO:01000129	2
+BioSample ENV Medium	feces	2
+BioSample ENV Medium	marine sediment	2
+BioSample ENV Medium	Faecal sample	2
+BioSample ENV Medium	hypersaline water environment [ENVO:01001043]	2
+BioSample ENV Medium	biocrust [ENVO:01000909]	2
+BioSample ENV Medium	Microbial mat	2
+BioSample ENV Medium	gas well	2
+BioSample ENV Medium	Non-purified solar salt	1
+BioSample ENV Medium	saltern	1
+BioSample ENV Medium	marine hydrothermal vent	1
+BioSample ENV Medium	anoxic sediment	1
+BioSample ENV Medium	solar saltern	1
+BioSample ENV Medium	Anaerobic digester sludge	1
+BioSample ENV Medium	brine	1
+BioSample ENV Medium	rumen fluid	1
+BioSample ENV Medium	lake sediments	1
+BioSample ENV Medium	flange fragments	1
+BioSample ENV Medium	Hydrothermal precipitates	1
+BioSample ENV Medium	food product	1
+BioSample ENV Medium	solar salt	1
+BioSample ENV Medium	Water, [ENVO:00002007]	1
+BioSample ENV Medium	surface brine	1
+BioSample ENV Medium	chimney sample	1
+BioSample ENV Medium	Salt Crust	1
+BioSample ENV Medium	hydrothermal vent chimney	1
+BioSample ENV Medium	Mineral Material	1
+BioSample ENV Medium	Salt mine	1
+BioSample ENV Medium	Salt	1
+BioSample ENV Medium	Mud	1
+BioSample ENV Medium	Soil	1
+BioSample ENV Medium	seawater	1
