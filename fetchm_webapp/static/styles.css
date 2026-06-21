@@ -3196,6 +3196,10 @@ a.button-like.ghost {
   align-items: center;
 }
 
+.example-query-row {
+  margin-block: 10px 16px;
+}
+
 .public-provenance-strip span,
 .example-query-row span,
 .example-query {
