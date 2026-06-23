@@ -182,6 +182,16 @@ class HostClinicalSiteSemanticsAuditTests(unittest.TestCase):
         self.assertIn("Host_Context_SD", flagged["proposed_destination"])
         self.assertEqual(flagged["remove_from_current_field"], "true")
 
+
+    def test_confirmed_fix_scope_is_limited_to_reviewed_strict_fields(self) -> None:
+        patient_row = classified_row("Host_Health_State_SD", "patient")
+        self.assertEqual(patient_row["action_class"], "confirmed_high_confidence_fix")
+        csf_row = classified_row("Isolation_Site_SD", "cerebrospinal fluid")
+        self.assertEqual(csf_row["action_class"], "confirmed_high_confidence_fix")
+        environment_row = classified_row("Environment_Broad_Scale_SD", "food-associated environment")
+        self.assertNotEqual(environment_row["action_class"], "confirmed_high_confidence_fix")
+        self.assertEqual(environment_row["action_class"], "manual_review")
+
     def test_swab_in_sample_type_is_additive_not_removed(self) -> None:
         row = classified_row("Sample_Type_SD", "rectal swab")
         self.assertEqual(row["field_compatibility"], "compatible_composite")

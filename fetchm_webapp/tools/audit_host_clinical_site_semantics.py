@@ -142,6 +142,7 @@ FIELD_CONTRACT = {
 
 STRICT_FIELDS = {"Host_Disease_SD", "Host_Health_State_SD", "Host_Anatomical_Site_SD", "Isolation_Site_SD", "Environment_Medium_SD", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD"}
 LEGACY_COMPATIBILITY_FIELDS = {"Sample_Type_SD", "Sample_Type_SD_Broad", "Isolation_Source_SD", "Isolation_Source_SD_Broad"}
+CONFIRMED_STRICT_FIX_FIELDS = {"Host_Health_State_SD", "Host_Disease_SD", "Isolation_Site_SD"}
 
 INCOMPATIBILITY_FILES = {
     "non_health_values_in_host_health_state": "non_health_values_in_host_health_state.tsv",
@@ -577,7 +578,9 @@ def action_class(field: str, classified: ClassifiedValue) -> str:
     if classified.confidence == "low" or "unresolved" in classified.all_classes:
         return "classifier_uncertain"
     if compatibility == "incompatible" and remove_from_current_field(field, classified):
-        return "confirmed_high_confidence_fix" if classified.confidence == "high" else "manual_review"
+        if field in CONFIRMED_STRICT_FIX_FIELDS and classified.confidence == "high":
+            return "confirmed_high_confidence_fix"
+        return "manual_review"
     if len(classified.all_classes) > 1:
         return "composite_requires_split"
     if compatibility == "legacy_decomposition_candidate":
@@ -1000,8 +1003,10 @@ def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
         "| --- | ---: |",
         f"| Canonical rows audited | {summary['rows_audited']:,} |",
         f"| Distinct standardized field values classified | {summary['distinct_values_classified']:,} |",
-        f"| Field-value assignment signals | {summary['field_value_assignment_occurrences']:,} |",
-        f"| Unique assemblies with any semantic signal | {summary['unique_assemblies_with_any_semantic_signal']:,} |",
+        f"| All candidate assignment occurrences | {summary['field_value_assignment_occurrences']:,} |",
+        f"| Field-value pairs with queue signals | {summary['field_value_pairs_with_queue_signals']:,} |",
+        f"| Field-value pairs with any semantic candidate signal | {summary['field_value_pairs_with_any_semantic_signal']:,} |",
+        f"| Unique assemblies with any semantic candidate signal | {summary['unique_assemblies_with_any_semantic_signal']:,} |",
         f"| Unique assemblies with confirmed high-confidence signal | {summary['unique_assemblies_with_confirmed_high_confidence_signal']:,} |",
         f"| Unique assemblies with review/uncertain signal | {summary['unique_assemblies_with_review_or_uncertain_signal']:,} |",
         "",
@@ -1025,7 +1030,7 @@ def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
         "",
         "## Interpretation",
         "",
-        "This V2 audit uses compositional classification. Counts are review signals and decomposition candidates, not confirmed erroneous records. Legacy umbrella fields such as `Isolation_Source_SD` and `Sample_Type_SD` are not treated as strict ontologies; strict derived axes are proposed separately.",
+        "This V2 audit uses compositional classification. Counts are candidate signals and decomposition opportunities, not confirmed erroneous records. `confirmed_high_confidence_fix` is intentionally limited to reviewed strict host-health, host-disease, and isolation-site violations; environment and legacy compatibility candidates remain review or additive queues. Legacy umbrella fields such as `Isolation_Source_SD` and `Sample_Type_SD` are not treated as strict ontologies; strict derived axes are proposed separately.",
         "",
         "## Recommended Next Step",
         "",
