@@ -105,6 +105,7 @@ SEMANTIC_CLASSES = [
     "sampling_context",
     "sample_material",
     "sample_entity",
+    "data_product",
     "collection_device",
     "collection_method",
     "sample_processing",
@@ -128,8 +129,8 @@ FIELD_CONTRACT = {
     "Host_Health_State_SD": {"health_state"},
     "Host_Production_Context_SD": {"production_context"},
     "Host_Anatomical_Site_SD": {"anatomical_site"},
-    "Sample_Type_SD": {"sample_material", "sample_entity", "food_commodity", "collection_device", "sampling_context", "sample_processing"},
-    "Sample_Type_SD_Broad": {"sample_material", "sample_entity", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"},
+    "Sample_Type_SD": {"sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing"},
+    "Sample_Type_SD_Broad": {"sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"},
     "Isolation_Source_SD": {"source_context", "food_commodity", "sample_material", "anatomical_material", "environment_medium", "environment_local_scale", "environment_broad_scale", "host_context"},
     "Isolation_Source_SD_Broad": {"source_context", "food_commodity", "sample_material", "anatomical_material", "environment_medium", "environment_broad_scale", "host_context"},
     "Isolation_Site_SD": {"anatomical_site"},
@@ -244,20 +245,55 @@ EXACT_COMPONENTS: dict[str, tuple[tuple[str, str], ...]] = {
     "microbial isolate": (("sample_entity", "microbial isolate"), ("sample_processing", "isolated")),
     "bacterial culture": (("sample_entity", "bacterial culture"), ("sample_processing", "cultured")),
     "enrichment culture": (("sample_entity", "enrichment culture"), ("sample_processing", "enrichment")),
-    "metagenomic assembly": (("sample_entity", "metagenomic assembly"), ("sample_processing", "assembly/sequence-derived")),
-    "metagenome assembly": (("sample_entity", "metagenomic assembly"), ("sample_processing", "assembly/sequence-derived")),
+    "metagenomic assembly": (("data_product", "metagenomic assembly data product"), ("sample_processing", "assembly/sequence-derived")),
+    "metagenome assembly": (("data_product", "metagenomic assembly data product"), ("sample_processing", "assembly/sequence-derived")),
     "dna extract": (("sample_material", "molecular extract"), ("sample_processing", "DNA extraction")),
     "molecular extract": (("sample_material", "molecular extract"), ("sample_processing", "molecular extraction")),
     "single cell": (("sample_entity", "single cell"), ("sample_processing", "single-cell preparation")),
     "food contact surface": (("food_commodity", "food production/contact context"), ("environment_local_scale", "contact surface")),
     "freshwater fish product": (("food_commodity", "fish product"),),
+    "dairy farm": (("production_context", "dairy production setting"), ("host_context", "cattle/livestock"), ("environment_local_scale", "farm")),
+    "non-food-contact surface": (("environment_local_scale", "non-food-contact surface"),),
+    "non-food contact surface": (("environment_local_scale", "non-food-contact surface"),),
+    "laboratory culture": (("sample_entity", "culture entity"), ("sample_processing", "cultured"), ("sampling_context", "laboratory")),
+    "skin/body-surface swab": (("sample_material", "swab specimen"), ("collection_device", "swab"), ("anatomical_site", "skin/body surface")),
+    "skin/body surface swab": (("sample_material", "swab specimen"), ("collection_device", "swab"), ("anatomical_site", "skin/body surface")),
+    "rhizosphere": (("environment_local_scale", "rhizosphere"), ("host_context", "plant-associated")),
+    "phyllosphere": (("environment_local_scale", "phyllosphere"), ("host_context", "plant-associated")),
+    "endosphere": (("environment_local_scale", "endosphere/plant internal compartment"), ("host_context", "plant-associated")),
+    "plant-associated material": (("source_context", "plant-associated material"), ("host_context", "plant-associated"), ("sampling_context", "plant-associated"), ("sample_material", "plant material")),
+    "exposure/contact context": (("exposure_context", "exposure/contact context"),),
+    "household contact": (("exposure_context", "household contact"),),
+    "close contact": (("exposure_context", "close contact"),),
+    "recovered": (("disease_outcome", "recovered"),),
+    "survived": (("disease_outcome", "survived"),),
+    "fatal outcome": (("disease_outcome", "fatal outcome"),),
+    "ascites": (("sample_material", "ascitic fluid"), ("anatomical_material", "body fluid")),
+    "dental plaque": (("sample_material", "dental plaque/biofilm"), ("environment_medium", "biofilm"), ("anatomical_site", "oral cavity/tooth surface")),
+    "gill": (("anatomical_site", "gill"),),
+    "bloodstream": (("anatomical_site", "bloodstream/vascular compartment"),),
+    "secretion": (("sample_material", "secretion"), ("anatomical_material", "host anatomical material")),
+    "cold seep": (("environment_local_scale", "cold seep"),),
+    "estuary": (("environment_local_scale", "estuary"),),
+    "glacier": (("environment_local_scale", "glacier"),),
+    "anaerobic digester": (("environment_local_scale", "anaerobic digester"),),
+    "deciduous forest": (("environment_broad_scale", "forest/terrestrial environment"), ("environment_local_scale", "deciduous forest")),
+    "produced fluids from fractured shale": (("environment_medium", "produced shale fluid"), ("environment_local_scale", "fractured shale")),
+    "produced shale fluids": (("environment_medium", "produced shale fluid"), ("environment_local_scale", "fractured shale")),
+    "ice cream": (("food_commodity", "ice cream/dairy food"),),
+    "ready-to-eat product": (("food_commodity", "ready-to-eat food product"),),
+    "ready to eat product": (("food_commodity", "ready-to-eat food product"),),
+    "kimchi": (("food_commodity", "fermented vegetable food"),),
+    "prawn product": (("food_commodity", "seafood/prawn product"),),
+    "catfish product": (("food_commodity", "fish product"),),
     "environmental/geologic material": (("source_context", "environmental or geologic source context"),),
     "banana blood disease": (("disease", "banana blood disease"),),
 }
 
 PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
-    ("food_commodity", re.compile(r"\b(?:food|meat|beef|pork|poultry|chicken|turkey|seafood|oyster|shrimp|shellfish|dairy|cheese|yogurt|produce|vegetable|fruit|egg|fish product|food contact surface)\b", re.I), "food or commodity context"),
-    ("sample_entity", re.compile(r"\b(?:cell culture|mixed culture|pure culture|single culture|microbial isolate|isolate|whole organism|single[- ]?cell|metagenomic assembly|metagenome assembly)\b", re.I), "sample entity or biological material form"),
+    ("food_commodity", re.compile(r"\b(?:food|meat|beef|pork|seafood|cheese|yogurt|produce|ready[- ]?to[- ]?eat|ice cream|kimchi|(?:fish|prawn|catfish|shrimp|oyster|shellfish|dairy|egg|vegetable|fruit) product|food contact surface)\b", re.I), "explicit food or commodity context"),
+    ("data_product", re.compile(r"\b(?:metagenomic assembly|metagenome assembly|metagenome[- ]assembled genome|sequence assembly)\b", re.I), "sequence-derived data product"),
+    ("sample_entity", re.compile(r"\b(?:cell culture|mixed culture|pure culture|single culture|microbial isolate|isolate|whole organism|single[- ]?cell)\b", re.I), "sample entity or biological material form"),
     ("sample_processing", re.compile(r"\b(?:enrichment|cultured|culture|metagenom|assembly|dna extract|rna extract|extract|wgs|sequencing)\b", re.I), "processing or molecular preparation"),
     ("collection_device", re.compile(r"\b(?:swab|sponge|catheter|filter|trap)\b", re.I), "collection device"),
     ("collection_method", re.compile(r"\b(?:lavage|aspirate|aspiration|biopsy|wash)\b", re.I), "collection method"),
@@ -270,12 +306,14 @@ PATTERNS: tuple[tuple[str, re.Pattern[str], str], ...] = (
     ("disease", re.compile(r"\b(?:pneumonia|sepsis|bacteremia|bacteraemia|diarrh|infection|mastitis|meningitis|tuberculosis|cystic fibrosis|gastroenteritis|colitis|osteomyelitis|leukemia|listeriosis|salmonellosis|campylobacteriosis|pertussis|gastritis|neoplasm|cancer|otitis|obesity|legionellosis|buruli ulcer|tularemia|yersiniosis|syphilis|brucellosis|melioidosis|diphtheria|leptospirosis|diabetes|scleroderma|endocarditis|glaucoma|bronchiectasis|abortion|adenocarcinoma|lymphoma|injury|dental caries|disorder|disease)\b", re.I), "disease or disease class"),
     ("sample_material", re.compile(r"\b(?:blood|urine|feces|faeces|stool|sputum|saliva|mucus|tissue|fluid|pus|aspirate|biopsy|lavage|csf|cerebrospinal|bile|abscess|content|contents|manure|milk)\b", re.I), "physical specimen/material"),
     ("anatomical_material", re.compile(r"\b(?:blood|feces|faeces|stool|mucus|saliva|pus|cerebrospinal fluid|gut content|intestinal content)\b", re.I), "host anatomical material"),
-    ("anatomical_site", re.compile(r"\b(?:skin|wound|rectum|rectal|perianal|nasal|nasopharynx|oropharynx|throat|oral|mouth|lung|bronch|trachea|respiratory tract|bladder|urogenital|vagina|cervix|uterus|gastrointestinal tract|colon|stomach|liver|kidney|brain|spleen|bone|eye|ear|placenta|lymph node|heart|breast|cloaca|root|leaf|stem|phyllosphere|endosphere|rhizosphere|sterile body site|organ/tissue site|tonsil/oropharyngeal site|cubital fossa)\b", re.I), "anatomical site or plant part"),
+    ("anatomical_site", re.compile(r"\b(?:skin|wound|rectum|rectal|perianal|nasal|nasopharynx|oropharynx|throat|oral|mouth|lung|bronch|trachea|respiratory tract|bladder|urogenital|vagina|cervix|uterus|gastrointestinal tract|colon|stomach|liver|kidney|brain|spleen|bone|eye|ear|placenta|lymph node|heart|breast|cloaca|gill|root|leaf|stem|sterile body site|organ/tissue site|tonsil/oropharyngeal site|cubital fossa)\b", re.I), "anatomical site or plant part"),
     ("environment_medium", re.compile(r"\b(?:soil|water|wastewater|sewage|sediment|sludge|biofilm|air|dust|compost|groundwater|seawater|freshwater|saline water|hospital wastewater|hospital sewage|manure)\b", re.I), "environmental medium"),
-    ("environment_local_scale", re.compile(r"\b(?:sink|drain|farm|river|lake|pond|canal|stream|facility|hospital|laboratory|market|abattoir|slaughterhouse|reservoir|hot spring|cave|cleanroom|surface|floor)\b", re.I), "local environmental or facility feature"),
+    ("environment_local_scale", re.compile(r"\b(?:sink|drain|farm|river|lake|pond|canal|stream|facility|hospital|laboratory|market|abattoir|slaughterhouse|reservoir|hot spring|cold seep|estuary|glacier|anaerobic digester|deciduous forest|fractured shale|cave|cleanroom|surface|floor|rhizosphere|phyllosphere|endosphere)\b", re.I), "local environmental or facility feature"),
     ("environment_broad_scale", re.compile(r"\b(?:built environment|healthcare-associated environment|agricultural environment|freshwater environment|marine environment|terrestrial environment|host-associated environment|plant-associated environment|laboratory environment)\b", re.I), "broad environmental setting"),
     ("production_context", re.compile(r"\b(?:specific pathogen free|broiler|dairy cow|wild caught|farmed|laboratory[- ]reared|lab[- ]reared)\b", re.I), "production or husbandry context"),
     ("host_context", re.compile(r"\b(?:human|patient|animal|poultry|cattle|cow|swine|pig|fish|plant|host-associated|plant-associated|animal-associated)\b", re.I), "host-associated context"),
+    ("exposure_context", re.compile(r"\b(?:exposure/contact context|household contact|close contact|contact case|exposed contact)\b", re.I), "exposure/contact context"),
+    ("disease_outcome", re.compile(r"\b(?:recovered|survived|fatal outcome|died of disease|disease outcome)\b", re.I), "disease outcome"),
     ("sampling_context", re.compile(r"\b(?:clinical sample|clinical material|clinical specimen|environmental sample|respiratory sample|cloacal sample|surveillance|laboratory sample|patient sample)\b", re.I), "sampling context"),
     ("source_context", re.compile(r"\b(?:clinical|host-associated|environmental material|source context|outbreak)\b", re.I), "broad source context"),
 )
@@ -335,8 +373,8 @@ def semantic_priority_for_field(field: str) -> list[str]:
         "Host_Health_State_SD": ["health_state", "study_group", "hospitalization_status", "care_setting", "colonization_status"],
         "Host_Production_Context_SD": ["production_context"],
         "Host_Anatomical_Site_SD": ["anatomical_site", "anatomical_material"],
-        "Sample_Type_SD": ["sample_material", "sample_entity", "food_commodity", "collection_device", "sampling_context", "sample_processing"],
-        "Sample_Type_SD_Broad": ["sample_material", "sample_entity", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"],
+        "Sample_Type_SD": ["sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing"],
+        "Sample_Type_SD_Broad": ["sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"],
         "Isolation_Source_SD": ["source_context", "sample_material", "environment_medium", "environment_local_scale", "food_commodity", "anatomical_site", "host_context"],
         "Isolation_Source_SD_Broad": ["source_context", "environment_broad_scale", "environment_medium", "sample_material", "food_commodity", "host_context"],
         "Isolation_Site_SD": ["anatomical_site", "anatomical_material", "sample_material"],
@@ -346,7 +384,7 @@ def semantic_priority_for_field(field: str) -> list[str]:
         "Environment_Local_Scale_SD": ["environment_local_scale", "care_setting"],
     }
     return field_priorities.get(field, []) + [
-        "sample_material", "sample_entity", "source_context", "food_commodity", "environment_medium",
+        "sample_material", "sample_entity", "data_product", "source_context", "food_commodity", "environment_medium",
         "environment_local_scale", "anatomical_site", "host_context", "disease", "health_state",
         "sampling_context", "collection_device", "collection_method", "sample_processing",
         "production_context", "unresolved",
@@ -374,19 +412,33 @@ def classify_value(value: Any, field: str = "", raw_attribute: str = "") -> Clas
             if pattern.search(text):
                 add_component(components, semantic_class, label)
 
-    # Compound protections and additions.
+    # Compound protections and additions. These keep audit labels additive and avoid broad token overreach.
     if "freshwater fish product" in text:
         components = [(klass, label) for klass, label in components if klass != "environment_medium"]
         add_component(components, "food_commodity", "freshwater fish product")
-    if "food contact surface" in text:
+    if "non-food-contact surface" in text or "non-food contact surface" in text:
+        components = [(klass, label) for klass, label in components if klass not in {"food_commodity", "study_group"}]
+        add_component(components, "environment_local_scale", "non-food-contact surface")
+    elif "food contact surface" in text:
         components = [(klass, label) for klass, label in components if klass != "study_group"]
         add_component(components, "food_commodity", "food contact context")
         add_component(components, "environment_local_scale", "contact surface")
+    if "dairy farm" in text:
+        components = [(klass, label) for klass, label in components if klass != "food_commodity"]
+        add_component(components, "production_context", "dairy production setting")
+        add_component(components, "host_context", "cattle/livestock")
+        add_component(components, "environment_local_scale", "farm")
+    if "laboratory culture" in text:
+        components = [(klass, label) for klass, label in components if klass != "environment_local_scale"]
+        add_component(components, "sample_entity", "culture entity")
+        add_component(components, "sample_processing", "cultured")
+        add_component(components, "sampling_context", "laboratory")
     if re.search(r"\b(?:acute care hospital|chronic care facility)\b", text):
         components = [(klass, label) for klass, label in components if klass != "disease_stage"]
         add_component(components, "care_setting", "care facility")
         add_component(components, "environment_local_scale", "healthcare facility")
-    if re.search(r"\b(?:rectal|nasal|wound|cloacal|vaginal|throat|oropharyngeal|nasopharyngeal|skin|ear|eye) swab\b", text):
+    if re.search(r"\b(?:rectal|nasal|wound|cloacal|vaginal|throat|oropharyngeal|nasopharyngeal|skin|ear|eye|body[- ]surface|skin/body[- ]surface) swab\b", text):
+        components = [(klass, label) for klass, label in components if not (klass == "environment_local_scale" and "surface" in label)]
         add_component(components, "sample_material", "swab specimen")
         add_component(components, "collection_device", "swab")
     if "respiratory sample" in text:
@@ -398,10 +450,38 @@ def classify_value(value: Any, field: str = "", raw_attribute: str = "") -> Clas
     if "sink biofilm" in text or "drain biofilm" in text:
         add_component(components, "environment_medium", "biofilm")
         add_component(components, "environment_local_scale", "sink/drain")
+    if any(niche in text for niche in ("rhizosphere", "phyllosphere", "endosphere")):
+        components = [(klass, label) for klass, label in components if klass != "anatomical_site"]
+        if "rhizosphere" in text:
+            add_component(components, "environment_local_scale", "rhizosphere")
+        if "phyllosphere" in text:
+            add_component(components, "environment_local_scale", "phyllosphere")
+        if "endosphere" in text:
+            add_component(components, "environment_local_scale", "endosphere/plant internal compartment")
+        add_component(components, "host_context", "plant-associated")
+    if "plant-associated material" in text:
+        add_component(components, "source_context", "plant-associated material")
+        add_component(components, "host_context", "plant-associated")
+        add_component(components, "sampling_context", "plant-associated")
+        add_component(components, "sample_material", "plant material")
+    if re.search(r"\b(?:chicken|turkey|poultry|cattle|cow|swine|pig|fish|oyster|shrimp|shellfish)\b", text) and re.search(r"\b(?:feces|faeces|stool|tissue|gut|swab|milk|manure|blood|urine)\b", text) and not re.search(r"\b(?:food|meat|product|seafood|ready[- ]?to[- ]?eat)\b", text):
+        components = [(klass, label) for klass, label in components if klass != "food_commodity"]
+        add_component(components, "host_context", "animal-associated")
     if "mastitis milk" in text:
         add_component(components, "disease", "mastitis")
         add_component(components, "sample_material", "milk")
         add_component(components, "host_context", "animal/livestock context")
+
+    raw_name = normalize(raw_attribute)
+    if raw_name:
+        if "collection device" in raw_name:
+            add_component(components, "collection_device", "raw attribute indicates collection device")
+        if "collection method" in raw_name:
+            add_component(components, "collection_method", "raw attribute indicates collection method")
+        if "disease outcome" in raw_name:
+            add_component(components, "disease_outcome", "raw attribute indicates disease outcome")
+        if "exposure" in raw_name:
+            add_component(components, "exposure_context", "raw attribute indicates exposure context")
     if not components and re.search(r"^[A-Z][a-z]+(?: [a-z]+)?$", str(value or "").strip()):
         add_component(components, "host_taxon", "taxonomic-looking label")
     if not components:
@@ -446,6 +526,7 @@ def class_destinations(semantic_class: str) -> tuple[str, ...]:
         "sampling_context": ("Sampling_Context_SD",),
         "sample_material": ("Sample_Material_SD", "Sample_Type_SD"),
         "sample_entity": ("Sample_Entity_SD", "Sample_Type_SD"),
+        "data_product": ("Data_Product_SD",),
         "collection_device": ("Sample_Collection_Device_SD",),
         "collection_method": ("Sample_Collection_Method_SD",),
         "sample_processing": ("Sample_Processing_SD",),
@@ -503,6 +584,8 @@ def action_class(field: str, classified: ClassifiedValue) -> str:
         return "legacy_compatibility_label"
     if compatibility == "compatible" and additive_destinations(classified, field):
         return "additive_axis_enrichment"
+    if compatibility == "compatible":
+        return "compatible_no_action"
     return "manual_review" if compatibility == "incompatible" else "legacy_compatibility_label"
 
 
@@ -764,23 +847,26 @@ def migration_decisions(flags: dict[str, list[dict[str, Any]]]) -> list[dict[str
 
 def proposed_new_fields() -> list[dict[str, Any]]:
     return [
-        {"field": "Sample_Material_SD", "purpose": "Strict physical specimen/material axis.", "examples": "blood; urine; pus; cerebrospinal fluid; manure", "release_policy": "derived/additive"},
-        {"field": "Sampling_Context_SD", "purpose": "Sampling context when physical material is unspecified or supplemental.", "examples": "clinical; environmental; food; surveillance; laboratory", "release_policy": "derived/additive"},
-        {"field": "Sample_Processing_SD", "purpose": "Preparation or processing state.", "examples": "culture; enrichment culture; metagenomic assembly; DNA extract", "release_policy": "derived/additive"},
-        {"field": "Sample_Collection_Device_SD", "purpose": "Device used to collect a specimen.", "examples": "swab; sponge; catheter; filter", "release_policy": "derived/additive"},
-        {"field": "Sample_Collection_Method_SD", "purpose": "Method used to obtain the specimen.", "examples": "bronchoalveolar lavage; aspiration; biopsy", "release_policy": "derived/additive"},
-        {"field": "Sample_Entity_SD", "purpose": "Biological material form/entity, especially culture/isolate/assembly labels.", "examples": "microbial isolate; cell culture; mixed culture; single cell", "release_policy": "derived/additive"},
-        {"field": "Host_Anatomical_Material_SD", "purpose": "Host-derived anatomical material distinct from anatomical part/site.", "examples": "stool; mucus; saliva; pus; blood; CSF", "release_policy": "derived/additive"},
-        {"field": "Host_Anatomical_Site_SD", "purpose": "Anatomical part of a confirmed host.", "examples": "rectum; lung; nasopharynx; skin; stomach", "release_policy": "derived/additive"},
-        {"field": "Host_Study_Group_SD", "purpose": "Study-group assignment independent of disease and health state.", "examples": "case; control; exposed; contact", "release_policy": "derived/additive"},
-        {"field": "Host_Hospitalization_Status_SD", "purpose": "Hospitalization status only.", "examples": "hospitalized; not hospitalized", "release_policy": "derived/additive"},
-        {"field": "Host_Care_Setting_SD", "purpose": "Care setting or facility context.", "examples": "inpatient; outpatient; ICU; long-term care", "release_policy": "derived/additive"},
-        {"field": "Host_Vital_Status_SD", "purpose": "Vital status, separate from health state and disease outcome.", "examples": "alive; deceased", "release_policy": "derived/additive"},
-        {"field": "Host_Colonization_Status_SD", "purpose": "Carrier or colonization state, separate from disease.", "examples": "carrier; colonized; not colonized", "release_policy": "derived/additive"},
-        {"field": "Host_Disease_Stage_SD", "purpose": "Stage/phase of disease rather than disease identity.", "examples": "acute; chronic; convalescent; exacerbation", "release_policy": "derived/additive"},
-        {"field": "Host_Disease_Outcome_SD", "purpose": "Disease outcome when explicit.", "examples": "recovered; death", "release_policy": "derived/additive"},
-        {"field": "Host_Exposure_Context_SD", "purpose": "Exposure/contact context independent of study group.", "examples": "household contact; close contact; exposed", "release_policy": "derived/additive"},
-        {"field": "Host_Production_Context_SD", "purpose": "Production, husbandry, or rearing context.", "examples": "specific pathogen free; broiler; dairy cow; farmed", "release_policy": "derived/additive"},
+        {"field": "Sample_Material_SD", "field_status": "new_derived_field", "purpose": "Strict physical specimen/material axis.", "examples": "blood; urine; pus; cerebrospinal fluid; manure", "release_policy": "derived/additive"},
+        {"field": "Sampling_Context_SD", "field_status": "new_derived_field", "purpose": "Sampling context when physical material is unspecified or supplemental.", "examples": "clinical; environmental; food; surveillance; laboratory", "release_policy": "derived/additive"},
+        {"field": "Sample_Processing_SD", "field_status": "new_derived_field", "purpose": "Preparation or processing state.", "examples": "culture; enrichment culture; DNA extract", "release_policy": "derived/additive"},
+        {"field": "Sample_Collection_Device_SD", "field_status": "new_derived_field", "purpose": "Device used to collect a specimen.", "examples": "swab; sponge; catheter; filter", "release_policy": "derived/additive"},
+        {"field": "Sample_Collection_Method_SD", "field_status": "new_derived_field", "purpose": "Method used to obtain the specimen.", "examples": "bronchoalveolar lavage; aspiration; biopsy", "release_policy": "derived/additive"},
+        {"field": "Sample_Entity_SD", "field_status": "new_derived_field", "purpose": "Biological material form/entity, especially culture/isolate labels.", "examples": "microbial isolate; cell culture; mixed culture; single cell", "release_policy": "derived/additive"},
+        {"field": "Data_Product_SD", "field_status": "new_derived_field", "purpose": "Sequence-derived or computational data product, not a biological sample entity.", "examples": "metagenomic assembly; sequence assembly", "release_policy": "derived/additive"},
+        {"field": "Host_Anatomical_Material_SD", "field_status": "new_derived_field", "purpose": "Host-derived anatomical material distinct from anatomical part/site.", "examples": "stool; mucus; saliva; pus; blood; CSF", "release_policy": "derived/additive"},
+        {"field": "Host_Anatomical_Site_SD", "field_status": "existing_field_to_enforce", "purpose": "Anatomical part of a confirmed host.", "examples": "rectum; lung; nasopharynx; skin; stomach", "release_policy": "existing/additive"},
+        {"field": "Host_Study_Group_SD", "field_status": "new_derived_field", "purpose": "Study-group assignment independent of disease and health state.", "examples": "case; control; exposed; contact", "release_policy": "derived/additive"},
+        {"field": "Host_Hospitalization_Status_SD", "field_status": "new_derived_field", "purpose": "Hospitalization status only.", "examples": "hospitalized; not hospitalized", "release_policy": "derived/additive"},
+        {"field": "Host_Care_Setting_SD", "field_status": "new_derived_field", "purpose": "Care setting or facility context.", "examples": "inpatient; outpatient; ICU; long-term care", "release_policy": "derived/additive"},
+        {"field": "Host_Vital_Status_SD", "field_status": "new_derived_field", "purpose": "Vital status, separate from health state and disease outcome.", "examples": "alive; deceased", "release_policy": "derived/additive"},
+        {"field": "Host_Colonization_Status_SD", "field_status": "new_derived_field", "purpose": "Carrier or colonization state, separate from disease.", "examples": "carrier; colonized; not colonized", "release_policy": "derived/additive"},
+        {"field": "Host_Disease_Stage_SD", "field_status": "new_derived_field", "purpose": "Stage/phase of disease rather than disease identity.", "examples": "acute; chronic; convalescent; exacerbation", "release_policy": "derived/additive"},
+        {"field": "Host_Disease_Outcome_SD", "field_status": "new_derived_field", "purpose": "Disease outcome when explicit.", "examples": "recovered; survived; fatal outcome", "release_policy": "derived/additive"},
+        {"field": "Host_Exposure_Context_SD", "field_status": "new_derived_field", "purpose": "Exposure/contact context independent of study group.", "examples": "household contact; close contact; exposure/contact context", "release_policy": "derived/additive"},
+        {"field": "Host_Production_Context_SD", "field_status": "existing_field_to_expand", "purpose": "Production, husbandry, or rearing context.", "examples": "specific pathogen free; broiler; dairy cow; farmed", "release_policy": "existing/additive"},
+        {"field": "Sample_Type_SD", "field_status": "legacy_field", "purpose": "Backward-compatible NCBI-style sample type umbrella retained during decomposition.", "examples": "cell culture; swab specimen; metagenomic assembly", "release_policy": "preserve"},
+        {"field": "Isolation_Source_SD", "field_status": "legacy_field", "purpose": "Backward-compatible NCBI-style physical/environmental/local source retained during decomposition.", "examples": "blood; soil; water; food", "release_policy": "preserve"},
     ]
 
 
@@ -836,8 +922,26 @@ def proposed_regression_tests() -> list[dict[str, Any]]:
     return [{"raw_value": raw_value, "expected_behavior": expected, "phase": "phase1_classifier_regression"} for raw_value, expected in examples]
 
 
-def action_and_unique_counts(records: list[dict[str, Any]], migration_rows: list[dict[str, Any]]) -> dict[str, Any]:
-    flagged = {(row["current_field"], row["standardized_value"]): row for row in migration_rows}
+def candidate_rows_by_action(value_rows: list[dict[str, Any]], action: str) -> list[dict[str, Any]]:
+    return sorted(
+        [row for row in value_rows if row["action_class"] == action],
+        key=lambda row: (-int(row["row_count"]), row["field"], row["standardized_value"]),
+    )
+
+
+def compatible_composite_rows(value_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        [row for row in value_rows if row["field_compatibility"] == "compatible_composite"],
+        key=lambda row: (-int(row["row_count"]), row["field"], row["standardized_value"]),
+    )
+
+
+def semantic_signal_rows(value_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return [row for row in value_rows if row["action_class"] != "compatible_no_action"]
+
+
+def action_and_unique_counts(records: list[dict[str, Any]], signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    flagged = {(row.get("current_field") or row["field"], row["standardized_value"]): row for row in signal_rows}
     unique_any: set[str] = set()
     unique_confirmed: set[str] = set()
     unique_review: set[str] = set()
@@ -942,7 +1046,8 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
     example_keys = {(row["field"], row["standardized_value"], row["assembly_accession"]) for row in examples}
     all_examples = examples + [row for row in target_examples if (row["field"], row["standardized_value"], row["assembly_accession"]) not in example_keys]
     migration_rows = migration_decisions(flags)
-    unique_counts = action_and_unique_counts(records, migration_rows)
+    all_signal_rows = semantic_signal_rows(value_rows)
+    unique_counts = action_and_unique_counts(records, all_signal_rows)
     queue_counts = [
         {"queue": queue, "distinct_values": len(rows), "assignment_count": sum(int(row["row_count"]) for row in rows)}
         for queue, rows in flags.items()
@@ -978,7 +1083,12 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
         write_tsv(output_dir / filename, queue_header, flags[queue])
     write_tsv(output_dir / "high_impact_examples.tsv", example_header, all_examples)
     write_tsv(output_dir / "recommended_migration_decisions.tsv", migration_header, migration_rows)
-    write_tsv(output_dir / "proposed_new_fields.tsv", ["field", "purpose", "examples", "release_policy"], proposed_new_fields())
+    write_tsv(output_dir / "all_additive_axis_enrichment_candidates.tsv", value_header, candidate_rows_by_action(value_rows, "additive_axis_enrichment"))
+    write_tsv(output_dir / "all_compatible_composite_candidates.tsv", value_header, compatible_composite_rows(value_rows))
+    write_tsv(output_dir / "confirmed_high_confidence_fixes.tsv", value_header, candidate_rows_by_action(value_rows, "confirmed_high_confidence_fix"))
+    write_tsv(output_dir / "classifier_uncertain_values.tsv", value_header, candidate_rows_by_action(value_rows, "classifier_uncertain"))
+    write_tsv(output_dir / "legacy_compatibility_values.tsv", value_header, candidate_rows_by_action(value_rows, "legacy_compatibility_label"))
+    write_tsv(output_dir / "proposed_new_fields.tsv", ["field", "field_status", "purpose", "examples", "release_policy"], proposed_new_fields())
     write_tsv(output_dir / "proposed_regression_tests.tsv", ["raw_value", "expected_behavior", "phase"], proposed_regression_tests())
 
     summary = {
@@ -987,7 +1097,8 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
         "snapshot_id": snapshot_id,
         "input_standardization_commit": os.environ.get("FETCHM_INPUT_STANDARDIZATION_COMMIT") or "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
         "audit_code_commit": git_commit(),
-        "artifact_commit": "not_committed_at_generation_time",
+        "artifact_commit": os.environ.get("FETCHM_AUDIT_ARTIFACT_COMMIT") or "not_committed_at_generation_time",
+        "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832",
         "database_schema_version": "dataset_production_store_v1",
         "command_line": command_line,
         "controlled_categories_sha256": sha256_file(CONTROLLED_CATEGORIES),
@@ -1000,6 +1111,7 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
         "rows_audited": len(records),
         "distinct_values_classified": len(value_rows),
         "field_value_pairs_with_queue_signals": len(unique_flagged),
+        "field_value_pairs_with_any_semantic_signal": len({(row["field"], row["standardized_value"]) for row in all_signal_rows}),
         "incompatibility_queue_counts": queue_counts,
         "semantic_classes": SEMANTIC_CLASSES,
         "audit_note": "Counts are semantic review/decomposition signals, not confirmed erroneous records.",
@@ -1010,6 +1122,9 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
 
     manifest = {
         "generated_at": utc_now(),
+        "audit_code_commit": git_commit(),
+        "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832",
+        "artifact_commit": os.environ.get("FETCHM_AUDIT_ARTIFACT_COMMIT") or "not_committed_at_generation_time",
         "artifact_sha256": {
             path.name: sha256_file(path)
             for path in sorted(output_dir.iterdir())
@@ -1017,6 +1132,14 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
         },
     }
     (output_dir / "artifact_manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    release_manifest = {
+        "generated_at": utc_now(),
+        "audit_code_commit": git_commit(),
+        "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832",
+        "artifact_commit": os.environ.get("FETCHM_AUDIT_ARTIFACT_COMMIT") or "not_committed_at_generation_time",
+        "note": "The current artifact commit is recorded after commit by setting FETCHM_AUDIT_ARTIFACT_COMMIT during release-manifest regeneration; no production data changes are implied.",
+    }
+    (output_dir / "artifact_release_manifest.json").write_text(json.dumps(release_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
 
 

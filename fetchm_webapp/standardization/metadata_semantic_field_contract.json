@@ -1,0 +1,132 @@
+{
+  "legacy_compatibility_fields": {
+    "Isolation_Source_SD": "Backward-compatible normalized physical/environmental/local source; preserve during Phase 2A.",
+    "Isolation_Source_SD_Broad": "Broad source-context umbrella; preserve during Phase 2A.",
+    "Sample_Type_SD": "Backward-compatible NCBI-style sample type umbrella; preserve during Phase 2A.",
+    "Sample_Type_SD_Broad": "Backward-compatible broad sample type/context umbrella; preserve during Phase 2A."
+  },
+  "new_additive_fields": {
+    "Data_Product_SD": [
+      "data_product"
+    ],
+    "Host_Anatomical_Material_SD": [
+      "anatomical_material"
+    ],
+    "Host_Care_Setting_SD": [
+      "care_setting"
+    ],
+    "Host_Colonization_Status_SD": [
+      "colonization_status"
+    ],
+    "Host_Disease_Outcome_SD": [
+      "disease_outcome"
+    ],
+    "Host_Disease_Stage_SD": [
+      "disease_stage"
+    ],
+    "Host_Exposure_Context_SD": [
+      "exposure_context"
+    ],
+    "Host_Hospitalization_Status_SD": [
+      "hospitalization_status"
+    ],
+    "Host_Study_Group_SD": [
+      "study_group"
+    ],
+    "Host_Vital_Status_SD": [
+      "vital_status"
+    ],
+    "Sample_Collection_Device_SD": [
+      "collection_device"
+    ],
+    "Sample_Collection_Method_SD": [
+      "collection_method"
+    ],
+    "Sample_Entity_SD": [
+      "sample_entity"
+    ],
+    "Sample_Material_SD": [
+      "sample_material"
+    ],
+    "Sample_Processing_SD": [
+      "sample_processing"
+    ],
+    "Sampling_Context_SD": [
+      "sampling_context"
+    ]
+  },
+  "non_goals": [
+    "no production rule change by this contract alone",
+    "no host taxonomy change",
+    "no geography or collection-date change",
+    "no broad remapping of legacy compatibility fields in Phase 2A"
+  ],
+  "provenance_required_for_new_axes": [
+    "source_raw_field",
+    "source_raw_value",
+    "method",
+    "rule_id",
+    "confidence",
+    "ruleset_version"
+  ],
+  "scope": "source_sample_environment_host_clinical_semantic_axes",
+  "site_precedence": {
+    "Host_Anatomical_Site_SD": "Use for anatomical part of a confirmed biological host.",
+    "Isolation_Site_SD": "Use for sampling/isolation site when host linkage is absent, uncertain, or retained for legacy compatibility.",
+    "both_allowed_with_provenance": true
+  },
+  "status": "draft_for_review",
+  "strict_existing_fields": {
+    "Environment_Broad_Scale_SD": {
+      "allowed_semantic_classes": [
+        "environment_broad_scale"
+      ]
+    },
+    "Environment_Local_Scale_SD": {
+      "allowed_semantic_classes": [
+        "environment_local_scale",
+        "care_setting"
+      ]
+    },
+    "Environment_Medium_SD": {
+      "allowed_semantic_classes": [
+        "environment_medium"
+      ]
+    },
+    "Host_Anatomical_Site_SD": {
+      "allowed_semantic_classes": [
+        "anatomical_site"
+      ],
+      "field_status": "existing_field_to_enforce"
+    },
+    "Host_Context_SD": {
+      "allowed_semantic_classes": [
+        "host_context",
+        "production_context",
+        "exposure_context"
+      ]
+    },
+    "Host_Disease_SD": {
+      "allowed_semantic_classes": [
+        "disease"
+      ]
+    },
+    "Host_Health_State_SD": {
+      "allowed_semantic_classes": [
+        "health_state"
+      ]
+    },
+    "Host_Production_Context_SD": {
+      "allowed_semantic_classes": [
+        "production_context"
+      ],
+      "field_status": "existing_field_to_expand"
+    },
+    "Host_SD": {
+      "allowed_semantic_classes": [
+        "host_taxon"
+      ]
+    }
+  },
+  "version": "2026-06-23.phase2a-draft"
+}

@@ -106,6 +106,63 @@ class HostClinicalSiteSemanticsAuditTests(unittest.TestCase):
                 self.assert_has_classes(value, expected)
         self.assert_lacks_classes("patient sample", {"health_state"})
 
+
+    def test_residual_false_positive_protections(self) -> None:
+        self.assert_has_classes("skin/body-surface swab", {"sample_material", "collection_device", "anatomical_site"})
+        self.assert_lacks_classes("skin/body-surface swab", {"environment_local_scale"})
+        self.assert_has_classes("dairy farm", {"production_context", "host_context", "environment_local_scale"})
+        self.assert_lacks_classes("dairy farm", {"food_commodity"})
+        self.assert_has_classes("non-food-contact surface", {"environment_local_scale"})
+        self.assert_lacks_classes("non-food-contact surface", {"food_commodity"})
+        self.assert_has_classes("laboratory culture", {"sample_entity", "sample_processing", "sampling_context"})
+        self.assert_lacks_classes("laboratory culture", {"environment_local_scale"})
+
+    def test_plant_niches_and_plant_material_are_ecological_not_simple_sites(self) -> None:
+        for value in ["rhizosphere", "phyllosphere", "endosphere"]:
+            with self.subTest(value=value):
+                self.assert_has_classes(value, {"environment_local_scale", "host_context"})
+                self.assert_lacks_classes(value, {"anatomical_site"})
+        self.assert_has_classes("plant-associated material", {"source_context", "host_context", "sampling_context", "sample_material"})
+
+    def test_exposure_and_outcome_axes(self) -> None:
+        self.assert_has_classes("exposure/contact context", {"exposure_context"})
+        self.assert_has_classes("household contact", {"exposure_context"})
+        self.assert_has_classes("recovered", {"disease_outcome"})
+        self.assert_has_classes("fatal outcome", {"disease_outcome"})
+
+    def test_additional_deterministic_terms(self) -> None:
+        cases = {
+            "ascites": {"sample_material", "anatomical_material"},
+            "dental plaque": {"sample_material", "environment_medium", "anatomical_site"},
+            "gill": {"anatomical_site"},
+            "bloodstream": {"anatomical_site"},
+            "secretion": {"sample_material", "anatomical_material"},
+            "cold seep": {"environment_local_scale"},
+            "estuary": {"environment_local_scale"},
+            "glacier": {"environment_local_scale"},
+            "anaerobic digester": {"environment_local_scale"},
+            "deciduous forest": {"environment_broad_scale", "environment_local_scale"},
+            "produced fluids from fractured shale": {"environment_medium", "environment_local_scale"},
+            "ice cream": {"food_commodity"},
+            "ready-to-eat product": {"food_commodity"},
+            "kimchi": {"food_commodity"},
+            "prawn product": {"food_commodity"},
+            "catfish product": {"food_commodity"},
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assert_has_classes(value, expected)
+
+    def test_metagenomic_assembly_is_data_product_not_sample_entity(self) -> None:
+        self.assert_has_classes("metagenomic assembly", {"data_product", "sample_processing"})
+        self.assert_lacks_classes("metagenomic assembly", {"sample_entity"})
+
+    def test_raw_attribute_can_add_context(self) -> None:
+        classified = classify_value("contact", raw_attribute="host exposure")
+        self.assertIn("exposure_context", classified.all_classes)
+        classified = classify_value("recovered", raw_attribute="host disease outcome")
+        self.assertIn("disease_outcome", classified.all_classes)
+
     def test_compound_disease_name_does_not_become_blood_material(self) -> None:
         classified = classify_value("banana blood disease")
         self.assertEqual(classified.primary_semantic_class, "disease")
