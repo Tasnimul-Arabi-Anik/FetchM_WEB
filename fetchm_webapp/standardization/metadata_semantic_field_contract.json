@@ -16,6 +16,10 @@
     "destination_conflict": "Do not overwrite. Under set_when_blank_or_same_preserve_existing, existing different destination values are exported as no-op/review signals; true overwrite attempts are hard failures.",
     "non_allowlisted_value": "No dry-run change."
   },
+  "device_context_policy": {
+    "catheter_phase2a_action": "deferred",
+    "reason": "Catheter can be indwelling device, sampled source, catheter-tip specimen, or collection device; no Phase 2A production correction without reviewed device axis."
+  },
   "legacy_compatibility_fields": {
     "Isolation_Source_SD": "Backward-compatible normalized physical/environmental/local source; preserve during Phase 2A.",
     "Isolation_Source_SD_Broad": "Broad source-context umbrella; preserve during Phase 2A.",
@@ -33,6 +37,12 @@
     ]
   },
   "missing_value_policy": {
+    "additional_phase2a_missing_tokens": [
+      "absent",
+      "unavailable",
+      "not provided",
+      "not available"
+    ],
     "additive_fields": "Populate only from explicit reviewed rules and evidence-gated conditions.",
     "patient_without_host_evidence": "Do not infer human; populate only clinical sampling context.",
     "strict_fields": "Leave blank when evidence is absent or conflicting."
@@ -94,6 +104,19 @@
     "no broad remapping of legacy compatibility fields in Phase 2A"
   ],
   "patient_policy": {
+    "clinical_subject_context_requires": [
+      "raw host patient/human/Homo sapiens evidence",
+      "patient-linked specimen evidence",
+      "clinical biological specimen context with validated host evidence"
+    ],
+    "environment_only_exclusions": [
+      "wastewater",
+      "sewage",
+      "sink",
+      "drain",
+      "surface",
+      "environmental material"
+    ],
     "human_context_requires": [
       "Host_SD=Homo sapiens",
       "Host_TaxID=9606",
@@ -109,6 +132,18 @@
     "classifier_uncertain_values.tsv",
     "legacy_compatibility_values.tsv"
   ],
+  "phase2a_hardened_gate": {
+    "canonical_write_authorized": false,
+    "catheter_deferred_to_phase2b": true,
+    "conditional_assignment_skips_are_not_failures": true,
+    "dynamic_allowlist_mutation_check_required": true,
+    "patient_does_not_imply_human": true,
+    "patient_sampling_requires_clinical_subject_evidence": true,
+    "plant_context_requires_plant_context_evidence": true,
+    "removal_provenance_required": true,
+    "required_evidence_failures_are_hard_failures": true,
+    "unknown_condition_failures_are_hard_failures": true
+  },
   "physical_healthcare_facility_policy": {
     "host_care_status_examples": [
       "hospitalized",
@@ -123,6 +158,12 @@
       "healthcare facility surface"
     ],
     "policy": "A physical healthcare facility may populate Environment_Local_Scale_SD. Host care status must not populate Environment_Local_Scale_SD unless the phrase explicitly describes a physical sampled facility."
+  },
+  "plant_context_policy": {
+    "animal_host_or_drain_context_without_plant_evidence_is_removal_only": true,
+    "clear_invalid_site_value_without_destination_when_evidence_is_absent": true,
+    "context_destinations_require_plant_context_evidence": true,
+    "sample_material_requires_material_or_tissue_evidence": true
   },
   "potentially_multivalued_fields": [
     "Host_Context_SD",
@@ -163,7 +204,7 @@
     "Isolation_Site_SD": "Use for sampling/isolation site when host linkage is absent, uncertain, or retained for legacy compatibility.",
     "both_allowed_with_provenance": true
   },
-  "status": "approved_for_phase2a_dry_run",
+  "status": "approved_for_phase2a_hardened_dry_run",
   "strict_existing_fields": {
     "Environment_Broad_Scale_SD": {
       "allowed_semantic_classes": [
@@ -215,5 +256,5 @@
       ]
     }
   },
-  "version": "2026-06-23.phase2a-approved-dry-run"
+  "version": "2026-06-24.phase2a-hardened-dry-run"
 }

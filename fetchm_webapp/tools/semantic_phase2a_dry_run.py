@@ -28,8 +28,9 @@ from dataset_production_store import connect
 DEFAULT_SNAPSHOT_ID = "20260602T140414Z_genbank_bacteria_root"
 DEFAULT_RULES = ROOT / "standardization" / "semantic_phase2a_confirmed_rules.csv"
 DEFAULT_OUTPUT_ROOT = ROOT / "standardization" / "review" / "host_clinical_site_semantics_phase2a_dry_run"
-RULESET_VERSION = "semantic_phase2a_confirmed_rules_v1"
+RULESET_VERSION = "semantic_phase2a_confirmed_rules_v2"
 PROVENANCE_FIELD = "Semantic_Axis_Provenance"
+REMOVAL_PROVENANCE_KEY = "_cleared_strict_fields"
 
 ADDITIVE_FIELDS = [
     "Sample_Material_SD",
@@ -98,6 +99,20 @@ RAW_EVIDENCE_FIELDS = [
     "BioSample Collection Method",
 ]
 
+CONTEXT_EVIDENCE_FIELDS = [
+    *RAW_EVIDENCE_FIELDS,
+    "Host_SD",
+    "Host_TaxID",
+    "Host_Context_SD",
+    "Sample_Type_SD",
+    "Sample_Type_SD_Broad",
+    "Isolation_Source_SD",
+    "Isolation_Source_SD_Broad",
+    "Environment_Medium_SD",
+    "Environment_Broad_Scale_SD",
+    "Environment_Local_Scale_SD",
+]
+
 COMPANION_FIELDS = {
     "Host_Health_State_SD": [
         "Host_Health_State_SD_Broad",
@@ -137,6 +152,69 @@ REQUIRED_RULE_COLUMNS = [
     "source_audit_commit",
 ]
 
+# Mirrors the central app metadata missing-token policy without importing the
+# Flask application stack into this standalone audit tool.
+MISSING_VALUE_TOKENS = {
+    "",
+    "-",
+    "na",
+    "n a",
+    "n/a",
+    "nan",
+    "none",
+    "null",
+    "missing",
+    "mising",
+    "misisng",
+    "absent",
+    "unknown",
+    "not known",
+    "not available",
+    "unavailable",
+    "not provided",
+    "not collected",
+    "not applicable",
+    "not recorded",
+    "not determined",
+    "restricted access",
+    "no host",
+    "no data",
+}
+
+ENVIRONMENT_ONLY_RE = re.compile(
+    r"\b(?:wastewater|waste water|sewage|sewer|effluent|influent|sludge|sink|drain|"
+    r"surface|environmental|environment|water|soil|sediment|biofilm|hospital environment|"
+    r"healthcare environment|facility surface)\b",
+    re.I,
+)
+ENVIRONMENT_EXCLUSION_RE = re.compile(r"\b(?:wastewater|waste water|sewage|sink|drain|surface|environmental|environment)\b", re.I)
+CLINICAL_SPECIMEN_RE = re.compile(
+    r"\b(?:clinical sample|clinical specimen|patient sample|patient specimen|human specimen|"
+    r"veterinary specimen|veterinary sample|blood|urine|feces|faeces|stool|swab|nasal|"
+    r"rectal|wound|tissue|biopsy|aspirate|sputum|cerebrospinal fluid|csf|pus|milk|"
+    r"serum|plasma|saliva|respiratory sample)\b",
+    re.I,
+)
+PATIENT_OR_HUMAN_RE = re.compile(r"\b(?:patient|human|homo sapiens|h\. sapiens)\b", re.I)
+ANIMAL_HOST_RE = re.compile(
+    r"\b(?:aves|bird|bos|bovine|cow|cattle|calf|taurus|gallus|chicken|turkey|sus|pig|"
+    r"swine|ovis|sheep|capra|goat|equus|horse|canis|dog|felis|cat|fish|oyster|shrimp|"
+    r"shellfish|mouse|mus musculus|rattus|rat)\b",
+    re.I,
+)
+PLANT_CONTEXT_RE = re.compile(
+    r"\b(?:plant|plant-associated|plant associated|plant material|plant tissue|leaf|root|stem|"
+    r"seed|fruit|flower|rhizosphere|phyllosphere|endosphere|viridiplantae|arabidopsis|"
+    r"oryza|rice|zea|maize|corn|glycine|soybean|solanum|tomato|spinach|lettuce|citrus|"
+    r"medicago|triticum|wheat|combretum|campylopus)\b",
+    re.I,
+)
+PLANT_MATERIAL_RE = re.compile(
+    r"\b(?:plant material|plant tissue|leaf tissue|root tissue|stem tissue|seed tissue|"
+    r"fruit tissue|flower tissue|plant sample|leaf sample|root sample|stem sample)\b",
+    re.I,
+)
+
 
 @dataclass(frozen=True)
 class Rule:
@@ -161,13 +239,40 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def normalize_lookup(value: Any) -> str:
+    text = "" if value is None else str(value)
+    text = re.sub(r"\[[A-Za-z]+:\d+\]", " ", text)
+    text = text.strip().lower()
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
 def norm(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value or "").strip()).lower()
 
 
 def present(value: Any) -> bool:
     text = norm(value)
-    return bool(text) and text not in {"na", "n/a", "none", "unknown", "missing", "null", "not applicable"}
+    normalized = normalize_lookup(value)
+    if not text or normalized in MISSING_VALUE_TOKENS or text in MISSING_VALUE_TOKENS:
+        return False
+    missing_prefixes = (
+        "missing",
+        "no collected",
+        "not collect",
+        "not applicable",
+        "not available",
+        "not collected",
+        "not provided",
+        "not recorded",
+        "not determined",
+        "unavailable",
+        "unidentified",
+        "unknown",
+    )
+    if re.match(r"^\d+\s*(not applicable|not available|not collected|not provided|unknown)\b", normalized):
+        return False
+    return not normalized.startswith(missing_prefixes)
 
 
 def read_payload(value: Any) -> dict[str, Any]:
@@ -223,13 +328,16 @@ def validate_rules(rules: list[Rule]) -> None:
     duplicates = [rule_id for rule_id, count in Counter(ids).items() if count > 1]
     if duplicates:
         raise ValueError(f"Duplicate Phase 2A rule IDs: {duplicates}")
+    blocked_destination_fields = set(LEGACY_COMPATIBILITY_FIELDS) | set(PROTECTED_FIELDS) | set(RAW_EVIDENCE_FIELDS)
     for rule in rules:
         if rule.reviewer_status != "approved_phase2a_dry_run":
             raise ValueError(f"Rule {rule.rule_id} is not approved for Phase 2A dry-run")
-        if rule.destination_field in LEGACY_COMPATIBILITY_FIELDS:
-            raise ValueError(f"Rule {rule.rule_id} attempts to write legacy field {rule.destination_field}")
+        if rule.destination_field in blocked_destination_fields:
+            raise ValueError(f"Rule {rule.rule_id} attempts to write protected or legacy field {rule.destination_field}")
     by_destination: dict[tuple[str, str, str], set[str]] = defaultdict(set)
     for rule in rules:
+        if not rule.destination_field:
+            continue
         key = (rule.current_field, norm(rule.current_value), rule.destination_field)
         by_destination[key].add(norm(rule.destination_value))
     conflicts = {key: values for key, values in by_destination.items() if len(values) > 1}
@@ -263,26 +371,56 @@ def load_records(snapshot_id: str) -> list[dict[str, Any]]:
     ]
 
 
+def text_blob(payload: dict[str, Any], fields: Iterable[str]) -> str:
+    return " | ".join(str(payload.get(field) or "") for field in fields if present(payload.get(field)))
+
+
 def raw_text_blob(payload: dict[str, Any]) -> str:
-    return " | ".join(str(payload.get(field) or "") for field in RAW_EVIDENCE_FIELDS)
+    return text_blob(payload, RAW_EVIDENCE_FIELDS)
+
+
+def standardized_context_blob(payload: dict[str, Any]) -> str:
+    return text_blob(payload, CONTEXT_EVIDENCE_FIELDS)
 
 
 def has_human_evidence(payload: dict[str, Any]) -> bool:
-    if norm(payload.get("Host_TaxID")) == "9606":
+    if normalize_lookup(payload.get("Host_TaxID")) == "9606":
         return True
-    host_values = [payload.get("Host_SD"), payload.get("Host"), payload.get("Host_Original"), payload.get("Host_Cleaned"), payload.get("BioSample Host")]
-    for value in host_values:
-        text = norm(value)
-        if text in {"human", "homo sapiens", "h. sapiens", "homo sapiens (human)"}:
+    for field in ["Host_SD", "Host", "Host_Original", "Host_Cleaned", "BioSample Host"]:
+        text = normalize_lookup(payload.get(field))
+        if text in {"human", "homo sapiens", "h sapiens", "homo sapiens human"}:
             return True
     return False
 
 
+def environment_only_context(payload: dict[str, Any]) -> bool:
+    blob = standardized_context_blob(payload)
+    if not ENVIRONMENT_ONLY_RE.search(blob):
+        return False
+    return not bool(CLINICAL_SPECIMEN_RE.search(blob) or PATIENT_OR_HUMAN_RE.search(raw_text_blob(payload)))
+
+
+def explicit_clinical_specimen_context(payload: dict[str, Any]) -> bool:
+    blob = standardized_context_blob(payload)
+    if not CLINICAL_SPECIMEN_RE.search(blob):
+        return False
+    if ENVIRONMENT_EXCLUSION_RE.search(blob) and not PATIENT_OR_HUMAN_RE.search(blob):
+        return False
+    return True
+
+
 def has_nonhuman_host_evidence(payload: dict[str, Any]) -> bool:
-    if present(payload.get("Host_SD")) and not has_human_evidence(payload):
+    if has_human_evidence(payload):
+        return False
+    host_sd = normalize_lookup(payload.get("Host_SD"))
+    host_taxid = normalize_lookup(payload.get("Host_TaxID"))
+    if host_sd and present(host_sd) and host_taxid and host_taxid != "9606":
+        if not ENVIRONMENT_EXCLUSION_RE.search(host_sd) and host_sd not in {"sample", "environmental", "environment", "patient"}:
+            return True
+    context = normalize_lookup(payload.get("Host_Context_SD"))
+    if context in {"animal associated", "plant associated", "host associated"}:
         return True
-    text = norm(payload.get("Host") or payload.get("Host_Original") or payload.get("BioSample Host"))
-    return bool(text and text not in {"patient", "human", "homo sapiens", "unknown"})
+    return False
 
 
 def has_host_evidence(payload: dict[str, Any]) -> bool:
@@ -295,9 +433,75 @@ def has_host_evidence(payload: dict[str, Any]) -> bool:
     return False
 
 
+def has_clinical_subject_evidence(payload: dict[str, Any]) -> bool:
+    raw_host_blob = text_blob(payload, ["Host", "Host_Original", "Host_Cleaned", "BioSample Host"])
+    if PATIENT_OR_HUMAN_RE.search(raw_host_blob):
+        return True
+    if environment_only_context(payload):
+        return False
+    raw_blob = raw_text_blob(payload)
+    if re.search(r"\bpatient\b", raw_blob, re.I) and CLINICAL_SPECIMEN_RE.search(raw_blob):
+        return True
+    if has_human_evidence(payload) and explicit_clinical_specimen_context(payload):
+        return True
+    if has_nonhuman_host_evidence(payload) and explicit_clinical_specimen_context(payload):
+        return True
+    return False
+
+
+def has_animal_host_evidence(payload: dict[str, Any]) -> bool:
+    host_blob = text_blob(payload, ["Host_SD", "Host", "Host_Original", "Host_Cleaned", "BioSample Host"])
+    return bool(ANIMAL_HOST_RE.search(host_blob))
+
+
+def has_plant_host_evidence(payload: dict[str, Any]) -> bool:
+    host_blob = text_blob(payload, ["Host_SD", "Host", "Host_Original", "Host_Cleaned", "BioSample Host"])
+    if not host_blob or has_animal_host_evidence(payload) or has_human_evidence(payload):
+        return False
+    return bool(PLANT_CONTEXT_RE.search(host_blob))
+
+
+def has_plant_context_evidence(payload: dict[str, Any]) -> bool:
+    if has_animal_host_evidence(payload) or has_human_evidence(payload):
+        raw_blob = raw_text_blob(payload)
+        return bool(PLANT_CONTEXT_RE.search(raw_blob) and not ENVIRONMENT_EXCLUSION_RE.search(raw_blob))
+    if has_plant_host_evidence(payload):
+        return True
+    raw_or_source_blob = text_blob(
+        payload,
+        [
+            "Isolation Source",
+            "Sample Type",
+            "BioSample Isolation Source",
+            "BioSample Tissue",
+            "BioSample Tissue Type",
+            "BioSample Host Tissue Sampled",
+            "Isolation_Source_SD",
+            "Environment_Local_Scale_SD",
+            "Environment_Broad_Scale_SD",
+            "Host_Context_SD",
+        ],
+    )
+    if ENVIRONMENT_EXCLUSION_RE.search(raw_or_source_blob) and not PLANT_CONTEXT_RE.search(raw_text_blob(payload)):
+        return False
+    return bool(PLANT_CONTEXT_RE.search(raw_or_source_blob))
+
+
 def has_plant_material_evidence(payload: dict[str, Any]) -> bool:
-    blob = norm(raw_text_blob(payload))
-    return bool(re.search(r"\b(?:plant-associated material|plant material|plant tissue|leaf tissue|root tissue|stem tissue|plant sample)\b", blob))
+    blob = text_blob(
+        payload,
+        [
+            "Isolation Source",
+            "Sample Type",
+            "BioSample Isolation Source",
+            "BioSample Tissue",
+            "BioSample Tissue Type",
+            "BioSample Host Tissue Sampled",
+            "Isolation_Source_SD",
+            "Sample_Type_SD",
+        ],
+    )
+    return bool(PLANT_MATERIAL_RE.search(blob))
 
 
 def has_collection_device_evidence(payload: dict[str, Any]) -> bool:
@@ -311,30 +515,55 @@ def has_collection_device_evidence(payload: dict[str, Any]) -> bool:
     return False
 
 
-def condition_met(rule: Rule, payload: dict[str, Any]) -> tuple[bool, str]:
+def condition_met(rule: Rule, payload: dict[str, Any]) -> tuple[bool, str, str]:
     condition = norm(rule.destination_condition)
+    if not rule.destination_field:
+        return True, "clear_only_rule=true", ""
     if condition == "always":
-        return True, "condition=always"
+        return True, "condition=always", ""
     if condition == "human_host_evidence":
-        return has_human_evidence(payload), "human_host_evidence=" + str(has_human_evidence(payload)).lower()
+        ok = has_human_evidence(payload)
+        return ok, "human_host_evidence=" + str(ok).lower(), "conditional_assignment_skip"
+    if condition == "clinical_subject_evidence":
+        ok = has_clinical_subject_evidence(payload)
+        return ok, "clinical_subject_evidence=" + str(ok).lower(), "conditional_assignment_skip"
     if condition == "host_evidence":
-        return has_host_evidence(payload), "host_evidence=" + str(has_host_evidence(payload)).lower()
+        ok = has_host_evidence(payload)
+        return ok, "host_evidence=" + str(ok).lower(), "conditional_assignment_skip"
+    if condition == "plant_context_evidence":
+        ok = has_plant_context_evidence(payload)
+        return ok, "plant_context_evidence=" + str(ok).lower(), "conditional_assignment_skip"
     if condition == "plant_material_evidence":
-        return has_plant_material_evidence(payload), "plant_material_evidence=" + str(has_plant_material_evidence(payload)).lower()
+        ok = has_plant_material_evidence(payload)
+        return ok, "plant_material_evidence=" + str(ok).lower(), "conditional_assignment_skip"
     if condition == "collection_device_evidence":
-        return has_collection_device_evidence(payload), "collection_device_evidence=" + str(has_collection_device_evidence(payload)).lower()
+        ok = has_collection_device_evidence(payload)
+        return ok, "collection_device_evidence=" + str(ok).lower(), "conditional_assignment_skip"
     if condition == "blank_or_same":
-        return True, "merge_policy=set_when_blank_or_same"
-    return False, f"unknown_condition={rule.destination_condition}"
+        return True, "merge_policy=set_when_blank_or_same", ""
+    return False, f"unknown_condition={rule.destination_condition}", "unknown_condition_failure"
+
+
+def matched_raw_field(payload: dict[str, Any], value: str) -> tuple[str, str]:
+    wanted = normalize_lookup(value)
+    for field in RAW_EVIDENCE_FIELDS:
+        raw_value = payload.get(field)
+        if not present(raw_value):
+            continue
+        text = normalize_lookup(raw_value)
+        if text == wanted or wanted in text or text in wanted:
+            return field, str(raw_value)
+    return "", ""
 
 
 def provenance_entry(rule: Rule, payload: dict[str, Any], evidence: str) -> dict[str, str]:
+    source_field, source_value = matched_raw_field(payload, rule.current_value)
     return {
         "rule_id": rule.rule_id,
         "source_current_field": rule.current_field,
         "source_current_value": rule.current_value,
-        "source_raw_field": matched_raw_field(payload, rule.current_value)[0],
-        "source_raw_value": matched_raw_field(payload, rule.current_value)[1],
+        "source_raw_field": source_field,
+        "source_raw_value": source_value,
         "method": "semantic_phase2a_dry_run",
         "confidence": rule.destination_confidence,
         "evidence": evidence,
@@ -344,19 +573,7 @@ def provenance_entry(rule: Rule, payload: dict[str, Any], evidence: str) -> dict
     }
 
 
-def matched_raw_field(payload: dict[str, Any], value: str) -> tuple[str, str]:
-    wanted = norm(value)
-    for field in RAW_EVIDENCE_FIELDS:
-        raw_value = payload.get(field)
-        if not present(raw_value):
-            continue
-        text = norm(raw_value)
-        if text == wanted or wanted in text or text in wanted:
-            return field, str(raw_value)
-    return "", ""
-
-
-def add_provenance(payload: dict[str, Any], field: str, entry: dict[str, str]) -> None:
+def add_provenance(payload: dict[str, Any], field: str, entry: dict[str, Any]) -> None:
     provenance = payload.get(PROVENANCE_FIELD)
     if not isinstance(provenance, dict):
         provenance = {}
@@ -366,16 +583,19 @@ def add_provenance(payload: dict[str, Any], field: str, entry: dict[str, str]) -
     payload[PROVENANCE_FIELD] = provenance
 
 
-def clear_field(payload: dict[str, Any], field: str) -> list[str]:
+def clear_field(payload: dict[str, Any], field: str) -> list[dict[str, str]]:
     cleared = []
     for target in [field, *COMPANION_FIELDS.get(field, [])]:
         if present(payload.get(target)):
+            previous = str(payload.get(target) or "")
             payload[target] = ""
-            cleared.append(target)
+            cleared.append({"field": target, "previous_value": previous, "is_primary": str(target == field).lower()})
     return cleared
 
 
 def set_destination(payload: dict[str, Any], rule: Rule, evidence: str) -> tuple[str, str]:
+    if not rule.destination_field:
+        return "clear_only", "no destination for clear-only rule"
     current = str(payload.get(rule.destination_field) or "").strip()
     if not current:
         payload[rule.destination_field] = rule.destination_value
@@ -383,74 +603,10 @@ def set_destination(payload: dict[str, Any], rule: Rule, evidence: str) -> tuple
         return "applied", ""
     if norm(current) == norm(rule.destination_value):
         add_provenance(payload, rule.destination_field, provenance_entry(rule, payload, evidence))
-        return "noop", "same destination value already present"
+        return "already_same", "same destination value already present"
     if norm(rule.merge_policy) == "set_when_blank_or_same":
-        return "noop", f"existing nonblank destination preserved per merge policy; existing={current}; proposed={rule.destination_value}"
+        return "existing_different", f"existing nonblank destination preserved per merge policy; existing={current}; proposed={rule.destination_value}"
     return "conflict", f"existing={current}; proposed={rule.destination_value}"
-
-
-def apply_rules_to_payload(payload: dict[str, Any], rules_by_current: dict[tuple[str, str], list[Rule]]) -> dict[str, Any]:
-    before = deepcopy(payload)
-    after = deepcopy(payload)
-    applied: list[dict[str, str]] = []
-    conflicts: list[dict[str, str]] = []
-    evidence_failures: list[dict[str, str]] = []
-    noops: list[dict[str, str]] = []
-    cleared_fields: list[str] = []
-    matched_rules: list[Rule] = []
-
-    for key, rules in rules_by_current.items():
-        current_field, current_value = key
-        if norm(after.get(current_field)) != current_value:
-            continue
-        matched_rules.extend(rules)
-        if any(rule.clear_current_field for rule in rules):
-            cleared_fields.extend(clear_field(after, current_field))
-        for rule in rules:
-            ok, evidence = condition_met(rule, before)
-            if not ok:
-                evidence_failures.append({
-                    "rule_id": rule.rule_id,
-                    "field": rule.destination_field,
-                    "value": rule.destination_value,
-                    "condition": rule.destination_condition,
-                    "evidence": evidence,
-                })
-                continue
-            status, detail = set_destination(after, rule, evidence)
-            event = {
-                "rule_id": rule.rule_id,
-                "field": rule.destination_field,
-                "value": rule.destination_value,
-                "condition": rule.destination_condition,
-                "evidence": evidence,
-                "detail": detail,
-            }
-            if status == "applied":
-                applied.append(event)
-            elif status == "noop":
-                noops.append(event)
-            else:
-                conflicts.append(event)
-
-    changed_fields = [field for field in sorted(set(before) | set(after)) if before.get(field, "") != after.get(field, "")]
-    legacy_changed = [field for field in LEGACY_COMPATIBILITY_FIELDS if before.get(field, "") != after.get(field, "")]
-    protected_changed = [field for field in PROTECTED_FIELDS if before.get(field, "") != after.get(field, "")]
-    raw_changed = [field for field in RAW_EVIDENCE_FIELDS if before.get(field, "") != after.get(field, "")]
-    return {
-        "before": before,
-        "after": after,
-        "matched_rules": matched_rules,
-        "applied": applied,
-        "conflicts": conflicts,
-        "evidence_failures": evidence_failures,
-        "noops": noops,
-        "cleared_fields": sorted(set(cleared_fields)),
-        "changed_fields": changed_fields,
-        "legacy_changed": legacy_changed,
-        "protected_changed": protected_changed,
-        "raw_changed": raw_changed,
-    }
 
 
 def rules_by_current(rules: list[Rule]) -> dict[tuple[str, str], list[Rule]]:
@@ -464,9 +620,146 @@ def compact_json(value: Any) -> str:
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 
+def allowed_changed_fields(matched_rules: list[Rule]) -> set[str]:
+    allowed = {PROVENANCE_FIELD}
+    for rule in matched_rules:
+        if rule.clear_current_field:
+            allowed.add(rule.current_field)
+            allowed.update(COMPANION_FIELDS.get(rule.current_field, []))
+        if rule.destination_field:
+            allowed.add(rule.destination_field)
+    return allowed
+
+
+def add_removal_provenance(after: dict[str, Any], rule: Rule, cleared: list[dict[str, str]], outcomes: list[dict[str, str]]) -> dict[str, Any]:
+    primary = next((item for item in cleared if item["is_primary"] == "true"), None)
+    if not primary:
+        return {}
+    source_field, source_value = matched_raw_field(after, rule.current_value)
+    event = {
+        "rule_id": rule.rule_id,
+        "cleared_field": rule.current_field,
+        "previous_value": primary["previous_value"],
+        "cleared_companion_fields": [item for item in cleared if item["is_primary"] != "true"],
+        "removal_confidence": rule.removal_confidence,
+        "reason": rule.rationale,
+        "source_raw_field": source_field,
+        "source_raw_value": source_value,
+        "destination_outcomes": outcomes,
+        "destination_status": "removal_only" if not any(outcome.get("status") in {"applied", "already_same"} for outcome in outcomes) else "destination_recorded",
+        "method": "semantic_phase2a_dry_run",
+        "ruleset_version": RULESET_VERSION,
+        "source_audit_commit": rule.source_audit_commit,
+    }
+    add_provenance(after, REMOVAL_PROVENANCE_KEY, event)
+    return event
+
+
+def apply_rules_to_payload(payload: dict[str, Any], rules_by_lookup: dict[tuple[str, str], list[Rule]]) -> dict[str, Any]:
+    before = deepcopy(payload)
+    after = deepcopy(payload)
+    applied: list[dict[str, str]] = []
+    conflicts: list[dict[str, str]] = []
+    conditional_skips: list[dict[str, str]] = []
+    required_failures: list[dict[str, str]] = []
+    unknown_condition_failures: list[dict[str, str]] = []
+    already_same: list[dict[str, str]] = []
+    existing_different: list[dict[str, str]] = []
+    clear_only: list[dict[str, str]] = []
+    cleared_fields: list[dict[str, str]] = []
+    removal_events: list[dict[str, Any]] = []
+    matched_rules: list[Rule] = []
+
+    for key, rules in rules_by_lookup.items():
+        current_field, current_value = key
+        if norm(after.get(current_field)) != current_value:
+            continue
+        matched_rules.extend(rules)
+        key_cleared: list[dict[str, str]] = []
+        clear_rule = next((rule for rule in rules if rule.clear_current_field), None)
+        if clear_rule is not None:
+            key_cleared = clear_field(after, current_field)
+            cleared_fields.extend(key_cleared)
+        key_outcomes: list[dict[str, str]] = []
+        for rule in rules:
+            ok, evidence, failure_kind = condition_met(rule, before)
+            if not ok:
+                event = {
+                    "rule_id": rule.rule_id,
+                    "field": rule.destination_field,
+                    "value": rule.destination_value,
+                    "condition": rule.destination_condition,
+                    "evidence": evidence,
+                    "detail": failure_kind,
+                    "status": failure_kind,
+                }
+                key_outcomes.append(event)
+                if failure_kind == "unknown_condition_failure":
+                    unknown_condition_failures.append(event)
+                elif failure_kind == "required_evidence_failure":
+                    required_failures.append(event)
+                else:
+                    conditional_skips.append(event)
+                continue
+            status, detail = set_destination(after, rule, evidence)
+            event = {
+                "rule_id": rule.rule_id,
+                "field": rule.destination_field,
+                "value": rule.destination_value,
+                "condition": rule.destination_condition,
+                "evidence": evidence,
+                "detail": detail,
+                "status": status,
+            }
+            key_outcomes.append(event)
+            if status == "applied":
+                applied.append(event)
+            elif status == "already_same":
+                already_same.append(event)
+            elif status == "existing_different":
+                existing_different.append(event)
+            elif status == "clear_only":
+                clear_only.append(event)
+            else:
+                conflicts.append(event)
+        if clear_rule is not None and key_cleared:
+            removal_events.append(add_removal_provenance(after, clear_rule, key_cleared, key_outcomes))
+
+    changed_fields = [field for field in sorted(set(before) | set(after)) if before.get(field, "") != after.get(field, "")]
+    legacy_changed = [field for field in LEGACY_COMPATIBILITY_FIELDS if before.get(field, "") != after.get(field, "")]
+    protected_changed = [field for field in PROTECTED_FIELDS if before.get(field, "") != after.get(field, "")]
+    raw_changed = [field for field in RAW_EVIDENCE_FIELDS if before.get(field, "") != after.get(field, "")]
+    unexpected_changed = sorted(set(changed_fields) - allowed_changed_fields(matched_rules)) if matched_rules else []
+    return {
+        "before": before,
+        "after": after,
+        "matched_rules": matched_rules,
+        "applied": applied,
+        "conflicts": conflicts,
+        "conditional_skips": conditional_skips,
+        "required_failures": required_failures,
+        "unknown_condition_failures": unknown_condition_failures,
+        "already_same": already_same,
+        "existing_different": existing_different,
+        "clear_only": clear_only,
+        "removal_events": removal_events,
+        "cleared_fields": cleared_fields,
+        "changed_fields": changed_fields,
+        "legacy_changed": legacy_changed,
+        "protected_changed": protected_changed,
+        "raw_changed": raw_changed,
+        "unexpected_changed": unexpected_changed,
+    }
+
+
+def event_rule_lookup(rules: list[Rule]) -> dict[str, Rule]:
+    return {rule.rule_id: rule for rule in rules}
+
+
 def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation_examples_per_rule: int) -> dict[str, Any]:
     rules = load_rules(rules_path)
     grouped = rules_by_current(rules)
+    rules_lookup = event_rule_lookup(rules)
     records = load_records(snapshot_id)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -474,8 +767,12 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
     value_counter: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
     row_changes: list[dict[str, Any]] = []
     conflicts: list[dict[str, Any]] = []
-    evidence_failures: list[dict[str, Any]] = []
-    noops: list[dict[str, Any]] = []
+    conditional_skips: list[dict[str, Any]] = []
+    required_failures: list[dict[str, Any]] = []
+    unknown_condition_failures: list[dict[str, Any]] = []
+    already_same: list[dict[str, Any]] = []
+    existing_different: list[dict[str, Any]] = []
+    removal_rows: list[dict[str, Any]] = []
     patient_audit: list[dict[str, Any]] = []
     catheter_audit: list[dict[str, Any]] = []
     plant_audit: list[dict[str, Any]] = []
@@ -486,7 +783,14 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
     legacy_changed_counter: Counter[str] = Counter()
     protected_changed_counter: Counter[str] = Counter()
     raw_changed_counter: Counter[str] = Counter()
+    unexpected_changed_counter: Counter[str] = Counter()
     affected_accessions: set[str] = set()
+    patient_environment_context_additions = 0
+    plant_context_without_evidence = 0
+    catheter_production_changes = 0
+    removal_without_provenance = 0
+    primary_clears = 0
+    companion_clears = 0
 
     for record in records:
         payload = record["payload"]
@@ -498,6 +802,18 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
         for field in ADDITIVE_FIELDS:
             if present(after.get(field)):
                 after_coverage[field] += 1
+
+        patient_row_needed = norm(payload.get("Host_Health_State_SD")) == "patient"
+        plant_row_needed = norm(payload.get("Isolation_Site_SD")) == "plant-associated material"
+        catheter_row_needed = norm(payload.get("Isolation_Site_SD")) == "catheter"
+
+        if patient_row_needed:
+            patient_audit.append(patient_context_row(record, payload, result))
+        if plant_row_needed:
+            plant_audit.append(context_summary_row(record, payload, result, "plant-associated material"))
+        if catheter_row_needed:
+            catheter_audit.append(context_summary_row(record, payload, result, "catheter"))
+
         if not result["matched_rules"]:
             continue
         changed = bool(result["changed_fields"])
@@ -508,29 +824,51 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
             value_counter[(rule.current_field, rule.current_value)]["matched_rows"] += 1
         for event in result["applied"]:
             rules_counter[event["rule_id"]]["applied_assignments"] += 1
-            value_counter[(next(rule.current_field for rule in rules if rule.rule_id == event["rule_id"]), next(rule.current_value for rule in rules if rule.rule_id == event["rule_id"]))]["applied_assignments"] += 1
+            rule = rules_lookup[event["rule_id"]]
+            value_counter[(rule.current_field, rule.current_value)]["applied_assignments"] += 1
         for event in result["conflicts"]:
             rules_counter[event["rule_id"]]["destination_conflicts"] += 1
             conflicts.append(context_event(record, payload, event))
-        for event in result["evidence_failures"]:
-            rules_counter[event["rule_id"]]["evidence_failures"] += 1
-            evidence_failures.append(context_event(record, payload, event))
-        for event in result["noops"]:
-            rules_counter[event["rule_id"]]["noops"] += 1
-            noops.append(context_event(record, payload, event))
+        for event in result["conditional_skips"]:
+            rules_counter[event["rule_id"]]["conditional_assignment_skips"] += 1
+            conditional_skips.append(context_event(record, payload, event))
+        for event in result["required_failures"]:
+            rules_counter[event["rule_id"]]["required_evidence_failures"] += 1
+            required_failures.append(context_event(record, payload, event))
+        for event in result["unknown_condition_failures"]:
+            rules_counter[event["rule_id"]]["unknown_condition_failures"] += 1
+            unknown_condition_failures.append(context_event(record, payload, event))
+        for event in result["already_same"]:
+            rules_counter[event["rule_id"]]["destination_already_same"] += 1
+            already_same.append(context_event(record, payload, event))
+        for event in result["existing_different"]:
+            rules_counter[event["rule_id"]]["destination_existing_different"] += 1
+            existing_different.append(context_event(record, payload, event))
+        for removal_event in result["removal_events"]:
+            if removal_event:
+                removal_rows.append(removal_context_row(record, payload, removal_event))
+        for field_event in result["cleared_fields"]:
+            if field_event.get("is_primary") == "true":
+                primary_clears += 1
+            else:
+                companion_clears += 1
         for field in result["legacy_changed"]:
             legacy_changed_counter[field] += 1
         for field in result["protected_changed"]:
             protected_changed_counter[field] += 1
         for field in result["raw_changed"]:
             raw_changed_counter[field] += 1
-        if norm(payload.get("Host_Health_State_SD")) == "patient":
-            patient_audit.append(patient_context_row(record, payload, result))
-        if norm(payload.get("Isolation_Site_SD")) == "catheter":
-            catheter_audit.append(context_summary_row(record, payload, result, "catheter"))
-        if norm(payload.get("Isolation_Site_SD")) == "plant-associated material":
-            plant_audit.append(context_summary_row(record, payload, result, "plant-associated material"))
-        if changed or result["conflicts"] or result["evidence_failures"] or result["noops"]:
+        for field in result["unexpected_changed"]:
+            unexpected_changed_counter[field] += 1
+        if any(event["rule_id"] == "PH2A-HHS-PATIENT-SAMPLING" for event in result["applied"]) and environment_only_context(payload):
+            patient_environment_context_additions += 1
+        if any(event["rule_id"] in {"PH2A-SITE-PLANT-MATERIAL-CONTEXT", "PH2A-SITE-PLANT-SAMPLING"} for event in result["applied"]) and not has_plant_context_evidence(payload):
+            plant_context_without_evidence += 1
+        if catheter_row_needed and result["changed_fields"]:
+            catheter_production_changes += 1
+        if result["cleared_fields"] and not result["removal_events"]:
+            removal_without_provenance += 1
+        if changed or result["conflicts"] or result["conditional_skips"] or result["required_failures"] or result["unknown_condition_failures"] or result["already_same"] or result["existing_different"]:
             row_changes.append(row_change(record, result))
         for rule in result["matched_rules"]:
             if examples_per_rule[rule.rule_id] < validation_examples_per_rule:
@@ -545,8 +883,11 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
             "matched_rows": counts.get("matched_rows", 0),
             "applied_assignments": counts.get("applied_assignments", 0),
             "destination_conflicts": sum(rules_counter[rule.rule_id].get("destination_conflicts", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
-            "evidence_failures": sum(rules_counter[rule.rule_id].get("evidence_failures", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
-            "noops": sum(rules_counter[rule.rule_id].get("noops", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
+            "conditional_assignment_skips": sum(rules_counter[rule.rule_id].get("conditional_assignment_skips", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
+            "required_evidence_failures": sum(rules_counter[rule.rule_id].get("required_evidence_failures", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
+            "unknown_condition_failures": sum(rules_counter[rule.rule_id].get("unknown_condition_failures", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
+            "destination_already_same": sum(rules_counter[rule.rule_id].get("destination_already_same", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
+            "destination_existing_different": sum(rules_counter[rule.rule_id].get("destination_existing_different", 0) for rule in rules if rule.current_field == field and rule.current_value == value),
         }
         for (field, value), counts in sorted(value_counter.items())
     ]
@@ -569,42 +910,69 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, validation
     ]
 
     write_outputs(
-        output_dir,
-        rules_rows,
-        value_rows,
-        row_changes,
-        conflicts,
-        evidence_failures,
-        noops,
-        patient_audit,
-        catheter_audit,
-        plant_audit,
-        legacy_rows,
-        coverage_rows,
-        validation_examples,
+        output_dir=output_dir,
+        rules_rows=rules_rows,
+        value_rows=value_rows,
+        row_changes=row_changes,
+        conflicts=conflicts,
+        conditional_skips=conditional_skips,
+        required_failures=required_failures,
+        unknown_condition_failures=unknown_condition_failures,
+        already_same=already_same,
+        existing_different=existing_different,
+        removal_rows=removal_rows,
+        patient_audit=patient_audit,
+        catheter_audit=catheter_audit,
+        plant_audit=plant_audit,
+        legacy_rows=legacy_rows,
+        coverage_rows=coverage_rows,
+        validation_examples=validation_examples,
     )
     summary = {
         "generated_at": utc_now(),
-        "phase": "phase2a_dry_run_only",
+        "phase": "phase2a_hardened_dry_run_only",
         "canonical_snapshot_id": snapshot_id,
         "canonical_rows_scanned": len(records),
         "rules_path": str(rules_path),
         "rules_count": len(rules),
         "unique_assemblies_projected_to_change": len(affected_accessions),
-        "assignments_projected_to_clear": sum(1 for row in row_changes for field in str(row.get("cleared_fields", "")).split("|") if field),
+        "primary_strict_field_assignments_cleared": primary_clears,
+        "companion_fields_cleared": companion_clears,
+        "assignments_projected_to_clear": primary_clears + companion_clears,
+        "destination_assignments_applied": sum(counts.get("applied_assignments", 0) for counts in rules_counter.values()),
         "new_axis_assignments_projected": sum(row["delta"] for row in coverage_rows if row["field"] in ADDITIVE_FIELDS),
         "destination_conflicts": len(conflicts),
-        "evidence_failures": len(evidence_failures),
-        "noop_rows": len(noops),
+        "conditional_assignment_skips": len(conditional_skips),
+        "required_evidence_failures": len(required_failures),
+        "unknown_condition_failures": len(unknown_condition_failures),
+        "destinations_already_same": len(already_same),
+        "destination_existing_different_preserved": len(existing_different),
+        "removal_only_corrections": sum(1 for row in removal_rows if row.get("destination_status") == "removal_only"),
         "legacy_field_changes": sum(legacy_changed_counter.values()),
         "protected_field_changes": sum(protected_changed_counter.values()),
         "raw_field_changes": sum(raw_changed_counter.values()),
-        "rows_outside_reviewed_allowlist_affected": 0,
+        "rows_outside_reviewed_allowlist_affected": sum(unexpected_changed_counter.values()),
+        "patient_environment_only_context_additions": patient_environment_context_additions,
+        "plant_context_without_evidence": plant_context_without_evidence,
+        "catheter_production_changes": catheter_production_changes,
+        "removal_without_provenance": removal_without_provenance,
         "production_rules_changed": False,
         "canonical_write_run": False,
         "global_insights_regenerated": False,
         "deployment_run": False,
-        "hard_failures": hard_failures(legacy_changed_counter, protected_changed_counter, raw_changed_counter, conflicts),
+        "hard_failures": hard_failures(
+            legacy_changed_counter,
+            protected_changed_counter,
+            raw_changed_counter,
+            conflicts,
+            required_failures,
+            unknown_condition_failures,
+            unexpected_changed_counter,
+            patient_environment_context_additions,
+            plant_context_without_evidence,
+            catheter_production_changes,
+            removal_without_provenance,
+        ),
     }
     (output_dir / "phase2a_dry_run_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_summary_md(output_dir / "phase2a_dry_run_summary.md", summary)
@@ -623,6 +991,7 @@ def context_event(record: dict[str, Any], payload: dict[str, Any], event: dict[s
         "value": event.get("value", ""),
         "condition": event.get("condition", ""),
         "evidence": event.get("evidence", ""),
+        "status": event.get("status", ""),
         "detail": event.get("detail", ""),
         "Host_SD": payload.get("Host_SD", ""),
         "Host_TaxID": payload.get("Host_TaxID", ""),
@@ -630,6 +999,28 @@ def context_event(record: dict[str, Any], payload: dict[str, Any], event: dict[s
         "Host_Health_State_SD": payload.get("Host_Health_State_SD", ""),
         "Host_Disease_SD": payload.get("Host_Disease_SD", ""),
         "Isolation_Site_SD": payload.get("Isolation_Site_SD", ""),
+        "Isolation_Source_SD": payload.get("Isolation_Source_SD", ""),
+        "Sample_Type_SD": payload.get("Sample_Type_SD", ""),
+    }
+
+
+def removal_context_row(record: dict[str, Any], payload: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "assembly_accession": record["assembly_accession"],
+        "biosample": record["biosample"],
+        "organism": record["organism"],
+        "rule_id": event.get("rule_id", ""),
+        "cleared_field": event.get("cleared_field", ""),
+        "previous_value": event.get("previous_value", ""),
+        "cleared_companion_fields": compact_json(event.get("cleared_companion_fields", [])),
+        "removal_confidence": event.get("removal_confidence", ""),
+        "destination_status": event.get("destination_status", ""),
+        "destination_outcomes": compact_json(event.get("destination_outcomes", [])),
+        "source_raw_field": event.get("source_raw_field", ""),
+        "source_raw_value": event.get("source_raw_value", ""),
+        "reason": event.get("reason", ""),
+        "Host_SD": payload.get("Host_SD", ""),
+        "Host_TaxID": payload.get("Host_TaxID", ""),
         "Isolation_Source_SD": payload.get("Isolation_Source_SD", ""),
         "Sample_Type_SD": payload.get("Sample_Type_SD", ""),
     }
@@ -646,11 +1037,14 @@ def patient_context_row(record: dict[str, Any], payload: dict[str, Any], result:
         "raw_host": payload.get("Host", "") or payload.get("Host_Original", ""),
         "human_evidence": str(has_human_evidence(payload)).lower(),
         "nonhuman_host_evidence": str(has_nonhuman_host_evidence(payload)).lower(),
+        "clinical_subject_evidence": str(has_clinical_subject_evidence(payload)).lower(),
+        "environment_only_context": str(environment_only_context(payload)).lower(),
         "before_Host_Health_State_SD": payload.get("Host_Health_State_SD", ""),
         "after_Host_Health_State_SD": after.get("Host_Health_State_SD", ""),
         "after_Host_Context_SD": after.get("Host_Context_SD", ""),
         "after_Sampling_Context_SD": after.get("Sampling_Context_SD", ""),
-        "evidence_failures": compact_json(result["evidence_failures"]),
+        "conditional_assignment_skips": compact_json(result["conditional_skips"]),
+        "removal_provenance": compact_json(after.get(PROVENANCE_FIELD, {}).get(REMOVAL_PROVENANCE_KEY, [])),
     }
 
 
@@ -662,15 +1056,20 @@ def context_summary_row(record: dict[str, Any], payload: dict[str, Any], result:
         "organism": record["organism"],
         "review_value": value,
         "Host_SD": payload.get("Host_SD", ""),
+        "Host_TaxID": payload.get("Host_TaxID", ""),
         "Host_Context_SD": payload.get("Host_Context_SD", ""),
+        "plant_context_evidence": str(has_plant_context_evidence(payload)).lower(),
+        "plant_material_evidence": str(has_plant_material_evidence(payload)).lower(),
+        "collection_device_evidence": str(has_collection_device_evidence(payload)).lower(),
         "before_Isolation_Site_SD": payload.get("Isolation_Site_SD", ""),
         "after_Isolation_Site_SD": after.get("Isolation_Site_SD", ""),
         "after_Sample_Material_SD": after.get("Sample_Material_SD", ""),
         "after_Sample_Collection_Device_SD": after.get("Sample_Collection_Device_SD", ""),
         "after_Host_Context_SD": after.get("Host_Context_SD", ""),
         "after_Sampling_Context_SD": after.get("Sampling_Context_SD", ""),
-        "evidence_failures": compact_json(result["evidence_failures"]),
+        "conditional_assignment_skips": compact_json(result["conditional_skips"]),
         "conflicts": compact_json(result["conflicts"]),
+        "removal_provenance": compact_json(after.get(PROVENANCE_FIELD, {}).get(REMOVAL_PROVENANCE_KEY, [])),
     }
 
 
@@ -683,14 +1082,18 @@ def row_change(record: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]
         "biosample": record["biosample"],
         "organism": record["organism"],
         "changed_fields": "|".join(changed),
-        "cleared_fields": "|".join(result["cleared_fields"]),
+        "cleared_fields": "|".join(event["field"] for event in result["cleared_fields"]),
         "rules_applied": "|".join(sorted({event["rule_id"] for event in result["applied"]})),
         "conflict_count": len(result["conflicts"]),
-        "evidence_failure_count": len(result["evidence_failures"]),
-        "noop_count": len(result["noops"]),
+        "conditional_skip_count": len(result["conditional_skips"]),
+        "required_failure_count": len(result["required_failures"]),
+        "unknown_condition_failure_count": len(result["unknown_condition_failures"]),
+        "destination_already_same_count": len(result["already_same"]),
+        "destination_existing_different_count": len(result["existing_different"]),
         "legacy_changed": "|".join(result["legacy_changed"]),
         "protected_changed": "|".join(result["protected_changed"]),
         "raw_changed": "|".join(result["raw_changed"]),
+        "unexpected_changed": "|".join(result["unexpected_changed"]),
         "before_values": compact_json({field: before.get(field, "") for field in changed}),
         "after_values": compact_json({field: after.get(field, "") for field in changed}),
     }
@@ -698,7 +1101,7 @@ def row_change(record: dict[str, Any], result: dict[str, Any]) -> dict[str, Any]
 
 def validation_example(record: dict[str, Any], payload: dict[str, Any], result: dict[str, Any], rule: Rule) -> dict[str, Any]:
     after = result["after"]
-    fields = sorted(set([rule.current_field, rule.destination_field, *COMPANION_FIELDS.get(rule.current_field, [])]))
+    fields = sorted(set([rule.current_field, rule.destination_field, *COMPANION_FIELDS.get(rule.current_field, [])]) - {""})
     return {
         "rule_id": rule.rule_id,
         "assembly_accession": record["assembly_accession"],
@@ -710,9 +1113,10 @@ def validation_example(record: dict[str, Any], payload: dict[str, Any], result: 
         "destination_value": rule.destination_value,
         "before_values": compact_json({field: payload.get(field, "") for field in fields}),
         "after_values": compact_json({field: after.get(field, "") for field in fields}),
-        "provenance": compact_json(after.get(PROVENANCE_FIELD, {}).get(rule.destination_field, [])),
+        "destination_provenance": compact_json(after.get(PROVENANCE_FIELD, {}).get(rule.destination_field, [])) if rule.destination_field else "",
+        "removal_provenance": compact_json(after.get(PROVENANCE_FIELD, {}).get(REMOVAL_PROVENANCE_KEY, [])),
         "conflicts": compact_json(result["conflicts"]),
-        "evidence_failures": compact_json(result["evidence_failures"]),
+        "conditional_assignment_skips": compact_json(result["conditional_skips"]),
     }
 
 
@@ -728,15 +1132,30 @@ def rule_summary_row(rule: Rule, counts: Counter[str]) -> dict[str, Any]:
         "matched_rows": counts.get("matched_rows", 0),
         "applied_assignments": counts.get("applied_assignments", 0),
         "destination_conflicts": counts.get("destination_conflicts", 0),
-        "evidence_failures": counts.get("evidence_failures", 0),
-        "noops": counts.get("noops", 0),
+        "conditional_assignment_skips": counts.get("conditional_assignment_skips", 0),
+        "required_evidence_failures": counts.get("required_evidence_failures", 0),
+        "unknown_condition_failures": counts.get("unknown_condition_failures", 0),
+        "destination_already_same": counts.get("destination_already_same", 0),
+        "destination_existing_different": counts.get("destination_existing_different", 0),
         "removal_confidence": rule.removal_confidence,
         "destination_confidence": rule.destination_confidence,
         "rationale": rule.rationale,
     }
 
 
-def hard_failures(legacy: Counter[str], protected: Counter[str], raw: Counter[str], conflicts: list[dict[str, Any]]) -> list[str]:
+def hard_failures(
+    legacy: Counter[str],
+    protected: Counter[str],
+    raw: Counter[str],
+    conflicts: list[dict[str, Any]],
+    required_failures: list[dict[str, Any]],
+    unknown_condition_failures: list[dict[str, Any]],
+    unexpected_changed: Counter[str],
+    patient_environment_context_additions: int,
+    plant_context_without_evidence: int,
+    catheter_production_changes: int,
+    removal_without_provenance: int,
+) -> list[str]:
     failures = []
     if sum(legacy.values()):
         failures.append("legacy compatibility field changed")
@@ -746,6 +1165,20 @@ def hard_failures(legacy: Counter[str], protected: Counter[str], raw: Counter[st
         failures.append("raw evidence field changed")
     if conflicts:
         failures.append("destination overwrite conflict")
+    if required_failures:
+        failures.append("required destination evidence missing")
+    if unknown_condition_failures:
+        failures.append("unknown destination condition")
+    if sum(unexpected_changed.values()):
+        failures.append("unexpected non-allowlisted field changed")
+    if patient_environment_context_additions:
+        failures.append("patient clinical context assigned to environment-only rows")
+    if plant_context_without_evidence:
+        failures.append("plant context assigned without plant evidence")
+    if catheter_production_changes:
+        failures.append("catheter changed in Phase 2A")
+    if removal_without_provenance:
+        failures.append("removal without provenance")
     return failures
 
 
@@ -755,8 +1188,12 @@ def write_outputs(
     value_rows: list[dict[str, Any]],
     row_changes: list[dict[str, Any]],
     conflicts: list[dict[str, Any]],
-    evidence_failures: list[dict[str, Any]],
-    noops: list[dict[str, Any]],
+    conditional_skips: list[dict[str, Any]],
+    required_failures: list[dict[str, Any]],
+    unknown_condition_failures: list[dict[str, Any]],
+    already_same: list[dict[str, Any]],
+    existing_different: list[dict[str, Any]],
+    removal_rows: list[dict[str, Any]],
     patient_audit: list[dict[str, Any]],
     catheter_audit: list[dict[str, Any]],
     plant_audit: list[dict[str, Any]],
@@ -767,10 +1204,14 @@ def write_outputs(
     write_tsv(output_dir / "phase2a_rules_applied.tsv", list(rules_rows[0].keys()) if rules_rows else [], rules_rows)
     write_tsv(output_dir / "phase2a_value_level_before_after.tsv", list(value_rows[0].keys()) if value_rows else ["current_field", "current_value"], value_rows)
     write_tsv(output_dir / "phase2a_projected_row_changes.tsv", list(row_changes[0].keys()) if row_changes else ["assembly_accession"], row_changes)
-    event_header = ["assembly_accession", "biosample", "organism", "rule_id", "field", "value", "condition", "evidence", "detail", "Host_SD", "Host_TaxID", "Host_Context_SD", "Host_Health_State_SD", "Host_Disease_SD", "Isolation_Site_SD", "Isolation_Source_SD", "Sample_Type_SD"]
+    event_header = ["assembly_accession", "biosample", "organism", "rule_id", "field", "value", "condition", "evidence", "status", "detail", "Host_SD", "Host_TaxID", "Host_Context_SD", "Host_Health_State_SD", "Host_Disease_SD", "Isolation_Site_SD", "Isolation_Source_SD", "Sample_Type_SD"]
     write_tsv(output_dir / "phase2a_destination_conflicts.tsv", event_header, conflicts)
-    write_tsv(output_dir / "phase2a_evidence_failures.tsv", event_header, evidence_failures)
-    write_tsv(output_dir / "phase2a_destination_noops.tsv", event_header, noops)
+    write_tsv(output_dir / "phase2a_conditional_assignment_skips.tsv", event_header, conditional_skips)
+    write_tsv(output_dir / "phase2a_required_evidence_failures.tsv", event_header, required_failures)
+    write_tsv(output_dir / "phase2a_unknown_condition_failures.tsv", event_header, unknown_condition_failures)
+    write_tsv(output_dir / "phase2a_destination_already_same.tsv", event_header, already_same)
+    write_tsv(output_dir / "phase2a_destination_existing_different.tsv", event_header, existing_different)
+    write_tsv(output_dir / "phase2a_removal_provenance.tsv", list(removal_rows[0].keys()) if removal_rows else ["assembly_accession"], removal_rows)
     write_tsv(output_dir / "phase2a_patient_host_context_audit.tsv", list(patient_audit[0].keys()) if patient_audit else ["assembly_accession"], patient_audit)
     write_tsv(output_dir / "phase2a_catheter_context_audit.tsv", list(catheter_audit[0].keys()) if catheter_audit else ["assembly_accession"], catheter_audit)
     write_tsv(output_dir / "phase2a_plant_material_context_audit.tsv", list(plant_audit[0].keys()) if plant_audit else ["assembly_accession"], plant_audit)
@@ -781,7 +1222,7 @@ def write_outputs(
 
 def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
     lines = [
-        "# Phase 2A Semantic Axis Dry Run",
+        "# Phase 2A Hardened Semantic Axis Dry Run",
         "",
         f"Generated: {summary['generated_at']}",
         f"Snapshot: `{summary['canonical_snapshot_id']}`",
@@ -797,17 +1238,24 @@ def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
         f"| Canonical rows scanned | {summary['canonical_rows_scanned']:,} |",
         f"| Rules in reviewed allowlist | {summary['rules_count']:,} |",
         f"| Unique assemblies projected to change | {summary['unique_assemblies_projected_to_change']:,} |",
-        f"| Assignments projected to clear | {summary['assignments_projected_to_clear']:,} |",
+        f"| Primary strict-field assignments cleared | {summary['primary_strict_field_assignments_cleared']:,} |",
+        f"| Companion fields cleared | {summary['companion_fields_cleared']:,} |",
         f"| New-axis assignments projected | {summary['new_axis_assignments_projected']:,} |",
+        f"| Destination assignments applied | {summary['destination_assignments_applied']:,} |",
+        f"| Destinations already same | {summary['destinations_already_same']:,} |",
+        f"| Existing-different destinations preserved | {summary['destination_existing_different_preserved']:,} |",
+        f"| Conditional assignment skips | {summary['conditional_assignment_skips']:,} |",
+        f"| Required evidence failures | {summary['required_evidence_failures']:,} |",
+        f"| Unknown-condition failures | {summary['unknown_condition_failures']:,} |",
         f"| Destination conflicts | {summary['destination_conflicts']:,} |",
-        f"| Evidence failures | {summary['evidence_failures']:,} |",
-        f"| No-op rows | {summary['noop_rows']:,} |",
+        f"| Removal-only corrections | {summary['removal_only_corrections']:,} |",
         f"| Legacy compatibility field changes | {summary['legacy_field_changes']:,} |",
         f"| Protected/raw field changes | {summary['protected_field_changes'] + summary['raw_field_changes']:,} |",
+        f"| Rows outside reviewed allowlist affected | {summary['rows_outside_reviewed_allowlist_affected']:,} |",
         "",
         "## Gate",
         "",
-        "Pass" if not summary["hard_failures"] else "Fail: " + ", ".join(summary["hard_failures"]),
+        "Dry-run mutation-safety gate: pass" if not summary["hard_failures"] else "Dry-run mutation-safety gate: fail: " + ", ".join(summary["hard_failures"]),
         "",
     ]
     path.write_text("\n".join(lines), encoding="utf-8")

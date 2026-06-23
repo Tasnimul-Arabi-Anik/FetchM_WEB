@@ -107,3 +107,15 @@ This contract is approved only for Phase 2A dry-run work. Production canonical w
 Phase 2A merge policy is `set_when_blank_or_same_preserve_existing`. Existing nonblank destination values are not overwritten. Existing different destination values are preserved and exported as no-op/review signals; true overwrite conflicts remain hard failures.
 
 Legacy fields `Sample_Type_SD`, `Sample_Type_SD_Broad`, `Isolation_Source_SD`, and `Isolation_Source_SD_Broad` must not be changed in Phase 2A dry-run or production implementation.
+
+## Phase 2A Hardened Dry-Run Notes
+
+The hardened dry-run does not authorize canonical writes. It only tests reviewed strict-field removals and evidence-gated additive destinations.
+
+`patient` is always removed from `Host_Health_State_SD` when matched by the reviewed rule, but `Sampling_Context_SD = clinical subject` requires explicit clinical-subject evidence. Environment-only rows such as wastewater, sewage, sink, drain, or surface records must remain removal-only unless patient-linked specimen evidence is present.
+
+`plant-associated material` is removed from `Isolation_Site_SD`, but plant context and plant sampling destinations require plant-context evidence. Physical plant material requires plant material or tissue evidence. Animal-host, drain, or evidence-poor rows remain removal-only review signals.
+
+`catheter` is deferred from Phase 2A production scope. It requires a later device-context decision because it may represent an indwelling device, collection device, sampled device surface, or catheter-tip specimen.
+
+Dry-run reporting distinguishes conditional assignment skips from required evidence failures and unknown-condition failures. Conditional skips are expected evidence gates; required evidence failures and unknown conditions are hard failures. Every strict-field removal must have removal provenance in `Semantic_Axis_Provenance`.
