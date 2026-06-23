@@ -1,0 +1,141 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Isolation_Source_SD	blood	sample_material	9729	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD_Broad	clinical fluid/material	sample_material	9023	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	clinical fluid/material	sample_material	9021	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	urine	sample_material	2891	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	feces/stool	sample_material	343	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD_Broad	feces/stool	sample_material	343	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	milk	sample_material	123	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	caeca content	sample_material	80	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncho-alveolar lavage	sample_material	72	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	fermented milk/dairy product	sample_material	64	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD_Broad	tissue	sample_material	44	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	ceacal content	sample_material	43	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	tissue	sample_material	43	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	blood-derived material	sample_material	36	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncho-alveolar lavage	sample_material	35	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Nasopharygneal lavage	sample_material	24	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	lavage	sample_material	22	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Tracheal lavage	sample_material	15	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	body fluid	sample_material	13	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	guttural pouch lavage	sample_material	13	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Guttural pouch lavage	sample_material	11	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchalveolar Lavage	sample_material	10	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Intrauterine purulent content	sample_material	8	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Nasobronchial lavage	sample_material	8	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	sputum	sample_material	8	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncoalveolar lavage	sample_material	7	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncheoalveolar lavage	sample_material	6	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD_Broad	animal tissue/site	sample_material	6	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronco-Alveolar Lavage	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	abomasum content	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	brochoalveolar lavage	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	cloacal content	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	gastric lavage	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	ruminal content	sample_material	5	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	ceca contents	sample_material	4	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	egg content	sample_material	4	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	uterine content	sample_material	4	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncho-Alveolar Lavage	sample_material	3	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Gastric lavage	sample_material	3	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Lavage	sample_material	3	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	bronchioalveolar lavage	sample_material	3	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	purulent material	sample_material	3	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncho alveolaire lavage	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncho alveolar lavage	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Catether (Blood)	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Lizards faeces	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Post-lavage	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Tracheobronchial lavage	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	appendix content	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	baby faeces	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	bat, faeces	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	biogas reactor content	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	biopsy	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncho alveolar lavage	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	cerebrospinal	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	gastric content	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	ileal contents	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	pancreatic cyst contents	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	uterine contents	sample_material	2	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Abdominal (drain aspirate)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Abdominal contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Abomasum content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Brochoalveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchialveolar Lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchioaleveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchioalveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchoalve. Lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchoalvelar lavage (BAL)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronchoavleolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncholaveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Broncial Lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronco-alveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Bronko-alveolær lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Canine faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Cat faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Cerebrospinal	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Chest (PUS)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Columba livia crop contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Corn Snake (Faeces)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Elbow(PUS)-left	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Eviscerated Contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Eviscerated content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Eviscerated contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Faeces - Goat - Local livestock market	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Faeces of piglets	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	GI content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Gastric Contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Gastric content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Gastric contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Infant faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Lizard Faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Lizard faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Lizard, faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Peritoneal lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Post lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Purulent material	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	R elbow synovial fluid.	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Right hip (fluid)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Right knee synovial fluid.	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Rodent faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Snake faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Uterine Body Plus Contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	VACUUM CONTENTS	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	Vulture faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	abomasal content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	alveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncheoalveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncho-alveolar lavage (BAL)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	broncho-aveolar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	bronchoavelar lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	bursa content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	cerebrospinal fluid	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	colonic content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	endotrach lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.10	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.11	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.12	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.13	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.14	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.15	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.16	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.17	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.7	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.8	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces 9.9	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	faeces of a thoroughbred horse	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	guttural pouch contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	infant faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	intraocular contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	lamb faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	mandibular lymphnode (abscess)	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	midgut content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	neonatal calf faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	peritoneal lavage	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	poulltry faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	purulent content	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	roe deer faeces	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	synovial fluid.	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	the contents of the uterine cavity	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD
+Isolation_Source_SD	tracheal contents	sample_material	1	Physical specimen/material values should not be represented as strict source context.	Sample_Type_SD

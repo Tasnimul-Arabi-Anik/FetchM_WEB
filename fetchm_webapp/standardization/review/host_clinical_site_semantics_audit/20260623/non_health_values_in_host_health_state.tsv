@@ -1,0 +1,13 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Host_Health_State_SD	patient	host_context	7540	Host_Health_State_SD should contain strict health states only.	Host_Context_SD
+Host_Health_State_SD	hospitalized	care_setting	1183	Host_Health_State_SD should contain strict health states only.	Host_Care_Setting_SD
+Host_Health_State_SD	healthy/control	study_group	1077	Host_Health_State_SD should contain strict health states only.	Host_Study_Group_SD
+Host_Health_State_SD	carrier	colonization_status	922	Host_Health_State_SD should contain strict health states only.	Host_Colonization_Status_SD
+Host_Health_State_SD	non-hospitalized	care_setting	497	Host_Health_State_SD should contain strict health states only.	Host_Care_Setting_SD
+Host_Health_State_SD	dead	vital_status	289	Host_Health_State_SD should contain strict health states only.	Host_Vital_Status_SD
+Host_Health_State_SD	exposure/contact context	study_group	95	Host_Health_State_SD should contain strict health states only.	Host_Study_Group_SD
+Host_Health_State_SD	specific pathogen free	host_context	56	Host_Health_State_SD should contain strict health states only.	Host_Context_SD
+Host_Health_State_SD	exacerbation	disease_stage	48	Host_Health_State_SD should contain strict health states only.	Host_Disease_Stage_SD
+Host_Health_State_SD	alive	vital_status	40	Host_Health_State_SD should contain strict health states only.	Host_Vital_Status_SD
+Host_Health_State_SD	colonized	colonization_status	18	Host_Health_State_SD should contain strict health states only.	Host_Colonization_Status_SD
+Host_Health_State_SD	convalescent	disease_stage	1	Host_Health_State_SD should contain strict health states only.	Host_Disease_Stage_SD

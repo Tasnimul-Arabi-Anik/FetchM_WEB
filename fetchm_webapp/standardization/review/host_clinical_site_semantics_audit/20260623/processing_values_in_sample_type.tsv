@@ -1,0 +1,17 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Sample_Type_SD	cell culture	sample_processing	54613	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	culture	sample_processing	21152	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	single cell	sample_processing	11833	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	pure/single culture	sample_processing	5271	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	mixed culture	sample_processing	4790	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	bacterial culture	sample_processing	4744	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	enrichment culture	sample_processing	1973	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	DNA extract	sample_processing	1792	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	microbial culture	sample_processing	957	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	unicyanobacterial culture	sample_processing	61	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	assembly	sample_processing	50	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	screening culture	sample_processing	47	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	plate culture	sample_processing	26	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	laboratory culture	sample_processing	22	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	liquid culture	sample_processing	19	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD
+Sample_Type_SD	clone culture	sample_processing	14	Processing/preparation terms should move to Sample_Processing_SD.	Sample_Processing_SD

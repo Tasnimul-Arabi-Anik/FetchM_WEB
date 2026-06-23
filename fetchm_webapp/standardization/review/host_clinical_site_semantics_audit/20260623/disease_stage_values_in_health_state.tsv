@@ -1,0 +1,3 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Host_Health_State_SD	exacerbation	disease_stage	48	Disease stage should move to Host_Disease_Stage_SD.	Host_Disease_Stage_SD
+Host_Health_State_SD	convalescent	disease_stage	1	Disease stage should move to Host_Disease_Stage_SD.	Host_Disease_Stage_SD

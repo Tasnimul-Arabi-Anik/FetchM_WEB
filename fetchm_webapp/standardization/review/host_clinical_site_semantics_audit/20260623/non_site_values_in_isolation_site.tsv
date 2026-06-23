@@ -1,0 +1,10 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Isolation_Site_SD	cerebrospinal fluid	sample_material	5264	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	manure	sample_material	4577	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	abscess	sample_material	4086	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	gut content	sample_material	3257	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	pus	sample_material	2645	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	plant-associated material	host_context	2016	Isolation_Site_SD should contain anatomical sites or plant parts only.	Host_Context_SD
+Isolation_Site_SD	bronchoalveolar lavage fluid	sample_material	258	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	gastric biopsy	sample_material	256	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Type_SD
+Isolation_Site_SD	catheter	collection_device	2	Isolation_Site_SD should contain anatomical sites or plant parts only.	Sample_Collection_Device_SD

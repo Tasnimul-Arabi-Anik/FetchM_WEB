@@ -1,0 +1,10 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Host_Anatomical_Site_SD	feces/stool	sample_material	23405	Site field contains non-anatomical context/material.	Sample_Type_SD
+Host_Anatomical_Site_SD	cecal/gut content	sample_material	9821	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	cerebrospinal fluid	sample_material	5264	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	manure	sample_material	4577	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	abscess	sample_material	4086	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	gut content	sample_material	3257	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	pus	sample_material	2645	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	bronchoalveolar lavage fluid	sample_material	258	Site field contains non-anatomical context/material.	Sample_Type_SD
+Isolation_Site_SD	gastric biopsy	sample_material	256	Site field contains non-anatomical context/material.	Sample_Type_SD

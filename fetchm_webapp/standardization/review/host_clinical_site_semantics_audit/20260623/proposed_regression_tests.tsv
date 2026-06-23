@@ -1,0 +1,20 @@
+raw_value	expected_behavior	phase
+patient	Host_Context_SD=human-associated; Sample_Context_SD=clinical; no Host_Health_State_SD	phase3_after_audit_approval
+clinical patient	human/clinical context; no Host_Health_State_SD=patient	phase3_after_audit_approval
+control	Host_Study_Group_SD=control; do not infer healthy	phase3_after_audit_approval
+healthy control	Host_Health_State_SD=healthy + Host_Study_Group_SD=control	phase3_after_audit_approval
+hospitalized	Host_Care_Setting_SD=hospitalized	phase3_after_audit_approval
+carrier	Host_Colonization_Status_SD=carrier; not Host_Disease_SD	phase3_after_audit_approval
+colonized	Host_Colonization_Status_SD=colonized; not Host_Disease_SD	phase3_after_audit_approval
+dead	Host_Vital_Status_SD=deceased	phase3_after_audit_approval
+convalescent	Host_Disease_Stage_SD=convalescent	phase3_after_audit_approval
+pus	Sample_Type_SD=pus/purulent material; no Isolation_Site_SD unless wound/abscess site explicit	phase3_after_audit_approval
+manure	sample/environment fecal material; no Isolation_Site_SD	phase3_after_audit_approval
+cerebrospinal fluid	Sample_Type_SD=cerebrospinal fluid; no site unless explicit CNS site	phase3_after_audit_approval
+bronchoalveolar lavage fluid	Sample_Type_SD=lavage fluid + respiratory site	phase3_after_audit_approval
+gastric biopsy	Sample_Type_SD=biopsy/tissue + gastrointestinal site	phase3_after_audit_approval
+sink	Environment_Local_Scale_SD=sink; no Sample_Type_SD	phase3_after_audit_approval
+drain	Environment_Local_Scale_SD=drain; no Sample_Type_SD	phase3_after_audit_approval
+metagenomic assembly	Sample_Processing_SD=metagenomic assembly; no Sample_Type_SD material	phase3_after_audit_approval
+DNA extract	Sample_Processing_SD=DNA extract	phase3_after_audit_approval
+banana blood disease	Host_Disease_SD disease context; must not create blood sample type	phase3_after_audit_approval

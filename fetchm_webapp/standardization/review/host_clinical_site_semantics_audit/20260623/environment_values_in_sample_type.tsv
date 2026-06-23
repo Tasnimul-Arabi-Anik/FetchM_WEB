@@ -1,0 +1,14 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Sample_Type_SD	laboratory	environment_local_scale	8034	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	stream	environment_local_scale	5416	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	farm	environment_local_scale	3734	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	cave biofilm	environment_medium	1716	Environmental terms should not be physical sample type values.	Environment_Medium_SD
+Sample_Type_SD	drain	environment_local_scale	1546	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	sink	environment_local_scale	1323	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	saline water	environment_medium	1316	Environmental terms should not be physical sample type values.	Environment_Medium_SD
+Sample_Type_SD	hospital wastewater	environment_medium	1185	Environmental terms should not be physical sample type values.	Environment_Medium_SD
+Sample_Type_SD	hospital sewage	environment_medium	913	Environmental terms should not be physical sample type values.	Environment_Medium_SD
+Sample_Type_SD	terrestrial environment	environment_broad_scale	845	Environmental terms should not be physical sample type values.	Environment_Broad_Scale_SD
+Sample_Type_SD	dairy farm	environment_local_scale	645	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	cleanroom floor	environment_local_scale	121	Environmental terms should not be physical sample type values.	Environment_Local_Scale_SD
+Sample_Type_SD	freshwater fish product	environment_medium	3	Environmental terms should not be physical sample type values.	Environment_Medium_SD

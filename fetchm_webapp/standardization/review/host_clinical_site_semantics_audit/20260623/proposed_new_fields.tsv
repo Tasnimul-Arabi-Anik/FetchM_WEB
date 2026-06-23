@@ -1,0 +1,9 @@
+field	purpose	examples	release_policy
+Host_Study_Group_SD	Study-group assignment independent of disease and health state.	case; control; exposed; contact	derived/backward-compatible
+Host_Care_Setting_SD	Care setting or hospitalization context.	hospitalized; not hospitalized; inpatient; outpatient; ICU	derived/backward-compatible
+Host_Vital_Status_SD	Vital status, separate from health state.	alive; deceased	derived/backward-compatible
+Host_Colonization_Status_SD	Carrier or colonization state, separate from disease.	carrier; colonized; not colonized	derived/backward-compatible
+Host_Disease_Stage_SD	Stage/phase of disease rather than disease identity.	acute; chronic; convalescent; exacerbation	derived/backward-compatible
+Sample_Context_SD	Sampling context when physical material is unspecified.	clinical; environmental; food; surveillance; laboratory	derived/backward-compatible
+Sample_Processing_SD	Preparation or processing state.	culture; enrichment culture; metagenomic assembly; DNA extract	derived/backward-compatible
+Sample_Collection_Device_SD	Device used to collect a specimen.	swab; sponge; catheter; filter	derived/backward-compatible

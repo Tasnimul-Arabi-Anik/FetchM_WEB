@@ -1,0 +1,157 @@
+field	standardized_value	semantic_class	row_count	reason	proposed_destination
+Sample_Type_SD_Broad	clinical/host-associated material	source_context	329869	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD_Broad	culture	sample_processing	93689	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD_Broad	swab	collection_device	70476	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	cell culture	sample_processing	54613	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	sterile body site	anatomical_site	46778	Sample_Type fields should contain physical specimen/material values only.	Host_Anatomical_Site_SD
+Sample_Type_SD	clinical sample	source_context	33519	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD	nasopharynx/oropharynx	anatomical_site	31643	Sample_Type fields should contain physical specimen/material values only.	Host_Anatomical_Site_SD
+Sample_Type_SD_Broad	upper respiratory tract	anatomical_site	31643	Sample_Type fields should contain physical specimen/material values only.	Host_Anatomical_Site_SD
+Sample_Type_SD	rectal swab	collection_device	26828	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	culture	sample_processing	21152	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD_Broad	environmental material	source_context	19876	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD	environmental sample	metadata_descriptor	18083	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD	environmental swab	collection_device	12999	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD_Broad	environmental/geologic material	unresolved	12244	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	single cell	sample_processing	11833	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD_Broad	single cell	sample_processing	11833	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	microbial isolate	unresolved	11428	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	culture/isolate	sample_processing	11428	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	respiratory sample	metadata_descriptor	10983	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD	laboratory	environment_local_scale	8034	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD_Broad	laboratory environment	environment_local_scale	8034	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD_Broad	water	environment_medium	7606	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD_Broad	respiratory sample	metadata_descriptor	7542	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD	nasal swab	collection_device	5989	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	swab	collection_device	5503	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	stream	environment_local_scale	5416	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	pure/single culture	sample_processing	5271	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	mixed culture	sample_processing	4790	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	bacterial culture	sample_processing	4744	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	perianal/anal swab	collection_device	4462	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD_Broad	agricultural environment	environment_broad_scale	4379	Sample_Type fields should contain physical specimen/material values only.	Environment_Broad_Scale_SD
+Sample_Type_SD_Broad	plant-associated material	host_context	4349	Sample_Type fields should contain physical specimen/material values only.	Host_Context_SD
+Sample_Type_SD	drainage	unresolved	4174	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	agricultural fecal material	unresolved	4019	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	host-associated context	source_context	4000	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD	cold seep	unresolved	3866	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	farm	environment_local_scale	3734	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	sponge	collection_device	3554	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD_Broad	surface/sample collection material	metadata_descriptor	3554	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD_Broad	built environment	environment_broad_scale	2990	Sample_Type fields should contain physical specimen/material values only.	Environment_Broad_Scale_SD
+Sample_Type_SD	deep-sea hydrothermal deposit	unresolved	2894	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	wastewater/sewage	environment_medium	2786	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	broiler	unresolved	2751	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	wound swab	collection_device	2401	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	fecal/stool swab	collection_device	2278	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	catheter	collection_device	2137	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD_Broad	medical device	unresolved	2137	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	enrichment culture	sample_processing	1973	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	clinical material	source_context	1956	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD	secretion	unresolved	1917	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	spore release material	unresolved	1793	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	DNA extract	sample_processing	1792	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD_Broad	molecular extract	sample_processing	1792	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	cave biofilm	environment_medium	1716	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	drain	environment_local_scale	1546	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	anaerobic digester	unresolved	1532	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	wastewater/organic waste	environment_medium	1532	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	skin/body-surface swab	collection_device	1517	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	cloacal swab	collection_device	1483	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	nodule	unresolved	1462	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	surveillance swab	collection_device	1402	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	skin swab	collection_device	1333	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	sink	environment_local_scale	1323	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	saline water	environment_medium	1316	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	ice core section from central arctic ocean	unresolved	1201	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	hospital wastewater	environment_medium	1185	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	bloodstream	unresolved	1123	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	oral/oropharyngeal swab	collection_device	1069	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	core	unresolved	1049	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	microbial culture	sample_processing	957	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	rectovaginal site	unresolved	933	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	hospital sewage	environment_medium	913	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	salmon	unresolved	878	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	terrestrial environment	environment_broad_scale	845	Sample_Type fields should contain physical specimen/material values only.	Environment_Broad_Scale_SD
+Sample_Type_SD	long-term care facility	care_setting	841	Sample_Type fields should contain physical specimen/material values only.	Host_Care_Setting_SD
+Sample_Type_SD_Broad	healthcare-associated environment	environment_broad_scale	841	Sample_Type fields should contain physical specimen/material values only.	Environment_Broad_Scale_SD
+Sample_Type_SD	leaves	unresolved	819	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	surface layer	unresolved	797	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	food/animal-production swab	collection_device	796	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	produced fluids from hydraulically fractured shales	unresolved	782	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	glacier	unresolved	736	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	vaginal swab	collection_device	736	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	anaerobic bioreactor effluent	unresolved	688	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	urogenital swab	collection_device	669	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	gill	unresolved	665	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	ear swab	collection_device	658	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	oropharyngeal/throat swab	collection_device	657	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	dairy farm	environment_local_scale	645	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	ice cream	unresolved	605	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	potato	unresolved	596	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	wood	unresolved	582	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	deciduous forest	unresolved	570	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	cloacal sample	metadata_descriptor	533	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD_Broad	cloacal sample	metadata_descriptor	533	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD	enoki mushroom	unresolved	522	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	kratom	unresolved	520	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	ready-to-eat product	unresolved	497	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	cubital fossa	anatomical_site	487	Sample_Type fields should contain physical specimen/material values only.	Host_Anatomical_Site_SD
+Sample_Type_SD	rectal/cloacal/perianal swab	collection_device	437	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	dental plaque	unresolved	423	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	ascites	unresolved	417	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	intestinal epithelial cells	unresolved	411	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	gut/host-associated material	host_context	411	Sample_Type fields should contain physical specimen/material values only.	Host_Context_SD
+Sample_Type_SD	fluff/lint material	unresolved	384	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	trap sample	metadata_descriptor	378	Sample_Type fields should contain physical specimen/material values only.	suppress/provenance only
+Sample_Type_SD	wildlife	unresolved	371	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	wound/skin/pus swab	collection_device	320	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	lettuce	unresolved	313	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	nasopharyngeal swab	collection_device	308	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	peanut butter	unresolved	290	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	respiratory swab	collection_device	273	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	endovascular	unresolved	271	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	tree nut	unresolved	268	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	eye swab	collection_device	264	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	oral swab	collection_device	263	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	wound/lesion/abscess swab	collection_device	263	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	spinach	unresolved	256	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	root	anatomical_site	237	Sample_Type fields should contain physical specimen/material values only.	Host_Anatomical_Site_SD
+Sample_Type_SD	tomato	unresolved	219	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	catfish product	unresolved	200	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	avocado	unresolved	178	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	rectal/perianal swab	collection_device	153	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	cantaloupe	unresolved	125	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	fish product	host_context	123	Sample_Type fields should contain physical specimen/material values only.	Host_Context_SD
+Sample_Type_SD	kimchi	unresolved	122	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	cleanroom floor	environment_local_scale	121	Sample_Type fields should contain physical specimen/material values only.	Environment_Local_Scale_SD
+Sample_Type_SD	internal-site swab	collection_device	117	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	clinical swab	collection_device	109	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	cucumber	unresolved	86	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	estuary	unresolved	77	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	probiotic product	unresolved	77	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	grain product	unresolved	72	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	unicyanobacterial culture	sample_processing	61	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	assembly	sample_processing	50	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	prawn product	unresolved	49	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	screening culture	sample_processing	47	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	rhizosphere	unresolved	46	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	papaya	unresolved	42	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	biological product	unresolved	36	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD_Broad	biological/clinical product	source_context	36	Sample_Type fields should contain physical specimen/material values only.	Isolation_Source_SD
+Sample_Type_SD	bootsock/environmental swab	collection_device	33	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	cilantro	unresolved	33	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	teat/nipple swab	collection_device	32	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	food-contact surface	study_group	26	Sample_Type fields should contain physical specimen/material values only.	Host_Study_Group_SD
+Sample_Type_SD	plate culture	sample_processing	26	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	laboratory culture	sample_processing	22	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	liquid culture	sample_processing	19	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	clone culture	sample_processing	14	Sample_Type fields should contain physical specimen/material values only.	Sample_Processing_SD
+Sample_Type_SD	urogenital/reproductive swab	collection_device	13	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	non-food-contact surface	study_group	12	Sample_Type fields should contain physical specimen/material values only.	Host_Study_Group_SD
+Sample_Type_SD	transport swab	collection_device	4	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	feed/fodder	unresolved	3	Sample_Type fields should contain physical specimen/material values only.	admin_review
+Sample_Type_SD	freshwater fish product	environment_medium	3	Sample_Type fields should contain physical specimen/material values only.	Environment_Medium_SD
+Sample_Type_SD	wound/pus swab	collection_device	2	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD
+Sample_Type_SD	plant material	host_context	1	Sample_Type fields should contain physical specimen/material values only.	Host_Context_SD
+Sample_Type_SD	urethral swab	collection_device	1	Sample_Type fields should contain physical specimen/material values only.	Sample_Collection_Device_SD

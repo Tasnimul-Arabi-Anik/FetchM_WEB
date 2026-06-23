@@ -1,0 +1,16 @@
+field	strict_meaning	allowed_semantic_classes	phase1_action
+Host_SD	Biological host taxon only.	host_taxon	audit_only
+Host_Context_SD	Broad host-associated context where taxon is unavailable or source-derived.	host_context	audit_only
+Host_Disease_SD	Named disease or defensible disease class only.	disease	audit_only
+Host_Health_State_SD	Strict health state only: healthy, diseased, asymptomatic, symptomatic, unknown.	health_state	audit_only
+Host_Production_Context_SD	Production/husbandry context when applicable.	host_context	audit_only
+Host_Anatomical_Site_SD	Host anatomical part or plant part.	anatomical_site	audit_only
+Sample_Type_SD	Physical specimen or material only.	food_commodity|sample_material	audit_only
+Sample_Type_SD_Broad	Broad physical specimen/material class.	food_commodity|sample_material	audit_only
+Isolation_Source_SD	Source context, not physical specimen itself.	food_commodity|source_context	audit_only
+Isolation_Source_SD_Broad	Broad source-context umbrella; legacy broad categories need explicit caveat.	environment_broad_scale|food_commodity|source_context	audit_only
+Isolation_Site_SD	Anatomical isolation site or plant part only.	anatomical_site	audit_only
+Environment_Medium_SD	Physical environmental medium only.	environment_medium	audit_only
+Environment_Medium_SD_Broad	Broad environmental medium class only.	environment_medium	audit_only
+Environment_Broad_Scale_SD	Broad environmental setting.	environment_broad_scale	audit_only
+Environment_Local_Scale_SD	Local environmental or facility feature.	environment_local_scale	audit_only

@@ -1,0 +1,109 @@
+{
+  "audit_note": "Counts are audit triage signals, not production-rule changes. Review before migration.",
+  "canonical_refresh_run": false,
+  "deployment_run": false,
+  "distinct_values_classified": 24333,
+  "generated_at": "2026-06-23T10:03:02.347897+00:00",
+  "git_commit": "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
+  "global_insights_regenerated": false,
+  "incompatibility_affected_rows": 1182423,
+  "incompatibility_queue_counts": [
+    {
+      "affected_rows": 1046572,
+      "distinct_values": 156,
+      "queue": "non_material_values_in_sample_type"
+    },
+    {
+      "affected_rows": 107364,
+      "distinct_values": 16,
+      "queue": "processing_values_in_sample_type"
+    },
+    {
+      "affected_rows": 53569,
+      "distinct_values": 9,
+      "queue": "conflicting_anatomical_site_fields"
+    },
+    {
+      "affected_rows": 40041,
+      "distinct_values": 17,
+      "queue": "ambiguous_broad_source_categories"
+    },
+    {
+      "affected_rows": 32213,
+      "distinct_values": 140,
+      "queue": "material_values_in_isolation_source"
+    },
+    {
+      "affected_rows": 26797,
+      "distinct_values": 13,
+      "queue": "environment_values_in_sample_type"
+    },
+    {
+      "affected_rows": 22361,
+      "distinct_values": 9,
+      "queue": "non_site_values_in_isolation_site"
+    },
+    {
+      "affected_rows": 11766,
+      "distinct_values": 12,
+      "queue": "non_health_values_in_host_health_state"
+    },
+    {
+      "affected_rows": 5660,
+      "distinct_values": 2,
+      "queue": "non_disease_values_in_host_disease"
+    },
+    {
+      "affected_rows": 1680,
+      "distinct_values": 2,
+      "queue": "care_setting_values_in_health_state"
+    },
+    {
+      "affected_rows": 1172,
+      "distinct_values": 2,
+      "queue": "study_group_values_in_health_state"
+    },
+    {
+      "affected_rows": 940,
+      "distinct_values": 2,
+      "queue": "colonization_values_in_health_state"
+    },
+    {
+      "affected_rows": 329,
+      "distinct_values": 2,
+      "queue": "vital_status_values_in_health_state"
+    },
+    {
+      "affected_rows": 49,
+      "distinct_values": 2,
+      "queue": "disease_stage_values_in_health_state"
+    }
+  ],
+  "incompatible_value_field_pairs": 334,
+  "phase": "audit_only",
+  "production_rules_changed": false,
+  "rows_audited": 3131699,
+  "semantic_classes": [
+    "host_taxon",
+    "host_context",
+    "disease",
+    "health_state",
+    "study_group",
+    "care_setting",
+    "vital_status",
+    "colonization_status",
+    "disease_stage",
+    "sample_material",
+    "collection_device",
+    "sample_processing",
+    "anatomical_site",
+    "environment_medium",
+    "environment_local_scale",
+    "environment_broad_scale",
+    "source_context",
+    "food_commodity",
+    "metadata_descriptor",
+    "unresolved"
+  ],
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root"
+}
