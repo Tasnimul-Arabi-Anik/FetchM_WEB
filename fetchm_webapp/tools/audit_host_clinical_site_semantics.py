@@ -323,6 +323,7 @@ STUDY_GROUP_RE = re.compile(r"\b(?:control|case|household contact|close contact|
 ACUTE_CHRONIC_STAGE_RE = re.compile(r"\b(?:acute|chronic)\b", re.I)
 CARE_EXCLUSION_RE = re.compile(r"\b(?:acute care|chronic care|hospital|facility|ward|unit)\b", re.I)
 GENERIC_METADATA_RE = re.compile(r"^(?:sample|specimen|other|unknown|uncategorized|missing|not applicable|n/a|na|none|null)$", re.I)
+CONTEXT_DEPENDENT_EXACT_VALUES = {"rhizosphere", "phyllosphere", "endosphere", "abscess"}
 
 
 @dataclass(frozen=True)
@@ -499,6 +500,8 @@ def classify_value(value: Any, field: str = "", raw_attribute: str = "") -> Clas
     primary = next((klass for klass in priority if klass in ordered_classes), ordered_classes[0])
     secondary = tuple(klass for klass in ordered_classes if klass != primary)
     confidence = "high" if text in EXACT_COMPONENTS or len(ordered_classes) == 1 else "medium"
+    if text in CONTEXT_DEPENDENT_EXACT_VALUES:
+        confidence = "medium"
     if "unresolved" in ordered_classes or primary == "unresolved":
         confidence = "low"
     reason = "; ".join(component_strings)
