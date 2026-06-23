@@ -1,0 +1,23 @@
+{
+  "assignments_projected_to_clear": 107063,
+  "canonical_rows_scanned": 3131699,
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "canonical_write_run": false,
+  "deployment_run": false,
+  "destination_conflicts": 0,
+  "evidence_failures": 2461,
+  "generated_at": "2026-06-23T18:17:45.243554+00:00",
+  "global_insights_regenerated": false,
+  "hard_failures": [],
+  "legacy_field_changes": 0,
+  "new_axis_assignments_projected": 33267,
+  "noop_rows": 10137,
+  "phase": "phase2a_dry_run_only",
+  "production_rules_changed": false,
+  "protected_field_changes": 0,
+  "raw_field_changes": 0,
+  "rows_outside_reviewed_allowlist_affected": 0,
+  "rules_count": 24,
+  "rules_path": "/app/fetchm_webapp/standardization/semantic_phase2a_confirmed_rules.csv",
+  "unique_assemblies_projected_to_change": 30740
+}
