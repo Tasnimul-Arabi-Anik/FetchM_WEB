@@ -1,0 +1,3 @@
+field	standardized_value	primary_semantic_class	secondary_semantic_classes	semantic_components	confidence	field_compatibility	row_count	reason	additive_destinations	proposed_destination	remove_from_current_field	action_class
+Host_Health_State_SD	exacerbation	disease_stage		disease_stage:exacerbation	high	incompatible	48	Disease stage should be separate from host health state.	Host_Disease_Stage_SD	Host_Disease_Stage_SD	true	confirmed_high_confidence_fix
+Host_Health_State_SD	convalescent	disease_stage		disease_stage:convalescent	high	incompatible	1	Disease stage should be separate from host health state.	Host_Disease_Stage_SD	Host_Disease_Stage_SD	true	confirmed_high_confidence_fix

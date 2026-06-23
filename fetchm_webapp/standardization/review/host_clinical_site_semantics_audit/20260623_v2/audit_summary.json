@@ -1,0 +1,135 @@
+{
+  "action_assignment_counts": {
+    "additive_axis_enrichment": 21578,
+    "classifier_uncertain": 41380,
+    "composite_requires_split": 153555,
+    "confirmed_high_confidence_fix": 30758,
+    "legacy_compatibility_label": 162009,
+    "manual_review": 33226
+  },
+  "approved_broad_categories_sha256": "e7bd77053f771bf34ad5b507091908c6b997f213d406f31b1c57b5698810384d",
+  "artifact_commit": "not_committed_at_generation_time",
+  "audit_code_commit": "5ac81e2635e379f48dc039a4fa8f4434a31c343f",
+  "audit_note": "Counts are semantic review/decomposition signals, not confirmed erroneous records.",
+  "canonical_refresh_run": false,
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "command_line": "tools/audit_host_clinical_site_semantics.py --snapshot-id 20260602T140414Z_genbank_bacteria_root --output-dir standardization/review/host_clinical_site_semantics_audit/20260623_v2 --example-limit 3",
+  "controlled_categories_sha256": "1c1b86c7df6c32736f9f3fa02d5a7b871b60e7793e4e9196867ec6c16de0eb2f",
+  "database_schema_version": "dataset_production_store_v1",
+  "deployment_run": false,
+  "distinct_values_classified": 24333,
+  "field_value_assignment_occurrences": 442506,
+  "field_value_pairs_with_queue_signals": 289,
+  "generated_at": "2026-06-23T12:56:28.420799+00:00",
+  "global_insights_regenerated": false,
+  "incompatibility_queue_counts": [
+    {
+      "assignment_count": 218727,
+      "distinct_values": 80,
+      "queue": "non_material_values_in_sample_type"
+    },
+    {
+      "assignment_count": 118792,
+      "distinct_values": 17,
+      "queue": "processing_values_in_sample_type"
+    },
+    {
+      "assignment_count": 45714,
+      "distinct_values": 6,
+      "queue": "conflicting_anatomical_site_fields"
+    },
+    {
+      "assignment_count": 34028,
+      "distinct_values": 19,
+      "queue": "environment_values_in_sample_type"
+    },
+    {
+      "assignment_count": 32347,
+      "distinct_values": 158,
+      "queue": "material_values_in_isolation_source"
+    },
+    {
+      "assignment_count": 14504,
+      "distinct_values": 5,
+      "queue": "non_site_values_in_isolation_site"
+    },
+    {
+      "assignment_count": 11816,
+      "distinct_values": 13,
+      "queue": "non_health_values_in_host_health_state"
+    },
+    {
+      "assignment_count": 5660,
+      "distinct_values": 2,
+      "queue": "non_disease_values_in_host_disease"
+    },
+    {
+      "assignment_count": 1680,
+      "distinct_values": 2,
+      "queue": "care_setting_values_in_health_state"
+    },
+    {
+      "assignment_count": 1215,
+      "distinct_values": 7,
+      "queue": "ambiguous_broad_source_categories"
+    },
+    {
+      "assignment_count": 1077,
+      "distinct_values": 1,
+      "queue": "study_group_values_in_health_state"
+    },
+    {
+      "assignment_count": 940,
+      "distinct_values": 2,
+      "queue": "colonization_values_in_health_state"
+    },
+    {
+      "assignment_count": 329,
+      "distinct_values": 2,
+      "queue": "vital_status_values_in_health_state"
+    },
+    {
+      "assignment_count": 49,
+      "distinct_values": 2,
+      "queue": "disease_stage_values_in_health_state"
+    }
+  ],
+  "input_standardization_commit": "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
+  "phase": "audit_only_v2_compositional",
+  "production_rules_changed": false,
+  "rows_audited": 3131699,
+  "semantic_classes": [
+    "host_taxon",
+    "host_context",
+    "production_context",
+    "disease",
+    "health_state",
+    "study_group",
+    "hospitalization_status",
+    "care_setting",
+    "vital_status",
+    "colonization_status",
+    "disease_stage",
+    "disease_outcome",
+    "exposure_context",
+    "sampling_context",
+    "sample_material",
+    "sample_entity",
+    "collection_device",
+    "collection_method",
+    "sample_processing",
+    "anatomical_material",
+    "anatomical_site",
+    "environment_medium",
+    "environment_local_scale",
+    "environment_broad_scale",
+    "source_context",
+    "food_commodity",
+    "metadata_descriptor",
+    "unresolved"
+  ],
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "unique_assemblies_with_any_semantic_signal": 354881,
+  "unique_assemblies_with_confirmed_high_confidence_signal": 30645,
+  "unique_assemblies_with_review_or_uncertain_signal": 222582
+}

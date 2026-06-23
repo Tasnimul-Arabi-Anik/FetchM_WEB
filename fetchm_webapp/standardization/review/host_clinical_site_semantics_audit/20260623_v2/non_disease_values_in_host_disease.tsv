@@ -1,0 +1,3 @@
+field	standardized_value	primary_semantic_class	secondary_semantic_classes	semantic_components	confidence	field_compatibility	row_count	reason	additive_destinations	proposed_destination	remove_from_current_field	action_class
+Host_Disease_SD	healthy/no disease reported	health_state		health_state:healthy/no disease reported	high	incompatible	4589	Host_Disease_SD should contain named diseases or defensible disease classes only.	Host_Health_State_SD	Host_Health_State_SD	true	confirmed_high_confidence_fix
+Host_Disease_SD	diseased	health_state		health_state:diseased	high	incompatible	1071	Host_Disease_SD should contain named diseases or defensible disease classes only.	Host_Health_State_SD	Host_Health_State_SD	true	confirmed_high_confidence_fix

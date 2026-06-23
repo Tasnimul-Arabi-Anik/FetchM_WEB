@@ -1,0 +1,18 @@
+field	purpose	examples	release_policy
+Sample_Material_SD	Strict physical specimen/material axis.	blood; urine; pus; cerebrospinal fluid; manure	derived/additive
+Sampling_Context_SD	Sampling context when physical material is unspecified or supplemental.	clinical; environmental; food; surveillance; laboratory	derived/additive
+Sample_Processing_SD	Preparation or processing state.	culture; enrichment culture; metagenomic assembly; DNA extract	derived/additive
+Sample_Collection_Device_SD	Device used to collect a specimen.	swab; sponge; catheter; filter	derived/additive
+Sample_Collection_Method_SD	Method used to obtain the specimen.	bronchoalveolar lavage; aspiration; biopsy	derived/additive
+Sample_Entity_SD	Biological material form/entity, especially culture/isolate/assembly labels.	microbial isolate; cell culture; mixed culture; single cell	derived/additive
+Host_Anatomical_Material_SD	Host-derived anatomical material distinct from anatomical part/site.	stool; mucus; saliva; pus; blood; CSF	derived/additive
+Host_Anatomical_Site_SD	Anatomical part of a confirmed host.	rectum; lung; nasopharynx; skin; stomach	derived/additive
+Host_Study_Group_SD	Study-group assignment independent of disease and health state.	case; control; exposed; contact	derived/additive
+Host_Hospitalization_Status_SD	Hospitalization status only.	hospitalized; not hospitalized	derived/additive
+Host_Care_Setting_SD	Care setting or facility context.	inpatient; outpatient; ICU; long-term care	derived/additive
+Host_Vital_Status_SD	Vital status, separate from health state and disease outcome.	alive; deceased	derived/additive
+Host_Colonization_Status_SD	Carrier or colonization state, separate from disease.	carrier; colonized; not colonized	derived/additive
+Host_Disease_Stage_SD	Stage/phase of disease rather than disease identity.	acute; chronic; convalescent; exacerbation	derived/additive
+Host_Disease_Outcome_SD	Disease outcome when explicit.	recovered; death	derived/additive
+Host_Exposure_Context_SD	Exposure/contact context independent of study group.	household contact; close contact; exposed	derived/additive
+Host_Production_Context_SD	Production, husbandry, or rearing context.	specific pathogen free; broiler; dairy cow; farmed	derived/additive

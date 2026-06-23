@@ -1,0 +1,3 @@
+field	standardized_value	primary_semantic_class	secondary_semantic_classes	semantic_components	confidence	field_compatibility	row_count	reason	additive_destinations	proposed_destination	remove_from_current_field	action_class
+Host_Health_State_SD	dead	vital_status		vital_status:deceased	high	incompatible	289	Vital status should be separate from host health state.	Host_Vital_Status_SD	Host_Vital_Status_SD	true	confirmed_high_confidence_fix
+Host_Health_State_SD	alive	vital_status		vital_status:alive	high	incompatible	40	Vital status should be separate from host health state.	Host_Vital_Status_SD	Host_Vital_Status_SD	true	confirmed_high_confidence_fix
