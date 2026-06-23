@@ -1,6 +1,6 @@
 # Metadata Semantic Field Contract
 
-Status: draft field contract for reviewed Phase 2A planning. This document does not change production standardization rules by itself.
+Status: approved for Phase 2A dry-run planning. This document does not change production standardization rules by itself.
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Strict fields should contain only the concept named by the field. Legacy compati
 | Field | Role | Contract |
 | --- | --- | --- |
 | `Host_SD` | strict existing | Biological host taxon only. |
-| `Host_Context_SD` | strict existing | Broad host-associated context where a source-derived host context is useful but not a taxon assignment. |
+| `Host_Context_SD` | broad existing context | Host-associated context only. Production and exposure concepts should use dedicated additive axes when available. |
 | `Host_Disease_SD` | strict existing | Named disease or defensible disease class only. Do not store `healthy`, `diseased`, `patient`, `carrier`, `colonized`, or care setting here. |
 | `Host_Health_State_SD` | strict existing | Health state only: `healthy`, `diseased`, `asymptomatic`, `symptomatic`, or reviewed equivalent. |
 | `Host_Production_Context_SD` | existing to expand | Production, husbandry, or rearing context such as `specific pathogen free`, `broiler`, `dairy cow`, `farmed`, or `laboratory-reared`. |
@@ -26,7 +26,7 @@ Strict fields should contain only the concept named by the field. Legacy compati
 | `Environment_Medium_SD` | strict existing | Physical environmental medium only. |
 | `Environment_Medium_SD_Broad` | strict existing | Broad environmental medium class only. |
 | `Environment_Broad_Scale_SD` | strict existing | Broad environmental setting. |
-| `Environment_Local_Scale_SD` | strict existing | Local environmental or facility feature. |
+| `Environment_Local_Scale_SD` | strict existing | Physical local environment or sampled facility feature only. Host care status such as inpatient/outpatient/hospitalized belongs in host care/hospitalization axes. |
 
 ## New Additive Axes
 
@@ -93,3 +93,17 @@ Every new additive field must preserve provenance: source raw field, source raw 
 ## Phase 2A Boundary
 
 Phase 2A may correct only confirmed strict-field violations and add additive derived axes. It must not change host taxonomy, geography/date standardization, canonical raw metadata, or legacy compatibility fields without a separate reviewed batch.
+
+## Phase 2A Approval Notes
+
+This contract is approved only for Phase 2A dry-run work. Production canonical writes require a separate authorization after review of dry-run outputs.
+
+`Host_Context_SD` is a broad existing context field, not a fully strict axis. `Host_Production_Context_SD` and `Host_Exposure_Context_SD` are preferred when production or exposure semantics are explicit.
+
+`Environment_Local_Scale_SD` must represent a physical sampled location or facility. It must not contain host care status values such as `hospitalized`, `non-hospitalized`, `inpatient`, or `outpatient` unless a phrase explicitly describes the sampled physical facility.
+
+`patient` does not imply `Homo sapiens`. Human-associated context requires `Host_SD=Homo sapiens`, `Host_TaxID=9606`, or an equivalent raw human host value. Without human evidence, `patient` may support clinical sampling context only.
+
+Phase 2A merge policy is `set_when_blank_or_same_preserve_existing`. Existing nonblank destination values are not overwritten. Existing different destination values are preserved and exported as no-op/review signals; true overwrite conflicts remain hard failures.
+
+Legacy fields `Sample_Type_SD`, `Sample_Type_SD_Broad`, `Isolation_Source_SD`, and `Isolation_Source_SD_Broad` must not be changed in Phase 2A dry-run or production implementation.
