@@ -1,9 +1,9 @@
 # Host, Clinical, And Site Semantics Audit V2
 
 Snapshot ID: `20260602T140414Z_genbank_bacteria_root`
-Generated: 2026-06-23T12:56:28.420799+00:00
+Generated: 2026-06-23T16:51:53.602181+00:00
 Input standardization commit: `28ff0c440ebc0a7351140a69c01427355b7b4fe9`
-Audit code commit: `5ac81e2635e379f48dc039a4fa8f4434a31c343f`
+Audit code commit: `9569d4d80b27aae418b19410247cc8f3415febe3`
 
 ## Scope
 
@@ -15,32 +15,34 @@ Phase 1 audit only. No production standardization rules, canonical metadata, Glo
 | --- | ---: |
 | Canonical rows audited | 3,131,699 |
 | Distinct standardized field values classified | 24,333 |
-| Field-value assignment signals | 442,506 |
-| Unique assemblies with any semantic signal | 354,881 |
-| Unique assemblies with confirmed high-confidence signal | 30,645 |
-| Unique assemblies with review/uncertain signal | 222,582 |
+| All candidate assignment occurrences | 7,257,023 |
+| Field-value pairs with queue signals | 289 |
+| Field-value pairs with any semantic candidate signal | 18,690 |
+| Unique assemblies with any semantic candidate signal | 2,023,875 |
+| Unique assemblies with confirmed high-confidence signal | 30,740 |
+| Unique assemblies with review/uncertain signal | 1,505,911 |
 
 ## Action Classes
 
 | Action class | Assignment occurrences |
 | --- | ---: |
-| `additive_axis_enrichment` | 21,578 |
-| `classifier_uncertain` | 41,380 |
-| `composite_requires_split` | 153,555 |
-| `confirmed_high_confidence_fix` | 30,758 |
-| `legacy_compatibility_label` | 162,009 |
-| `manual_review` | 33,226 |
+| `additive_axis_enrichment` | 3,716,073 |
+| `classifier_uncertain` | 721,052 |
+| `composite_requires_split` | 1,857,357 |
+| `confirmed_high_confidence_fix` | 30,853 |
+| `legacy_compatibility_label` | 190,284 |
+| `manual_review` | 741,404 |
 
 ## Queue Summary
 
 | Queue | Values | Assignment count |
 | --- | ---: | ---: |
-| `non_material_values_in_sample_type` | 80 | 218,727 |
+| `non_material_values_in_sample_type` | 76 | 237,584 |
 | `processing_values_in_sample_type` | 17 | 118,792 |
-| `conflicting_anatomical_site_fields` | 6 | 45,714 |
-| `environment_values_in_sample_type` | 19 | 34,028 |
-| `material_values_in_isolation_source` | 158 | 32,347 |
-| `non_site_values_in_isolation_site` | 5 | 14,504 |
+| `material_values_in_isolation_source` | 161 | 67,617 |
+| `conflicting_anatomical_site_fields` | 10 | 56,594 |
+| `environment_values_in_sample_type` | 24 | 39,739 |
+| `non_site_values_in_isolation_site` | 8 | 23,368 |
 | `non_health_values_in_host_health_state` | 13 | 11,816 |
 | `non_disease_values_in_host_disease` | 2 | 5,660 |
 | `care_setting_values_in_health_state` | 2 | 1,680 |
@@ -52,7 +54,7 @@ Phase 1 audit only. No production standardization rules, canonical metadata, Glo
 
 ## Interpretation
 
-This V2 audit uses compositional classification. Counts are review signals and decomposition candidates, not confirmed erroneous records. Legacy umbrella fields such as `Isolation_Source_SD` and `Sample_Type_SD` are not treated as strict ontologies; strict derived axes are proposed separately.
+This V2 audit uses compositional classification. Counts are candidate signals and decomposition opportunities, not confirmed erroneous records. `confirmed_high_confidence_fix` is intentionally limited to reviewed strict host-health, host-disease, and isolation-site violations; environment and legacy compatibility candidates remain review or additive queues. Legacy umbrella fields such as `Isolation_Source_SD` and `Sample_Type_SD` are not treated as strict ontologies; strict derived axes are proposed separately.
 
 ## Recommended Next Step
 

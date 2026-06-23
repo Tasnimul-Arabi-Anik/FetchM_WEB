@@ -1,18 +1,21 @@
-field	purpose	examples	release_policy
-Sample_Material_SD	Strict physical specimen/material axis.	blood; urine; pus; cerebrospinal fluid; manure	derived/additive
-Sampling_Context_SD	Sampling context when physical material is unspecified or supplemental.	clinical; environmental; food; surveillance; laboratory	derived/additive
-Sample_Processing_SD	Preparation or processing state.	culture; enrichment culture; metagenomic assembly; DNA extract	derived/additive
-Sample_Collection_Device_SD	Device used to collect a specimen.	swab; sponge; catheter; filter	derived/additive
-Sample_Collection_Method_SD	Method used to obtain the specimen.	bronchoalveolar lavage; aspiration; biopsy	derived/additive
-Sample_Entity_SD	Biological material form/entity, especially culture/isolate/assembly labels.	microbial isolate; cell culture; mixed culture; single cell	derived/additive
-Host_Anatomical_Material_SD	Host-derived anatomical material distinct from anatomical part/site.	stool; mucus; saliva; pus; blood; CSF	derived/additive
-Host_Anatomical_Site_SD	Anatomical part of a confirmed host.	rectum; lung; nasopharynx; skin; stomach	derived/additive
-Host_Study_Group_SD	Study-group assignment independent of disease and health state.	case; control; exposed; contact	derived/additive
-Host_Hospitalization_Status_SD	Hospitalization status only.	hospitalized; not hospitalized	derived/additive
-Host_Care_Setting_SD	Care setting or facility context.	inpatient; outpatient; ICU; long-term care	derived/additive
-Host_Vital_Status_SD	Vital status, separate from health state and disease outcome.	alive; deceased	derived/additive
-Host_Colonization_Status_SD	Carrier or colonization state, separate from disease.	carrier; colonized; not colonized	derived/additive
-Host_Disease_Stage_SD	Stage/phase of disease rather than disease identity.	acute; chronic; convalescent; exacerbation	derived/additive
-Host_Disease_Outcome_SD	Disease outcome when explicit.	recovered; death	derived/additive
-Host_Exposure_Context_SD	Exposure/contact context independent of study group.	household contact; close contact; exposed	derived/additive
-Host_Production_Context_SD	Production, husbandry, or rearing context.	specific pathogen free; broiler; dairy cow; farmed	derived/additive
+field	field_status	purpose	examples	release_policy
+Sample_Material_SD	new_derived_field	Strict physical specimen/material axis.	blood; urine; pus; cerebrospinal fluid; manure	derived/additive
+Sampling_Context_SD	new_derived_field	Sampling context when physical material is unspecified or supplemental.	clinical; environmental; food; surveillance; laboratory	derived/additive
+Sample_Processing_SD	new_derived_field	Preparation or processing state.	culture; enrichment culture; DNA extract	derived/additive
+Sample_Collection_Device_SD	new_derived_field	Device used to collect a specimen.	swab; sponge; catheter; filter	derived/additive
+Sample_Collection_Method_SD	new_derived_field	Method used to obtain the specimen.	bronchoalveolar lavage; aspiration; biopsy	derived/additive
+Sample_Entity_SD	new_derived_field	Biological material form/entity, especially culture/isolate labels.	microbial isolate; cell culture; mixed culture; single cell	derived/additive
+Data_Product_SD	new_derived_field	Sequence-derived or computational data product, not a biological sample entity.	metagenomic assembly; sequence assembly	derived/additive
+Host_Anatomical_Material_SD	new_derived_field	Host-derived anatomical material distinct from anatomical part/site.	stool; mucus; saliva; pus; blood; CSF	derived/additive
+Host_Anatomical_Site_SD	existing_field_to_enforce	Anatomical part of a confirmed host.	rectum; lung; nasopharynx; skin; stomach	existing/additive
+Host_Study_Group_SD	new_derived_field	Study-group assignment independent of disease and health state.	case; control; exposed; contact	derived/additive
+Host_Hospitalization_Status_SD	new_derived_field	Hospitalization status only.	hospitalized; not hospitalized	derived/additive
+Host_Care_Setting_SD	new_derived_field	Care setting or facility context.	inpatient; outpatient; ICU; long-term care	derived/additive
+Host_Vital_Status_SD	new_derived_field	Vital status, separate from health state and disease outcome.	alive; deceased	derived/additive
+Host_Colonization_Status_SD	new_derived_field	Carrier or colonization state, separate from disease.	carrier; colonized; not colonized	derived/additive
+Host_Disease_Stage_SD	new_derived_field	Stage/phase of disease rather than disease identity.	acute; chronic; convalescent; exacerbation	derived/additive
+Host_Disease_Outcome_SD	new_derived_field	Disease outcome when explicit.	recovered; survived; fatal outcome	derived/additive
+Host_Exposure_Context_SD	new_derived_field	Exposure/contact context independent of study group.	household contact; close contact; exposure/contact context	derived/additive
+Host_Production_Context_SD	existing_field_to_expand	Production, husbandry, or rearing context.	specific pathogen free; broiler; dairy cow; farmed	existing/additive
+Sample_Type_SD	legacy_field	Backward-compatible NCBI-style sample type umbrella retained during decomposition.	cell culture; swab specimen; metagenomic assembly	preserve
+Isolation_Source_SD	legacy_field	Backward-compatible NCBI-style physical/environmental/local source retained during decomposition.	blood; soil; water; food	preserve

@@ -1,15 +1,15 @@
 {
   "action_assignment_counts": {
-    "additive_axis_enrichment": 21578,
-    "classifier_uncertain": 41380,
-    "composite_requires_split": 153555,
-    "confirmed_high_confidence_fix": 30758,
-    "legacy_compatibility_label": 162009,
-    "manual_review": 33226
+    "additive_axis_enrichment": 3716073,
+    "classifier_uncertain": 721052,
+    "composite_requires_split": 1857357,
+    "confirmed_high_confidence_fix": 30853,
+    "legacy_compatibility_label": 190284,
+    "manual_review": 741404
   },
   "approved_broad_categories_sha256": "e7bd77053f771bf34ad5b507091908c6b997f213d406f31b1c57b5698810384d",
   "artifact_commit": "not_committed_at_generation_time",
-  "audit_code_commit": "5ac81e2635e379f48dc039a4fa8f4434a31c343f",
+  "audit_code_commit": "9569d4d80b27aae418b19410247cc8f3415febe3",
   "audit_note": "Counts are semantic review/decomposition signals, not confirmed erroneous records.",
   "canonical_refresh_run": false,
   "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
@@ -18,14 +18,15 @@
   "database_schema_version": "dataset_production_store_v1",
   "deployment_run": false,
   "distinct_values_classified": 24333,
-  "field_value_assignment_occurrences": 442506,
+  "field_value_assignment_occurrences": 7257023,
+  "field_value_pairs_with_any_semantic_signal": 18690,
   "field_value_pairs_with_queue_signals": 289,
-  "generated_at": "2026-06-23T12:56:28.420799+00:00",
+  "generated_at": "2026-06-23T16:51:53.602181+00:00",
   "global_insights_regenerated": false,
   "incompatibility_queue_counts": [
     {
-      "assignment_count": 218727,
-      "distinct_values": 80,
+      "assignment_count": 237584,
+      "distinct_values": 76,
       "queue": "non_material_values_in_sample_type"
     },
     {
@@ -34,23 +35,23 @@
       "queue": "processing_values_in_sample_type"
     },
     {
-      "assignment_count": 45714,
-      "distinct_values": 6,
-      "queue": "conflicting_anatomical_site_fields"
-    },
-    {
-      "assignment_count": 34028,
-      "distinct_values": 19,
-      "queue": "environment_values_in_sample_type"
-    },
-    {
-      "assignment_count": 32347,
-      "distinct_values": 158,
+      "assignment_count": 67617,
+      "distinct_values": 161,
       "queue": "material_values_in_isolation_source"
     },
     {
-      "assignment_count": 14504,
-      "distinct_values": 5,
+      "assignment_count": 56594,
+      "distinct_values": 10,
+      "queue": "conflicting_anatomical_site_fields"
+    },
+    {
+      "assignment_count": 39739,
+      "distinct_values": 24,
+      "queue": "environment_values_in_sample_type"
+    },
+    {
+      "assignment_count": 23368,
+      "distinct_values": 8,
       "queue": "non_site_values_in_isolation_site"
     },
     {
@@ -96,6 +97,7 @@
   ],
   "input_standardization_commit": "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
   "phase": "audit_only_v2_compositional",
+  "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832",
   "production_rules_changed": false,
   "rows_audited": 3131699,
   "semantic_classes": [
@@ -115,6 +117,7 @@
     "sampling_context",
     "sample_material",
     "sample_entity",
+    "data_product",
     "collection_device",
     "collection_method",
     "sample_processing",
@@ -129,7 +132,7 @@
     "unresolved"
   ],
   "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
-  "unique_assemblies_with_any_semantic_signal": 354881,
-  "unique_assemblies_with_confirmed_high_confidence_signal": 30645,
-  "unique_assemblies_with_review_or_uncertain_signal": 222582
+  "unique_assemblies_with_any_semantic_signal": 2023875,
+  "unique_assemblies_with_confirmed_high_confidence_signal": 30740,
+  "unique_assemblies_with_review_or_uncertain_signal": 1505911
 }
