@@ -251,6 +251,7 @@ EXACT_COMPONENTS: dict[str, tuple[tuple[str, str], ...]] = {
     "single cell": (("sample_entity", "single cell"), ("sample_processing", "single-cell preparation")),
     "food contact surface": (("food_commodity", "food production/contact context"), ("environment_local_scale", "contact surface")),
     "freshwater fish product": (("food_commodity", "fish product"),),
+    "environmental/geologic material": (("source_context", "environmental or geologic source context"),),
     "banana blood disease": (("disease", "banana blood disease"),),
 }
 
@@ -634,8 +635,8 @@ def incompatibility_rows(value_rows: list[dict[str, Any]]) -> dict[str, list[dic
             flags["non_health_values_in_host_health_state"].append(queue_row(row, "Host_Health_State_SD should contain strict health states only; other axes should be additive derived fields.", row["additive_destinations"]))
         if field == "Host_Disease_SD" and "disease" not in classes:
             flags["non_disease_values_in_host_disease"].append(queue_row(row, "Host_Disease_SD should contain named diseases or defensible disease classes only.", row["additive_destinations"]))
-        if field in {"Sample_Type_SD", "Sample_Type_SD_Broad"} and not classes & {"sample_material", "sample_entity", "food_commodity", "collection_device", "sampling_context", "sample_processing"}:
-            flags["non_material_values_in_sample_type"].append(queue_row(row, "Sample_Type compatibility field contains a value without sample/material/entity/context/device/processing semantics.", row["additive_destinations"]))
+        if field in {"Sample_Type_SD", "Sample_Type_SD_Broad"} and not classes & expected_classes(field):
+            flags["non_material_values_in_sample_type"].append(queue_row(row, "Sample_Type compatibility field contains a value outside the field contract and should be reviewed before decomposition.", row["additive_destinations"]))
         if field == "Sample_Type_SD" and classes & {"environment_medium", "environment_local_scale", "environment_broad_scale"}:
             flags["environment_values_in_sample_type"].append(queue_row(row, "Environmental semantics in Sample_Type_SD should be decomposed into environment fields while preserving compatibility if needed.", row["additive_destinations"]))
         if field == "Sample_Type_SD" and "sample_processing" in classes:
