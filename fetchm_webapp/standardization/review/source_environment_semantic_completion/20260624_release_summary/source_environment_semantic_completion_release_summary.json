@@ -1,0 +1,76 @@
+{
+  "canonical_rows": 3131699,
+  "canonical_snapshot": "20260602T140414Z_genbank_bacteria_root",
+  "deployment": {
+    "deployed": false,
+    "note": "Manual deployment was not performed in this batch."
+  },
+  "existing_qa": {
+    "controlled_category_conflict_keys": 0,
+    "controlled_category_duplicate_keys": 0,
+    "geography_date_hard_failures": [],
+    "geography_date_status": "pass",
+    "hard_exact_leakage_rows": 0,
+    "host_failures": [],
+    "host_status": "pass",
+    "non_approved_broad_rows": 0,
+    "raw_present_isolation_source_standardization_percent": 80.97,
+    "source_sample_environment_hard_failures": [],
+    "source_sample_environment_status": "pass"
+  },
+  "global_insights": {
+    "app_commit": "4a10291e3797397975b48096709c5547df20362d",
+    "generated": true,
+    "latest_pointer_updated": true,
+    "qa_status": "warning_manual_validation_records_absent",
+    "snapshot_id": "20260624T183607Z_global_insights",
+    "source_snapshot_id": "20260602T140414Z_genbank_bacteria_root"
+  },
+  "implementation_commits": [
+    "df58df3d8ff4d6efcb024b0e73e317885055e8d0",
+    "aca39f9195a99fc037624a13d809632b8eece318",
+    "4a10291e3797397975b48096709c5547df20362d"
+  ],
+  "phase2a_and_completion_apply": {
+    "ambiguous_values_retained": 89603,
+    "applied_at": "2026-06-24T16:59:33.631612+00:00",
+    "backup_table": "assembly_standardization_backup_source_env_20260624164131",
+    "canonical_write_run": true,
+    "catheter_changes": 0,
+    "changed_rows_backed_up": 842467,
+    "completion_assignments_applied": 1016849,
+    "completion_destinations_already_present": 214790,
+    "completion_preserved_destination_conflicts": 65183,
+    "destination_conflicts": 0,
+    "hard_failures": [],
+    "legacy_field_changes": 0,
+    "missing_removal_provenance": 0,
+    "outside_allowlist_field_changes": 0,
+    "patient_environment_only_additions": 0,
+    "phase2a_companion_field_clears": 76204,
+    "phase2a_primary_strict_field_clears": 30851,
+    "plant_context_without_evidence": 0,
+    "protected_field_changes": 0,
+    "raw_field_changes": 0,
+    "required_evidence_failures": 0,
+    "rows_scanned": 3131699,
+    "strict_site_forbidden_remaining": 0,
+    "unique_assemblies_changed": 842467,
+    "unknown_condition_failures": 0
+  },
+  "post_apply_semantic_qa": {
+    "hard_failures": [],
+    "legacy_field_changes": 0,
+    "protected_field_changes": 0,
+    "raw_field_changes": 0,
+    "rows_scanned": 3131699,
+    "strict_site_forbidden_remaining": 0,
+    "unique_assemblies_changed": 0
+  },
+  "release": "source_environment_semantic_completion_20260624",
+  "validation": {
+    "full_tests": "111 tests passed in 81.396s",
+    "git_diff_check": "passed",
+    "py_compile": "passed"
+  }
+}

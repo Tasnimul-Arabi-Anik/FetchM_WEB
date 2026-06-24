@@ -1,0 +1,7 @@
+{
+  "applied_at": "2026-06-24T16:59:33.631612+00:00",
+  "backup_table": "assembly_standardization_backup_source_env_20260624164131",
+  "changed_rows_backed_up": 842467,
+  "ruleset_version": "source_environment_semantic_completion_v1",
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root"
+}

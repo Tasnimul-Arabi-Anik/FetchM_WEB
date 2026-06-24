@@ -1,0 +1,37 @@
+{
+  "checks": [
+    {
+      "check": "non_allowlisted_microbial_rules",
+      "count": 0
+    },
+    {
+      "check": "context_only_terms",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "check": "exact_rule_precedence",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "check": "eukaryotic_algae_preserved",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "check": "canonical_microbiological_host_leakage",
+      "count": 0,
+      "examples": []
+    },
+    {
+      "check": "production_canonical_lineage_mismatches",
+      "count": 0,
+      "distinct_pairs": 0,
+      "examples": []
+    }
+  ],
+  "failures": [],
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "status": "pass"
+}
