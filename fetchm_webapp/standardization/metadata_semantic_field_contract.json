@@ -125,12 +125,36 @@
     "patient_does_not_imply_homo_sapiens": true,
     "without_human_evidence": "Use Sampling_Context_SD=clinical subject; do not infer Host_Context_SD=human-associated."
   },
+  "phase2a_active_output_fields": [
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
+    "Semantic_Axis_Provenance"
+  ],
   "phase2a_allowlist_required": true,
   "phase2a_disallowed_sources": [
     "all_additive_axis_enrichment_candidates.tsv",
     "all_compatible_composite_candidates.tsv",
     "classifier_uncertain_values.tsv",
     "legacy_compatibility_values.tsv"
+  ],
+  "phase2a_existing_output_fields": [
+    "Host_Production_Context_SD"
+  ],
+  "phase2a_future_extension_fields": [
+    "Sample_Processing_SD",
+    "Sample_Collection_Device_SD",
+    "Sample_Collection_Method_SD",
+    "Sample_Entity_SD",
+    "Data_Product_SD",
+    "Host_Study_Group_SD",
+    "Host_Care_Setting_SD",
+    "Host_Disease_Outcome_SD"
   ],
   "phase2a_hardened_gate": {
     "canonical_write_authorized": false,

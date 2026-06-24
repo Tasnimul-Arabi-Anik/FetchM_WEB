@@ -58,7 +58,7 @@
     {
       "bytes": 1091,
       "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_existing_different_summary.tsv",
-      "sha256": "7d831ec4ea2c022b63d56c013f305c2e86828a0d23a0d389c537b8376b9bfb86"
+      "sha256": "cce2bf950224ca3fc0ec28617e455ee67dd2a8a756594b493556d139b9c59fae"
     },
     {
       "bytes": 674,
@@ -82,6 +82,7 @@
     }
   ],
   "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "cleanup_note": "Updated after pre-merge active-output-field cleanup and existing-different wording correction.",
   "compact_artifact_commit_base": "30e7c27",
   "excluded_large_artifacts": [
     "phase2a_projected_row_changes.tsv",
@@ -93,7 +94,7 @@
     "phase2a_destination_already_same.tsv",
     "phase2a_destination_existing_different.tsv"
   ],
-  "generated_at": "2026-06-24T13:30:42.752123+00:00",
+  "generated_at": "2026-06-24T13:40:56.822312+00:00",
   "scope": "compact tracked Phase 2A validation artifacts only",
   "source_commit": "ec5085e"
 }

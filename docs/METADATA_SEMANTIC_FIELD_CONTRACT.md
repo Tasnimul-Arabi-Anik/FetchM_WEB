@@ -51,6 +51,25 @@ These fields are proposed as additive derived axes. They should be populated onl
 | `Host_Disease_Outcome_SD` | Disease outcome. | `recovered`, `survived`, `fatal outcome` |
 | `Host_Exposure_Context_SD` | Exposure/contact context independent of study group. | `household contact`, `close contact`, `exposure/contact context` |
 
+
+## Phase 2A Active Output Fields
+
+For this release, production/export support is limited to fields populated by the reviewed Phase 2A rules:
+
+- `Sample_Material_SD`
+- `Sampling_Context_SD`
+- `Host_Anatomical_Material_SD`
+- `Host_Hospitalization_Status_SD`
+- `Host_Vital_Status_SD`
+- `Host_Colonization_Status_SD`
+- `Host_Disease_Stage_SD`
+- `Host_Exposure_Context_SD`
+- `Semantic_Axis_Provenance`
+
+`Host_Production_Context_SD` is an existing field and may receive reviewed production-context values such as `specific pathogen free`.
+
+The following proposed axes remain documented future extensions and are not exposed as new production/export columns in Phase 2A: `Sample_Processing_SD`, `Sample_Collection_Device_SD`, `Sample_Collection_Method_SD`, `Sample_Entity_SD`, `Data_Product_SD`, `Host_Study_Group_SD`, `Host_Care_Setting_SD`, and `Host_Disease_Outcome_SD`.
+
 ## Multi-Axis Policy
 
 Do not collapse composite phrases into one field when the phrase contains multiple valid concepts.

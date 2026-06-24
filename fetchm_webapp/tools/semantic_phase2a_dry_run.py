@@ -1281,7 +1281,7 @@ def existing_different_interpretation(rule: Rule, existing_value: str) -> str:
         if existing == "healthy/control":
             return "compatible composite; study-group decomposition deferred"
         if existing == "healthy/no disease reported":
-            return "semantically equivalent legacy value; normalization deferred"
+            return "equivalent legacy health-state label; normalization deferred"
         return "genuine semantic disagreement"
     if rule.rule_id == "PH2A-HD-DISEASED":
         return "genuine semantic disagreement"
