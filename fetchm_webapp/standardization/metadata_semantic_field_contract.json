@@ -146,7 +146,7 @@
     "Host_Disease_Outcome_SD"
   ],
   "phase2a_hardened_gate": {
-    "canonical_write_authorized": false,
+    "canonical_write_authorized": "manual_source_environment_completion_release",
     "catheter_deferred_to_phase2b": true,
     "conditional_assignment_skips_are_not_failures": true,
     "dynamic_allowlist_mutation_check_required": true,
@@ -155,9 +155,10 @@
     "plant_context_requires_plant_context_evidence": true,
     "removal_provenance_required": true,
     "required_evidence_failures_are_hard_failures": true,
-    "unknown_condition_failures_are_hard_failures": true
+    "unknown_condition_failures_are_hard_failures": true,
+    "canonical_write_scope": "Reviewed Phase 2A strict-field corrections plus evidence-gated row-level source/environment/material completion."
   },
-  "phase2a_output_registration_policy": "Inactive audit/dry-run release does not register new production/export columns; later canonical apply should register only populated reviewed fields.",
+  "phase2a_output_registration_policy": "Source/environment semantic completion release registers only populated reviewed fields; unused proposed axes remain documented future extensions.",
   "phase2a_populated_fields_for_later_apply": [
     "Sample_Material_SD",
     "Sampling_Context_SD",

@@ -1773,6 +1773,18 @@ HOST_STANDARDIZATION_COLUMNS = [
     "Host_SD_Confidence",
 ]
 
+SEMANTIC_AXIS_STANDARDIZATION_COLUMNS = [
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
+    "Semantic_Axis_Provenance",
+]
+
 SECONDARY_STANDARDIZATION_COLUMNS = [
     "Isolation_Source_SD",
     "Isolation_Source_SD_Broad",
@@ -1823,7 +1835,11 @@ METADATA_STANDARDIZATION_INTERNAL_COLUMNS = {
     METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN,
     METADATA_STANDARDIZATION_UPDATED_AT_COLUMN,
 }
-METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | set(SECONDARY_STANDARDIZATION_COLUMNS) | {
+METADATA_STANDARDIZATION_OUTPUT_COLUMNS = (
+    set(HOST_STANDARDIZATION_COLUMNS)
+    | set(SECONDARY_STANDARDIZATION_COLUMNS)
+    | set(SEMANTIC_AXIS_STANDARDIZATION_COLUMNS)
+    | {
     "Country",
     "Continent",
     "Subcontinent",
@@ -1831,7 +1847,8 @@ METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | se
     "Country_Confidence",
     "Country_Evidence",
     "Geo_Recovery_Status",
-}
+    }
+)
 
 
 def metadata_standardization_input_fingerprint(row: Mapping[str, Any]) -> str:
