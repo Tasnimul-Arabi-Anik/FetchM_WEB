@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 import json
 import sys
 import unittest
@@ -30,6 +31,43 @@ from global_insights.generator import generate_demo_snapshot, generate_global_in
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import import_host_review_decisions as host_review_importer
+
+
+@contextmanager
+def isolated_initialized_app_client():
+    old_paths = (
+        fetchm_app.DATA_DIR,
+        fetchm_app.JOBS_DIR,
+        fetchm_app.LOCKS_DIR,
+        fetchm_app.SPECIES_DIR,
+        fetchm_app.METADATA_DIR,
+        fetchm_app.CANONICAL_METADATA_REPORTS_DIR,
+        fetchm_app.DB_PATH,
+    )
+    with TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        fetchm_app.DATA_DIR = root / "data"
+        fetchm_app.JOBS_DIR = fetchm_app.DATA_DIR / "jobs"
+        fetchm_app.LOCKS_DIR = fetchm_app.DATA_DIR / "locks"
+        fetchm_app.SPECIES_DIR = fetchm_app.DATA_DIR / "species"
+        fetchm_app.METADATA_DIR = fetchm_app.DATA_DIR / "metadata"
+        fetchm_app.CANONICAL_METADATA_REPORTS_DIR = fetchm_app.DATA_DIR / "canonical_metadata_reports"
+        fetchm_app.DB_PATH = fetchm_app.DATA_DIR / "fetchm_webapp.db"
+        try:
+            with fetchm_app.app.app_context():
+                fetchm_app.ensure_directories()
+                fetchm_app.init_db()
+            yield fetchm_app.app.test_client()
+        finally:
+            (
+                fetchm_app.DATA_DIR,
+                fetchm_app.JOBS_DIR,
+                fetchm_app.LOCKS_DIR,
+                fetchm_app.SPECIES_DIR,
+                fetchm_app.METADATA_DIR,
+                fetchm_app.CANONICAL_METADATA_REPORTS_DIR,
+                fetchm_app.DB_PATH,
+            ) = old_paths
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
@@ -2296,70 +2334,70 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertTrue(any("GTDB-Tk" in error for error in errors))
 
     def test_public_auth_pages_use_refreshed_fetchm_web_copy(self) -> None:
-        client = fetchm_app.app.test_client()
-        health = client.get("/healthz")
-        self.assertEqual(health.status_code, 200)
-        self.assertEqual(health.get_json()["status"], "ok")
+        with isolated_initialized_app_client() as client:
+            health = client.get("/healthz")
+            self.assertEqual(health.status_code, 200)
+            self.assertEqual(health.get_json()["status"], "ok")
 
-        home = client.get("/")
-        self.assertEqual(home.status_code, 200)
-        home_html = home.data.decode("utf-8")
-        self.assertIn("Select your target species or genus", home_html)
-        self.assertIn("FetchM automatically standardizes genome metadata", home_html)
-        self.assertIn("10.1093/bioadv/vbag124", home_html)
-        self.assertIn("Examples</span>", home_html)
-        self.assertIn("Browse taxa", home_html)
-        self.assertNotIn("Start with the managed catalog", home_html)
-        self.assertNotIn("Standardized metadata</strong>", home_html)
+            home = client.get("/")
+            self.assertEqual(home.status_code, 200)
+            home_html = home.data.decode("utf-8")
+            self.assertIn("Select your target species or genus", home_html)
+            self.assertIn("FetchM automatically standardizes genome metadata", home_html)
+            self.assertIn("10.1093/bioadv/vbag124", home_html)
+            self.assertIn("Examples</span>", home_html)
+            self.assertIn("Browse taxa", home_html)
+            self.assertNotIn("Start with the managed catalog", home_html)
+            self.assertNotIn("Standardized metadata</strong>", home_html)
 
-        for path, phrase in [
-            ("/about", "Resource overview"),
-            ("/help", "How to use FetchM"),
-            ("/tutorial", "Worked examples"),
-            ("/browse", "Browse prepared bacterial taxa"),
-            ("/downloads", "Bulk downloads"),
-            ("/api", "Programmatic Access"),
-            ("/citation", "How to cite"),
-            ("/nar-readiness", "Submission checklist"),
-            ("/status", "Service status"),
-        ]:
-            response = client.get(path)
-            self.assertEqual(response.status_code, 200, path)
-            self.assertIn(phrase, response.data.decode("utf-8"), path)
+            for path, phrase in [
+                ("/about", "Resource overview"),
+                ("/help", "How to use FetchM"),
+                ("/tutorial", "Worked examples"),
+                ("/browse", "Browse prepared bacterial taxa"),
+                ("/downloads", "Bulk downloads"),
+                ("/api", "Programmatic Access"),
+                ("/citation", "How to cite"),
+                ("/nar-readiness", "Submission checklist"),
+                ("/status", "Service status"),
+            ]:
+                response = client.get(path)
+                self.assertEqual(response.status_code, 200, path)
+                self.assertIn(phrase, response.data.decode("utf-8"), path)
 
-        with client.session_transaction() as session:
-            session["_csrf_token"] = "token"
-        with patch.object(fetchm_app, "create_problem_report", return_value=1) as create_report, patch.object(fetchm_app, "mail_is_configured", return_value=False):
-            report = client.post(
-                "/report-problem",
-                data={"_csrf_token": "token", "message": "This public feedback route should not require sign in."},
-                follow_redirects=False,
-            )
-        self.assertEqual(report.status_code, 302)
-        self.assertNotIn("/login", report.headers.get("Location", ""))
-        create_report.assert_called_once()
-        self.assertIsNone(create_report.call_args.kwargs["user_id"])
-        self.assertEqual(create_report.call_args.kwargs["username"], "anonymous")
+            with client.session_transaction() as session:
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "create_problem_report", return_value=1) as create_report, patch.object(fetchm_app, "mail_is_configured", return_value=False):
+                report = client.post(
+                    "/report-problem",
+                    data={"_csrf_token": "token", "message": "This public feedback route should not require sign in."},
+                    follow_redirects=False,
+                )
+            self.assertEqual(report.status_code, 302)
+            self.assertNotIn("/login", report.headers.get("Location", ""))
+            create_report.assert_called_once()
+            self.assertIsNone(create_report.call_args.kwargs["user_id"])
+            self.assertEqual(create_report.call_args.kwargs["username"], "anonymous")
 
-        login = client.get("/login")
-        self.assertEqual(login.status_code, 200)
-        login_html = login.data.decode("utf-8")
-        self.assertIn("FetchM Web", login_html)
-        self.assertIn("Run metadata analyses, launch sequence downloads", login_html)
-        self.assertNotIn("FetckM", login_html)
-        self.assertNotIn("FetchM WEB", login_html)
-        self.assertIn("Create an account", login_html)
-        self.assertIn("Forgot password?", login_html)
+            login = client.get("/login")
+            self.assertEqual(login.status_code, 200)
+            login_html = login.data.decode("utf-8")
+            self.assertIn("FetchM Web", login_html)
+            self.assertIn("Run metadata analyses, launch sequence downloads", login_html)
+            self.assertNotIn("FetckM", login_html)
+            self.assertNotIn("FetchM WEB", login_html)
+            self.assertIn("Create an account", login_html)
+            self.assertIn("Forgot password?", login_html)
 
-        register = client.get("/register")
-        self.assertEqual(register.status_code, 200)
-        register_html = register.data.decode("utf-8")
-        self.assertIn("Register for FetchM Web", register_html)
-        self.assertIn("private workspace", register_html)
+            register = client.get("/register")
+            self.assertEqual(register.status_code, 200)
+            register_html = register.data.decode("utf-8")
+            self.assertIn("Register for FetchM Web", register_html)
+            self.assertIn("private workspace", register_html)
 
-        forgot = client.get("/forgot-password")
-        self.assertEqual(forgot.status_code, 200)
-        self.assertIn("Forgot your password?", forgot.data.decode("utf-8"))
+            forgot = client.get("/forgot-password")
+            self.assertEqual(forgot.status_code, 200)
+            self.assertIn("Forgot your password?", forgot.data.decode("utf-8"))
 
     def test_theme_assets_include_design_tokens_and_cache_bust(self) -> None:
         css = Path(fetchm_app.app.root_path, "static", "styles.css").read_text(encoding="utf-8")
@@ -2369,15 +2407,15 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn("Aptos Display", css)
 
         base = Path(fetchm_app.app.root_path, "templates", "base.html").read_text(encoding="utf-8")
-        self.assertIn("20260512-saas-theme", base)
+        self.assertRegex(base, r"url_for\('static', filename='styles\.css', v='[^']+'\)")
         self.assertIn(">FetchM Web<", base)
 
     def test_sequence_pages_require_login_but_metadata_routes_are_public(self) -> None:
-        client = fetchm_app.app.test_client()
-        self.assertEqual(client.get("/api/taxa/search?q=Klebsiella").status_code, 200)
-        sequence = client.get("/taxa/1/sequences", follow_redirects=False)
-        self.assertEqual(sequence.status_code, 302)
-        self.assertIn("/login", sequence.headers.get("Location", ""))
+        with isolated_initialized_app_client() as client:
+            self.assertEqual(client.get("/api/taxa/search?q=Klebsiella").status_code, 200)
+            sequence = client.get("/taxa/1/sequences", follow_redirects=False)
+            self.assertEqual(sequence.status_code, 302)
+            self.assertIn("/login", sequence.headers.get("Location", ""))
 
     def test_external_profile_without_javascript_does_not_fall_back_to_quick_mode(self) -> None:
         class Form:

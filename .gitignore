@@ -66,3 +66,8 @@ fetchm_webapp/standardization/review/host_review/after_ai_rules_*/
 /remaining_host_*.csv
 /process_remaining_host_*.py
 /source_sample_environment_qa_tool.py
+# Phase 2A full row-level semantic dry-run artifacts are archived outside Git.
+fetchm_webapp/standardization/review/**/phase2a_projected_row_changes.tsv
+fetchm_webapp/standardization/review/**/phase2a_projected_row_changes.tsv.gz
+fetchm_webapp/standardization/review/**/*_full_row_changes.tsv
+fetchm_webapp/standardization/review/**/*_full_row_changes.tsv.gz

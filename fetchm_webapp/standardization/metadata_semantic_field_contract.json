@@ -1,0 +1,261 @@
+{
+  "broad_existing_context_fields": {
+    "Host_Context_SD": {
+      "allowed_semantic_classes": [
+        "host_context"
+      ],
+      "note": "Broad existing context field. Production and exposure context should use dedicated axes when available.",
+      "preferred_strict_axes": [
+        "Host_Production_Context_SD",
+        "Host_Exposure_Context_SD"
+      ]
+    }
+  },
+  "conflict_handling": {
+    "conflicting_health_state": "Clear incorrect disease field but do not overwrite incompatible existing health state.",
+    "destination_conflict": "Do not overwrite. Under set_when_blank_or_same_preserve_existing, existing different destination values are exported as no-op/review signals; true overwrite attempts are hard failures.",
+    "non_allowlisted_value": "No dry-run change."
+  },
+  "device_context_policy": {
+    "catheter_phase2a_action": "deferred",
+    "reason": "Catheter can be indwelling device, sampled source, catheter-tip specimen, or collection device; no Phase 2A production correction without reviewed device axis."
+  },
+  "legacy_compatibility_fields": {
+    "Isolation_Source_SD": "Backward-compatible normalized physical/environmental/local source; preserve during Phase 2A.",
+    "Isolation_Source_SD_Broad": "Broad source-context umbrella; preserve during Phase 2A.",
+    "Sample_Type_SD": "Backward-compatible NCBI-style sample type umbrella; preserve during Phase 2A.",
+    "Sample_Type_SD_Broad": "Backward-compatible broad sample type/context umbrella; preserve during Phase 2A."
+  },
+  "merge_policy": {
+    "default": "set_when_blank_or_same_preserve_existing",
+    "do_not_overwrite_nonblank_conflicts": true,
+    "preserve_legacy_compatibility_fields_phase2a": [
+      "Isolation_Source_SD",
+      "Isolation_Source_SD_Broad",
+      "Sample_Type_SD",
+      "Sample_Type_SD_Broad"
+    ]
+  },
+  "missing_value_policy": {
+    "additional_phase2a_missing_tokens": [
+      "absent",
+      "unavailable",
+      "not provided",
+      "not available"
+    ],
+    "additive_fields": "Populate only from explicit reviewed rules and evidence-gated conditions.",
+    "patient_without_host_evidence": "Do not infer human; populate only clinical sampling context.",
+    "strict_fields": "Leave blank when evidence is absent or conflicting."
+  },
+  "new_additive_fields": {
+    "Data_Product_SD": [
+      "data_product"
+    ],
+    "Host_Anatomical_Material_SD": [
+      "anatomical_material"
+    ],
+    "Host_Care_Setting_SD": [
+      "care_setting"
+    ],
+    "Host_Colonization_Status_SD": [
+      "colonization_status"
+    ],
+    "Host_Disease_Outcome_SD": [
+      "disease_outcome"
+    ],
+    "Host_Disease_Stage_SD": [
+      "disease_stage"
+    ],
+    "Host_Exposure_Context_SD": [
+      "exposure_context"
+    ],
+    "Host_Hospitalization_Status_SD": [
+      "hospitalization_status"
+    ],
+    "Host_Study_Group_SD": [
+      "study_group"
+    ],
+    "Host_Vital_Status_SD": [
+      "vital_status"
+    ],
+    "Sample_Collection_Device_SD": [
+      "collection_device"
+    ],
+    "Sample_Collection_Method_SD": [
+      "collection_method"
+    ],
+    "Sample_Entity_SD": [
+      "sample_entity"
+    ],
+    "Sample_Material_SD": [
+      "sample_material"
+    ],
+    "Sample_Processing_SD": [
+      "sample_processing"
+    ],
+    "Sampling_Context_SD": [
+      "sampling_context"
+    ]
+  },
+  "non_goals": [
+    "no production rule change by this contract alone",
+    "no host taxonomy change",
+    "no geography or collection-date change",
+    "no broad remapping of legacy compatibility fields in Phase 2A"
+  ],
+  "patient_policy": {
+    "clinical_subject_context_requires": [
+      "raw host patient/human/Homo sapiens evidence",
+      "patient-linked specimen evidence",
+      "clinical biological specimen context with validated host evidence"
+    ],
+    "environment_only_exclusions": [
+      "wastewater",
+      "sewage",
+      "sink",
+      "drain",
+      "surface",
+      "environmental material"
+    ],
+    "human_context_requires": [
+      "Host_SD=Homo sapiens",
+      "Host_TaxID=9606",
+      "raw host value human/Homo sapiens"
+    ],
+    "patient_does_not_imply_homo_sapiens": true,
+    "without_human_evidence": "Use Sampling_Context_SD=clinical subject; do not infer Host_Context_SD=human-associated."
+  },
+  "phase2a_allowlist_required": true,
+  "phase2a_disallowed_sources": [
+    "all_additive_axis_enrichment_candidates.tsv",
+    "all_compatible_composite_candidates.tsv",
+    "classifier_uncertain_values.tsv",
+    "legacy_compatibility_values.tsv"
+  ],
+  "phase2a_hardened_gate": {
+    "canonical_write_authorized": false,
+    "catheter_deferred_to_phase2b": true,
+    "conditional_assignment_skips_are_not_failures": true,
+    "dynamic_allowlist_mutation_check_required": true,
+    "patient_does_not_imply_human": true,
+    "patient_sampling_requires_clinical_subject_evidence": true,
+    "plant_context_requires_plant_context_evidence": true,
+    "removal_provenance_required": true,
+    "required_evidence_failures_are_hard_failures": true,
+    "unknown_condition_failures_are_hard_failures": true
+  },
+  "phase2a_scalar_representation": "Phase 2A serializes each new semantic field as a scalar controlled value. General multivalue serialization is deferred to a later reviewed schema version.",
+  "physical_healthcare_facility_policy": {
+    "host_care_status_examples": [
+      "hospitalized",
+      "non-hospitalized",
+      "inpatient",
+      "outpatient"
+    ],
+    "physical_facility_examples": [
+      "hospital environment",
+      "ICU environment",
+      "long-term care facility",
+      "healthcare facility surface"
+    ],
+    "policy": "A physical healthcare facility may populate Environment_Local_Scale_SD. Host care status must not populate Environment_Local_Scale_SD unless the phrase explicitly describes a physical sampled facility."
+  },
+  "plant_context_policy": {
+    "animal_host_or_drain_context_without_plant_evidence_is_removal_only": true,
+    "clear_invalid_site_value_without_destination_when_evidence_is_absent": true,
+    "context_destinations_require_plant_context_evidence": true,
+    "sample_material_requires_material_or_tissue_evidence": true
+  },
+  "potentially_multivalued_fields": [
+    "Host_Context_SD",
+    "Sampling_Context_SD",
+    "Sample_Material_SD",
+    "Sample_Processing_SD",
+    "Sample_Collection_Device_SD",
+    "Sample_Collection_Method_SD",
+    "Sample_Entity_SD",
+    "Data_Product_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Study_Group_SD",
+    "Host_Care_Setting_SD",
+    "Host_Exposure_Context_SD"
+  ],
+  "provenance_required_for_new_axes": [
+    "source_raw_field",
+    "source_raw_value",
+    "method",
+    "rule_id",
+    "confidence",
+    "ruleset_version"
+  ],
+  "scope": "source_sample_environment_host_clinical_semantic_axes",
+  "semantic_axis_provenance_field": "Semantic_Axis_Provenance",
+  "single_valued_fields": [
+    "Host_Disease_SD",
+    "Host_Health_State_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Disease_Outcome_SD",
+    "Host_Production_Context_SD"
+  ],
+  "site_precedence": {
+    "Host_Anatomical_Site_SD": "Use for anatomical part of a confirmed biological host.",
+    "Isolation_Site_SD": "Use for sampling/isolation site when host linkage is absent, uncertain, or retained for legacy compatibility.",
+    "both_allowed_with_provenance": true
+  },
+  "status": "approved_for_phase2a_hardened_dry_run",
+  "strict_existing_fields": {
+    "Environment_Broad_Scale_SD": {
+      "allowed_semantic_classes": [
+        "environment_broad_scale"
+      ]
+    },
+    "Environment_Local_Scale_SD": {
+      "allowed_semantic_classes": [
+        "environment_local_scale"
+      ],
+      "note": "Physical local environment or facility only. Inpatient/outpatient/hospitalized care status belongs in host care/hospitalization axes."
+    },
+    "Environment_Medium_SD": {
+      "allowed_semantic_classes": [
+        "environment_medium"
+      ]
+    },
+    "Host_Anatomical_Site_SD": {
+      "allowed_semantic_classes": [
+        "anatomical_site"
+      ],
+      "field_status": "existing_field_to_enforce"
+    },
+    "Host_Context_SD": {
+      "allowed_semantic_classes": [
+        "host_context"
+      ],
+      "field_status": "broad_existing_context_field"
+    },
+    "Host_Disease_SD": {
+      "allowed_semantic_classes": [
+        "disease"
+      ]
+    },
+    "Host_Health_State_SD": {
+      "allowed_semantic_classes": [
+        "health_state"
+      ]
+    },
+    "Host_Production_Context_SD": {
+      "allowed_semantic_classes": [
+        "production_context"
+      ],
+      "field_status": "existing_field_to_expand"
+    },
+    "Host_SD": {
+      "allowed_semantic_classes": [
+        "host_taxon"
+      ]
+    }
+  },
+  "version": "2026-06-24.phase2a-hardened-dry-run"
+}

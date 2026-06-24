@@ -1816,13 +1816,33 @@ SECONDARY_STANDARDIZATION_COLUMNS = [
     "Host_Health_State_Ontology_ID",
 ]
 
+SEMANTIC_AXIS_STANDARDIZATION_COLUMNS = [
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Sample_Processing_SD",
+    "Sample_Collection_Device_SD",
+    "Sample_Collection_Method_SD",
+    "Sample_Entity_SD",
+    "Data_Product_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Study_Group_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Care_Setting_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Disease_Outcome_SD",
+    "Host_Exposure_Context_SD",
+    "Semantic_Axis_Provenance",
+]
+
 METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN = "FetchM_Standardization_Input_Fingerprint"
 METADATA_STANDARDIZATION_UPDATED_AT_COLUMN = "FetchM_Standardized_At"
 METADATA_STANDARDIZATION_INTERNAL_COLUMNS = {
     METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN,
     METADATA_STANDARDIZATION_UPDATED_AT_COLUMN,
 }
-METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | set(SECONDARY_STANDARDIZATION_COLUMNS) | {
+METADATA_STANDARDIZATION_OUTPUT_COLUMNS = set(HOST_STANDARDIZATION_COLUMNS) | set(SECONDARY_STANDARDIZATION_COLUMNS) | set(SEMANTIC_AXIS_STANDARDIZATION_COLUMNS) | {
     "Country",
     "Continent",
     "Subcontinent",
