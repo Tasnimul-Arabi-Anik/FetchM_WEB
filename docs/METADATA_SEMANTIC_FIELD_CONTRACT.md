@@ -52,9 +52,9 @@ These fields are proposed as additive derived axes. They should be populated onl
 | `Host_Exposure_Context_SD` | Exposure/contact context independent of study group. | `household contact`, `close contact`, `exposure/contact context` |
 
 
-## Phase 2A Active Output Fields
+## Phase 2A Populated Fields For Later Canonical Apply
 
-For this release, production/export support is limited to fields populated by the reviewed Phase 2A rules:
+This inactive audit/dry-run release does not register new production/export columns. A later canonical-apply commit should expose only fields populated by the reviewed Phase 2A rules:
 
 - `Sample_Material_SD`
 - `Sampling_Context_SD`
@@ -68,7 +68,7 @@ For this release, production/export support is limited to fields populated by th
 
 `Host_Production_Context_SD` is an existing field and may receive reviewed production-context values such as `specific pathogen free`.
 
-The following proposed axes remain documented future extensions and are not exposed as new production/export columns in Phase 2A: `Sample_Processing_SD`, `Sample_Collection_Device_SD`, `Sample_Collection_Method_SD`, `Sample_Entity_SD`, `Data_Product_SD`, `Host_Study_Group_SD`, `Host_Care_Setting_SD`, and `Host_Disease_Outcome_SD`.
+The following proposed axes remain documented future extensions and should not be exposed as new production/export columns until populated by a reviewed batch: `Sample_Processing_SD`, `Sample_Collection_Device_SD`, `Sample_Collection_Method_SD`, `Sample_Entity_SD`, `Data_Product_SD`, `Host_Study_Group_SD`, `Host_Care_Setting_SD`, and `Host_Disease_Outcome_SD`.
 
 ## Multi-Axis Policy
 

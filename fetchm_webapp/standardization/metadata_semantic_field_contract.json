@@ -125,17 +125,6 @@
     "patient_does_not_imply_homo_sapiens": true,
     "without_human_evidence": "Use Sampling_Context_SD=clinical subject; do not infer Host_Context_SD=human-associated."
   },
-  "phase2a_active_output_fields": [
-    "Sample_Material_SD",
-    "Sampling_Context_SD",
-    "Host_Anatomical_Material_SD",
-    "Host_Hospitalization_Status_SD",
-    "Host_Vital_Status_SD",
-    "Host_Colonization_Status_SD",
-    "Host_Disease_Stage_SD",
-    "Host_Exposure_Context_SD",
-    "Semantic_Axis_Provenance"
-  ],
   "phase2a_allowlist_required": true,
   "phase2a_disallowed_sources": [
     "all_additive_axis_enrichment_candidates.tsv",
@@ -168,6 +157,18 @@
     "required_evidence_failures_are_hard_failures": true,
     "unknown_condition_failures_are_hard_failures": true
   },
+  "phase2a_output_registration_policy": "Inactive audit/dry-run release does not register new production/export columns; later canonical apply should register only populated reviewed fields.",
+  "phase2a_populated_fields_for_later_apply": [
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
+    "Semantic_Axis_Provenance"
+  ],
   "phase2a_scalar_representation": "Phase 2A serializes each new semantic field as a scalar controlled value. General multivalue serialization is deferred to a later reviewed schema version.",
   "physical_healthcare_facility_policy": {
     "host_care_status_examples": [
