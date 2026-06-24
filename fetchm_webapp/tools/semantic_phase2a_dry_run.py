@@ -1264,7 +1264,7 @@ def existing_different_summary_rows(rules: list[Rule], existing_different: list[
             "proposed_value": rule.destination_value,
             "existing_value": existing_value,
             "affected_rows": count,
-            "interpretation": existing_different_interpretation(rule),
+            "interpretation": existing_different_interpretation(rule, existing_value),
             "review_priority": "medium",
         })
     return summary_rows
@@ -1275,8 +1275,15 @@ def parse_existing_value(detail: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-def existing_different_interpretation(rule: Rule) -> str:
-    if rule.rule_id in {"PH2A-HD-HEALTHY-NO-DISEASE", "PH2A-HD-DISEASED"}:
+def existing_different_interpretation(rule: Rule, existing_value: str) -> str:
+    existing = norm(existing_value)
+    if rule.rule_id == "PH2A-HD-HEALTHY-NO-DISEASE":
+        if existing == "healthy/control":
+            return "compatible composite; study-group decomposition deferred"
+        if existing == "healthy/no disease reported":
+            return "semantically equivalent legacy value; normalization deferred"
+        return "genuine semantic disagreement"
+    if rule.rule_id == "PH2A-HD-DISEASED":
         return "genuine semantic disagreement"
     if rule.rule_id == "PH2A-SITE-MANURE-MEDIUM":
         return "benign more-specific value preserved"

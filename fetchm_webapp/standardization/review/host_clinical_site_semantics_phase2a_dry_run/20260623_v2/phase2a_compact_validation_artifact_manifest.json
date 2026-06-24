@@ -1,0 +1,99 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1311,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_dry_run_summary.json",
+      "sha256": "e0ec9d93467a55046c0b6cf6597f20656c879035e8c711e77cdfb5709a8104f7"
+    },
+    {
+      "bytes": 1145,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_dry_run_summary.md",
+      "sha256": "2d0ba4eff3e94c265a9205c899f8065d2a525bce28d4eed966ec276b51e9bc89"
+    },
+    {
+      "bytes": 5328,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_rules_applied.tsv",
+      "sha256": "23132f8323bf4d7f31436c4aae29643883994aa8636ed206ce61c43faec35d90"
+    },
+    {
+      "bytes": 1153,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_value_level_before_after.tsv",
+      "sha256": "82cab80915bcec727db87f0eb72a9a25c28d7e775b6e952f66c23650e8f0243d"
+    },
+    {
+      "bytes": 554,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_projected_field_coverage.tsv",
+      "sha256": "7f2d6ef99b885be2b38aad65a3fc960697cf93d4f5174a61214947f6897ebf60"
+    },
+    {
+      "bytes": 181936,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_validation_examples.tsv",
+      "sha256": "634f7b0b2211f8e8ee60261f62c677d47b1c3a6e8ad5de11093fd56b89db6208"
+    },
+    {
+      "bytes": 216,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_destination_conflicts.tsv",
+      "sha256": "5c892e39816676e83e586972a3c3f070c714a5b441264f84a950eff16bb0e889"
+    },
+    {
+      "bytes": 216,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_required_evidence_failures.tsv",
+      "sha256": "5c892e39816676e83e586972a3c3f070c714a5b441264f84a950eff16bb0e889"
+    },
+    {
+      "bytes": 216,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_unknown_condition_failures.tsv",
+      "sha256": "5c892e39816676e83e586972a3c3f070c714a5b441264f84a950eff16bb0e889"
+    },
+    {
+      "bytes": 136,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_legacy_field_preservation.tsv",
+      "sha256": "d41c73f0f2f15cc12e3f5200d8d46cc924055c954e5d1533dd9d7f12ee64cb6d"
+    },
+    {
+      "bytes": 630,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_catheter_context_audit.tsv",
+      "sha256": "d34d6517dfed3586dc7e5fbba7e1725f9247d6df448eecf6f502189a2ba05093"
+    },
+    {
+      "bytes": 1091,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_existing_different_summary.tsv",
+      "sha256": "7d831ec4ea2c022b63d56c013f305c2e86828a0d23a0d389c537b8376b9bfb86"
+    },
+    {
+      "bytes": 674,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_removal_only_summary.tsv",
+      "sha256": "ddace75d6ea27493689ea6a847988fb99dda1dcc1a2665c0683d85e63e3529f3"
+    },
+    {
+      "bytes": 171,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_provenance_completeness_summary.tsv",
+      "sha256": "c144460e86220b50e455ac5560387472b3dd1721d032529a02f3e8adb631b53b"
+    },
+    {
+      "bytes": 961,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_full_artifact_manifest.json",
+      "sha256": "14defd527b69c2c60022b27e417e9a2a8913eeada7a741743d544e45ff80752b"
+    },
+    {
+      "bytes": 2114,
+      "path": "fetchm_webapp/standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_validation_notes.md",
+      "sha256": "06c4119b75b63f51584fa52bc6495672f8fb86b31b0cb01a723c7da2a03c7938"
+    }
+  ],
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "compact_artifact_commit_base": "30e7c27",
+  "excluded_large_artifacts": [
+    "phase2a_projected_row_changes.tsv",
+    "phase2a_projected_row_changes.tsv.gz",
+    "phase2a_removal_provenance.tsv",
+    "phase2a_patient_host_context_audit.tsv",
+    "phase2a_plant_material_context_audit.tsv",
+    "phase2a_conditional_assignment_skips.tsv",
+    "phase2a_destination_already_same.tsv",
+    "phase2a_destination_existing_different.tsv"
+  ],
+  "generated_at": "2026-06-24T13:30:42.752123+00:00",
+  "scope": "compact tracked Phase 2A validation artifacts only",
+  "source_commit": "ec5085e"
+}
