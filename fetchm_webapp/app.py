@@ -597,6 +597,15 @@ CANONICAL_METADATA_EXTRA_COLUMNS = [
     "Isolation_Site_SD",
     "Environment (Broad Scale)",
     "Environment_Broad_Scale_SD",
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
+    "Semantic_Axis_Provenance",
     "Environment (Local Scale)",
     "Environment_Local_Scale_SD",
     "Environment Medium",
@@ -19894,39 +19903,40 @@ def write_canonical_metadata_csv(snapshot_id: str, rank: str, name: str, output_
     with connect_dataset_store() as connection, temp_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=CANONICAL_METADATA_CSV_COLUMNS, extrasaction="ignore")
         writer.writeheader()
-        cursor = connection.cursor()
-        cursor.execute(
-            f"""
-            SELECT l.assembly_accession, l.reported_name, l.domain_name, l.phylum_name, l.class_name,
-                   l.order_name, l.family_name, l.genus_name, l.species_name, l.taxonomy_source,
-                   l.resolution_status, s.standardized_payload
-            FROM assembly_taxonomy_lineage l
-            JOIN assembly_standardization s ON s.assembly_accession = l.assembly_accession
-            WHERE l.snapshot_id = %s AND l.{column} = %s
-            ORDER BY l.assembly_accession
-            """,
-            (snapshot_id, normalize_species_name(name)),
-        )
-        while True:
-            rows = cursor.fetchmany(5000)
-            if not rows:
-                break
-            for db_row in rows:
-                lineage = {
-                    "assembly_accession": db_row[0],
-                    "reported_name": db_row[1],
-                    "domain_name": db_row[2],
-                    "phylum_name": db_row[3],
-                    "class_name": db_row[4],
-                    "order_name": db_row[5],
-                    "family_name": db_row[6],
-                    "genus_name": db_row[7],
-                    "species_name": db_row[8],
-                    "taxonomy_source": db_row[9],
-                    "resolution_status": db_row[10],
-                }
-                writer.writerow(canonical_payload_row(db_row[11] or {}, lineage))
-                total += 1
+        cursor_name = f"canonical_csv_{uuid.uuid4().hex}"
+        with connection.cursor(name=cursor_name) as cursor:
+            cursor.execute(
+                f"""
+                SELECT l.assembly_accession, l.reported_name, l.domain_name, l.phylum_name, l.class_name,
+                       l.order_name, l.family_name, l.genus_name, l.species_name, l.taxonomy_source,
+                       l.resolution_status, s.standardized_payload
+                FROM assembly_taxonomy_lineage l
+                JOIN assembly_standardization s ON s.assembly_accession = l.assembly_accession
+                WHERE l.snapshot_id = %s AND l.{column} = %s
+                ORDER BY l.assembly_accession
+                """,
+                (snapshot_id, normalize_species_name(name)),
+            )
+            while True:
+                rows = cursor.fetchmany(5000)
+                if not rows:
+                    break
+                for db_row in rows:
+                    lineage = {
+                        "assembly_accession": db_row[0],
+                        "reported_name": db_row[1],
+                        "domain_name": db_row[2],
+                        "phylum_name": db_row[3],
+                        "class_name": db_row[4],
+                        "order_name": db_row[5],
+                        "family_name": db_row[6],
+                        "genus_name": db_row[7],
+                        "species_name": db_row[8],
+                        "taxonomy_source": db_row[9],
+                        "resolution_status": db_row[10],
+                    }
+                    writer.writerow(canonical_payload_row(db_row[11] or {}, lineage))
+                    total += 1
     temp_path.replace(output_path)
     return total
 
