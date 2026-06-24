@@ -1,0 +1,15 @@
+{
+  "artifact_commit": "fea41b9430bcf245ce7052b503135316a1a255a2",
+  "audit_code_commit": "9569d4d80b27aae418b19410247cc8f3415febe3",
+  "canonical_refresh_run": false,
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "deployment_run": false,
+  "generated_at": "2026-06-23T16:51:53.621291+00:00",
+  "global_insights_regenerated": false,
+  "input_standardization_commit": "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
+  "note": "Provenance-only release manifest update. This file is intentionally excluded from recursive artifact checksums; no audit tables, production rules, canonical records, Global Insights, or deployment state were changed.",
+  "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832",
+  "production_rules_changed": false,
+  "release_status": "audit_only_phase1_baseline",
+  "rows_audited": 3131699
+}

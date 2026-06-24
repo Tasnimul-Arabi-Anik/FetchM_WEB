@@ -1,0 +1,15 @@
+{
+  "artifact_filename": "phase2a_projected_row_changes.tsv",
+  "canonical_snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "compressed_bytes": 2943177,
+  "compressed_filename": "phase2a_projected_row_changes.tsv.gz",
+  "compressed_sha256": "d7781a1a581eb3476311b15e260b2671442c1139d575d0eccf1cb3e904a0d15d",
+  "external_archive_uri": "TBD: attach compressed artifact to GitHub release or manuscript data archive",
+  "generator_commit": "ec5085e",
+  "git_tracking_policy": "Do not commit full row-change TSV or compressed artifact to normal Git history.",
+  "local_compressed_artifact_path": "standardization/review/host_clinical_site_semantics_phase2a_dry_run/20260623_v2/phase2a_projected_row_changes.tsv.gz",
+  "ruleset_version": "semantic_phase2a_confirmed_rules_v2",
+  "uncompressed_bytes": 90617136,
+  "uncompressed_row_count_excluding_header": 30738,
+  "uncompressed_sha256": "41b0c1dc72485128f7f47edbff6da884bb28c352368388cba7bd80d2290d4004"
+}

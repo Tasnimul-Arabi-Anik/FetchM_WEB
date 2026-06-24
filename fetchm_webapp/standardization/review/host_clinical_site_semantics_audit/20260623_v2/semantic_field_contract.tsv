@@ -1,0 +1,16 @@
+field	strict_meaning	allowed_semantic_classes	field_role	phase1_action
+Host_SD	Biological host taxon only.	host_taxon	strict_or_targeted	audit_only
+Host_Context_SD	Broad host-associated context where taxon is unavailable or source-derived.	exposure_context|host_context|production_context	strict_or_targeted	audit_only
+Host_Disease_SD	Named disease or defensible disease class only.	disease	strict_or_targeted	audit_only
+Host_Health_State_SD	Strict health state only: healthy, diseased, asymptomatic, symptomatic, unknown.	health_state	strict_or_targeted	audit_only
+Host_Production_Context_SD	Production/husbandry context when applicable.	production_context	strict_or_targeted	audit_only
+Host_Anatomical_Site_SD	Anatomical part of a confirmed biological host.	anatomical_site	strict_or_targeted	audit_only
+Sample_Type_SD	Backward-compatible NCBI-style umbrella sample type; decompose into strict derived axes before migration.	collection_device|data_product|food_commodity|sample_entity|sample_material|sample_processing|sampling_context	legacy_compatibility	audit_only
+Sample_Type_SD_Broad	Backward-compatible broad sample type/context umbrella.	collection_device|data_product|food_commodity|sample_entity|sample_material|sample_processing|sampling_context|source_context	legacy_compatibility	audit_only
+Isolation_Source_SD	Backward-compatible normalized physical/environmental/local source value; not a strict context-only field.	anatomical_material|environment_broad_scale|environment_local_scale|environment_medium|food_commodity|host_context|sample_material|source_context	legacy_compatibility	audit_only
+Isolation_Source_SD_Broad	Broad source-context umbrella; may include compatibility categories requiring decomposition.	anatomical_material|environment_broad_scale|environment_medium|food_commodity|host_context|sample_material|source_context	legacy_compatibility	audit_only
+Isolation_Site_SD	Sampling/isolation site when no host-specific assertion is made, or legacy site field pending contract decision.	anatomical_site	strict_or_targeted	audit_only
+Environment_Medium_SD	Physical environmental medium only.	environment_medium	strict_or_targeted	audit_only
+Environment_Medium_SD_Broad	Broad environmental medium class only.	environment_medium	strict_or_targeted	audit_only
+Environment_Broad_Scale_SD	Broad environmental setting.	environment_broad_scale	strict_or_targeted	audit_only
+Environment_Local_Scale_SD	Local environmental or facility feature.	care_setting|environment_local_scale	strict_or_targeted	audit_only

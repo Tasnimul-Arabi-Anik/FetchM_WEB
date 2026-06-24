@@ -1,0 +1,18 @@
+current_field	current_value	matched_rows	applied_assignments	destination_conflicts	conditional_assignment_skips	required_evidence_failures	unknown_condition_failures	destination_already_same	destination_existing_different
+Host_Disease_SD	diseased	1071	0	0	0	0	0	1053	18
+Host_Disease_SD	healthy/no disease reported	4589	101	0	0	0	0	2734	1754
+Host_Health_State_SD	alive	40	40	0	0	0	0	0	0
+Host_Health_State_SD	carrier	922	922	0	0	0	0	0	0
+Host_Health_State_SD	colonized	18	18	0	0	0	0	0	0
+Host_Health_State_SD	convalescent	1	1	0	0	0	0	0	0
+Host_Health_State_SD	dead	289	289	0	0	0	0	0	0
+Host_Health_State_SD	exacerbation	48	48	0	0	0	0	0	0
+Host_Health_State_SD	exposure/contact context	95	95	0	0	0	0	0	0
+Host_Health_State_SD	hospitalized	1183	1183	0	0	0	0	0	0
+Host_Health_State_SD	non-hospitalized	497	497	0	0	0	0	0	0
+Host_Health_State_SD	patient	22620	13746	0	1332	0	0	0	2
+Host_Health_State_SD	specific pathogen free	56	56	0	0	0	0	0	0
+Isolation_Site_SD	cerebrospinal fluid	10528	10528	0	0	0	0	0	0
+Isolation_Site_SD	manure	9154	4578	0	4576	0	0	0	0
+Isolation_Site_SD	plant-associated material	8064	4016	0	2032	0	0	0	0
+Isolation_Site_SD	pus	5290	5290	0	0	0	0	0	0

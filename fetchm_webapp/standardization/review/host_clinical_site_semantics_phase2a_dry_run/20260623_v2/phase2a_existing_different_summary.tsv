@@ -1,0 +1,7 @@
+rule_id	current_field	current_value	destination_field	proposed_value	existing_value	affected_rows	interpretation	review_priority
+PH2A-HD-DISEASED	Host_Disease_SD	diseased	Host_Health_State_SD	diseased	symptomatic	18	genuine semantic disagreement	medium
+PH2A-HD-HEALTHY-NO-DISEASE	Host_Disease_SD	healthy/no disease reported	Host_Health_State_SD	healthy	diseased	1	genuine semantic disagreement	medium
+PH2A-HD-HEALTHY-NO-DISEASE	Host_Disease_SD	healthy/no disease reported	Host_Health_State_SD	healthy	healthy/control	1077	genuine semantic disagreement	medium
+PH2A-HD-HEALTHY-NO-DISEASE	Host_Disease_SD	healthy/no disease reported	Host_Health_State_SD	healthy	healthy/no disease reported	675	genuine semantic disagreement	medium
+PH2A-HD-HEALTHY-NO-DISEASE	Host_Disease_SD	healthy/no disease reported	Host_Health_State_SD	healthy	symptomatic	1	genuine semantic disagreement	medium
+PH2A-HHS-PATIENT-HUMAN-CONTEXT	Host_Health_State_SD	patient	Host_Context_SD	human-associated	microbial self/lab culture descriptor	2	manual review	medium

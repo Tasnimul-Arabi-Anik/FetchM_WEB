@@ -1,0 +1,5 @@
+rule_id	current_field	current_value	destination_status	reason	affected_rows
+PH2A-HD-DISEASED	Host_Disease_SD	diseased	removal_only	diseased is generic health state not named disease	18
+PH2A-HD-HEALTHY-NO-DISEASE	Host_Disease_SD	healthy/no disease reported	removal_only	healthy/no disease reported is health state not disease	1754
+PH2A-HHS-PATIENT-CLEAR	Host_Health_State_SD	patient	removal_only	patient is not a health state; clear only unless subject evidence supports destination context	665
+PH2A-SITE-PLANT-CLEAR	Isolation_Site_SD	plant-associated material	removal_only	plant-associated material is not an isolation site; destinations require separate plant evidence	125
