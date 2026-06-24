@@ -1829,7 +1829,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("leaf tissue", "leaf tissue"),
             ("root tissue", "root"),
             ("stem tissue", "plant stem"),
-            ("plant tissue", "plant-associated material"),
+            ("plant tissue", ""),
         ]:
             result = standardized(source)
             self.assertEqual(result["Host_Context_SD"], "plant-associated", source)
@@ -2022,12 +2022,14 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
         carrier = standardized("carrier")
         self.assertEqual(carrier["Host_Disease_SD"], "")
-        self.assertEqual(carrier["Host_Health_State_SD"], "carrier")
+        self.assertEqual(carrier["Host_Health_State_SD"], "")
+        self.assertEqual(carrier.get("Host_Colonization_Status_SD", ""), "")
         self.assertEqual(carrier["Isolation_Source_SD"], "clinical/host-associated material")
 
         colonized = standardized("colonized")
         self.assertEqual(colonized["Host_Disease_SD"], "")
-        self.assertEqual(colonized["Host_Health_State_SD"], "colonized")
+        self.assertEqual(colonized["Host_Health_State_SD"], "")
+        self.assertEqual(colonized.get("Host_Colonization_Status_SD", ""), "")
         self.assertEqual(colonized["Isolation_Source_SD"], "clinical/host-associated material")
 
         clinical = standardized("clinical")

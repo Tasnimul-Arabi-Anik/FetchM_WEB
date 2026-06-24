@@ -1,0 +1,21 @@
+{
+  "backup_table": "assembly_standardization_backup_semantic_exception_20260624201244",
+  "bare_fluid_cleared": 0,
+  "canonical_write_run": true,
+  "changed_rows": 30738,
+  "colonization_cleared": 9,
+  "colonization_kept": 931,
+  "generated_at": "2026-06-24T20:18:54.578129+00:00",
+  "git_commit": "28ff0c440ebc0a7351140a69c01427355b7b4fe9",
+  "legacy_field_changes": 0,
+  "patient_human_context_cleared": 386,
+  "patient_sampling_cleared": 733,
+  "patient_sampling_kept": 6141,
+  "protected_field_changes": 0,
+  "provenance_methods_migrated": 76046,
+  "raw_field_changes": 0,
+  "rows_scanned": 3131699,
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "vital_status_cleared": 13,
+  "vital_status_kept": 316
+}

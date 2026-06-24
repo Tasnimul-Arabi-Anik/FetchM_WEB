@@ -191,6 +191,20 @@ ENVIRONMENT_ONLY_RE = re.compile(
     re.I,
 )
 ENVIRONMENT_EXCLUSION_RE = re.compile(r"\b(?:wastewater|waste water|sewage|sink|drain|surface|environmental|environment)\b", re.I)
+PATIENT_ENVIRONMENT_OBJECT_RE = re.compile(
+    r"\b(?:patient toilet|toilet sink|patient bathroom|bathroom sink|sink|drain|faucet|shower|"
+    r"patient room surface|bedrail|bedside|hospital surface|environmental swab|wastewater|"
+    r"waste water|sewage|healthcare facility|healthcare environment|hospital environment|"
+    r"medical equipment|room object|built environment)\b",
+    re.I,
+)
+ECOLOGICAL_COLONIZATION_RE = re.compile(
+    r"\b(?:soil|vineyard|forest|oak|ash|vegetation|land|mold-colonized|wall|"
+    r"indoor environment|surface|biofilm|facility|material|environment|rhizosphere)\b",
+    re.I,
+)
+CARRIER_FALSE_CONTEXT_RE = re.compile(r"\b(?:carrier oil|carrier device|carrier material|transport carrier|sample carrier)\b", re.I)
+VITAL_FALSE_CONTEXT_RE = re.compile(r"\b(?:dead wood|dead biomass|dead plant material|dead organic matter|heat-killed|killed culture)\b", re.I)
 CLINICAL_SPECIMEN_RE = re.compile(
     r"\b(?:clinical sample|clinical specimen|patient sample|patient specimen|human specimen|"
     r"veterinary specimen|veterinary sample|blood|urine|feces|faeces|stool|swab|nasal|"
@@ -386,10 +400,36 @@ def standardized_context_blob(payload: dict[str, Any]) -> str:
     return text_blob(payload, CONTEXT_EVIDENCE_FIELDS)
 
 
+
+def independent_human_raw_evidence(payload: dict[str, Any]) -> bool:
+    for field in ["Host", "Host_Original", "Host_Cleaned", "BioSample Host"]:
+        text = normalize_lookup(payload.get(field))
+        if text in {"human", "homo sapiens", "h sapiens", "homo sapiens human"}:
+            return True
+    return False
+
+
+def has_biological_specimen_evidence(payload: dict[str, Any]) -> bool:
+    blob = standardized_context_blob(payload)
+    raw_blob = raw_text_blob(payload)
+    return bool(CLINICAL_SPECIMEN_RE.search(blob) or CLINICAL_SPECIMEN_RE.search(raw_blob))
+
+
+def patient_environment_object_context(payload: dict[str, Any]) -> bool:
+    blob = standardized_context_blob(payload) + " | " + raw_text_blob(payload)
+    if not PATIENT_ENVIRONMENT_OBJECT_RE.search(blob):
+        return False
+    return not has_biological_specimen_evidence(payload)
+
+
 def has_human_evidence(payload: dict[str, Any]) -> bool:
+    if patient_environment_object_context(payload) and not independent_human_raw_evidence(payload):
+        return False
     if normalize_lookup(payload.get("Host_TaxID")) == "9606":
         return True
-    for field in ["Host_SD", "Host", "Host_Original", "Host_Cleaned", "BioSample Host"]:
+    if independent_human_raw_evidence(payload):
+        return True
+    for field in ["Host_SD"]:
         text = normalize_lookup(payload.get(field))
         if text in {"human", "homo sapiens", "h sapiens", "homo sapiens human"}:
             return True
@@ -437,8 +477,10 @@ def has_host_evidence(payload: dict[str, Any]) -> bool:
 
 
 def has_clinical_subject_evidence(payload: dict[str, Any]) -> bool:
+    if patient_environment_object_context(payload):
+        return False
     raw_host_blob = text_blob(payload, ["Host", "Host_Original", "Host_Cleaned", "BioSample Host"])
-    if PATIENT_OR_HUMAN_RE.search(raw_host_blob):
+    if PATIENT_OR_HUMAN_RE.search(raw_host_blob) and has_biological_specimen_evidence(payload):
         return True
     if environment_only_context(payload):
         return False
@@ -518,6 +560,25 @@ def has_collection_device_evidence(payload: dict[str, Any]) -> bool:
     return False
 
 
+
+def has_host_colonization_evidence(payload: dict[str, Any], value: str) -> bool:
+    blob = standardized_context_blob(payload) + " | " + raw_text_blob(payload)
+    if CARRIER_FALSE_CONTEXT_RE.search(blob):
+        return False
+    if ECOLOGICAL_COLONIZATION_RE.search(blob) and not has_host_evidence(payload):
+        return False
+    if ECOLOGICAL_COLONIZATION_RE.search(blob) and normalize_lookup(payload.get("Host_SD")) in {"", "absent", "unknown", "environment", "environmental"}:
+        return False
+    return has_host_evidence(payload)
+
+
+def has_host_vital_status_evidence(payload: dict[str, Any]) -> bool:
+    blob = standardized_context_blob(payload) + " | " + raw_text_blob(payload)
+    if VITAL_FALSE_CONTEXT_RE.search(blob):
+        return False
+    return has_host_evidence(payload)
+
+
 def condition_met(rule: Rule, payload: dict[str, Any]) -> tuple[bool, str, str]:
     condition = norm(rule.destination_condition)
     if not rule.destination_field:
@@ -533,6 +594,12 @@ def condition_met(rule: Rule, payload: dict[str, Any]) -> tuple[bool, str, str]:
     if condition == "host_evidence":
         ok = has_host_evidence(payload)
         return ok, "host_evidence=" + str(ok).lower(), "conditional_assignment_skip"
+    if condition == "host_colonization_evidence":
+        ok = has_host_colonization_evidence(payload, rule.current_value)
+        return ok, "host_colonization_evidence=" + str(ok).lower(), "conditional_assignment_skip"
+    if condition == "host_vital_status_evidence":
+        ok = has_host_vital_status_evidence(payload)
+        return ok, "host_vital_status_evidence=" + str(ok).lower(), "conditional_assignment_skip"
     if condition == "plant_context_evidence":
         ok = has_plant_context_evidence(payload)
         return ok, "plant_context_evidence=" + str(ok).lower(), "conditional_assignment_skip"
@@ -562,7 +629,7 @@ def matched_raw_field(payload: dict[str, Any], value: str) -> tuple[str, str]:
     return "", ""
 
 
-def provenance_entry(rule: Rule, payload: dict[str, Any], evidence: str) -> dict[str, str]:
+def provenance_entry(rule: Rule, payload: dict[str, Any], evidence: str, method: str = "semantic_phase2a_dry_run") -> dict[str, str]:
     source_field, source_value = matched_raw_field(payload, rule.current_value)
     return {
         "rule_id": rule.rule_id,
@@ -570,7 +637,7 @@ def provenance_entry(rule: Rule, payload: dict[str, Any], evidence: str) -> dict
         "source_current_value": rule.current_value,
         "source_raw_field": source_field,
         "source_raw_value": source_value,
-        "method": "semantic_phase2a_dry_run",
+        "method": method,
         "confidence": rule.destination_confidence,
         "evidence": evidence,
         "evidence_requirement": rule.evidence_requirement,
@@ -599,16 +666,16 @@ def clear_field(payload: dict[str, Any], field: str) -> list[dict[str, str]]:
     return cleared
 
 
-def set_destination(payload: dict[str, Any], rule: Rule, evidence: str) -> tuple[str, str]:
+def set_destination(payload: dict[str, Any], rule: Rule, evidence: str, method: str = "semantic_phase2a_dry_run") -> tuple[str, str]:
     if not rule.destination_field:
         return "clear_only", "no destination for clear-only rule"
     current = str(payload.get(rule.destination_field) or "").strip()
     if not current:
         payload[rule.destination_field] = rule.destination_value
-        add_provenance(payload, rule.destination_field, provenance_entry(rule, payload, evidence))
+        add_provenance(payload, rule.destination_field, provenance_entry(rule, payload, evidence, method))
         return "applied", ""
     if norm(current) == norm(rule.destination_value):
-        add_provenance(payload, rule.destination_field, provenance_entry(rule, payload, evidence))
+        add_provenance(payload, rule.destination_field, provenance_entry(rule, payload, evidence, method))
         return "already_same", "same destination value already present"
     if norm(rule.merge_policy) == "set_when_blank_or_same":
         return "existing_different", f"existing nonblank destination preserved per merge policy; existing={current}; proposed={rule.destination_value}"
@@ -637,7 +704,7 @@ def allowed_changed_fields(matched_rules: list[Rule]) -> set[str]:
     return allowed
 
 
-def add_removal_provenance(after: dict[str, Any], rule: Rule, cleared: list[dict[str, str]], outcomes: list[dict[str, str]]) -> dict[str, Any]:
+def add_removal_provenance(after: dict[str, Any], rule: Rule, cleared: list[dict[str, str]], outcomes: list[dict[str, str]], method: str = "semantic_phase2a_dry_run") -> dict[str, Any]:
     primary = next((item for item in cleared if item["is_primary"] == "true"), None)
     if not primary:
         return {}
@@ -653,7 +720,7 @@ def add_removal_provenance(after: dict[str, Any], rule: Rule, cleared: list[dict
         "source_raw_value": source_value,
         "destination_outcomes": outcomes,
         "destination_status": "removal_only" if not any(outcome.get("status") in {"applied", "already_same"} for outcome in outcomes) else "destination_recorded",
-        "method": "semantic_phase2a_dry_run",
+        "method": method,
         "ruleset_version": RULESET_VERSION,
         "source_audit_commit": rule.source_audit_commit,
     }
@@ -661,7 +728,7 @@ def add_removal_provenance(after: dict[str, Any], rule: Rule, cleared: list[dict
     return event
 
 
-def apply_rules_to_payload(payload: dict[str, Any], rules_by_lookup: dict[tuple[str, str], list[Rule]]) -> dict[str, Any]:
+def apply_rules_to_payload(payload: dict[str, Any], rules_by_lookup: dict[tuple[str, str], list[Rule]], method: str = "semantic_phase2a_dry_run") -> dict[str, Any]:
     before = deepcopy(payload)
     after = deepcopy(payload)
     applied: list[dict[str, str]] = []
@@ -707,7 +774,7 @@ def apply_rules_to_payload(payload: dict[str, Any], rules_by_lookup: dict[tuple[
                 else:
                     conditional_skips.append(event)
                 continue
-            status, detail = set_destination(after, rule, evidence)
+            status, detail = set_destination(after, rule, evidence, method)
             event = {
                 "rule_id": rule.rule_id,
                 "field": rule.destination_field,
@@ -729,7 +796,7 @@ def apply_rules_to_payload(payload: dict[str, Any], rules_by_lookup: dict[tuple[
             else:
                 conflicts.append(event)
         if clear_rule is not None and key_cleared:
-            removal_events.append(add_removal_provenance(after, clear_rule, key_cleared, key_outcomes))
+            removal_events.append(add_removal_provenance(after, clear_rule, key_cleared, key_outcomes, method))
 
     changed_fields = [field for field in sorted(set(before) | set(after)) if before.get(field, "") != after.get(field, "")]
     legacy_changed = [field for field in LEGACY_COMPATIBILITY_FIELDS if before.get(field, "") != after.get(field, "")]

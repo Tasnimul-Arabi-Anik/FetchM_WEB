@@ -1882,6 +1882,12 @@ def row_has_reusable_standardization(row: Mapping[str, Any]) -> bool:
     return all(column in row for column in SECONDARY_STANDARDIZATION_COLUMNS)
 
 
+def apply_managed_semantic_completion(row: dict[str, Any]) -> dict[str, Any]:
+    from tools.source_environment_semantic_completion import apply_standardization_semantic_completion
+
+    return apply_standardization_semantic_completion(row)
+
+
 def normalize_managed_metadata_row(
     row: dict[str, Any],
     *,
@@ -1907,6 +1913,7 @@ def normalize_managed_metadata_row(
         for column in METADATA_STANDARDIZATION_INTERNAL_COLUMNS:
             if column in row:
                 normalized[column] = row.get(column)
+        normalized = apply_managed_semantic_completion(normalized)
         normalized[METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN] = fingerprint
         return normalized, False
 
@@ -1932,6 +1939,7 @@ def normalize_managed_metadata_row(
         anatomical_site = canonical_anatomical_site(secondary_standardization.get("Isolation_Site_SD"))
         if anatomical_site:
             normalized["Host_Anatomical_Site_SD"] = anatomical_site
+    normalized = apply_managed_semantic_completion(normalized)
     normalized[METADATA_STANDARDIZATION_INPUT_FINGERPRINT_COLUMN] = fingerprint
     normalized[METADATA_STANDARDIZATION_UPDATED_AT_COLUMN] = utc_now()
     return normalized, True

@@ -144,6 +144,82 @@ class SourceEnvironmentSemanticCompletionTests(unittest.TestCase):
         result = run_payload({"Isolation Source": "banana blood disease"})
         self.assertNotEqual(result["after"].get("Sample_Material_SD"), "blood")
 
+
+    def test_patient_environment_object_does_not_become_clinical_subject(self) -> None:
+        result = run_payload({
+            "Host_Health_State_SD": "patient",
+            "Host_Original": "Patient Toilet Sink",
+            "Host": "absent",
+            "Host_SD": "Homo sapiens",
+            "Host_TaxID": "9606",
+            "Sample_Type_SD": "sink",
+        })
+        after = result["after"]
+        self.assertEqual(after.get("Host_Health_State_SD"), "")
+        self.assertNotEqual(after.get("Sampling_Context_SD"), "clinical subject")
+        self.assertNotEqual(after.get("Host_Context_SD"), "human-associated")
+        self.assertEqual(after.get("Environment_Local_Scale_SD"), "sink")
+
+    def test_genuine_patient_specimen_remains_clinical_subject(self) -> None:
+        result = run_payload({
+            "Host_Health_State_SD": "patient",
+            "Host": "patient",
+            "Host_SD": "Homo sapiens",
+            "Host_TaxID": "9606",
+            "Sample_Type_SD": "blood",
+        })
+        after = result["after"]
+        self.assertEqual(after.get("Host_Health_State_SD"), "")
+        self.assertEqual(after.get("Sampling_Context_SD"), "clinical subject")
+        self.assertEqual(after.get("Host_Context_SD"), "human-associated")
+        self.assertEqual(after.get("Sample_Material_SD"), "blood")
+
+    def test_ecological_colonization_does_not_become_host_status(self) -> None:
+        result = run_payload({
+            "Host_Health_State_SD": "colonized",
+            "Host": "absent",
+            "Host_Original": "absent",
+            "Isolation Source": "soil from abandoned vineyard, now colonized by oak and ash forest",
+            "Isolation_Source_SD": "environmental material",
+            "Environment_Medium_SD": "soil",
+        })
+        after = result["after"]
+        self.assertEqual(after.get("Host_Health_State_SD"), "")
+        self.assertNotEqual(after.get("Host_Colonization_Status_SD"), "colonized")
+
+    def test_genuine_host_colonization_remains_colonized(self) -> None:
+        result = run_payload({
+            "Host_Health_State_SD": "colonized",
+            "Host": "Mus musculus",
+            "Host_SD": "Mus musculus",
+            "Host_TaxID": "10090",
+            "Sample_Type_SD": "feces/stool",
+        })
+        after = result["after"]
+        self.assertEqual(after.get("Host_Health_State_SD"), "")
+        self.assertEqual(after.get("Host_Colonization_Status_SD"), "colonized")
+
+    def test_bare_fluid_is_not_body_fluid_without_host_context(self) -> None:
+        bare = run_payload({"Isolation_Source_SD": "fluid"})
+        self.assertNotEqual(bare["after"].get("Sample_Material_SD"), "body fluid")
+
+        body = run_payload({"Isolation_Source_SD": "body fluid"})
+        self.assertEqual(body["after"].get("Sample_Material_SD"), "body fluid")
+
+    def test_normal_standardization_invokes_semantic_completion_idempotently(self) -> None:
+        from app import normalize_managed_metadata_row
+
+        first, standardized = normalize_managed_metadata_row({"Assembly Accession": "GCA_TEST", "Sample Type": "stream"}, force_standardization=True)
+        self.assertTrue(standardized)
+        self.assertEqual(first.get("Environment_Local_Scale_SD"), "stream")
+
+        second, standardized_again = normalize_managed_metadata_row(first, force_standardization=False)
+        self.assertTrue(standardized_again)
+        self.assertEqual(second.get("Environment_Local_Scale_SD"), "stream")
+        self.assertEqual(first.get("Semantic_Axis_Provenance"), second.get("Semantic_Axis_Provenance"))
+        changed = {key for key in set(first) | set(second) if first.get(key) != second.get(key)}
+        self.assertLessEqual(changed, {"FetchM_Standardization_Input_Fingerprint", "FetchM_Standardized_At"})
+
     def test_apply_completion_rules_is_idempotent(self) -> None:
         first = run_payload({"Sample_Type_SD": "stream"})["after"]
         second = apply_completion_rules(first, rules())["after"]

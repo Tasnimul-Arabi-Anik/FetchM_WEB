@@ -334,7 +334,7 @@ def rules() -> list[CompletionRule]:
         CompletionRule("SEC-MATERIAL-MILK", ("milk",), "Sample_Material_SD", "milk", "sample_material", "high", source_fields=source_standardized),
         CompletionRule("SEC-MATERIAL-TISSUE", ("tissue",), "Sample_Material_SD", "tissue", "sample_material", "medium", source_fields=source_standardized),
         CompletionRule("SEC-MATERIAL-SPUTUM", ("sputum",), "Sample_Material_SD", "sputum", "sample_material", "high", source_fields=source_standardized),
-        CompletionRule("SEC-MATERIAL-BODY-FLUID", ("body fluid", "fluid"), "Sample_Material_SD", "body fluid", "sample_material", "medium", source_fields=source_standardized),
+        CompletionRule("SEC-MATERIAL-BODY-FLUID", ("body fluid",), "Sample_Material_SD", "body fluid", "sample_material", "medium", source_fields=source_standardized),
         CompletionRule("SEC-MATERIAL-BAL", ("bronchoalveolar lavage", "bronchoalveolar lavage fluid"), "Sample_Material_SD", "bronchoalveolar lavage fluid", "sample_material", "high", source_fields=source_standardized),
     ]
 
@@ -456,11 +456,12 @@ def apply_semantic_completion(
     phase2a_lookup: dict[tuple[str, str], list[Any]],
     completion_rules: list[CompletionRule] | dict[str, dict[str, list[CompletionRule]]],
     phase2a_trigger_values: dict[str, set[str]] | None = None,
+    phase2a_method: str = "semantic_phase2a_dry_run",
 ) -> dict[str, Any]:
     before = deepcopy(payload)
     trigger_values = phase2a_trigger_values or phase2a_values_by_field(phase2a_lookup)
     if phase2a_has_match(before, trigger_values):
-        phase2a = apply_rules_to_payload(before, phase2a_lookup)
+        phase2a = apply_rules_to_payload(before, phase2a_lookup, method=phase2a_method)
     else:
         phase2a = empty_phase2a_result(before)
     completion = apply_completion_rules(phase2a["after"], completion_rules)
@@ -483,6 +484,36 @@ def apply_semantic_completion(
         "raw_changed": raw_changed,
         "unexpected_changed": unexpected_changed,
     }
+
+
+
+_RUNTIME_PHASE2A_LOOKUP: dict[tuple[str, str], list[Any]] | None = None
+_RUNTIME_PHASE2A_TRIGGER_VALUES: dict[str, set[str]] | None = None
+_RUNTIME_COMPLETION_INDEX: dict[str, dict[str, list[CompletionRule]]] | None = None
+
+
+def runtime_semantic_resources() -> tuple[dict[tuple[str, str], list[Any]], dict[str, dict[str, list[CompletionRule]]], dict[str, set[str]]]:
+    global _RUNTIME_PHASE2A_LOOKUP, _RUNTIME_PHASE2A_TRIGGER_VALUES, _RUNTIME_COMPLETION_INDEX
+    if _RUNTIME_PHASE2A_LOOKUP is None or _RUNTIME_PHASE2A_TRIGGER_VALUES is None or _RUNTIME_COMPLETION_INDEX is None:
+        phase2a_rules = load_rules(DEFAULT_PHASE2A_RULES)
+        _RUNTIME_PHASE2A_LOOKUP = rules_by_current(phase2a_rules)
+        _RUNTIME_PHASE2A_TRIGGER_VALUES = phase2a_values_by_field(_RUNTIME_PHASE2A_LOOKUP)
+        completion_rules = rules()
+        validate_completion_rules(completion_rules)
+        _RUNTIME_COMPLETION_INDEX = completion_rule_index(completion_rules)
+    return _RUNTIME_PHASE2A_LOOKUP, _RUNTIME_COMPLETION_INDEX, _RUNTIME_PHASE2A_TRIGGER_VALUES
+
+
+def apply_standardization_semantic_completion(payload: dict[str, Any]) -> dict[str, Any]:
+    phase2a_lookup, completion_index, trigger_values = runtime_semantic_resources()
+    result = apply_semantic_completion(
+        payload,
+        phase2a_lookup,
+        completion_index,
+        trigger_values,
+        phase2a_method="semantic_phase2a_canonical_apply",
+    )
+    return result["after"]
 
 
 def event_context(record: dict[str, Any], payload: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
@@ -699,6 +730,7 @@ def write_apply_manifest(output_dir: Path, snapshot_id: str, backup_table: str, 
 
 
 def run(snapshot_id: str, output_dir: Path, *, apply: bool = False, phase2a_rules_path: Path = DEFAULT_PHASE2A_RULES) -> dict[str, Any]:
+    phase2a_method = "semantic_phase2a_canonical_apply" if apply else "semantic_phase2a_dry_run"
     phase2a_rules = load_rules(phase2a_rules_path)
     phase2a_lookup = rules_by_current(phase2a_rules)
     completion_rules = rules()
@@ -754,7 +786,7 @@ def run(snapshot_id: str, output_dir: Path, *, apply: bool = False, phase2a_rule
             for field in coverage_fields:
                 if present(payload.get(field)):
                     before_coverage[field] += 1
-            result = apply_semantic_completion(payload, phase2a_lookup, completion_index, phase2a_trigger_values)
+            result = apply_semantic_completion(payload, phase2a_lookup, completion_index, phase2a_trigger_values, phase2a_method=phase2a_method)
             after = result["after"]
             for field in coverage_fields:
                 if present(after.get(field)):
@@ -847,6 +879,7 @@ def run(snapshot_id: str, output_dir: Path, *, apply: bool = False, phase2a_rule
             "canonical_rows_scanned": records_scanned,
             "phase2a_rules_path": str(phase2a_rules_path),
             "phase2a_rules_count": len(phase2a_rules),
+            "phase2a_method": phase2a_method,
             "completion_rules_count": len(completion_rules),
             "unique_assemblies_changed": affected_count,
             "phase2a_primary_strict_field_clears": phase2a_total.get("primary_strict_clears", 0),

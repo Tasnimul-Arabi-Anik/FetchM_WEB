@@ -1,0 +1,6 @@
+{
+  "discovered_tests": 117,
+  "note": "Current corrective branch discovery count. Earlier 116 and 111 counts came from different branch states before this correction added focused semantic tests and before stale semantic assertions were updated.",
+  "pattern": "test_*.py",
+  "start_dir": "tests"
+}
