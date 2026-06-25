@@ -556,9 +556,32 @@
             <input type="hidden" name="{{ name }}" value="{{ value }}">
           {% endfor %}
           <div class="sequence-options-stack">
-            <details class="sequence-options-box" {% if request.form.get('check_only') or request.form.get('retries') or request.form.get('retry_delay') %}open{% endif %}>
+            <details class="sequence-options-box" {% if request.form.get('check_only') or request.form.get('retries') or request.form.get('retry_delay') or request.values.get('sequence_subset_mode') in ['random', 'manual'] %}open{% endif %}>
               <summary class="sequence-options-summary">fetchM sequence options</summary>
               <div class="sequence-options-body">
+                <div class="sequence-range-grid sequence-range-grid-compact">
+                  <label>
+                    <span>Download subset</span>
+                    <select name="sequence_subset_mode">
+                      <option value="all" {% if request.values.get('sequence_subset_mode', 'all') == 'all' %}selected{% endif %}>All matching genomes</option>
+                      <option value="random" {% if request.values.get('sequence_subset_mode') == 'random' %}selected{% endif %}>Random subset</option>
+                      <option value="manual" {% if request.values.get('sequence_subset_mode') == 'manual' %}selected{% endif %}>Manual accessions</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>Subset size</span>
+                    <input type="number" step="1" min="1" name="sequence_subset_count" value="{{ request.values.get('sequence_subset_count', '') }}" placeholder="e.g. 25">
+                  </label>
+                  <label>
+                    <span>Random seed</span>
+                    <input type="text" name="sequence_subset_seed" value="{{ request.values.get('sequence_subset_seed', '') }}" placeholder="optional">
+                  </label>
+                </div>
+                <label>
+                  <span>Manual assembly accessions</span>
+                  <textarea name="sequence_subset_accessions" rows="4" placeholder="Paste GCA/GCF accessions separated by commas, spaces, or new lines">{{ request.values.get('sequence_subset_accessions', '') }}</textarea>
+                  <small>Manual selections are applied after the current filters; accessions outside the filtered result are skipped.</small>
+                </label>
                 <div class="sequence-range-grid sequence-range-grid-compact">
                   <label>
                     <span>Retries</span>

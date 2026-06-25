@@ -18456,6 +18456,120 @@ def apply_sequence_filters(frame: pd.DataFrame, filters: dict[str, Any]) -> pd.D
     return filtered.loc[mask].copy()
 
 
+SEQUENCE_SUBSET_MODES = {"all", "random", "manual"}
+
+
+def normalize_sequence_subset_mode(value: Any) -> str:
+    mode = normalize_metadata_value(value) or "all"
+    return mode if mode in SEQUENCE_SUBSET_MODES else "all"
+
+
+def parse_sequence_subset_accessions(value: Any) -> list[str]:
+    text = str(value or "")
+    accessions: list[str] = []
+    seen: set[str] = set()
+    for token in re.split(r"[\s,;]+", text):
+        accession = token.strip().upper()
+        if not accession or accession in seen:
+            continue
+        accessions.append(accession)
+        seen.add(accession)
+    return accessions
+
+
+def sequence_subset_seed_value(value: Any) -> int:
+    text = normalize_metadata_value(value)
+    if text:
+        if re.fullmatch(r"\d+", text):
+            return int(text) % (2**32)
+        digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        return int(digest[:8], 16)
+    return secrets.randbelow(2**32)
+
+
+def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str, Any]:
+    mode = normalize_sequence_subset_mode(source.get("sequence_subset_mode") if hasattr(source, "get") else None)
+    matched_total = int(len(frame))
+    info: dict[str, Any] = {
+        "mode": mode,
+        "matched_row_total": matched_total,
+        "selected_row_total": matched_total,
+        "requested_count": None,
+        "random_seed": "",
+        "manual_accessions": [],
+        "manual_accessions_missing": [],
+        "description": "all matching genomes",
+        "error": "",
+    }
+    if mode == "all" or frame.empty:
+        info["frame"] = frame.copy()
+        return info
+
+    if mode == "random":
+        requested = parse_optional_int(source.get("sequence_subset_count") if hasattr(source, "get") else None)
+        if requested is None or requested <= 0:
+            info["error"] = "Enter a positive number of genomes for the random subset."
+            info["frame"] = frame.iloc[0:0].copy()
+            return info
+        selected_total = min(requested, matched_total)
+        seed = sequence_subset_seed_value(source.get("sequence_subset_seed") if hasattr(source, "get") else None)
+        subset = frame.sample(n=selected_total, random_state=seed).copy() if selected_total else frame.iloc[0:0].copy()
+        info.update({
+            "frame": subset,
+            "selected_row_total": int(len(subset)),
+            "requested_count": requested,
+            "random_seed": str(seed),
+            "description": f"random subset of {int(len(subset)):,} of {matched_total:,} matching genomes",
+        })
+        return info
+
+    accessions = parse_sequence_subset_accessions(source.get("sequence_subset_accessions") if hasattr(source, "get") else None)
+    if not accessions:
+        info["error"] = "Paste one or more assembly accessions for the manual subset."
+        info["frame"] = frame.iloc[0:0].copy()
+        return info
+    accession_column = "Assembly Accession"
+    if accession_column not in frame.columns:
+        info["error"] = "Manual subset requires an Assembly Accession column in the filtered metadata."
+        info["frame"] = frame.iloc[0:0].copy()
+        return info
+    row_by_accession: dict[str, Any] = {}
+    for index, accession in frame[accession_column].astype(str).items():
+        row_by_accession.setdefault(accession.strip().upper(), index)
+    selected_indices = [row_by_accession[accession] for accession in accessions if accession in row_by_accession]
+    missing = [accession for accession in accessions if accession not in row_by_accession]
+    if not selected_indices:
+        info["error"] = "None of the manually selected assembly accessions are present in the filtered result."
+        info["frame"] = frame.iloc[0:0].copy()
+        info["manual_accessions"] = accessions
+        info["manual_accessions_missing"] = missing
+        return info
+    subset = frame.loc[selected_indices].copy()
+    info.update({
+        "frame": subset,
+        "selected_row_total": int(len(subset)),
+        "requested_count": len(accessions),
+        "manual_accessions": accessions,
+        "manual_accessions_missing": missing,
+        "description": f"manual subset of {int(len(subset)):,} of {matched_total:,} matching genomes",
+    })
+    return info
+
+
+def sequence_download_subset_metadata(subset: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "mode": subset.get("mode", "all"),
+        "matched_row_total": int(subset.get("matched_row_total") or 0),
+        "selected_row_total": int(subset.get("selected_row_total") or 0),
+        "requested_count": subset.get("requested_count"),
+        "random_seed": subset.get("random_seed") or "",
+        "manual_accession_total": len(subset.get("manual_accessions") or []),
+        "manual_missing_total": len(subset.get("manual_accessions_missing") or []),
+        "manual_accessions_missing": subset.get("manual_accessions_missing") or [],
+        "description": subset.get("description") or "all matching genomes",
+    }
+
+
 def build_sequence_active_filter_summary(filters: dict[str, Any]) -> list[str]:
     parts: list[str] = []
     for key, config in SEQUENCE_FILTER_FIELDS.items():
@@ -29467,6 +29581,16 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
         return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    sequence_subset = apply_sequence_download_subset(filtered_frame, request.form)
+    if sequence_subset.get("error"):
+        flash(str(sequence_subset["error"]), "error")
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    download_frame = sequence_subset["frame"]
+    if download_frame.empty:
+        flash("The selected sequence subset does not contain any genomes.", "error")
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    if sequence_subset.get("manual_accessions_missing"):
+        flash(f"{len(sequence_subset['manual_accessions_missing']):,} manually selected accessions were not present in the filtered result and were skipped.", "warning")
     grouping_mode = normalize_metadata_value(request.form.get("grouping_mode")) or "single"
     if grouping_mode not in {"single", "field"}:
         grouping_mode = "single"
@@ -29479,7 +29603,7 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
     outputs_dir.mkdir(parents=True, exist_ok=True)
     input_name = f"{species.species_name} canonical filtered metadata.csv"
     input_path = uploads_dir / f"{species.slug}_sequence_subset.csv"
-    filtered_frame.to_csv(input_path, index=False)
+    download_frame.to_csv(input_path, index=False)
     class SequenceFormAdapter:
         def __init__(self, source: Any): self.source = source
         def get(self, key: str, default: Any = None) -> Any: return self.source.get(key, default)
@@ -29490,14 +29614,15 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
         "taxon_rank": species.taxon_rank, "canonical_snapshot_id": target.snapshot_id,
         "matched_row_total": sequence_dashboard["matched_row_total"], "match_percent": sequence_dashboard["match_percent"],
         "filter_logic": sequence_dashboard["filter_logic"], "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
-        "selected_filters": sequence_dashboard["filters"], "grouping_mode": grouping_mode, "group_field": grouping_field,
+        "selected_filters": sequence_dashboard["filters"], "sequence_download_subset": sequence_download_subset_metadata(sequence_subset),
+        "download_row_total": int(len(download_frame)), "grouping_mode": grouping_mode, "group_field": grouping_field,
     }
     filters.update(command_filters)
     record = JobRecord(id=job_id, mode="seq", status="queued", created_at=utc_now(), updated_at=utc_now(), input_name=input_name, input_path=str(input_path), output_dir=str(outputs_dir), log_path=str(root / LOG_FILE_NAME), command=command, owner_user_id=int(user["id"]), owner_username=str(user["username"]), filters=filters)
     save_job(record)
-    record_audit_event("job.created", target_type="job", target_id=job_id, metadata={"mode": "seq", "input_source": "canonical_taxon_sequences", "canonical_snapshot_id": target.snapshot_id, "matched_row_total": sequence_dashboard["matched_row_total"]})
+    record_audit_event("job.created", target_type="job", target_id=job_id, metadata={"mode": "seq", "input_source": "canonical_taxon_sequences", "canonical_snapshot_id": target.snapshot_id, "matched_row_total": sequence_dashboard["matched_row_total"], "download_row_total": int(len(download_frame)), "sequence_subset_mode": sequence_subset.get("mode", "all")})
     notify_job_event(record, "submitted")
-    flash(f"Sequence job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
+    flash(f"Sequence job {job_id} submitted for {int(len(download_frame)):,} genomes ({sequence_subset.get('description', 'selected subset')}).", "success")
     return redirect(url_for("job_detail", job_id=job_id))
 
 
@@ -29682,6 +29807,16 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
         return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+    sequence_subset = apply_sequence_download_subset(filtered_frame, request.form)
+    if sequence_subset.get("error"):
+        flash(str(sequence_subset["error"]), "error")
+        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+    download_frame = sequence_subset["frame"]
+    if download_frame.empty:
+        flash("The selected sequence subset does not contain any genomes.", "error")
+        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+    if sequence_subset.get("manual_accessions_missing"):
+        flash(f"{len(sequence_subset['manual_accessions_missing']):,} manually selected accessions were not present in the filtered result and were skipped.", "warning")
 
     grouping_mode = normalize_metadata_value(request.form.get("grouping_mode")) or "single"
     if grouping_mode not in {"single", "field"}:
@@ -29697,7 +29832,7 @@ def create_taxon_sequence_job(species_id: int) -> Any:
 
     input_name = f"{species.species_name} filtered metadata.csv"
     input_path = uploads_dir / f"{species.slug}_sequence_subset.csv"
-    filtered_frame.to_csv(input_path, index=False)
+    download_frame.to_csv(input_path, index=False)
 
     class SequenceFormAdapter:
         def __init__(self, source: Any):
@@ -29723,6 +29858,8 @@ def create_taxon_sequence_job(species_id: int) -> Any:
         "filter_logic": sequence_dashboard["filter_logic"],
         "sequence_filter_sentence": sequence_dashboard["filter_sentence"],
         "selected_filters": sequence_dashboard["filters"],
+        "sequence_download_subset": sequence_download_subset_metadata(sequence_subset),
+        "download_row_total": int(len(download_frame)),
         "grouping_mode": grouping_mode,
         "group_field": grouping_field,
     }
@@ -29751,10 +29888,12 @@ def create_taxon_sequence_job(species_id: int) -> Any:
             "mode": "seq",
             "input_source": "taxon_sequences",
             "matched_row_total": sequence_dashboard["matched_row_total"],
+            "download_row_total": int(len(download_frame)),
+            "sequence_subset_mode": sequence_subset.get("mode", "all"),
         },
     )
     notify_job_event(record, "submitted")
-    flash(f"Sequence job {job_id} submitted for {sequence_dashboard['matched_row_total']:,} genomes.", "success")
+    flash(f"Sequence job {job_id} submitted for {int(len(download_frame)):,} genomes ({sequence_subset.get('description', 'selected subset')}).", "success")
     return redirect(url_for("job_detail", job_id=job_id))
 
 

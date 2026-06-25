@@ -12,6 +12,7 @@ import app as fetchm_app
 from app import (
     apply_pass_fail_decision_mode,
     apply_quality_post_filters,
+    apply_sequence_download_subset,
     apply_sequence_filters,
     broad_standardization_category,
     build_qc_decision_preview,
@@ -2552,6 +2553,45 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             apply_sequence_filters(frame, filters)["Assembly Accession"].tolist(),
             ["GCA_1", "GCA_2", "GCA_3"],
         )
+
+
+    def test_sequence_download_subset_random_and_manual_modes(self) -> None:
+        frame = fetchm_app.pd.DataFrame(
+            [
+                {"Assembly Accession": "GCA_1", "Country": "Bangladesh"},
+                {"Assembly Accession": "GCA_2", "Country": "Bangladesh"},
+                {"Assembly Accession": "GCA_3", "Country": "Bangladesh"},
+                {"Assembly Accession": "GCA_4", "Country": "Bangladesh"},
+            ]
+        )
+        default = apply_sequence_download_subset(frame, {})
+        self.assertEqual(default["selected_row_total"], 4)
+        self.assertEqual(default["frame"]["Assembly Accession"].tolist(), ["GCA_1", "GCA_2", "GCA_3", "GCA_4"])
+
+        random_one = apply_sequence_download_subset(frame, {"sequence_subset_mode": "random", "sequence_subset_count": "2", "sequence_subset_seed": "demo"})
+        random_two = apply_sequence_download_subset(frame, {"sequence_subset_mode": "random", "sequence_subset_count": "2", "sequence_subset_seed": "demo"})
+        self.assertEqual(random_one["selected_row_total"], 2)
+        self.assertEqual(random_one["frame"]["Assembly Accession"].tolist(), random_two["frame"]["Assembly Accession"].tolist())
+        self.assertEqual(random_one["requested_count"], 2)
+        self.assertEqual(random_one["mode"], "random")
+
+        manual = apply_sequence_download_subset(
+            frame,
+            {"sequence_subset_mode": "manual", "sequence_subset_accessions": "GCA_3\nGCA_MISSING, GCA_1"},
+        )
+        self.assertEqual(manual["frame"]["Assembly Accession"].tolist(), ["GCA_3", "GCA_1"])
+        self.assertEqual(manual["manual_accessions_missing"], ["GCA_MISSING"])
+        self.assertEqual(manual["requested_count"], 3)
+
+    def test_sequence_download_subset_rejects_missing_subset_inputs(self) -> None:
+        frame = fetchm_app.pd.DataFrame([{"Assembly Accession": "GCA_1"}])
+        random_missing = apply_sequence_download_subset(frame, {"sequence_subset_mode": "random"})
+        self.assertIn("positive number", random_missing["error"])
+        self.assertTrue(random_missing["frame"].empty)
+
+        manual_missing = apply_sequence_download_subset(frame, {"sequence_subset_mode": "manual", "sequence_subset_accessions": "GCA_X"})
+        self.assertIn("None of the manually selected", manual_missing["error"])
+        self.assertTrue(manual_missing["frame"].empty)
 
     def test_pass_fail_decision_mode_collapses_review_into_fail(self) -> None:
         frame = fetchm_app.pd.DataFrame(
