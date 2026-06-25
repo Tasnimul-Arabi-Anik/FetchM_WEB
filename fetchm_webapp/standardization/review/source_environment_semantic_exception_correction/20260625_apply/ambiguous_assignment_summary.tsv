@@ -1,0 +1,4 @@
+rule_id	destination_field	proposed_value	existing_or_detail	count	interpretation	representative_examples
+SEC-ANAT-MATERIAL-FECES	Host_Anatomical_Material_SD	feces/stool	host_evidence=false	8232	manual review	GCA_002407045.1;GCA_002451435.1;GCA_005903245.1;GCA_006540065.1;GCA_008528675.1
+SEC-ANAT-MATERIAL-BLOOD	Host_Anatomical_Material_SD	blood	host_evidence=false	1732	manual review	GCA_000476035.1;GCA_000437575.1;GCA_000438235.1;GCA_000350105.1;GCA_001169865.1
+SEC-MEDIUM-BIOFILM	Environment_Medium_SD	biofilm	host_or_device_biofilm_context=true	36	manual review	GCA_022014045.1;GCA_963526145.1;GCA_963516705.1;GCA_963528625.1;GCA_000685135.1

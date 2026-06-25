@@ -31,5 +31,5 @@
 
 ## Release Status
 
-- Global Insights regeneration remains pending for this correction summary.
+- Global Insights regenerated as `20260624T213614Z_global_insights` with 3,131,699 rows.
 - Deployment remains pending/manual.
