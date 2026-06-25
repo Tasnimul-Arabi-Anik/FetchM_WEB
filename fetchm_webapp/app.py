@@ -18458,6 +18458,9 @@ def apply_sequence_filters(frame: pd.DataFrame, filters: dict[str, Any]) -> pd.D
 
 SEQUENCE_SUBSET_MODES = {"all", "random", "manual"}
 SEQUENCE_ACCESSION_RE = re.compile(r"^(?:GCA|GCF)_\d+(?:\.\d+)?$", re.I)
+MAX_SEQUENCE_SUBSET_ACCESSIONS = int(os.environ.get("FETCHM_MAX_SEQUENCE_SUBSET_ACCESSIONS", "10000"))
+MAX_SEQUENCE_SUBSET_TEXT_BYTES = int(os.environ.get("FETCHM_MAX_SEQUENCE_SUBSET_TEXT_BYTES", str(1024 * 1024)))
+SEQUENCE_SUBSET_REDIRECT_EXCLUDE = {"sequence_subset_accessions", "_csrf_token"}
 
 
 def normalize_sequence_subset_mode(value: Any) -> str:
@@ -18466,7 +18469,16 @@ def normalize_sequence_subset_mode(value: Any) -> str:
 
 
 def parse_sequence_subset_accession_selection(value: Any) -> dict[str, Any]:
-    tokens = [token.strip().upper() for token in re.split(r"[\s,;]+", str(value or "")) if token.strip()]
+    text = str(value or "")
+    if len(text.encode("utf-8")) > MAX_SEQUENCE_SUBSET_TEXT_BYTES:
+        return {
+            "accessions": [],
+            "duplicates": 0,
+            "invalid": [],
+            "submitted_total": 0,
+            "error": f"Manual subset input is too large; limit is {MAX_SEQUENCE_SUBSET_TEXT_BYTES:,} bytes.",
+        }
+    tokens = [token.strip().upper() for token in re.split(r"[\s,;]+", text) if token.strip()]
     accessions: list[str] = []
     invalid: list[str] = []
     seen: set[str] = set()
@@ -18478,6 +18490,14 @@ def parse_sequence_subset_accession_selection(value: Any) -> dict[str, Any]:
         if token in seen:
             duplicate_count += 1
             continue
+        if len(accessions) >= MAX_SEQUENCE_SUBSET_ACCESSIONS:
+            return {
+                "accessions": accessions,
+                "duplicates": duplicate_count,
+                "invalid": invalid,
+                "submitted_total": len(tokens),
+                "error": f"Manual subset contains more than {MAX_SEQUENCE_SUBSET_ACCESSIONS:,} unique accessions.",
+            }
         accessions.append(token)
         seen.add(token)
     return {
@@ -18485,11 +18505,49 @@ def parse_sequence_subset_accession_selection(value: Any) -> dict[str, Any]:
         "duplicates": duplicate_count,
         "invalid": invalid,
         "submitted_total": len(tokens),
+        "error": "",
     }
 
 
 def parse_sequence_subset_accessions(value: Any) -> list[str]:
     return list(parse_sequence_subset_accession_selection(value)["accessions"])
+
+
+def safe_sequence_subset_redirect_args(source: Any) -> dict[str, Any]:
+    args: dict[str, Any] = {}
+    if not hasattr(source, "items"):
+        return args
+    for key, value in source.items():
+        if key in SEQUENCE_SUBSET_REDIRECT_EXCLUDE:
+            continue
+        args[key] = value
+    return args
+
+
+def sequence_subset_accession_values(frame: pd.DataFrame) -> list[str]:
+    accession_column = "Assembly Accession"
+    if accession_column not in frame.columns:
+        return []
+    return frame[accession_column].astype(str).tolist()
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_sequence_subset_accession_manifest(uploads_dir: Path, subset: dict[str, Any]) -> dict[str, Any]:
+    accessions = [str(accession) for accession in subset.get("selected_accessions") or []]
+    manifest_path = uploads_dir / "selected_accessions.txt"
+    manifest_path.write_text("".join(f"{accession}\n" for accession in accessions), encoding="utf-8")
+    return {
+        "selected_accession_total": len(accessions),
+        "selected_accessions_manifest_path": str(manifest_path.relative_to(uploads_dir.parent)),
+        "selected_accessions_manifest_sha256": file_sha256(manifest_path),
+    }
 
 
 def sequence_subset_seed_value(value: Any) -> tuple[int, str]:
@@ -18522,8 +18580,7 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         "error": "",
     }
     accession_column = "Assembly Accession"
-    if accession_column in frame.columns:
-        info["selected_accessions"] = frame[accession_column].astype(str).tolist()
+    info["selected_accessions"] = sequence_subset_accession_values(frame)
     if mode == "all" or frame.empty:
         info["frame"] = frame.copy()
         return info
@@ -18545,7 +18602,7 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         if accession_column in candidate_frame.columns:
             candidate_frame = candidate_frame.sort_values(by=accession_column, kind="mergesort")
         subset = candidate_frame.sample(n=selected_total, random_state=seed).copy() if selected_total else candidate_frame.iloc[0:0].copy()
-        selected_accessions = subset[accession_column].astype(str).tolist() if accession_column in subset.columns else []
+        selected_accessions = sequence_subset_accession_values(subset)
         info.update({
             "frame": subset,
             "selected_row_total": int(len(subset)),
@@ -18565,6 +18622,10 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         "manual_duplicate_total": parsed["duplicates"],
         "manual_accessions_invalid": invalid,
     })
+    if parsed.get("error"):
+        info["error"] = str(parsed["error"])
+        info["frame"] = frame.iloc[0:0].copy()
+        return info
     if invalid:
         info["error"] = f"Manual subset contains {len(invalid):,} malformed assembly accession(s). Use GCA_ or GCF_ accessions."
         info["frame"] = frame.iloc[0:0].copy()
@@ -18589,7 +18650,7 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         info["manual_accessions_missing"] = missing
         return info
     subset = frame.loc[selected_indices].copy()
-    selected_accessions = subset[accession_column].astype(str).tolist()
+    selected_accessions = sequence_subset_accession_values(subset)
     info.update({
         "frame": subset,
         "selected_row_total": int(len(subset)),
@@ -18610,8 +18671,9 @@ def sequence_download_subset_metadata(subset: dict[str, Any]) -> dict[str, Any]:
         "requested_count": subset.get("requested_count"),
         "random_seed": subset.get("random_seed") or "",
         "random_request_exceeds_matches": bool(subset.get("random_request_exceeds_matches")),
-        "selected_accession_total": len(subset.get("selected_accessions") or []),
-        "selected_accessions": subset.get("selected_accessions") or [],
+        "selected_accession_total": int(subset.get("selected_accession_total") or len(subset.get("selected_accessions") or [])),
+        "selected_accessions_manifest_path": subset.get("selected_accessions_manifest_path") or "",
+        "selected_accessions_manifest_sha256": subset.get("selected_accessions_manifest_sha256") or "",
         "manual_submitted_total": int(subset.get("manual_submitted_total") or 0),
         "manual_accession_total": len(subset.get("manual_accessions") or []),
         "manual_duplicate_total": int(subset.get("manual_duplicate_total") or 0),
@@ -24990,6 +25052,7 @@ def prepare_sequence_download_artifacts(job: JobRecord) -> None:
         f"Created: {job.created_at}",
         f"Updated: {job.updated_at}",
         f"Matched genomes: {filters.get('matched_row_total', 'unknown')}",
+        f"Selected genomes: {filters.get('download_row_total', filters.get('matched_row_total', 'unknown'))}",
         f"Filter logic: {filters.get('filter_logic', 'and')}",
         f"Filters: {filters.get('sequence_filter_sentence') or 'No filters applied'}",
         f"Downloaded FASTA files: {len(fasta_files)}",
@@ -29604,7 +29667,7 @@ def download_canonical_sequence_metadata_subset(rank: str, name: str) -> Any:
     filtered_frame = sequence_dashboard["filtered_frame"]
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
-        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **safe_sequence_subset_redirect_args(request.form)))
     record_audit_event(
         "download.sequence_metadata_subset",
         target_type="canonical_taxon",
@@ -29627,20 +29690,20 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
         return canonical_workflow_not_ready(rank, name)
     if count_active_jobs_for_user(int(user["id"])) >= 1:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
-        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **safe_sequence_subset_redirect_args(request.form)))
     sequence_dashboard = build_taxon_sequence_dashboard(species, request.form)
     filtered_frame = sequence_dashboard["filtered_frame"]
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
-        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **safe_sequence_subset_redirect_args(request.form)))
     sequence_subset = apply_sequence_download_subset(filtered_frame, request.form)
     if sequence_subset.get("error"):
         flash(str(sequence_subset["error"]), "error")
-        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **safe_sequence_subset_redirect_args(request.form)))
     download_frame = sequence_subset["frame"]
     if download_frame.empty:
         flash("The selected sequence subset does not contain any genomes.", "error")
-        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+        return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **safe_sequence_subset_redirect_args(request.form)))
     if sequence_subset.get("random_request_exceeds_matches"):
         flash("Random subset size exceeded the filtered result; all matching genomes were selected.", "warning")
     if sequence_subset.get("manual_duplicate_total"):
@@ -29660,6 +29723,7 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
     input_name = f"{species.species_name} canonical filtered metadata.csv"
     input_path = uploads_dir / f"{species.slug}_sequence_subset.csv"
     download_frame.to_csv(input_path, index=False)
+    sequence_subset.update(write_sequence_subset_accession_manifest(uploads_dir, sequence_subset))
     class SequenceFormAdapter:
         def __init__(self, source: Any): self.source = source
         def get(self, key: str, default: Any = None) -> Any: return self.source.get(key, default)
@@ -29826,7 +29890,7 @@ def download_taxon_sequence_metadata_subset(species_id: int):
     filtered_frame = sequence_dashboard["filtered_frame"]
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_sequences", species_id=species_id, **safe_sequence_subset_redirect_args(request.form)))
     payload = filtered_frame.to_csv(index=False)
     filename = f"{species.slug}_sequence_subset.csv"
     record_audit_event(
@@ -29853,7 +29917,7 @@ def create_taxon_sequence_job(species_id: int) -> Any:
         return redirect(url_for("index"))
     if count_active_jobs_for_user(int(user["id"])) >= 1:
         flash("You already have an active job. Wait for it to finish before submitting another.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_sequences", species_id=species_id, **safe_sequence_subset_redirect_args(request.form)))
     if not species.metadata_clean_path or not Path(species.metadata_clean_path).exists():
         flash("Combined metadata is not ready for that taxon yet.", "error")
         return redirect(url_for("taxon_sequences", species_id=species_id))
@@ -29862,15 +29926,15 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     filtered_frame = sequence_dashboard["filtered_frame"]
     if filtered_frame.empty:
         flash("The current filters do not match any genomes.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_sequences", species_id=species_id, **safe_sequence_subset_redirect_args(request.form)))
     sequence_subset = apply_sequence_download_subset(filtered_frame, request.form)
     if sequence_subset.get("error"):
         flash(str(sequence_subset["error"]), "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_sequences", species_id=species_id, **safe_sequence_subset_redirect_args(request.form)))
     download_frame = sequence_subset["frame"]
     if download_frame.empty:
         flash("The selected sequence subset does not contain any genomes.", "error")
-        return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+        return redirect(url_for("taxon_sequences", species_id=species_id, **safe_sequence_subset_redirect_args(request.form)))
     if sequence_subset.get("random_request_exceeds_matches"):
         flash("Random subset size exceeded the filtered result; all matching genomes were selected.", "warning")
     if sequence_subset.get("manual_duplicate_total"):
@@ -29893,6 +29957,7 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     input_name = f"{species.species_name} filtered metadata.csv"
     input_path = uploads_dir / f"{species.slug}_sequence_subset.csv"
     download_frame.to_csv(input_path, index=False)
+    sequence_subset.update(write_sequence_subset_accession_manifest(uploads_dir, sequence_subset))
 
     class SequenceFormAdapter:
         def __init__(self, source: Any):

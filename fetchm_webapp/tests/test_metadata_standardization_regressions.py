@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import hashlib
 import json
 import sys
 import unittest
 from unittest.mock import patch
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 import app as fetchm_app
 from app import (
@@ -2596,6 +2598,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(metadata["manual_missing_total"], 1)
         self.assertEqual(metadata["manual_duplicate_total"], 1)
         self.assertEqual(metadata["selected_accession_total"], 2)
+        self.assertNotIn("selected_accessions", metadata)
 
     def test_sequence_download_subset_rejects_missing_subset_inputs(self) -> None:
         frame = fetchm_app.pd.DataFrame([{"Assembly Accession": "GCA_000001"}])
@@ -2618,6 +2621,147 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertTrue(manual_missing["frame"].empty)
         self.assertEqual(manual_missing["manual_accessions_missing"], ["GCA_999999"])
 
+        with patch.object(fetchm_app, "MAX_SEQUENCE_SUBSET_ACCESSIONS", 1):
+            too_many = apply_sequence_download_subset(frame, {"sequence_subset_mode": "manual", "sequence_subset_accessions": "GCA_000001 GCA_000002"})
+        self.assertIn("more than", too_many["error"])
+
+        with patch.object(fetchm_app, "MAX_SEQUENCE_SUBSET_TEXT_BYTES", 5):
+            too_large = apply_sequence_download_subset(frame, {"sequence_subset_mode": "manual", "sequence_subset_accessions": "GCA_000001"})
+        self.assertIn("too large", too_large["error"])
+
+    def test_sequence_subset_job_routes_write_manifest_and_compact_metadata(self) -> None:
+        def metadata_csv(path: Path) -> None:
+            path.write_text(
+                "Assembly Accession,Country,Host,Assembly Stats Total Sequence Length\n"
+                "GCA_000001,Bangladesh,Homo sapiens,1000\n"
+                "GCF_000002,Bangladesh,Homo sapiens,1000\n"
+                "GCA_000003,India,Homo sapiens,1000\n",
+                encoding="utf-8",
+            )
+
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("subset-user", "subset@example.com", "long-password-1")
+                clean_path = fetchm_app.DATA_DIR / "managed_metadata.csv"
+                metadata_csv(clean_path)
+                species = fetchm_app.create_species("Acinetobacter baumannii", taxon_rank="species")
+                species.status = "ready"
+                species.tsv_path = str(clean_path)
+                species.metadata_status = "ready"
+                species.metadata_path = str(clean_path)
+                species.metadata_clean_path = str(clean_path)
+                species.is_live = True
+                species.live_status = "ready"
+                species.live_tsv_path = str(clean_path)
+                species.live_metadata_status = "ready"
+                species.live_metadata_path = str(clean_path)
+                species.live_metadata_clean_path = str(clean_path)
+                species.live_genome_count = 3
+                species = fetchm_app.save_species(species)
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "count_active_jobs_for_user", return_value=0), patch.object(
+                fetchm_app, "build_command", return_value=(["fetchm", "seq"], {"check_only": False})
+            ), patch.object(fetchm_app, "notify_job_event"), patch.object(fetchm_app, "record_audit_event"):
+                response = client.post(
+                    f"/taxa/{species.id}/sequences/jobs",
+                    data={
+                        "_csrf_token": "token",
+                        "country": "Bangladesh",
+                        "sequence_subset_mode": "manual",
+                        "sequence_subset_accessions": "GCF_000002\nGCA_000003 GCA_000001 GCA_000001",
+                    },
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            with fetchm_app.app.app_context():
+                row = fetchm_app.get_db().execute("SELECT id FROM jobs WHERE mode='seq'").fetchone()
+                self.assertIsNotNone(row)
+                job = fetchm_app.load_job(str(row["id"]))
+            subset = job.filters["sequence_download_subset"]
+            self.assertEqual(subset["matched_row_total"], 2)
+            self.assertEqual(subset["selected_row_total"], 2)
+            self.assertEqual(subset["manual_submitted_total"], 4)
+            self.assertEqual(subset["manual_duplicate_total"], 1)
+            self.assertEqual(subset["manual_missing_total"], 1)
+            self.assertEqual(subset["selected_accession_total"], 2)
+            self.assertNotIn("selected_accessions", subset)
+            manifest_path = Path(job.input_path).parent.parent / subset["selected_accessions_manifest_path"]
+            self.assertEqual(manifest_path.read_text(encoding="utf-8").splitlines(), ["GCF_000002", "GCA_000001"])
+            self.assertEqual(hashlib.sha256(manifest_path.read_bytes()).hexdigest(), subset["selected_accessions_manifest_sha256"])
+            self.assertEqual(job.filters["download_row_total"], 2)
+
+    def test_canonical_sequence_subset_route_redirects_safely_and_writes_manifest(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("canonical-subset", "canonical-subset@example.com", "long-password-1")
+                clean_path = fetchm_app.DATA_DIR / "canonical_metadata.csv"
+                clean_path.write_text(
+                    "Assembly Accession,Country,Host,Assembly Stats Total Sequence Length\n"
+                    "GCA_000001,Bangladesh,Homo sapiens,1000\n"
+                    "GCF_000002,Bangladesh,Homo sapiens,1000\n"
+                    "GCA_000003,India,Homo sapiens,1000\n",
+                    encoding="utf-8",
+                )
+                species = fetchm_app.create_species("Acinetobacter baumannii", taxon_rank="species")
+                species.status = "ready"
+                species.tsv_path = str(clean_path)
+                species.metadata_status = "ready"
+                species.metadata_path = str(clean_path)
+                species.metadata_clean_path = str(clean_path)
+                species.genome_count = 3
+                target = SimpleNamespace(snapshot_id="canonical-test", rank="species", name="Acinetobacter baumannii")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            patches = [
+                patch.object(fetchm_app, "canonical_workflow_species", return_value=(species, target)),
+                patch.object(fetchm_app, "count_active_jobs_for_user", return_value=0),
+                patch.object(fetchm_app, "build_command", return_value=(["fetchm", "seq"], {})),
+                patch.object(fetchm_app, "notify_job_event"),
+                patch.object(fetchm_app, "record_audit_event"),
+            ]
+            with patches[0], patches[1], patches[2], patches[3], patches[4]:
+                bad = client.post(
+                    "/metadata-analysis/species/Acinetobacter%20baumannii/sequences/jobs",
+                    data={
+                        "_csrf_token": "token",
+                        "country": "Bangladesh",
+                        "sequence_subset_mode": "manual",
+                        "sequence_subset_accessions": "BADTOKEN " + "GCA_000001 " * 50,
+                    },
+                    follow_redirects=False,
+                )
+                self.assertEqual(bad.status_code, 302)
+                location = bad.headers["Location"]
+                self.assertNotIn("sequence_subset_accessions", location)
+                self.assertNotIn("BADTOKEN", location)
+
+                good = client.post(
+                    "/metadata-analysis/species/Acinetobacter%20baumannii/sequences/jobs",
+                    data={
+                        "_csrf_token": "token",
+                        "country": "Bangladesh",
+                        "sequence_subset_mode": "random",
+                        "sequence_subset_count": "1",
+                        "sequence_subset_seed": "5",
+                    },
+                    follow_redirects=False,
+                )
+            self.assertEqual(good.status_code, 302)
+            with fetchm_app.app.app_context():
+                rows = fetchm_app.get_db().execute("SELECT id FROM jobs WHERE mode='seq' ORDER BY created_at").fetchall()
+                self.assertEqual(len(rows), 1)
+                job = fetchm_app.load_job(str(rows[0]["id"]))
+            subset = job.filters["sequence_download_subset"]
+            self.assertEqual(subset["mode"], "random")
+            self.assertEqual(subset["matched_row_total"], 2)
+            self.assertEqual(subset["selected_row_total"], 1)
+            self.assertEqual(subset["selected_accession_total"], 1)
+            self.assertNotIn("selected_accessions", subset)
+            manifest_path = Path(job.input_path).parent.parent / subset["selected_accessions_manifest_path"]
+            self.assertEqual(len(manifest_path.read_text(encoding="utf-8").splitlines()), 1)
 
     def test_pass_fail_decision_mode_collapses_review_into_fail(self) -> None:
         frame = fetchm_app.pd.DataFrame(
