@@ -1,0 +1,47 @@
+{
+  "canonical_metadata_changed": false,
+  "checked_at": "2026-06-25T04:36:01.697209+00:00",
+  "conclusion": "Live Global Insights pointer and public route now resolve to the corrected 20260624T213614Z_global_insights snapshot. No standardization or canonical metadata changes were made during this verification.",
+  "container_latest_pointer": {
+    "app_commit": "89a7e0a8eddb3926f504c3260c4f3cdc19efe8f4",
+    "download_manifest_file_exists": false,
+    "download_manifest_route_works": true,
+    "manifest_exists": true,
+    "provenance_dir_exists": true,
+    "rows": 3131699,
+    "snapshot_id": "20260624T213614Z_global_insights",
+    "summary_exists": true
+  },
+  "healthz": {
+    "commit": "20cab12f69dc09c261d1628c11def72278e4e3cd",
+    "status": "ok",
+    "url": "https://fetchm.dulab206.xyz/healthz",
+    "version": "2026.05-canonical-root-v0.16"
+  },
+  "known_examples_checked_previously": {
+    "ecological_colonization_no_host_colonization_status": true,
+    "patient_toilet_sink_no_clinical_subject": true
+  },
+  "local_caddy_global_insights": {
+    "host_header": "fetchm.dulab206.xyz",
+    "http_status": 200,
+    "page_app_commit": "89a7e0a8eddb3926f504c3260c4f3cdc19efe8f4",
+    "rows": 3131699,
+    "snapshot_id": "20260624T213614Z_global_insights",
+    "url": "http://127.0.0.1/global-insights"
+  },
+  "public_global_insights": {
+    "http_status": 200,
+    "page_app_commit": "89a7e0a8eddb3926f504c3260c4f3cdc19efe8f4",
+    "rows": 3131699,
+    "snapshot_id": "20260624T213614Z_global_insights",
+    "url": "https://fetchm.dulab206.xyz/global-insights"
+  },
+  "public_manifest_download": {
+    "http_status": 200,
+    "snapshot_id": "20260624T213614Z_global_insights",
+    "url": "https://fetchm.dulab206.xyz/global-insights/snapshots/20260624T213614Z_global_insights/download/manifest.json"
+  },
+  "scope": "live_global_insights_pointer_cache_verification",
+  "standardization_rerun": false
+}
