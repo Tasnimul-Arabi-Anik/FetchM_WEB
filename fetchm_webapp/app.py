@@ -18457,6 +18457,7 @@ def apply_sequence_filters(frame: pd.DataFrame, filters: dict[str, Any]) -> pd.D
 
 
 SEQUENCE_SUBSET_MODES = {"all", "random", "manual"}
+SEQUENCE_ACCESSION_RE = re.compile(r"^(?:GCA|GCF)_\d+(?:\.\d+)?$", re.I)
 
 
 def normalize_sequence_subset_mode(value: Any) -> str:
@@ -18464,27 +18465,41 @@ def normalize_sequence_subset_mode(value: Any) -> str:
     return mode if mode in SEQUENCE_SUBSET_MODES else "all"
 
 
-def parse_sequence_subset_accessions(value: Any) -> list[str]:
-    text = str(value or "")
+def parse_sequence_subset_accession_selection(value: Any) -> dict[str, Any]:
+    tokens = [token.strip().upper() for token in re.split(r"[\s,;]+", str(value or "")) if token.strip()]
     accessions: list[str] = []
+    invalid: list[str] = []
     seen: set[str] = set()
-    for token in re.split(r"[\s,;]+", text):
-        accession = token.strip().upper()
-        if not accession or accession in seen:
+    duplicate_count = 0
+    for token in tokens:
+        if not SEQUENCE_ACCESSION_RE.fullmatch(token):
+            invalid.append(token)
             continue
-        accessions.append(accession)
-        seen.add(accession)
-    return accessions
+        if token in seen:
+            duplicate_count += 1
+            continue
+        accessions.append(token)
+        seen.add(token)
+    return {
+        "accessions": accessions,
+        "duplicates": duplicate_count,
+        "invalid": invalid,
+        "submitted_total": len(tokens),
+    }
 
 
-def sequence_subset_seed_value(value: Any) -> int:
+def parse_sequence_subset_accessions(value: Any) -> list[str]:
+    return list(parse_sequence_subset_accession_selection(value)["accessions"])
+
+
+def sequence_subset_seed_value(value: Any) -> tuple[int, str]:
     text = normalize_metadata_value(value)
     if text:
-        if re.fullmatch(r"\d+", text):
-            return int(text) % (2**32)
-        digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
-        return int(digest[:8], 16)
-    return secrets.randbelow(2**32)
+        if not re.fullmatch(r"\d+", text):
+            raise ValueError("Random seed must be a whole number.")
+        return int(text) % (2**32), text
+    seed = secrets.randbelow(2**32)
+    return seed, str(seed)
 
 
 def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str, Any]:
@@ -18496,11 +18511,19 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         "selected_row_total": matched_total,
         "requested_count": None,
         "random_seed": "",
+        "random_request_exceeds_matches": False,
+        "selected_accessions": [],
         "manual_accessions": [],
         "manual_accessions_missing": [],
+        "manual_accessions_invalid": [],
+        "manual_submitted_total": 0,
+        "manual_duplicate_total": 0,
         "description": "all matching genomes",
         "error": "",
     }
+    accession_column = "Assembly Accession"
+    if accession_column in frame.columns:
+        info["selected_accessions"] = frame[accession_column].astype(str).tolist()
     if mode == "all" or frame.empty:
         info["frame"] = frame.copy()
         return info
@@ -18511,24 +18534,45 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
             info["error"] = "Enter a positive number of genomes for the random subset."
             info["frame"] = frame.iloc[0:0].copy()
             return info
+        try:
+            seed, seed_label = sequence_subset_seed_value(source.get("sequence_subset_seed") if hasattr(source, "get") else None)
+        except ValueError as exc:
+            info["error"] = str(exc)
+            info["frame"] = frame.iloc[0:0].copy()
+            return info
         selected_total = min(requested, matched_total)
-        seed = sequence_subset_seed_value(source.get("sequence_subset_seed") if hasattr(source, "get") else None)
-        subset = frame.sample(n=selected_total, random_state=seed).copy() if selected_total else frame.iloc[0:0].copy()
+        candidate_frame = frame.copy()
+        if accession_column in candidate_frame.columns:
+            candidate_frame = candidate_frame.sort_values(by=accession_column, kind="mergesort")
+        subset = candidate_frame.sample(n=selected_total, random_state=seed).copy() if selected_total else candidate_frame.iloc[0:0].copy()
+        selected_accessions = subset[accession_column].astype(str).tolist() if accession_column in subset.columns else []
         info.update({
             "frame": subset,
             "selected_row_total": int(len(subset)),
             "requested_count": requested,
-            "random_seed": str(seed),
+            "random_seed": seed_label,
+            "random_request_exceeds_matches": requested > matched_total,
+            "selected_accessions": selected_accessions,
             "description": f"random subset of {int(len(subset)):,} of {matched_total:,} matching genomes",
         })
         return info
 
-    accessions = parse_sequence_subset_accessions(source.get("sequence_subset_accessions") if hasattr(source, "get") else None)
+    parsed = parse_sequence_subset_accession_selection(source.get("sequence_subset_accessions") if hasattr(source, "get") else None)
+    accessions = parsed["accessions"]
+    invalid = parsed["invalid"]
+    info.update({
+        "manual_submitted_total": parsed["submitted_total"],
+        "manual_duplicate_total": parsed["duplicates"],
+        "manual_accessions_invalid": invalid,
+    })
+    if invalid:
+        info["error"] = f"Manual subset contains {len(invalid):,} malformed assembly accession(s). Use GCA_ or GCF_ accessions."
+        info["frame"] = frame.iloc[0:0].copy()
+        return info
     if not accessions:
         info["error"] = "Paste one or more assembly accessions for the manual subset."
         info["frame"] = frame.iloc[0:0].copy()
         return info
-    accession_column = "Assembly Accession"
     if accession_column not in frame.columns:
         info["error"] = "Manual subset requires an Assembly Accession column in the filtered metadata."
         info["frame"] = frame.iloc[0:0].copy()
@@ -18545,12 +18589,14 @@ def apply_sequence_download_subset(frame: pd.DataFrame, source: Any) -> dict[str
         info["manual_accessions_missing"] = missing
         return info
     subset = frame.loc[selected_indices].copy()
+    selected_accessions = subset[accession_column].astype(str).tolist()
     info.update({
         "frame": subset,
         "selected_row_total": int(len(subset)),
         "requested_count": len(accessions),
         "manual_accessions": accessions,
         "manual_accessions_missing": missing,
+        "selected_accessions": selected_accessions,
         "description": f"manual subset of {int(len(subset)):,} of {matched_total:,} matching genomes",
     })
     return info
@@ -18563,7 +18609,13 @@ def sequence_download_subset_metadata(subset: dict[str, Any]) -> dict[str, Any]:
         "selected_row_total": int(subset.get("selected_row_total") or 0),
         "requested_count": subset.get("requested_count"),
         "random_seed": subset.get("random_seed") or "",
+        "random_request_exceeds_matches": bool(subset.get("random_request_exceeds_matches")),
+        "selected_accession_total": len(subset.get("selected_accessions") or []),
+        "selected_accessions": subset.get("selected_accessions") or [],
+        "manual_submitted_total": int(subset.get("manual_submitted_total") or 0),
         "manual_accession_total": len(subset.get("manual_accessions") or []),
+        "manual_duplicate_total": int(subset.get("manual_duplicate_total") or 0),
+        "manual_invalid_total": len(subset.get("manual_accessions_invalid") or []),
         "manual_missing_total": len(subset.get("manual_accessions_missing") or []),
         "manual_accessions_missing": subset.get("manual_accessions_missing") or [],
         "description": subset.get("description") or "all matching genomes",
@@ -29589,6 +29641,10 @@ def create_canonical_sequence_job(rank: str, name: str) -> Any:
     if download_frame.empty:
         flash("The selected sequence subset does not contain any genomes.", "error")
         return redirect(url_for("canonical_taxon_sequences", rank=rank, name=name, **request.form))
+    if sequence_subset.get("random_request_exceeds_matches"):
+        flash("Random subset size exceeded the filtered result; all matching genomes were selected.", "warning")
+    if sequence_subset.get("manual_duplicate_total"):
+        flash(f"{int(sequence_subset['manual_duplicate_total']):,} duplicate manual accession(s) were ignored.", "warning")
     if sequence_subset.get("manual_accessions_missing"):
         flash(f"{len(sequence_subset['manual_accessions_missing']):,} manually selected accessions were not present in the filtered result and were skipped.", "warning")
     grouping_mode = normalize_metadata_value(request.form.get("grouping_mode")) or "single"
@@ -29815,6 +29871,10 @@ def create_taxon_sequence_job(species_id: int) -> Any:
     if download_frame.empty:
         flash("The selected sequence subset does not contain any genomes.", "error")
         return redirect(url_for("taxon_sequences", species_id=species_id, **request.form))
+    if sequence_subset.get("random_request_exceeds_matches"):
+        flash("Random subset size exceeded the filtered result; all matching genomes were selected.", "warning")
+    if sequence_subset.get("manual_duplicate_total"):
+        flash(f"{int(sequence_subset['manual_duplicate_total']):,} duplicate manual accession(s) were ignored.", "warning")
     if sequence_subset.get("manual_accessions_missing"):
         flash(f"{len(sequence_subset['manual_accessions_missing']):,} manually selected accessions were not present in the filtered result and were skipped.", "warning")
 
