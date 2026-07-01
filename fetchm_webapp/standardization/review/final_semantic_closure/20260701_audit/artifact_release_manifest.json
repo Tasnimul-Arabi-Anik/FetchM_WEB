@@ -1,0 +1,7 @@
+{
+  "artifact_commit": "not_committed_at_generation_time",
+  "audit_code_commit": "42f90fe71bd6c2f0dec6df6e4e022c8872636ce0",
+  "generated_at": "2026-07-01T06:45:29.540374+00:00",
+  "note": "The current artifact commit is recorded after commit by setting FETCHM_AUDIT_ARTIFACT_COMMIT during release-manifest regeneration; no production data changes are implied.",
+  "previous_reviewed_artifact_commit": "039012f2d8c95abaffdb0892faf8710d9e0e1832"
+}

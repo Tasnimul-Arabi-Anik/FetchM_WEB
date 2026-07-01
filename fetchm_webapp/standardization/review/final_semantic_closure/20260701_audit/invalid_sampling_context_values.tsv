@@ -1,0 +1,3 @@
+field	standardized_value	primary_semantic_class	secondary_semantic_classes	semantic_components	confidence	field_compatibility	row_count	reason	additive_destinations	proposed_destination	remove_from_current_field	action_class
+Sampling_Context_SD	clinical subject	source_context		source_context:broad source context	high	incompatible	6141	Sampling_Context_SD should contain sampling-context values only.	Isolation_Source_SD	Isolation_Source_SD	true	manual_review
+Sampling_Context_SD	plant-associated	host_context		host_context:host-associated context	high	incompatible	1891	Sampling_Context_SD should contain sampling-context values only.	Host_Context_SD	Host_Context_SD	true	manual_review

@@ -1,0 +1,28 @@
+raw_value	expected_behavior	phase
+environmental sample	sampling_context=environmental; not metadata_descriptor only	phase1_classifier_regression
+respiratory sample	sampling_context + respiratory anatomical/site context; not metadata_descriptor only	phase1_classifier_regression
+cloacal sample	sampling_context + cloaca site; not metadata_descriptor only	phase1_classifier_regression
+food contact surface	food/built-environment contact surface; not study group	phase1_classifier_regression
+acute care hospital	care setting/local scale; not disease stage	phase1_classifier_regression
+freshwater fish product	food commodity; not environment medium	phase1_classifier_regression
+healthy control	health_state=healthy + study_group=control	phase1_classifier_regression
+rectal swab	swab specimen + collection_device=swab + anatomical_site=rectum	phase1_classifier_regression
+sink biofilm	environment_local_scale=sink + environment_medium=biofilm	phase1_classifier_regression
+gastric biopsy	sample_material=biopsy + anatomical_site=stomach/gastrointestinal tract	phase1_classifier_regression
+manure	sample_material/fecal material + agricultural/environment medium; no anatomical site	phase1_classifier_regression
+abscess	composite/ambiguous material + site/disease manifestation; review before removal	phase1_classifier_regression
+cell culture	sample entity + processing, not processing-only	phase1_classifier_regression
+specific pathogen free	production context, not health state	phase1_classifier_regression
+patient sample	human/clinical sampling context; not health state	phase1_classifier_regression
+banana blood disease	disease context; must not create blood sample type	phase1_classifier_regression
+environmental swab from patient room surface	environmental collection context; not clinical-subject or human-host inference	phase1_classifier_regression
+patient-room surface swab	environmental surface swab; not clinical-subject specimen	phase1_classifier_regression
+hospital sink swab	built/healthcare environment swab; not host specimen	phase1_classifier_regression
+soil colonized by oak and ash forest	ecological colonization; not host colonization status	phase1_classifier_regression
+larvae colonized with bacteria	host colonization status only with biological-host evidence	phase1_classifier_regression
+dead food product	food/product context; not host vital status	phase1_classifier_regression
+live bait	food/source context; not host vital status	phase1_classifier_regression
+marine	broad environment; not environment medium	phase1_classifier_regression
+seawater	environment medium; not broad environment	phase1_classifier_regression
+laboratory	laboratory sampling context unless explicit facility/environment evidence	phase1_classifier_regression
+culture medium	sample/source material context; not environmental medium	phase1_classifier_regression

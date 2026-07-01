@@ -1,0 +1,2 @@
+field	standardized_value	primary_semantic_class	secondary_semantic_classes	semantic_components	confidence	field_compatibility	row_count	reason	additive_destinations	proposed_destination	remove_from_current_field	action_class
+Sample_Material_SD	plant material	host_context		host_context:host-associated context	high	incompatible	234	Sample_Material_SD should contain physical specimen/material values only.	Host_Context_SD	Host_Context_SD	true	manual_review
