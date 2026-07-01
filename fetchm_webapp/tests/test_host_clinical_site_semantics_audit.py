@@ -203,6 +203,53 @@ class HostClinicalSiteSemanticsAuditTests(unittest.TestCase):
         self.assertIn(row["field_compatibility"], {"compatible", "compatible_composite"})
         self.assertEqual(row["remove_from_current_field"], "false")
 
+    def test_final_closure_environment_context_classifications(self) -> None:
+        cases = {
+            "environmental swab from patient room surface": {"sampling_context", "collection_device", "environment_local_scale"},
+            "patient-room surface swab": {"sampling_context", "collection_device", "environment_local_scale"},
+            "hospital sink swab": {"sampling_context", "collection_device", "environment_local_scale"},
+            "marine": {"environment_broad_scale"},
+            "seawater": {"environment_medium"},
+            "laboratory": {"sampling_context"},
+            "laboratory environment": {"environment_broad_scale"},
+            "culture medium": {"sample_material", "sample_processing"},
+            "activated sludge": {"environment_medium"},
+            "agricultural environment": {"environment_broad_scale"},
+            "rumen/gut content": {"sample_material", "anatomical_material"},
+        }
+        for value, expected in cases.items():
+            with self.subTest(value=value):
+                self.assert_has_classes(value, expected)
+        self.assert_lacks_classes("environmental swab from patient room surface", {"host_context"})
+        self.assert_lacks_classes("patient-room surface swab", {"host_context"})
+        self.assert_lacks_classes("hospital sink swab", {"host_context"})
+        self.assert_lacks_classes("marine", {"environment_medium"})
+        self.assert_lacks_classes("seawater", {"environment_broad_scale"})
+        self.assert_lacks_classes("culture medium", {"environment_medium"})
+        self.assert_lacks_classes("dead food product", {"vital_status"})
+        self.assert_lacks_classes("live bait", {"vital_status"})
+
+    def test_final_closure_strict_field_queues_exist(self) -> None:
+        rows = [
+            classified_row("Environment_Medium_SD", "marine", 3),
+            classified_row("Environment_Broad_Scale_SD", "wastewater/sewage", 4),
+            classified_row("Environment_Local_Scale_SD", "activated sludge", 5),
+            classified_row("Isolation_Site_SD", "plant root/rhizosphere", 6),
+            classified_row("Sample_Material_SD", "laboratory", 7),
+            classified_row("Sampling_Context_SD", "marine", 8),
+            classified_row("Host_Colonization_Status_SD", "soil", 9),
+            classified_row("Host_Vital_Status_SD", "food product", 10),
+        ]
+        flags = incompatibility_rows(rows)
+        self.assertEqual(flags["non_medium_values_in_environment_medium"][0]["standardized_value"], "marine")
+        self.assertEqual(flags["non_broad_values_in_environment_broad_scale"][0]["standardized_value"], "wastewater/sewage")
+        self.assertEqual(flags["non_local_values_in_environment_local_scale"][0]["standardized_value"], "activated sludge")
+        self.assertEqual(flags["remaining_non_site_values"][0]["standardized_value"], "plant root/rhizosphere")
+        self.assertEqual(flags["invalid_sample_material_values"][0]["standardized_value"], "laboratory")
+        self.assertEqual(flags["invalid_sampling_context_values"][0]["standardized_value"], "marine")
+        self.assertTrue(flags["invalid_colonization_status_values"])
+        self.assertTrue(flags["invalid_vital_status_values"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -225,6 +225,40 @@ class SourceEnvironmentSemanticCompletionTests(unittest.TestCase):
         second = apply_completion_rules(first, rules())["after"]
         self.assertEqual(first, second)
 
+    def test_patient_room_environmental_swabs_do_not_become_clinical_subject(self) -> None:
+        examples = [
+            {"Host_Health_State_SD": "patient", "Host": "absent", "Host_SD": "Homo sapiens", "Host_TaxID": "9606", "Sample_Type_SD": "environmental swab from patient room surface"},
+            {"Host_Health_State_SD": "patient", "Host": "absent", "Host_SD": "Homo sapiens", "Host_TaxID": "9606", "Sample_Type_SD": "patient-room surface swab"},
+            {"Host_Health_State_SD": "patient", "Host": "absent", "Host_SD": "Homo sapiens", "Host_TaxID": "9606", "Sample_Type_SD": "hospital sink swab"},
+        ]
+        for payload in examples:
+            with self.subTest(sample_type=payload["Sample_Type_SD"]):
+                after = run_payload(payload)["after"]
+                self.assertEqual(after.get("Host_Health_State_SD"), "")
+                self.assertNotEqual(after.get("Sampling_Context_SD"), "clinical subject")
+                self.assertNotEqual(after.get("Host_Context_SD"), "human-associated")
+
+    def test_ecological_colonization_with_plant_host_is_not_host_colonization_status(self) -> None:
+        result = run_payload({
+            "Host_Health_State_SD": "colonized",
+            "Host": "Quercus robur",
+            "Host_SD": "Quercus robur",
+            "Host_TaxID": "38942",
+            "Isolation Source": "soil from abandoned vineyard, now colonized by oak and ash forest",
+            "Isolation_Source_SD": "environmental material",
+            "Environment_Medium_SD": "soil",
+        })
+        after = result["after"]
+        self.assertEqual(after.get("Host_Health_State_SD"), "")
+        self.assertNotEqual(after.get("Host_Colonization_Status_SD"), "colonized")
+
+    def test_dead_food_and_live_bait_do_not_create_host_vital_status(self) -> None:
+        for value in ["dead food product", "live bait"]:
+            with self.subTest(value=value):
+                result = run_payload({"Host_Health_State_SD": "dead" if "dead" in value else "alive", "Sample_Type_SD": value})
+                after = result["after"]
+                self.assertNotIn(after.get("Host_Vital_Status_SD", ""), {"alive", "deceased"})
+
 
 if __name__ == "__main__":
     unittest.main()

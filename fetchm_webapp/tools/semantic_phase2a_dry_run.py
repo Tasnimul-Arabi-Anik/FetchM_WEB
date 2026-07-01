@@ -193,7 +193,7 @@ ENVIRONMENT_ONLY_RE = re.compile(
 ENVIRONMENT_EXCLUSION_RE = re.compile(r"\b(?:wastewater|waste water|sewage|sink|drain|surface|environmental|environment)\b", re.I)
 PATIENT_ENVIRONMENT_OBJECT_RE = re.compile(
     r"\b(?:patient toilet|toilet sink|patient bathroom|bathroom sink|sink|drain|faucet|shower|"
-    r"patient room surface|bedrail|bedside|hospital surface|environmental swab|wastewater|"
+    r"patient[- ]room surface|bedrail|bedside|hospital surface|environmental swab|wastewater|"
     r"waste water|sewage|healthcare facility|healthcare environment|hospital environment|"
     r"medical equipment|room object|built environment)\b",
     re.I,
@@ -204,12 +204,19 @@ ECOLOGICAL_COLONIZATION_RE = re.compile(
     re.I,
 )
 CARRIER_FALSE_CONTEXT_RE = re.compile(r"\b(?:carrier oil|carrier device|carrier material|transport carrier|sample carrier)\b", re.I)
-VITAL_FALSE_CONTEXT_RE = re.compile(r"\b(?:dead wood|dead biomass|dead plant material|dead organic matter|heat-killed|killed culture)\b", re.I)
+VITAL_FALSE_CONTEXT_RE = re.compile(r"\b(?:dead wood|dead biomass|dead plant material|dead organic matter|dead food product|live bait|heat-killed|killed culture)\b", re.I)
 CLINICAL_SPECIMEN_RE = re.compile(
     r"\b(?:clinical sample|clinical specimen|patient sample|patient specimen|human specimen|"
     r"veterinary specimen|veterinary sample|blood|urine|feces|faeces|stool|swab|nasal|"
     r"rectal|wound|tissue|biopsy|aspirate|sputum|cerebrospinal fluid|csf|pus|milk|"
     r"serum|plasma|saliva|respiratory sample)\b",
+    re.I,
+)
+STRONG_CLINICAL_SPECIMEN_RE = re.compile(
+    r"\b(?:clinical sample|clinical specimen|patient sample|patient specimen|human specimen|"
+    r"veterinary specimen|veterinary sample|blood|urine|feces|faeces|stool|nasal|rectal|"
+    r"wound|tissue|biopsy|aspirate|sputum|cerebrospinal fluid|csf|pus|milk|serum|"
+    r"plasma|saliva|respiratory sample)\b",
     re.I,
 )
 PATIENT_OR_HUMAN_RE = re.compile(r"\b(?:patient|human|homo sapiens|h\. sapiens)\b", re.I)
@@ -419,7 +426,9 @@ def patient_environment_object_context(payload: dict[str, Any]) -> bool:
     blob = standardized_context_blob(payload) + " | " + raw_text_blob(payload)
     if not PATIENT_ENVIRONMENT_OBJECT_RE.search(blob):
         return False
-    return not has_biological_specimen_evidence(payload)
+    # Environmental swabs from patient rooms/sinks are built-environment samples;
+    # generic "swab" evidence alone must not convert them to clinical subjects.
+    return not bool(STRONG_CLINICAL_SPECIMEN_RE.search(blob))
 
 
 def has_human_evidence(payload: dict[str, Any]) -> bool:
@@ -565,10 +574,13 @@ def has_host_colonization_evidence(payload: dict[str, Any], value: str) -> bool:
     blob = standardized_context_blob(payload) + " | " + raw_text_blob(payload)
     if CARRIER_FALSE_CONTEXT_RE.search(blob):
         return False
-    if ECOLOGICAL_COLONIZATION_RE.search(blob) and not has_host_evidence(payload):
-        return False
-    if ECOLOGICAL_COLONIZATION_RE.search(blob) and normalize_lookup(payload.get("Host_SD")) in {"", "absent", "unknown", "environment", "environmental"}:
-        return False
+    if ECOLOGICAL_COLONIZATION_RE.search(blob):
+        if re.search(r"\b(?:soil|vineyard|forest|oak|ash|vegetation|land|rhizosphere)\b", blob, re.I):
+            return False
+        if not has_host_evidence(payload):
+            return False
+        if normalize_lookup(payload.get("Host_SD")) in {"", "absent", "unknown", "environment", "environmental"}:
+            return False
     return has_host_evidence(payload)
 
 

@@ -31,6 +31,8 @@ DEFAULT_SNAPSHOT_ID = "20260602T140414Z_genbank_bacteria_root"
 DEFAULT_OUTPUT_ROOT = ROOT / "standardization" / "review" / "host_clinical_site_semantics_audit"
 CONTROLLED_CATEGORIES = ROOT / "standardization" / "controlled_categories.csv"
 APPROVED_BROAD_CATEGORIES = ROOT / "standardization" / "approved_broad_categories.csv"
+MAX_HIGH_IMPACT_EXAMPLES = 10000
+MAX_HIGH_IMPACT_EXAMPLE_GROUPS = 500
 
 AUDIT_FIELDS = [
     "Host_SD",
@@ -39,8 +41,16 @@ AUDIT_FIELDS = [
     "Host_Health_State_SD",
     "Host_Production_Context_SD",
     "Host_Anatomical_Site_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
     "Sample_Type_SD",
     "Sample_Type_SD_Broad",
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
     "Isolation_Source_SD",
     "Isolation_Source_SD_Broad",
     "Isolation_Site_SD",
@@ -58,17 +68,26 @@ CONTEXT_FIELDS = [
     "Host_Health_State_SD",
     "Host_Production_Context_SD",
     "Host_Anatomical_Site_SD",
+    "Host_Hospitalization_Status_SD",
+    "Host_Vital_Status_SD",
+    "Host_Colonization_Status_SD",
+    "Host_Disease_Stage_SD",
+    "Host_Exposure_Context_SD",
     "Isolation Source",
     "Isolation_Source_SD",
     "Isolation_Source_SD_Broad",
     "Sample Type",
     "Sample_Type_SD",
     "Sample_Type_SD_Broad",
+    "Sample_Material_SD",
+    "Sampling_Context_SD",
+    "Host_Anatomical_Material_SD",
     "Isolation_Site_SD",
     "Environment_Medium_SD",
     "Environment_Medium_SD_Broad",
     "Environment_Broad_Scale_SD",
     "Environment_Local_Scale_SD",
+    "Semantic_Axis_Provenance",
     "Collection Date",
     "Country",
 ]
@@ -124,23 +143,31 @@ SEMANTIC_CLASSES = [
 # Strict derived fields are proposed in artifacts; they are not written by this script.
 FIELD_CONTRACT = {
     "Host_SD": {"host_taxon"},
-    "Host_Context_SD": {"host_context", "production_context", "exposure_context"},
+    "Host_Context_SD": {"host_context"},
     "Host_Disease_SD": {"disease"},
     "Host_Health_State_SD": {"health_state"},
     "Host_Production_Context_SD": {"production_context"},
     "Host_Anatomical_Site_SD": {"anatomical_site"},
+    "Host_Hospitalization_Status_SD": {"hospitalization_status"},
+    "Host_Vital_Status_SD": {"vital_status"},
+    "Host_Colonization_Status_SD": {"colonization_status"},
+    "Host_Disease_Stage_SD": {"disease_stage"},
+    "Host_Exposure_Context_SD": {"exposure_context"},
     "Sample_Type_SD": {"sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing"},
     "Sample_Type_SD_Broad": {"sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"},
+    "Sample_Material_SD": {"sample_material"},
+    "Sampling_Context_SD": {"sampling_context"},
+    "Host_Anatomical_Material_SD": {"anatomical_material"},
     "Isolation_Source_SD": {"source_context", "food_commodity", "sample_material", "anatomical_material", "environment_medium", "environment_local_scale", "environment_broad_scale", "host_context"},
     "Isolation_Source_SD_Broad": {"source_context", "food_commodity", "sample_material", "anatomical_material", "environment_medium", "environment_broad_scale", "host_context"},
     "Isolation_Site_SD": {"anatomical_site"},
     "Environment_Medium_SD": {"environment_medium"},
     "Environment_Medium_SD_Broad": {"environment_medium"},
     "Environment_Broad_Scale_SD": {"environment_broad_scale"},
-    "Environment_Local_Scale_SD": {"environment_local_scale", "care_setting"},
+    "Environment_Local_Scale_SD": {"environment_local_scale"},
 }
 
-STRICT_FIELDS = {"Host_Disease_SD", "Host_Health_State_SD", "Host_Anatomical_Site_SD", "Isolation_Site_SD", "Environment_Medium_SD", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD"}
+STRICT_FIELDS = {"Host_Disease_SD", "Host_Health_State_SD", "Host_Anatomical_Site_SD", "Host_Hospitalization_Status_SD", "Host_Vital_Status_SD", "Host_Colonization_Status_SD", "Host_Disease_Stage_SD", "Host_Exposure_Context_SD", "Sample_Material_SD", "Sampling_Context_SD", "Host_Anatomical_Material_SD", "Isolation_Site_SD", "Environment_Medium_SD", "Environment_Medium_SD_Broad", "Environment_Broad_Scale_SD", "Environment_Local_Scale_SD"}
 LEGACY_COMPATIBILITY_FIELDS = {"Sample_Type_SD", "Sample_Type_SD_Broad", "Isolation_Source_SD", "Isolation_Source_SD_Broad"}
 CONFIRMED_STRICT_FIX_FIELDS = {"Host_Health_State_SD", "Host_Disease_SD", "Isolation_Site_SD"}
 
@@ -159,6 +186,17 @@ INCOMPATIBILITY_FILES = {
     "disease_stage_values_in_health_state": "disease_stage_values_in_health_state.tsv",
     "conflicting_anatomical_site_fields": "conflicting_anatomical_site_fields.tsv",
     "ambiguous_broad_source_categories": "ambiguous_broad_source_categories.tsv",
+    "non_medium_values_in_environment_medium": "non_medium_values_in_environment_medium.tsv",
+    "non_medium_values_in_environment_medium_broad": "non_medium_values_in_environment_medium_broad.tsv",
+    "non_broad_values_in_environment_broad_scale": "non_broad_values_in_environment_broad_scale.tsv",
+    "non_local_values_in_environment_local_scale": "non_local_values_in_environment_local_scale.tsv",
+    "remaining_non_site_values": "remaining_non_site_values.tsv",
+    "composite_health_state_values": "composite_health_state_values.tsv",
+    "invalid_sample_material_values": "invalid_sample_material_values.tsv",
+    "invalid_anatomical_material_values": "invalid_anatomical_material_values.tsv",
+    "invalid_sampling_context_values": "invalid_sampling_context_values.tsv",
+    "invalid_colonization_status_values": "invalid_colonization_status_values.tsv",
+    "invalid_vital_status_values": "invalid_vital_status_values.tsv",
 }
 
 TARGET_VALUES = {
@@ -170,6 +208,13 @@ TARGET_VALUES = {
     "abscess", "catheter", "sink", "drain", "clinical sample", "clinical material",
     "clinical/host-associated material", "clinical fluid/material", "metagenomic assembly",
     "culture", "enrichment culture", "dna extract", "swab",
+    "marine", "dairy food", "plant tissue", "laboratory", "culture medium",
+    "healthcare facility", "biological product", "environmental sample", "glacier",
+    "natural/free-living", "metadata descriptor/non-source", "wastewater/sewage treatment plant",
+    "land crag", "wastewater/sewage", "activated sludge", "groundwater",
+    "agricultural environment", "rumen/gut content", "agricultural ecosystem",
+    "mariculture biome", "plant root/rhizosphere", "phyllosphere", "endosphere",
+    "healthy/control", "diseased/patient",
 }
 
 EXACT_METADATA_DESCRIPTORS = {
@@ -238,6 +283,34 @@ EXACT_COMPONENTS: dict[str, tuple[tuple[str, str], ...]] = {
     "river": (("environment_local_scale", "river"),),
     "pond": (("environment_local_scale", "pond"),),
     "groundwater": (("environment_medium", "groundwater"),),
+    "marine": (("environment_broad_scale", "marine environment"),),
+    "marine environment": (("environment_broad_scale", "marine environment"),),
+    "seawater": (("environment_medium", "seawater"),),
+    "dairy food": (("food_commodity", "dairy food"),),
+    "plant tissue": (("sample_material", "plant tissue"), ("host_context", "plant-associated")),
+    "laboratory": (("sampling_context", "laboratory context"),),
+    "laboratory environment": (("environment_broad_scale", "laboratory environment"),),
+    "culture medium": (("sample_material", "culture medium"), ("sample_processing", "culture medium/preparation")),
+    "healthcare facility": (("environment_local_scale", "healthcare facility"),),
+    "biological product": (("source_context", "biological product/source context"),),
+    "environmental sample": (("sampling_context", "environmental"),),
+    "natural/free-living": (("source_context", "natural or free-living source context"),),
+    "wastewater/sewage": (("environment_medium", "wastewater/sewage"),),
+    "wastewater/sewage treatment plant": (("environment_medium", "wastewater/sewage"), ("environment_local_scale", "treatment plant")),
+    "land crag": (("environment_local_scale", "land crag"),),
+    "host-associated gut/oral/fecal environment": (("environment_broad_scale", "host-associated gut/oral/fecal environment"), ("host_context", "host-associated")),
+    "host-associated gut environment": (("environment_broad_scale", "host-associated gut environment"), ("host_context", "host-associated")),
+    "activated sludge": (("environment_medium", "activated sludge"),),
+    "agricultural environment": (("environment_broad_scale", "agricultural environment"),),
+    "rumen/gut content": (("sample_material", "gut/rumen content"), ("anatomical_material", "host anatomical material")),
+    "agricultural ecosystem": (("environment_broad_scale", "agricultural environment/ecosystem"),),
+    "mariculture biome": (("environment_broad_scale", "mariculture biome"),),
+    "environmental swab from patient room surface": (("sampling_context", "environmental"), ("collection_device", "swab"), ("environment_local_scale", "patient room surface")),
+    "patient-room surface swab": (("sampling_context", "environmental"), ("collection_device", "swab"), ("environment_local_scale", "patient room surface")),
+    "patient room surface swab": (("sampling_context", "environmental"), ("collection_device", "swab"), ("environment_local_scale", "patient room surface")),
+    "hospital sink swab": (("sampling_context", "environmental"), ("collection_device", "swab"), ("environment_local_scale", "hospital sink")),
+    "dead food product": (("food_commodity", "dead food product"),),
+    "live bait": (("food_commodity", "live bait"),),
     "culture": (("sample_entity", "culture entity"), ("sample_processing", "cultured")),
     "cell culture": (("sample_entity", "cell culture"), ("sample_processing", "cultured")),
     "pure/single culture": (("sample_entity", "culture entity"), ("sample_processing", "pure/single culture")),
@@ -323,7 +396,7 @@ STUDY_GROUP_RE = re.compile(r"\b(?:control|case|household contact|close contact|
 ACUTE_CHRONIC_STAGE_RE = re.compile(r"\b(?:acute|chronic)\b", re.I)
 CARE_EXCLUSION_RE = re.compile(r"\b(?:acute care|chronic care|hospital|facility|ward|unit)\b", re.I)
 GENERIC_METADATA_RE = re.compile(r"^(?:sample|specimen|other|unknown|uncategorized|missing|not applicable|n/a|na|none|null)$", re.I)
-CONTEXT_DEPENDENT_EXACT_VALUES = {"rhizosphere", "phyllosphere", "endosphere", "abscess"}
+CONTEXT_DEPENDENT_EXACT_VALUES = {"rhizosphere", "phyllosphere", "endosphere", "abscess", "laboratory", "culture medium", "natural/free-living", "biological product"}
 
 
 @dataclass(frozen=True)
@@ -370,20 +443,28 @@ def add_component(components: list[tuple[str, str]], semantic_class: str, label:
 def semantic_priority_for_field(field: str) -> list[str]:
     field_priorities = {
         "Host_SD": ["host_taxon"],
-        "Host_Context_SD": ["host_context", "production_context", "exposure_context"],
+        "Host_Context_SD": ["host_context"],
         "Host_Disease_SD": ["disease", "health_state"],
         "Host_Health_State_SD": ["health_state", "study_group", "hospitalization_status", "care_setting", "colonization_status"],
+        "Host_Hospitalization_Status_SD": ["hospitalization_status"],
+        "Host_Vital_Status_SD": ["vital_status"],
+        "Host_Colonization_Status_SD": ["colonization_status"],
+        "Host_Disease_Stage_SD": ["disease_stage"],
+        "Host_Exposure_Context_SD": ["exposure_context"],
         "Host_Production_Context_SD": ["production_context"],
         "Host_Anatomical_Site_SD": ["anatomical_site", "anatomical_material"],
         "Sample_Type_SD": ["sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing"],
         "Sample_Type_SD_Broad": ["sample_material", "sample_entity", "data_product", "food_commodity", "collection_device", "sampling_context", "sample_processing", "source_context"],
+        "Sample_Material_SD": ["sample_material"],
+        "Sampling_Context_SD": ["sampling_context"],
+        "Host_Anatomical_Material_SD": ["anatomical_material"],
         "Isolation_Source_SD": ["source_context", "sample_material", "environment_medium", "environment_local_scale", "food_commodity", "anatomical_site", "host_context"],
         "Isolation_Source_SD_Broad": ["source_context", "environment_broad_scale", "environment_medium", "sample_material", "food_commodity", "host_context"],
         "Isolation_Site_SD": ["anatomical_site", "anatomical_material", "sample_material"],
         "Environment_Medium_SD": ["environment_medium"],
         "Environment_Medium_SD_Broad": ["environment_medium"],
         "Environment_Broad_Scale_SD": ["environment_broad_scale"],
-        "Environment_Local_Scale_SD": ["environment_local_scale", "care_setting"],
+        "Environment_Local_Scale_SD": ["environment_local_scale"],
     }
     return field_priorities.get(field, []) + [
         "sample_material", "sample_entity", "data_product", "source_context", "food_commodity", "environment_medium",
@@ -657,6 +738,72 @@ def load_records(snapshot_id: str) -> list[dict[str, Any]]:
     return records
 
 
+CANONICAL_RECORD_SQL = """
+    SELECT i.assembly_accession,
+           COALESCE(m.organism_name, '') AS organism_name,
+           COALESCE(m.biosample_accession, '') AS biosample_accession,
+           s.standardized_payload
+    FROM bacterial_inventory_membership AS i
+    JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+    LEFT JOIN assembly_master AS m ON m.assembly_accession = i.assembly_accession
+    WHERE i.snapshot_id = %s
+"""
+
+
+def iter_records(snapshot_id: str, chunk_size: int = 10000) -> Iterator[dict[str, Any]]:
+    with connect() as connection:
+        with connection.cursor(name=f"semantic_closure_audit_{os.getpid()}") as cursor:
+            cursor.execute(CANONICAL_RECORD_SQL, (snapshot_id,))
+            while True:
+                rows = cursor.fetchmany(chunk_size)
+                if not rows:
+                    break
+                for accession, organism, biosample, payload in rows:
+                    yield {
+                        "assembly_accession": str(accession),
+                        "organism": str(organism or ""),
+                        "biosample": str(biosample or ""),
+                        "payload": read_payload(payload),
+                    }
+
+
+def distinct_values_for_snapshot(snapshot_id: str) -> tuple[int, int, list[dict[str, Any]]]:
+    counters: dict[str, Counter[str]] = {field: Counter() for field in AUDIT_FIELDS}
+    rows_audited = 0
+    semantic_axis_provenance_rows_present = 0
+    for record in iter_records(snapshot_id):
+        rows_audited += 1
+        payload = record["payload"]
+        if is_present(payload.get("Semantic_Axis_Provenance")):
+            semantic_axis_provenance_rows_present += 1
+        for field in AUDIT_FIELDS:
+            value = payload.get(field)
+            if is_present(value):
+                counters[field][str(value).strip()] += 1
+    rows = []
+    for field, counter in counters.items():
+        for value, count in counter.most_common():
+            classified = classify_value(value, field=field)
+            compatibility = field_compatibility(field, classified)
+            rows.append({
+                "field": field,
+                "standardized_value": value,
+                "primary_semantic_class": classified.primary_semantic_class,
+                "secondary_semantic_classes": "|".join(classified.secondary_semantic_classes),
+                "semantic_components": "|".join(classified.semantic_components),
+                "confidence": classified.confidence,
+                "field_compatibility": compatibility,
+                "additive_destinations": "|".join(additive_destinations(classified, field)),
+                "remove_from_current_field": str(remove_from_current_field(field, classified)).lower(),
+                "review_required": str(action_class(field, classified) in {"manual_review", "classifier_uncertain", "composite_requires_split", "confirmed_high_confidence_fix"}).lower(),
+                "action_class": action_class(field, classified),
+                "row_count": count,
+                "reason": classified.reason,
+                "expected_semantic_classes": "|".join(sorted(expected_classes(field))),
+            })
+    return rows_audited, semantic_axis_provenance_rows_present, rows
+
+
 def distinct_values(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     counters: dict[str, Counter[str]] = {field: Counter() for field in AUDIT_FIELDS}
     for record in records:
@@ -748,6 +895,28 @@ def incompatibility_rows(value_rows: list[dict[str, Any]]) -> dict[str, list[dic
             flags["conflicting_anatomical_site_fields"].append(queue_row(row, "Site field contains non-site material/context without an anatomical-site component.", row["additive_destinations"]))
         if field == "Isolation_Source_SD_Broad" and row["field_compatibility"] in {"legacy_decomposition_candidate", "incompatible"}:
             flags["ambiguous_broad_source_categories"].append(queue_row(row, "Broad source category is a legacy umbrella or decomposition candidate; document before migration.", row["additive_destinations"]))
+        if field == "Environment_Medium_SD" and "environment_medium" not in classes:
+            flags["non_medium_values_in_environment_medium"].append(queue_row(row, "Environment_Medium_SD should contain physical environmental media only.", row["additive_destinations"]))
+        if field == "Environment_Medium_SD_Broad" and "environment_medium" not in classes:
+            flags["non_medium_values_in_environment_medium_broad"].append(queue_row(row, "Environment_Medium_SD_Broad should contain broad environmental medium classes only.", row["additive_destinations"]))
+        if field == "Environment_Broad_Scale_SD" and "environment_broad_scale" not in classes:
+            flags["non_broad_values_in_environment_broad_scale"].append(queue_row(row, "Environment_Broad_Scale_SD should contain broad environmental settings only.", row["additive_destinations"]))
+        if field == "Environment_Local_Scale_SD" and "environment_local_scale" not in classes:
+            flags["non_local_values_in_environment_local_scale"].append(queue_row(row, "Environment_Local_Scale_SD should contain local environmental or facility features only.", row["additive_destinations"]))
+        if field == "Isolation_Site_SD" and classes != {"anatomical_site"}:
+            flags["remaining_non_site_values"].append(queue_row(row, "Isolation_Site_SD contains a non-site or composite site/material/environment concept requiring review.", row["additive_destinations"]))
+        if field == "Host_Health_State_SD" and "health_state" in classes and len(classes) > 1:
+            flags["composite_health_state_values"].append(queue_row(row, "Composite health-state values should be decomposed into health state plus dedicated axes.", row["additive_destinations"]))
+        if field == "Sample_Material_SD" and "sample_material" not in classes:
+            flags["invalid_sample_material_values"].append(queue_row(row, "Sample_Material_SD should contain physical specimen/material values only.", row["additive_destinations"]))
+        if field == "Host_Anatomical_Material_SD" and "anatomical_material" not in classes:
+            flags["invalid_anatomical_material_values"].append(queue_row(row, "Host_Anatomical_Material_SD should contain host-derived anatomical material values only.", row["additive_destinations"]))
+        if field == "Sampling_Context_SD" and "sampling_context" not in classes:
+            flags["invalid_sampling_context_values"].append(queue_row(row, "Sampling_Context_SD should contain sampling-context values only.", row["additive_destinations"]))
+        if field == "Host_Colonization_Status_SD" and "colonization_status" not in classes:
+            flags["invalid_colonization_status_values"].append(queue_row(row, "Host_Colonization_Status_SD should contain host colonization/carriage statuses only.", row["additive_destinations"]))
+        if field == "Host_Vital_Status_SD" and "vital_status" not in classes:
+            flags["invalid_vital_status_values"].append(queue_row(row, "Host_Vital_Status_SD should contain host vital-status values only.", row["additive_destinations"]))
     return {key: sorted(rows, key=lambda r: (-int(r["row_count"]), r["field"], r["standardized_value"])) for key, rows in flags.items()}
 
 
@@ -771,16 +940,19 @@ def raw_match_context(payload: dict[str, Any], value: str) -> tuple[str, str, st
     return "", "", "unmatched"
 
 
-def example_rows(records: list[dict[str, Any]], flagged_rows: list[dict[str, Any]], per_value: int) -> list[dict[str, Any]]:
+def example_rows(records: list[dict[str, Any]], flagged_rows: list[dict[str, Any]], per_value: int, max_examples: int = MAX_HIGH_IMPACT_EXAMPLES) -> list[dict[str, Any]]:
+    if max_examples <= 0:
+        return []
     wanted = {(row["field"], row["standardized_value"]): row for row in flagged_rows}
     remaining = {key: per_value for key in wanted}
     active = set(wanted)
+    active_fields = sorted({field for field, _value in active})
     examples: list[dict[str, Any]] = []
     for record in records:
         if not active:
             break
         payload = record["payload"]
-        for field in AUDIT_FIELDS:
+        for field in active_fields:
             value = str(payload.get(field) or "").strip()
             key = (field, value)
             if key not in active:
@@ -807,20 +979,107 @@ def example_rows(records: list[dict[str, Any]], flagged_rows: list[dict[str, Any
             for context_field in CONTEXT_FIELDS:
                 example[context_field] = payload.get(context_field, "")
             examples.append(example)
+            if len(examples) >= max_examples:
+                return examples
             remaining[key] -= 1
             if remaining[key] <= 0:
                 active.remove(key)
     return examples
 
 
-def target_value_examples(records: list[dict[str, Any]], value_rows: list[dict[str, Any]], per_value: int) -> list[dict[str, Any]]:
+def target_value_examples(records: list[dict[str, Any]], value_rows: list[dict[str, Any]], per_value: int, max_examples: int = MAX_HIGH_IMPACT_EXAMPLES) -> list[dict[str, Any]]:
     target_slugs = {slug(value) for value in TARGET_VALUES}
     candidates = []
     for row in value_rows:
         normalized = normalize(row["standardized_value"])
         if slug(normalized) in target_slugs or normalized in TARGET_VALUES:
             candidates.append(queue_row(row, "Targeted value requested for semantic review.", row["additive_destinations"]))
-    return example_rows(records, candidates, per_value)
+    return example_rows(records, candidates, per_value, max_examples=max_examples)
+
+
+def example_rows_for_snapshot(snapshot_id: str, flagged_rows: list[dict[str, Any]], per_value: int, max_examples: int = MAX_HIGH_IMPACT_EXAMPLES) -> list[dict[str, Any]]:
+    if max_examples <= 0:
+        return []
+    wanted = {(row["field"], row["standardized_value"]): row for row in flagged_rows}
+    wanted_by_field: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for (field, value), row in wanted.items():
+        wanted_by_field[field][value] = row
+    examples: list[dict[str, Any]] = []
+    query = """
+        WITH ranked AS (
+            SELECT i.assembly_accession,
+                   COALESCE(m.organism_name, '') AS organism_name,
+                   COALESCE(m.biosample_accession, '') AS biosample_accession,
+                   s.standardized_payload,
+                   s.standardized_payload ->> %s AS standardized_value,
+                   row_number() OVER (
+                       PARTITION BY s.standardized_payload ->> %s
+                       ORDER BY i.assembly_accession
+                   ) AS rn
+            FROM bacterial_inventory_membership AS i
+            JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+            LEFT JOIN assembly_master AS m ON m.assembly_accession = i.assembly_accession
+            WHERE i.snapshot_id = %s
+              AND s.standardized_payload ->> %s = ANY(%s::text[])
+        )
+        SELECT assembly_accession, organism_name, biosample_accession, standardized_payload, standardized_value
+        FROM ranked
+        WHERE rn <= %s
+        ORDER BY standardized_value, assembly_accession
+    """
+    with connect() as connection:
+        for field, value_map in sorted(wanted_by_field.items()):
+            if len(examples) >= max_examples:
+                break
+            values = list(value_map)
+            if not values:
+                continue
+            with connection.cursor(name=f"semantic_closure_examples_{slug(field)}_{os.getpid()}") as cursor:
+                cursor.execute(query, (field, field, snapshot_id, field, values, per_value))
+                while len(examples) < max_examples:
+                    rows = cursor.fetchmany(1000)
+                    if not rows:
+                        break
+                    for accession, organism, biosample, payload, value in rows:
+                        standardized_value = str(value or "").strip()
+                        flag = value_map.get(standardized_value)
+                        if not flag:
+                            continue
+                        payload = read_payload(payload)
+                        raw_field, raw_value, evidence_match = raw_match_context(payload, standardized_value)
+                        example = {
+                            "field": field,
+                            "standardized_value": standardized_value,
+                            "primary_semantic_class": flag["primary_semantic_class"],
+                            "secondary_semantic_classes": flag["secondary_semantic_classes"],
+                            "semantic_components": flag["semantic_components"],
+                            "action_class": flag["action_class"],
+                            "additive_destinations": flag["additive_destinations"],
+                            "remove_from_current_field": flag["remove_from_current_field"],
+                            "reason": flag["reason"],
+                            "assembly_accession": str(accession),
+                            "biosample": str(biosample or ""),
+                            "organism": str(organism or ""),
+                            "raw_attribute_name": raw_field,
+                            "raw_value": raw_value,
+                            "evidence_match_type": evidence_match,
+                        }
+                        for context_field in CONTEXT_FIELDS:
+                            example[context_field] = payload.get(context_field, "")
+                        examples.append(example)
+                        if len(examples) >= max_examples:
+                            break
+    return examples
+
+
+def target_value_examples_for_snapshot(snapshot_id: str, value_rows: list[dict[str, Any]], per_value: int, max_examples: int = MAX_HIGH_IMPACT_EXAMPLES) -> list[dict[str, Any]]:
+    target_slugs = {slug(value) for value in TARGET_VALUES}
+    candidates = []
+    for row in value_rows:
+        normalized = normalize(row["standardized_value"])
+        if slug(normalized) in target_slugs or normalized in TARGET_VALUES:
+            candidates.append(queue_row(row, "Targeted value requested for semantic review.", row["additive_destinations"]))
+    return example_rows_for_snapshot(snapshot_id, candidates, per_value, max_examples=max_examples)
 
 
 def migration_decisions(flags: dict[str, list[dict[str, Any]]]) -> list[dict[str, Any]]:
@@ -884,8 +1143,16 @@ def field_contract_rows() -> list[dict[str, Any]]:
         "Host_Health_State_SD": "Strict health state only: healthy, diseased, asymptomatic, symptomatic, unknown.",
         "Host_Production_Context_SD": "Production/husbandry context when applicable.",
         "Host_Anatomical_Site_SD": "Anatomical part of a confirmed biological host.",
+        "Host_Hospitalization_Status_SD": "Hospitalization status only.",
+        "Host_Vital_Status_SD": "Host vital status only.",
+        "Host_Colonization_Status_SD": "Host colonization or carriage status only.",
+        "Host_Disease_Stage_SD": "Disease stage/phase only.",
+        "Host_Exposure_Context_SD": "Exposure or contact context only.",
         "Sample_Type_SD": "Backward-compatible NCBI-style umbrella sample type; decompose into strict derived axes before migration.",
         "Sample_Type_SD_Broad": "Backward-compatible broad sample type/context umbrella.",
+        "Sample_Material_SD": "Strict physical specimen or material axis.",
+        "Sampling_Context_SD": "Sampling context when material/source alone is not a physical specimen.",
+        "Host_Anatomical_Material_SD": "Host-derived material such as blood, stool, pus or CSF; distinct from anatomical site.",
         "Isolation_Source_SD": "Backward-compatible normalized physical/environmental/local source value; not a strict context-only field.",
         "Isolation_Source_SD_Broad": "Broad source-context umbrella; may include compatibility categories requiring decomposition.",
         "Isolation_Site_SD": "Sampling/isolation site when no host-specific assertion is made, or legacy site field pending contract decision.",
@@ -924,6 +1191,17 @@ def proposed_regression_tests() -> list[dict[str, Any]]:
         ("specific pathogen free", "production context, not health state"),
         ("patient sample", "human/clinical sampling context; not health state"),
         ("banana blood disease", "disease context; must not create blood sample type"),
+        ("environmental swab from patient room surface", "environmental collection context; not clinical-subject or human-host inference"),
+        ("patient-room surface swab", "environmental surface swab; not clinical-subject specimen"),
+        ("hospital sink swab", "built/healthcare environment swab; not host specimen"),
+        ("soil colonized by oak and ash forest", "ecological colonization; not host colonization status"),
+        ("larvae colonized with bacteria", "host colonization status only with biological-host evidence"),
+        ("dead food product", "food/product context; not host vital status"),
+        ("live bait", "food/source context; not host vital status"),
+        ("marine", "broad environment; not environment medium"),
+        ("seawater", "environment medium; not broad environment"),
+        ("laboratory", "laboratory sampling context unless explicit facility/environment evidence"),
+        ("culture medium", "sample/source material context; not environmental medium"),
     ]
     return [{"raw_value": raw_value, "expected_behavior": expected, "phase": "phase1_classifier_regression"} for raw_value, expected in examples]
 
@@ -948,6 +1226,7 @@ def semantic_signal_rows(value_rows: list[dict[str, Any]]) -> list[dict[str, Any
 
 def action_and_unique_counts(records: list[dict[str, Any]], signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
     flagged = {(row.get("current_field") or row["field"], row["standardized_value"]): row for row in signal_rows}
+    flagged_fields = sorted({field for field, _value in flagged})
     unique_any: set[str] = set()
     unique_confirmed: set[str] = set()
     unique_review: set[str] = set()
@@ -959,7 +1238,7 @@ def action_and_unique_counts(records: list[dict[str, Any]], signal_rows: list[di
         seen_for_record = False
         seen_confirmed = False
         seen_review = False
-        for field in AUDIT_FIELDS:
+        for field in flagged_fields:
             value = str(payload.get(field) or "").strip()
             row = flagged.get((field, value))
             if not row:
@@ -978,6 +1257,56 @@ def action_and_unique_counts(records: list[dict[str, Any]], signal_rows: list[di
             unique_confirmed.add(accession)
         if seen_review:
             unique_review.add(accession)
+    return {
+        "unique_assemblies_with_any_semantic_signal": len(unique_any),
+        "unique_assemblies_with_confirmed_high_confidence_signal": len(unique_confirmed),
+        "unique_assemblies_with_review_or_uncertain_signal": len(unique_review),
+        "field_value_assignment_occurrences": assignment_occurrences,
+        "action_assignment_counts": dict(sorted(action_counts.items())),
+    }
+
+
+def action_and_unique_counts_for_snapshot(snapshot_id: str, signal_rows: list[dict[str, Any]]) -> dict[str, Any]:
+    flagged_by_field: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in signal_rows:
+        field = row.get("current_field") or row["field"]
+        flagged_by_field[field][row["standardized_value"]] = row
+    unique_any: set[str] = set()
+    unique_confirmed: set[str] = set()
+    unique_review: set[str] = set()
+    assignment_occurrences = 0
+    action_counts: Counter[str] = Counter()
+    query = """
+        SELECT i.assembly_accession, s.standardized_payload ->> %s AS standardized_value
+        FROM bacterial_inventory_membership AS i
+        JOIN assembly_standardization AS s ON s.assembly_accession = i.assembly_accession
+        WHERE i.snapshot_id = %s
+          AND s.standardized_payload ->> %s = ANY(%s::text[])
+    """
+    with connect() as connection:
+        for field, value_map in sorted(flagged_by_field.items()):
+            values = list(value_map)
+            if not values:
+                continue
+            with connection.cursor(name=f"semantic_closure_signal_{slug(field)}_{os.getpid()}") as cursor:
+                cursor.execute(query, (field, snapshot_id, field, values))
+                while True:
+                    rows = cursor.fetchmany(10000)
+                    if not rows:
+                        break
+                    for accession, value in rows:
+                        row = value_map.get(str(value or ""))
+                        if not row:
+                            continue
+                        accession = str(accession)
+                        assignment_occurrences += 1
+                        action = row["action_class"]
+                        action_counts[action] += 1
+                        unique_any.add(accession)
+                        if action == "confirmed_high_confidence_fix":
+                            unique_confirmed.add(accession)
+                        if action in {"manual_review", "classifier_uncertain", "composite_requires_split"}:
+                            unique_review.add(accession)
     return {
         "unique_assemblies_with_any_semantic_signal": len(unique_any),
         "unique_assemblies_with_confirmed_high_confidence_signal": len(unique_confirmed),
@@ -1006,6 +1335,11 @@ def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
         "| --- | ---: |",
         f"| Canonical rows audited | {summary['rows_audited']:,} |",
         f"| Distinct standardized field values classified | {summary['distinct_values_classified']:,} |",
+        f"| Strict-field value pairs classified | {summary['strict_field_value_pairs_classified']:,} |",
+        f"| Strict-field violation assignment occurrences | {summary['strict_field_violation_assignment_occurrences']:,} |",
+        f"| Ambiguous/review assignment occurrences | {summary['ambiguous_group_assignment_occurrences']:,} |",
+        f"| Preserved-conflict/compatibility assignment occurrences | {summary['preserved_conflict_group_assignment_occurrences']:,} |",
+        f"| Rows with semantic-axis provenance | {summary['semantic_axis_provenance_rows_present']:,} |",
         f"| All candidate assignment occurrences | {summary['field_value_assignment_occurrences']:,} |",
         f"| Field-value pairs with queue signals | {summary['field_value_pairs_with_queue_signals']:,} |",
         f"| Field-value pairs with any semantic candidate signal | {summary['field_value_pairs_with_any_semantic_signal']:,} |",
@@ -1044,18 +1378,52 @@ def write_summary_md(path: Path, summary: dict[str, Any]) -> None:
 
 
 def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, command_line: str) -> dict[str, Any]:
-    records = load_records(snapshot_id)
-    value_rows = distinct_values(records)
+    rows_audited, semantic_axis_provenance_rows_present, value_rows = distinct_values_for_snapshot(snapshot_id)
     flags = incompatibility_rows(value_rows)
     flagged_rows = [row for rows in flags.values() for row in rows]
     unique_flagged = {(row["field"], row["standardized_value"]): row for row in flagged_rows}
-    examples = example_rows(records, list(unique_flagged.values()), example_limit)
-    target_examples = target_value_examples(records, value_rows, example_limit)
-    example_keys = {(row["field"], row["standardized_value"], row["assembly_accession"]) for row in examples}
-    all_examples = examples + [row for row in target_examples if (row["field"], row["standardized_value"], row["assembly_accession"]) not in example_keys]
+    target_slugs = {slug(value) for value in TARGET_VALUES}
+    for row in value_rows:
+        normalized = normalize(row["standardized_value"])
+        if slug(normalized) in target_slugs or normalized in TARGET_VALUES:
+            unique_flagged.setdefault(
+                (row["field"], row["standardized_value"]),
+                queue_row(row, "Targeted value requested for semantic review.", row["additive_destinations"]),
+            )
+    example_candidates = sorted(
+        unique_flagged.values(),
+        key=lambda row: (-int(row.get("row_count", 0)), row["field"], row["standardized_value"]),
+    )[:MAX_HIGH_IMPACT_EXAMPLE_GROUPS]
+    all_examples = example_rows_for_snapshot(snapshot_id, example_candidates, example_limit, max_examples=MAX_HIGH_IMPACT_EXAMPLES)
     migration_rows = migration_decisions(flags)
+    strict_field_rows = [row for row in value_rows if row["field"] in STRICT_FIELDS]
+    strict_violation_rows = [
+        row for row in strict_field_rows
+        if row["field_compatibility"] == "incompatible" or row["remove_from_current_field"] == "true"
+    ]
+    ambiguous_group_rows = [
+        row for row in value_rows
+        if row["action_class"] in {"manual_review", "classifier_uncertain", "composite_requires_split"}
+    ]
+    preserved_conflict_group_rows = [
+        row for row in value_rows
+        if row["action_class"] in {"legacy_compatibility_label", "compatible_composite"}
+    ]
+    proposed_exact_rows = [
+        row for row in migration_rows
+        if row["action_class"] in {"confirmed_high_confidence_fix", "manual_review"}
+        and row["current_field"] in STRICT_FIELDS
+    ]
+    proposed_additive_rows = [
+        row for row in value_rows
+        if row["action_class"] in {"additive_axis_enrichment", "composite_requires_split", "legacy_compatibility_label"}
+    ]
+    proposed_manual_rows = [
+        row for row in value_rows
+        if row["action_class"] in {"manual_review", "classifier_uncertain"}
+    ]
     all_signal_rows = semantic_signal_rows(value_rows)
-    unique_counts = action_and_unique_counts(records, all_signal_rows)
+    unique_counts = action_and_unique_counts_for_snapshot(snapshot_id, all_signal_rows)
     queue_counts = [
         {"queue": queue, "distinct_values": len(rows), "assignment_count": sum(int(row["row_count"]) for row in rows)}
         for queue, rows in flags.items()
@@ -1087,10 +1455,17 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
     ]
     write_tsv(output_dir / "semantic_field_contract.tsv", ["field", "strict_meaning", "allowed_semantic_classes", "field_role", "phase1_action"], field_contract_rows())
     write_tsv(output_dir / "all_standardized_values_classified.tsv", value_header, field_count_rows(value_rows))
+    write_tsv(output_dir / "strict_field_value_classification.tsv", value_header, field_count_rows(strict_field_rows))
+    write_tsv(output_dir / "all_strict_field_violations.tsv", value_header, field_count_rows(strict_violation_rows))
+    write_tsv(output_dir / "full_ambiguous_group_counts.tsv", value_header, field_count_rows(ambiguous_group_rows))
+    write_tsv(output_dir / "full_preserved_conflict_group_counts.tsv", value_header, field_count_rows(preserved_conflict_group_rows))
     for queue, filename in INCOMPATIBILITY_FILES.items():
         write_tsv(output_dir / filename, queue_header, flags[queue])
     write_tsv(output_dir / "high_impact_examples.tsv", example_header, all_examples)
     write_tsv(output_dir / "recommended_migration_decisions.tsv", migration_header, migration_rows)
+    write_tsv(output_dir / "proposed_exact_corrections.tsv", migration_header, proposed_exact_rows)
+    write_tsv(output_dir / "proposed_additive_decompositions.tsv", value_header, field_count_rows(proposed_additive_rows))
+    write_tsv(output_dir / "proposed_manual_review.tsv", value_header, field_count_rows(proposed_manual_rows))
     write_tsv(output_dir / "all_additive_axis_enrichment_candidates.tsv", value_header, candidate_rows_by_action(value_rows, "additive_axis_enrichment"))
     write_tsv(output_dir / "all_compatible_composite_candidates.tsv", value_header, compatible_composite_rows(value_rows))
     write_tsv(output_dir / "confirmed_high_confidence_fixes.tsv", value_header, candidate_rows_by_action(value_rows, "confirmed_high_confidence_fix"))
@@ -1116,12 +1491,23 @@ def generate_audit(snapshot_id: str, output_dir: Path, example_limit: int, comma
         "canonical_refresh_run": False,
         "global_insights_regenerated": False,
         "deployment_run": False,
-        "rows_audited": len(records),
+        "rows_audited": rows_audited,
+        "semantic_axis_provenance_rows_present": semantic_axis_provenance_rows_present,
         "distinct_values_classified": len(value_rows),
+        "strict_field_value_pairs_classified": len(strict_field_rows),
+        "strict_field_violation_value_pairs": len(strict_violation_rows),
+        "strict_field_violation_assignment_occurrences": sum(int(row["row_count"]) for row in strict_violation_rows),
+        "ambiguous_group_value_pairs": len(ambiguous_group_rows),
+        "ambiguous_group_assignment_occurrences": sum(int(row["row_count"]) for row in ambiguous_group_rows),
+        "preserved_conflict_group_value_pairs": len(preserved_conflict_group_rows),
+        "preserved_conflict_group_assignment_occurrences": sum(int(row["row_count"]) for row in preserved_conflict_group_rows),
         "field_value_pairs_with_queue_signals": len(unique_flagged),
         "field_value_pairs_with_any_semantic_signal": len({(row["field"], row["standardized_value"]) for row in all_signal_rows}),
         "incompatibility_queue_counts": queue_counts,
         "semantic_classes": SEMANTIC_CLASSES,
+        "high_impact_examples_max_groups": MAX_HIGH_IMPACT_EXAMPLE_GROUPS,
+        "high_impact_examples_max_rows": MAX_HIGH_IMPACT_EXAMPLES,
+        "high_impact_examples_written": len(all_examples),
         "audit_note": "Counts are semantic review/decomposition signals, not confirmed erroneous records.",
         **unique_counts,
     }
