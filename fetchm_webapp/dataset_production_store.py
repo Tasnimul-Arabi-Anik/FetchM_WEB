@@ -887,6 +887,33 @@ def _payload_value(payload: Any, field: str) -> str:
     return str(value or "").strip()
 
 
+_MISSING_PAYLOAD_VALUES = {
+    "",
+    "na",
+    "n/a",
+    "none",
+    "null",
+    "unknown",
+    "missing",
+    "not collected",
+    "not provided",
+    "not reported",
+    "not applicable",
+    "unavailable",
+    "absent",
+}
+
+
+def _payload_value_present(payload: Any, field: str) -> bool:
+    return _payload_value(payload, field).casefold() not in _MISSING_PAYLOAD_VALUES
+
+
+def _percent(numerator: int, denominator: int) -> int:
+    if denominator <= 0:
+        return 0
+    return int(round((numerator / denominator) * 100))
+
+
 def domain_taxon_search_results(
     domain_key: str,
     query: str,
@@ -970,6 +997,57 @@ def _top_payload_values(rows: list[dict[str, Any]], field: str, *, limit: int = 
     ]
 
 
+def _payload_distinct_count(rows: list[dict[str, Any]], field: str) -> int:
+    values = {
+        _payload_value(row.get("payload"), field).casefold()
+        for row in rows
+        if _payload_value_present(row.get("payload"), field)
+    }
+    return len(values)
+
+
+def _domain_standardized_coverage(rows: list[dict[str, Any]], raw_field: str, standardized_field: str, label: str) -> dict[str, Any]:
+    total = len(rows)
+    raw_present = sum(1 for row in rows if _payload_value_present(row.get("payload"), raw_field))
+    standardized_present = sum(1 for row in rows if _payload_value_present(row.get("payload"), standardized_field))
+    return {
+        "label": label,
+        "raw_field": raw_field,
+        "standardized_field": standardized_field,
+        "raw_present": raw_present,
+        "standardized_present": standardized_present,
+        "raw_percent": _percent(raw_present, total),
+        "standardized_percent": _percent(standardized_present, total),
+        "recovered": max(0, standardized_present - raw_present),
+    }
+
+
+def _domain_completeness_rows(rows: list[dict[str, Any]], fields: list[str]) -> list[dict[str, Any]]:
+    total = len(rows)
+    output: list[dict[str, Any]] = []
+    for field in fields:
+        present = sum(1 for row in rows if _payload_value_present(row.get("payload"), field))
+        output.append({
+            "field": field,
+            "present": present,
+            "missing": max(0, total - present),
+            "present_percent": _percent(present, total),
+        })
+    return output
+
+
+def _domain_year_span(rows: list[dict[str, Any]]) -> tuple[int | None, int | None]:
+    years: list[int] = []
+    for row in rows:
+        value = _payload_value(row.get("payload"), "Collection Date")
+        match = re.search(r"\b((?:19|20)\d{2})\b", value)
+        if match:
+            years.append(int(match.group(1)))
+    if not years:
+        return None, None
+    return min(years), max(years)
+
+
 def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: str | None = None) -> dict[str, Any] | None:
     key = normalize_domain_pipeline_key(domain_key)
     rank = str(rank or "").strip().lower()
@@ -1028,12 +1106,53 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
             "organism_name": row["organism_name"],
             "biosample_accession": row["biosample_accession"],
             "country": _payload_value(payload, "Country"),
+            "collection_date": _payload_value(payload, "Collection Date"),
             "host": _payload_value(payload, "Host_SD") or _payload_value(payload, "Host"),
+            "host_context": _payload_value(payload, "Host_Context_SD"),
             "isolation_source": _payload_value(payload, "Isolation_Source_SD") or _payload_value(payload, "Isolation Source"),
             "sample_type": _payload_value(payload, "Sample_Type_SD") or _payload_value(payload, "Sample Type"),
+            "sample_material": _payload_value(payload, "Sample_Material_SD"),
             "environment_medium": _payload_value(payload, "Environment_Medium_SD"),
+            "environment_broad": _payload_value(payload, "Environment_Broad_Scale_SD"),
+            "environment_local": _payload_value(payload, "Environment_Local_Scale_SD"),
+            "isolation_site": _payload_value(payload, "Isolation_Site_SD"),
             "assembly_level": _payload_value(payload, "Assembly Level"),
         })
+    species_labels = {
+        label["name"].casefold()
+        for row in rows
+        for label in domain_taxon_labels_for_organism(row["organism_name"])
+        if label["rank"] == "species"
+    }
+    year_start, year_end = _domain_year_span(rows)
+    complete_genome_count = sum(
+        1
+        for row in rows
+        if _payload_value(row.get("payload"), "Assembly Level").casefold() == "complete genome"
+    )
+    standardized_coverage = [
+        _domain_standardized_coverage(rows, "Host", "Host_SD", "Host"),
+        _domain_standardized_coverage(rows, "Isolation Source", "Isolation_Source_SD", "Isolation source"),
+        _domain_standardized_coverage(rows, "Sample Type", "Sample_Type_SD", "Sample type"),
+        _domain_standardized_coverage(rows, "Environment Medium", "Environment_Medium_SD", "Environment medium"),
+        _domain_standardized_coverage(rows, "Environment (Broad Scale)", "Environment_Broad_Scale_SD", "Broad environment"),
+        _domain_standardized_coverage(rows, "Environment (Local Scale)", "Environment_Local_Scale_SD", "Local environment"),
+    ]
+    completeness_rows = _domain_completeness_rows(rows, [
+        "Country",
+        "Geographic Location",
+        "Collection Date",
+        "Assembly Level",
+        "Host_SD",
+        "Isolation_Source_SD",
+        "Sample_Type_SD",
+        "Environment_Medium_SD",
+        "Environment_Broad_Scale_SD",
+        "Environment_Local_Scale_SD",
+        "Sample_Material_SD",
+    ])
+    domain_profiles = _top_payload_values(rows, "FetchM_Domain_Profile", limit=5)
+    release_statuses = _top_payload_values(rows, "FetchM_Public_Release_Status", limit=5)
     return {
         "domain_key": key,
         "snapshot_id": snapshot_id,
@@ -1043,13 +1162,39 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
         "row_count": len(rows),
         "public_enabled": False,
         "release_locked": True,
+        "summary_metrics": {
+            "distinct_species_count": len(species_labels),
+            "distinct_country_count": _payload_distinct_count(rows, "Country"),
+            "year_start": year_start,
+            "year_end": year_end,
+            "complete_genome_count": complete_genome_count,
+            "complete_genome_percent": _percent(complete_genome_count, len(rows)),
+            "standardized_profile": domain_profiles[0]["value"] if domain_profiles else "",
+            "release_status": release_statuses[0]["value"] if release_statuses else "locked_admin_hidden",
+        },
+        "standardized_coverage": standardized_coverage,
+        "completeness_rows": completeness_rows,
+        "domain_profiles": domain_profiles,
+        "release_statuses": release_statuses,
         "top_countries": _top_payload_values(rows, "Country"),
         "top_hosts": _top_payload_values(rows, "Host_SD"),
+        "top_host_contexts": _top_payload_values(rows, "Host_Context_SD"),
+        "top_host_diseases": _top_payload_values(rows, "Host_Disease_SD"),
+        "top_host_health_states": _top_payload_values(rows, "Host_Health_State_SD"),
         "top_isolation_sources": _top_payload_values(rows, "Isolation_Source_SD"),
         "top_sample_types": _top_payload_values(rows, "Sample_Type_SD"),
+        "top_sample_materials": _top_payload_values(rows, "Sample_Material_SD"),
         "top_environment_media": _top_payload_values(rows, "Environment_Medium_SD"),
+        "top_environment_broad": _top_payload_values(rows, "Environment_Broad_Scale_SD"),
+        "top_environment_local": _top_payload_values(rows, "Environment_Local_Scale_SD"),
+        "top_isolation_sites": _top_payload_values(rows, "Isolation_Site_SD"),
         "top_assembly_levels": _top_payload_values(rows, "Assembly Level"),
         "examples": examples,
+        "presentation_notes": [
+            "Admin-only hidden Archaea report; public routes remain disabled.",
+            "Rows use the archaea_hidden_v1 profile while reusing shared normalization primitives.",
+            "Archaea-specific biological thresholds and public release remain blocked pending separate review.",
+        ],
     }
 
 

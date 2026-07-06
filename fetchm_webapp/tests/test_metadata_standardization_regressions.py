@@ -643,6 +643,20 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                         {
                             "Organism Name": "Candidatus Methanobrevibacter intestini isolate A",
                             "Country": "USA",
+                            "Collection Date": "2020",
+                            "Assembly Level": "Complete Genome",
+                            "Host": "human",
+                            "Host_SD": "Homo sapiens",
+                            "Host_Context_SD": "human-associated",
+                            "Isolation Source": "hot spring water",
+                            "Isolation_Source_SD": "hot spring",
+                            "Sample Type": "water",
+                            "Sample_Type_SD": "water",
+                            "Sample_Material_SD": "water",
+                            "Environment Medium": "water",
+                            "Environment_Medium_SD": "water",
+                            "Environment_Broad_Scale_SD": "hydrothermal vent",
+                            "FetchM_Domain_Profile": "archaea_hidden_v1",
                             "FetchM_Public_Release_Status": "locked_admin_hidden",
                         },
                     )
@@ -668,6 +682,17 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(report["row_count"], 1)
         self.assertEqual(report["name"], "Methanobrevibacter")
         self.assertEqual(captured_params[0][2], "%methanobrevibacter%")
+        self.assertEqual(report["summary_metrics"]["distinct_species_count"], 1)
+        self.assertEqual(report["summary_metrics"]["distinct_country_count"], 1)
+        self.assertEqual(report["summary_metrics"]["year_start"], 2020)
+        self.assertEqual(report["summary_metrics"]["complete_genome_count"], 1)
+        self.assertEqual(report["summary_metrics"]["standardized_profile"], "archaea_hidden_v1")
+        coverage = {item["label"]: item for item in report["standardized_coverage"]}
+        self.assertEqual(coverage["Host"]["raw_present"], 1)
+        self.assertEqual(coverage["Host"]["standardized_present"], 1)
+        self.assertEqual(coverage["Isolation source"]["standardized_percent"], 100)
+        self.assertEqual(report["top_environment_broad"][0]["value"], "hydrothermal vent")
+        self.assertEqual(report["top_sample_materials"][0]["value"], "water")
 
     def test_hidden_archaea_admin_routes_require_admin_and_render_results(self) -> None:
         with isolated_initialized_app_client() as client:
@@ -860,6 +885,8 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("GCA_000000001.1", html)
             self.assertIn("hot spring", html)
             self.assertIn("Admin-only report", html)
+            self.assertIn("Standardization Coverage", html)
+            self.assertIn("Core Completeness", html)
 
     def test_hidden_domain_store_allowlists_archaea_only(self) -> None:
         self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")
