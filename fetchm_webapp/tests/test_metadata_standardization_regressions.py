@@ -38,6 +38,7 @@ from dataset_production_store import canonical_partition_from_organism_name, par
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_host_review_decisions as host_review_importer
+from tools import qa_hidden_domain_pipeline as hidden_domain_qa_tool
 
 
 @contextmanager
@@ -563,6 +564,69 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn({"rank": "genus", "name": "Methanocaldococcus"}, labels)
         self.assertIn({"rank": "species", "name": "Methanocaldococcus jannaschii"}, labels)
 
+
+
+    def test_hidden_domain_qa_passes_complete_locked_archaea_snapshot(self) -> None:
+        class FakeResult:
+            def __init__(self, row):
+                self.row = row
+
+            def fetchone(self):
+                return self.row
+
+        class FakeConnection:
+            def execute(self, query, _params):
+                if "FROM domain_inventory_snapshot" in query:
+                    return FakeResult(("completed", "admin_hidden", True, 44183, 44183, 0, 0, "done", None))
+                if "FROM domain_inventory_task" in query:
+                    return FakeResult(("completed", True, "done", None))
+                if "FROM domain_metadata_fetch_task" in query:
+                    return FakeResult(("completed", False, "done", None, {}))
+                if "FROM domain_assembly_standardization" in query:
+                    return FakeResult((44183, 44183, 44183, 44183, 44183, 44183, 0))
+                raise AssertionError(query)
+
+        @contextmanager
+        def fake_connect():
+            yield FakeConnection()
+
+        with patch.object(hidden_domain_qa_tool, "connect", fake_connect), patch.object(
+            hidden_domain_qa_tool,
+            "domain_standardized_metadata_coverage",
+            return_value={
+                "root_unique_assemblies": 44183,
+                "standardized_assemblies": 44183,
+                "missing_standardized_assemblies": 0,
+            },
+        ):
+            summary = hidden_domain_qa_tool.collect_hidden_domain_qa(
+                "archaea",
+                "20260706T163621Z_genbank_archaea_root",
+            )
+        self.assertEqual(summary["status"], "pass")
+        self.assertEqual(summary["hard_failure_count"], 0)
+        self.assertEqual(summary["standardized_assemblies"], 44183)
+        self.assertTrue(summary["release_locked"])
+
+    def test_hidden_domain_qa_writer_outputs_valid_markdown(self) -> None:
+        summary = {
+            "domain_key": "archaea",
+            "snapshot_id": "snapshot",
+            "status": "pass",
+            "hard_failure_count": 0,
+            "root_unique_assemblies": 1,
+            "standardized_assemblies": 1,
+            "missing_standardized_assemblies": 0,
+            "checks": [{"key": "release_locked", "status": "pass", "detail": "release_locked=True"}],
+        }
+        with TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            hidden_domain_qa_tool.write_outputs(summary, output_dir)
+            markdown = (output_dir / "qa_summary.md").read_text(encoding="utf-8")
+            payload = json.loads((output_dir / "qa_summary.json").read_text(encoding="utf-8"))
+        self.assertIn("# Hidden Domain QA Summary", markdown)
+        self.assertNotIn('f"-', markdown)
+        self.assertEqual(payload["domain_key"], "archaea")
 
     def test_hidden_domain_taxon_report_includes_candidatus_prefixed_genus(self) -> None:
         captured_params = []
