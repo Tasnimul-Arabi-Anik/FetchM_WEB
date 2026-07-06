@@ -49,7 +49,7 @@
     "unauthenticated_admin_archaea_location": "/login?next=/admin/archaea"
   },
   "tests": {
-    "full_unittest_discovery": "154 tests OK",
+    "full_unittest_discovery": "156 tests OK",
     "py_compile": "passed",
     "git_diff_check": "passed"
   },

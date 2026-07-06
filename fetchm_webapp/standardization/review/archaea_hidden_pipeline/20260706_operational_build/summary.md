@@ -42,7 +42,7 @@ Status: `admin_hidden_operational_build_complete`
 
 ## Validation
 
-- Full unittest discovery: 154 tests OK
+- Full unittest discovery: 156 tests OK
 - `py_compile`: passed
 - `git diff --check`: passed
 
