@@ -484,6 +484,28 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
         self.assertTrue(all(card["disabled"] for card in busy_cards))
 
+    def test_canonical_pipeline_domain_options_include_hidden_archaea(self) -> None:
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain(None), "bacteria")
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain("Archaea"), "archaea")
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain("unknown"), "bacteria")
+
+        options = fetchm_app.canonical_pipeline_domain_options("archaea")
+        by_key = {option["key"]: option for option in options}
+        self.assertEqual(set(by_key), {"bacteria", "archaea"})
+        self.assertTrue(by_key["archaea"]["selected"])
+        self.assertFalse(by_key["archaea"]["public_enabled"])
+        self.assertFalse(by_key["archaea"]["canonical_backend_ready"])
+        self.assertTrue(by_key["bacteria"]["canonical_backend_ready"])
+
+    def test_archaea_background_pipeline_preview_is_disabled(self) -> None:
+        domain = fetchm_app.canonical_pipeline_domain_config("archaea")
+        cards = fetchm_app.background_pipeline_preview_cards(domain)
+        self.assertEqual([card["key"] for card in cards], ["inventory", "standardization_rules", "qa_gate"])
+        self.assertTrue(all(card["disabled"] for card in cards))
+        self.assertTrue(all(card["percent"] == 0 for card in cards))
+        self.assertIn("TaxID 2157", cards[0]["details"][0])
+        self.assertIn("bacterial tables are not reused", cards[0]["details"][1])
+
     def test_canonical_seed_skips_legacy_sqlite_when_accession_cache_exists(self) -> None:
         coverage = {
             "root_unique_assemblies": 1000,
