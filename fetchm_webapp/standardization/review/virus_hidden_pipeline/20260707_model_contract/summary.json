@@ -1,0 +1,43 @@
+{
+  "canonical_entities": [
+    "common_record",
+    "virus_sequence",
+    "virus_genome_group",
+    "biosample",
+    "taxon_relationship",
+    "standardized_metadata_payload"
+  ],
+  "domain_key": "virus",
+  "generated_at_utc": "2026-07-06T18:52:22+00:00",
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "release_locked": true,
+  "schema_tables_added": [
+    "domain_virus_sequence_record",
+    "domain_virus_genome_group",
+    "domain_taxon_relationship"
+  ],
+  "semantic_boundary": [
+    "Virus records remain virus-domain records even when host relationships target bacteria or archaea.",
+    "Host, lab-host, predicted-host, and isolated-from-host are modeled as relationships.",
+    "Segmented viruses are represented as sequence records that may share a genome group.",
+    "GCA/GCF reports are treated as virus assembly surrogates until the sequence-level adapter is populated."
+  ],
+  "source_adapter_fields": [
+    "FetchM_Virus_Record_Model",
+    "Virus_Primary_Accession",
+    "Virus_Sequence_Accession",
+    "Virus_Assembly_Accession",
+    "Virus_Genome_Group_ID",
+    "Virus_Molecule_Type",
+    "Virus_Segment",
+    "Virus_Genome_Completeness",
+    "Virus_Isolate",
+    "Virus_Host_Relationship_Count",
+    "Virus_Host_Relationships_JSON"
+  ],
+  "status": "hidden model contract scaffold",
+  "validation": {
+    "focused_domain_profile_tests": "8 passed"
+  }
+}

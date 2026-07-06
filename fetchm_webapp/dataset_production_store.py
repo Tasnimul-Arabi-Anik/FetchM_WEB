@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterable, Iterator
 
+from domain_profiles import domain_profile, hidden_domain_store_configs
+
 try:
     import psycopg
     from psycopg.types.json import Jsonb
@@ -23,37 +25,11 @@ except ImportError:  # Runtime dependency is installed in the application image.
 DATASET_DATABASE_URL_ENV = "FETCHM_WEBAPP_DATASET_DATABASE_URL"
 CANONICAL_SOURCE_DATABASE = "genbank"
 CANONICAL_ACCESSION_NAMESPACE = "GCA"
-BACTERIA_TAXON_ID = 2
-ARCHAEA_TAXON_ID = 2157
-VIRUS_TAXON_ID = 10239
+BACTERIA_TAXON_ID = domain_profile("bacteria").root_taxon_id
+ARCHAEA_TAXON_ID = domain_profile("archaea").root_taxon_id
+VIRUS_TAXON_ID = domain_profile("virus").root_taxon_id
 
-DOMAIN_PIPELINE_CONFIGS: dict[str, dict[str, Any]] = {
-    "archaea": {
-        "domain_key": "archaea",
-        "label": "Archaea",
-        "root_taxon_id": ARCHAEA_TAXON_ID,
-        "source_database": CANONICAL_SOURCE_DATABASE,
-        "canonical_accession_namespace": CANONICAL_ACCESSION_NAMESPACE,
-        "profile": "archaea_hidden_v1",
-        "release_status": "locked_admin_hidden",
-        "visibility": "admin_hidden",
-        "public_enabled": False,
-        "release_locked": True,
-    },
-    "virus": {
-        "domain_key": "virus",
-        "label": "Virus",
-        "root_taxon_id": VIRUS_TAXON_ID,
-        "source_database": CANONICAL_SOURCE_DATABASE,
-        "canonical_accession_namespace": CANONICAL_ACCESSION_NAMESPACE,
-        "profile": "virus_hidden_v1",
-        "release_status": "locked_admin_hidden",
-        "visibility": "admin_hidden",
-        "record_model": "virus_sequence_or_assembly_pending",
-        "public_enabled": False,
-        "release_locked": True,
-    },
-}
+DOMAIN_PIPELINE_CONFIGS: dict[str, dict[str, Any]] = hidden_domain_store_configs()
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS canonical_inventory_task (
@@ -455,6 +431,68 @@ CREATE INDEX IF NOT EXISTS idx_domain_inventory_page_status
 ON domain_inventory_page (domain_key, snapshot_id, status, page_number);
 CREATE INDEX IF NOT EXISTS idx_domain_inventory_membership_accession
 ON domain_inventory_membership (domain_key, assembly_accession);
+CREATE TABLE IF NOT EXISTS domain_virus_sequence_record (
+    domain_key TEXT NOT NULL DEFAULT 'virus',
+    sequence_accession TEXT NOT NULL,
+    genome_group_id TEXT NOT NULL,
+    assembly_accession TEXT,
+    source_database TEXT NOT NULL DEFAULT 'genbank',
+    organism_name TEXT,
+    tax_id BIGINT,
+    biosample_accession TEXT,
+    molecule_type TEXT,
+    segment_name TEXT,
+    genome_completeness TEXT,
+    isolate_name TEXT,
+    source_snapshot_id TEXT NOT NULL,
+    raw_fingerprint TEXT NOT NULL,
+    raw_payload JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (domain_key, sequence_accession),
+    CHECK (domain_key = 'virus')
+);
+
+CREATE TABLE IF NOT EXISTS domain_virus_genome_group (
+    domain_key TEXT NOT NULL DEFAULT 'virus',
+    genome_group_id TEXT NOT NULL,
+    representative_accession TEXT NOT NULL,
+    organism_name TEXT,
+    tax_id BIGINT,
+    biosample_accession TEXT,
+    segment_count INTEGER NOT NULL DEFAULT 0,
+    source_snapshot_id TEXT NOT NULL,
+    raw_payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (domain_key, genome_group_id),
+    CHECK (domain_key = 'virus')
+);
+
+CREATE TABLE IF NOT EXISTS domain_taxon_relationship (
+    relationship_id TEXT PRIMARY KEY,
+    domain_key TEXT NOT NULL,
+    subject_accession TEXT NOT NULL,
+    subject_record_type TEXT NOT NULL,
+    relationship_type TEXT NOT NULL,
+    target_taxon_id BIGINT,
+    target_taxon_name TEXT NOT NULL,
+    target_domain TEXT NOT NULL,
+    evidence_type TEXT NOT NULL,
+    confidence TEXT NOT NULL,
+    source_field TEXT NOT NULL,
+    raw_value TEXT NOT NULL,
+    normalized_value TEXT NOT NULL,
+    source_snapshot_id TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    CHECK (domain_key <> 'bacteria')
+);
+
+CREATE INDEX IF NOT EXISTS idx_domain_virus_sequence_group
+ON domain_virus_sequence_record (genome_group_id);
+CREATE INDEX IF NOT EXISTS idx_domain_taxon_relationship_subject
+ON domain_taxon_relationship (domain_key, subject_accession);
+CREATE INDEX IF NOT EXISTS idx_domain_taxon_relationship_target
+ON domain_taxon_relationship (target_domain, target_taxon_id);
+
 CREATE INDEX IF NOT EXISTS idx_domain_assembly_standardization_status
 ON domain_assembly_standardization (domain_key, status, updated_at);
 """

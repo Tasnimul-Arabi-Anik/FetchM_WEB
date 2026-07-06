@@ -31,6 +31,7 @@ from dataset_production_store import (
 )
 from global_insights.generator import standardization_rule_manifest
 from tools.fetch_canonical_missing_metadata import API_BASE, standardizable_row
+from virus_canonical import virus_standardization_row_fields
 
 
 def fetch_reports(
@@ -97,6 +98,8 @@ def standardizable_domain_row(report: dict[str, Any], domain_key: str = "archaea
     row["FetchM_Domain_Key"] = key
     row["FetchM_Domain_Profile"] = str(config.get("profile") or f"{key}_hidden_v1")
     row["FetchM_Public_Release_Status"] = str(config.get("release_status") or "locked_admin_hidden")
+    if key == "virus":
+        row.update(virus_standardization_row_fields(report))
     return row
 
 
