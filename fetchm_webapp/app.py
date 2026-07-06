@@ -27776,6 +27776,67 @@ def admin_metadata() -> str:
     )
 
 
+@app.route("/admin/archaea")
+def admin_archaea() -> str:
+    require_admin()
+    query = normalize_species_name(request.args.get("q") or "")
+    results: list[dict[str, Any]] = []
+    error = ""
+    inventory = domain_root_inventory_dashboard("archaea")
+    if query:
+        if len(query) < 2:
+            error = "Enter at least two characters to search hidden Archaea metadata."
+        else:
+            try:
+                from dataset_production_store import domain_taxon_search_results
+                results = domain_taxon_search_results("archaea", query, limit=25)
+            except Exception as exc:
+                error = str(exc)[:240]
+    return render_template(
+        "admin_archaea.html",
+        query=query,
+        results=results,
+        report=None,
+        inventory=inventory,
+        error=error,
+        **admin_common_context("archaea"),
+    )
+
+
+@app.route("/admin/archaea/<rank>/<path:name>")
+def admin_archaea_taxon_report(rank: str, name: str) -> str:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    inventory = domain_root_inventory_dashboard("archaea")
+    report = None
+    error = ""
+    try:
+        from dataset_production_store import domain_taxon_report
+        report = domain_taxon_report("archaea", rank, name)
+    except Exception as exc:
+        error = str(exc)[:240]
+    if report is None and not error:
+        abort(404)
+    record_audit_event(
+        "admin.archaea_taxon_report",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={"domain": "archaea", "rank": rank, "name": name, "public_enabled": False},
+    )
+    return render_template(
+        "admin_archaea.html",
+        query=name,
+        results=[],
+        report=report,
+        inventory=inventory,
+        error=error,
+        **admin_common_context("archaea"),
+    )
+
+
 @app.route("/admin/standardization")
 def admin_standardization() -> str:
     require_admin()

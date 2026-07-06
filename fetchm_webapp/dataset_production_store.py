@@ -830,6 +830,189 @@ def domain_standardized_metadata_coverage(domain_key: str, snapshot_id: str) -> 
     }
 
 
+def domain_taxon_labels_for_organism(value: Any) -> list[dict[str, str]]:
+    partition = canonical_partition_from_organism_name(value)
+    labels: list[dict[str, str]] = []
+    genus = str(partition.get("genus_name") or "").strip()
+    species = str(partition.get("species_label") or "").strip()
+    if genus:
+        labels.append({"rank": "genus", "name": genus})
+    if species and genus and str(partition.get("partition_type") or "") in {"named_species", "provisional_species"}:
+        labels.append({"rank": "species", "name": species})
+    return labels
+
+
+def _payload_value(payload: Any, field: str) -> str:
+    if not isinstance(payload, dict):
+        return ""
+    value = payload.get(field)
+    return str(value or "").strip()
+
+
+def domain_taxon_search_results(
+    domain_key: str,
+    query: str,
+    *,
+    snapshot_id: str | None = None,
+    limit: int = 20,
+) -> list[dict[str, Any]]:
+    key = normalize_domain_pipeline_key(domain_key)
+    cleaned = normalize_taxon_label(query)
+    if len(cleaned) < 2:
+        return []
+    if not snapshot_id:
+        latest = latest_domain_inventory_snapshot(key)
+        if latest is None:
+            return []
+        snapshot_id = str(latest["snapshot_id"] or "")
+    query_key = cleaned.casefold()
+    like_value = f"%{query_key}%"
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT m.assembly_accession,
+                   COALESCE(NULLIF(s.standardized_payload->>'Organism Name', ''), m.organism_name) AS organism_name
+            FROM domain_inventory_membership AS i
+            JOIN domain_assembly_master AS m
+              ON m.domain_key = i.domain_key AND m.assembly_accession = i.assembly_accession
+            LEFT JOIN domain_assembly_standardization AS s
+              ON s.domain_key = i.domain_key AND s.assembly_accession = i.assembly_accession
+            WHERE i.domain_key = %s AND i.snapshot_id = %s
+              AND lower(COALESCE(NULLIF(s.standardized_payload->>'Organism Name', ''), m.organism_name, '')) LIKE %s
+            ORDER BY m.assembly_accession
+            LIMIT 20000
+            """,
+            (key, snapshot_id, like_value),
+        ).fetchall()
+    for row in rows:
+        organism = str(row[1] or "")
+        for label in domain_taxon_labels_for_organism(organism):
+            name = label["name"]
+            name_key = name.casefold()
+            if query_key not in name_key:
+                continue
+            group_key = (label["rank"], name_key)
+            item = grouped.setdefault(
+                group_key,
+                {
+                    "domain_key": key,
+                    "snapshot_id": snapshot_id,
+                    "rank": label["rank"],
+                    "name": name,
+                    "genome_count": 0,
+                    "public_enabled": False,
+                    "release_locked": True,
+                },
+            )
+            item["genome_count"] = int(item["genome_count"] or 0) + 1
+    rank_priority = {"genus": 0, "species": 1}
+    results = list(grouped.values())
+    results.sort(
+        key=lambda item: (
+            0 if str(item["name"]).casefold().startswith(query_key) else 1,
+            rank_priority.get(str(item["rank"]), 9),
+            -int(item["genome_count"] or 0),
+            str(item["name"]).casefold(),
+        )
+    )
+    return results[:max(1, int(limit))]
+
+
+def _top_payload_values(rows: list[dict[str, Any]], field: str, *, limit: int = 10) -> list[dict[str, Any]]:
+    counts: dict[str, int] = {}
+    for row in rows:
+        value = _payload_value(row.get("payload"), field)
+        if not value:
+            continue
+        counts[value] = counts.get(value, 0) + 1
+    return [
+        {"value": value, "count": count}
+        for value, count in sorted(counts.items(), key=lambda item: (-item[1], item[0].casefold()))[:limit]
+    ]
+
+
+def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: str | None = None) -> dict[str, Any] | None:
+    key = normalize_domain_pipeline_key(domain_key)
+    rank = str(rank or "").strip().lower()
+    if rank not in {"genus", "species"}:
+        raise ValueError(f"Unsupported hidden domain taxon rank: {rank!r}")
+    normalized_name = normalize_taxon_label(name)
+    if not normalized_name:
+        return None
+    if not snapshot_id:
+        latest = latest_domain_inventory_snapshot(key)
+        if latest is None:
+            return None
+        snapshot_id = str(latest["snapshot_id"] or "")
+    prefix = f"{normalized_name.casefold()}%"
+    rows: list[dict[str, Any]] = []
+    with connect() as connection:
+        db_rows = connection.execute(
+            """
+            SELECT m.assembly_accession, m.organism_name, m.tax_id, m.species_tax_id,
+                   m.biosample_accession, s.standardized_payload
+            FROM domain_inventory_membership AS i
+            JOIN domain_assembly_master AS m
+              ON m.domain_key = i.domain_key AND m.assembly_accession = i.assembly_accession
+            LEFT JOIN domain_assembly_standardization AS s
+              ON s.domain_key = i.domain_key AND s.assembly_accession = i.assembly_accession
+            WHERE i.domain_key = %s AND i.snapshot_id = %s
+              AND lower(COALESCE(NULLIF(s.standardized_payload->>'Organism Name', ''), m.organism_name, '')) LIKE %s
+            ORDER BY m.assembly_accession
+            LIMIT 50000
+            """,
+            (key, snapshot_id, prefix),
+        ).fetchall()
+    for db_row in db_rows:
+        payload = db_row[5] if isinstance(db_row[5], dict) else {}
+        organism = _payload_value(payload, "Organism Name") or str(db_row[1] or "")
+        labels = domain_taxon_labels_for_organism(organism)
+        if not any(label["rank"] == rank and label["name"].casefold() == normalized_name.casefold() for label in labels):
+            continue
+        rows.append({
+            "assembly_accession": str(db_row[0] or ""),
+            "organism_name": organism,
+            "tax_id": int(db_row[2] or 0),
+            "species_tax_id": int(db_row[3] or 0),
+            "biosample_accession": str(db_row[4] or _payload_value(payload, "Assembly BioSample Accession")),
+            "payload": payload,
+        })
+    if not rows:
+        return None
+    examples = []
+    for row in rows[:50]:
+        payload = row["payload"]
+        examples.append({
+            "assembly_accession": row["assembly_accession"],
+            "organism_name": row["organism_name"],
+            "biosample_accession": row["biosample_accession"],
+            "country": _payload_value(payload, "Country"),
+            "host": _payload_value(payload, "Host_SD") or _payload_value(payload, "Host"),
+            "isolation_source": _payload_value(payload, "Isolation_Source_SD") or _payload_value(payload, "Isolation Source"),
+            "sample_type": _payload_value(payload, "Sample_Type_SD") or _payload_value(payload, "Sample Type"),
+            "environment_medium": _payload_value(payload, "Environment_Medium_SD"),
+            "assembly_level": _payload_value(payload, "Assembly Level"),
+        })
+    return {
+        "domain_key": key,
+        "snapshot_id": snapshot_id,
+        "rank": rank,
+        "rank_label": "Genus" if rank == "genus" else "Species",
+        "name": normalized_name,
+        "row_count": len(rows),
+        "public_enabled": False,
+        "release_locked": True,
+        "top_countries": _top_payload_values(rows, "Country"),
+        "top_hosts": _top_payload_values(rows, "Host_SD"),
+        "top_isolation_sources": _top_payload_values(rows, "Isolation_Source_SD"),
+        "top_sample_types": _top_payload_values(rows, "Sample_Type_SD"),
+        "top_environment_media": _top_payload_values(rows, "Environment_Medium_SD"),
+        "top_assembly_levels": _top_payload_values(rows, "Assembly Level"),
+        "examples": examples,
+    }
+
+
 def active_canonical_pipeline_task(connection: Any | None = None) -> tuple[str, str, str] | None:
     """Return the oldest staged canonical operation still in progress."""
     query = """
