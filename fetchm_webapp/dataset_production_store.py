@@ -25,6 +25,7 @@ CANONICAL_SOURCE_DATABASE = "genbank"
 CANONICAL_ACCESSION_NAMESPACE = "GCA"
 BACTERIA_TAXON_ID = 2
 ARCHAEA_TAXON_ID = 2157
+VIRUS_TAXON_ID = 10239
 
 DOMAIN_PIPELINE_CONFIGS: dict[str, dict[str, Any]] = {
     "archaea": {
@@ -33,6 +34,22 @@ DOMAIN_PIPELINE_CONFIGS: dict[str, dict[str, Any]] = {
         "root_taxon_id": ARCHAEA_TAXON_ID,
         "source_database": CANONICAL_SOURCE_DATABASE,
         "canonical_accession_namespace": CANONICAL_ACCESSION_NAMESPACE,
+        "profile": "archaea_hidden_v1",
+        "release_status": "locked_admin_hidden",
+        "visibility": "admin_hidden",
+        "public_enabled": False,
+        "release_locked": True,
+    },
+    "virus": {
+        "domain_key": "virus",
+        "label": "Virus",
+        "root_taxon_id": VIRUS_TAXON_ID,
+        "source_database": CANONICAL_SOURCE_DATABASE,
+        "canonical_accession_namespace": CANONICAL_ACCESSION_NAMESPACE,
+        "profile": "virus_hidden_v1",
+        "release_status": "locked_admin_hidden",
+        "visibility": "admin_hidden",
+        "record_model": "virus_sequence_or_assembly_pending",
         "public_enabled": False,
         "release_locked": True,
     },
@@ -1193,9 +1210,9 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
         "top_assembly_levels": _top_payload_values(rows, "Assembly Level"),
         "examples": examples,
         "presentation_notes": [
-            "Admin-only hidden Archaea report; public routes remain disabled.",
-            "Rows use the archaea_hidden_v1 profile while reusing shared normalization primitives.",
-            "Archaea-specific biological thresholds and public release remain blocked pending separate review.",
+            f"Admin-only hidden {domain_pipeline_config(key)['label']} report; public routes remain disabled.",
+            f"Rows use the {domain_pipeline_config(key).get('profile', f'{key}_hidden_v1')} profile while reusing shared normalization primitives.",
+            "Domain-specific biological thresholds and public release remain blocked pending separate review.",
         ],
     }
 
