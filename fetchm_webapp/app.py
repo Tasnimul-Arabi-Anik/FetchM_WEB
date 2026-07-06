@@ -465,6 +465,7 @@ CANONICAL_PIPELINE_DOMAINS = {
         "enabled": False,
         "public_enabled": False,
         "canonical_backend_ready": False,
+        "inventory_backend_ready": True,
         "description": "Admin-only preparation lane for an archaeal metadata pipeline. Public routes remain disabled until a separate archaeal snapshot, ruleset, QA gate, and release are reviewed.",
         "scope_note": "NCBI Archaea root, TaxID 2157. Separate archaeal standardization rules required before production.",
     },
@@ -494,22 +495,38 @@ def canonical_pipeline_domain_options(selected: str | None) -> list[dict[str, An
     return options
 
 
-def background_pipeline_preview_cards(domain: Mapping[str, Any]) -> list[dict[str, Any]]:
+def background_pipeline_preview_cards(
+    domain: Mapping[str, Any],
+    inventory: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     label = str(domain.get("label") or "Domain")
     taxon_id = str(domain.get("root_taxon_id") or "")
+    inventory_status = dict(inventory or {})
+    inventory_available = bool(inventory_status.get("available"))
+    inventory_count = int(inventory_status.get("root_unique_assemblies") or 0)
+    inventory_snapshot = str(inventory_status.get("snapshot_id") or "none")
+    inventory_percent = canonical_status_percent(inventory_status.get("status")) if inventory_available else 0
+    inventory_details = [
+        f"Planned root: NCBI {label} / TaxID {taxon_id}",
+        "Separate domain inventory tables; bacterial tables are not reused.",
+        "Public release remains locked until manual approval.",
+    ]
+    if inventory_available:
+        inventory_details = [
+            f"Hidden assemblies inventoried: {inventory_count:,}",
+            f"Snapshot: {inventory_snapshot}",
+            f"Visibility: {inventory_status.get('visibility') or 'admin_hidden'}; release locked: {'yes' if inventory_status.get('release_locked', True) else 'no'}",
+        ]
     return [
         {
             "index": 1,
             "key": "inventory",
             "label": f"Prepare {label} inventory",
             "short": "Create a separate root inventory before any public release.",
-            "status": "not enabled",
-            "percent": 0,
+            "status": inventory_status.get("status") if inventory_available else "not generated",
+            "percent": inventory_percent,
             "metric_label": "Inventory",
-            "details": [
-                f"Planned root: NCBI {label} / TaxID {taxon_id}",
-                "Requires separate snapshot storage; bacterial tables are not reused.",
-            ],
+            "details": inventory_details,
             "button": "Hidden",
             "disabled": True,
         },
@@ -8685,6 +8702,63 @@ def build_dataset_pipeline_step_cards(
     return cards
 
 
+def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
+    """Return latest hidden domain inventory state without public release side effects."""
+    configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
+    status: dict[str, Any] = {
+        "domain_key": domain_key,
+        "configured": configured,
+        "available": False,
+        "status": "not configured" if not configured else "not generated",
+        "visibility": "admin_hidden",
+        "release_locked": True,
+        "root_unique_assemblies": 0,
+        "raw_records": 0,
+        "source_database": "GenBank",
+        "canonical_accession_namespace": "GCA",
+    }
+    if not configured:
+        return status
+    try:
+        from dataset_production_store import (
+            domain_inventory_page_progress,
+            latest_domain_inventory_snapshot,
+        )
+        row = latest_domain_inventory_snapshot(domain_key)
+        if row is None:
+            return status
+        progress = domain_inventory_page_progress(domain_key, str(row.get("snapshot_id") or ""))
+    except Exception as exc:
+        status["error"] = str(exc)[:160]
+        return status
+    status.update({
+        "available": True,
+        "snapshot_id": row.get("snapshot_id"),
+        "status": row.get("status") or "not generated",
+        "visibility": row.get("visibility") or "admin_hidden",
+        "release_locked": bool(row.get("release_locked", True)),
+        "requested_at": row.get("requested_at"),
+        "started_at": row.get("started_at"),
+        "completed_at": row.get("completed_at"),
+        "root_unique_assemblies": int(row.get("root_unique_assemblies") or 0),
+        "raw_records": int(row.get("raw_records") or 0),
+        "noncanonical_records": int(row.get("noncanonical_records") or 0),
+        "duplicate_records": int(row.get("duplicate_records") or 0),
+        "source_database": row.get("source_database") or "GenBank",
+        "canonical_accession_namespace": row.get("canonical_accession_namespace") or "GCA",
+        "root_taxon_id": int(row.get("root_taxon_id") or 0),
+        "error": row.get("error"),
+        "chunk_progress": {
+            "completed": int(progress.get("page_completed") or 0),
+            "failed": int(progress.get("page_failed") or 0),
+            "expected_total": int(progress.get("expected_total") or 0),
+            "expected_pages": int(progress.get("expected_pages") or 0),
+            "records_processed": int(progress.get("raw_records") or 0),
+        },
+    })
+    return status
+
+
 def canonical_root_inventory_dashboard() -> dict[str, Any]:
     """Return the latest canonical GenBank inventory state without blocking admin rendering."""
     configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
@@ -9301,6 +9375,7 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     schedule_hour_utc = get_setting("dataset_pipeline_schedule_hour_utc", "18", connection)
     selected_domain_key = normalize_canonical_pipeline_domain(get_setting("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN, connection))
     selected_domain = canonical_pipeline_domain_config(selected_domain_key)
+    background_root_inventory = domain_root_inventory_dashboard(selected_domain_key) if selected_domain_key != DEFAULT_CANONICAL_PIPELINE_DOMAIN else None
     return {
         "enabled": get_setting("dataset_pipeline_enabled", "0", connection) == "1",
         "discovery_schedule_enabled": discovery_schedule_enabled,
@@ -9312,7 +9387,11 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "canonical_domain_options": canonical_pipeline_domain_options(selected_domain_key),
         "canonical_domain_key": selected_domain_key,
         "canonical_domain_is_bacteria": selected_domain_key == DEFAULT_CANONICAL_PIPELINE_DOMAIN,
-        "background_pipeline_cards": background_pipeline_preview_cards(selected_domain) if not selected_domain.get("canonical_backend_ready") else [],
+        "background_root_inventory": background_root_inventory,
+        "background_pipeline_cards": background_pipeline_preview_cards(
+            selected_domain,
+            background_root_inventory,
+        ) if not selected_domain.get("canonical_backend_ready") else [],
         "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
         "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
         "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),

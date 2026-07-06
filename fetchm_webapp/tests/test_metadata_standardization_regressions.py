@@ -32,6 +32,7 @@ from app import (
 )
 from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_geography_collection_date_provenance, latest_host_standardization_provenance, latest_source_sample_environment_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+import dataset_production_store as production_store
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
 from tools import import_host_review_decisions as host_review_importer
@@ -505,6 +506,47 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertTrue(all(card["percent"] == 0 for card in cards))
         self.assertIn("TaxID 2157", cards[0]["details"][0])
         self.assertIn("bacterial tables are not reused", cards[0]["details"][1])
+
+    def test_archaea_background_pipeline_preview_reports_hidden_inventory(self) -> None:
+        domain = fetchm_app.canonical_pipeline_domain_config("archaea")
+        cards = fetchm_app.background_pipeline_preview_cards(
+            domain,
+            {
+                "available": True,
+                "status": "completed",
+                "root_unique_assemblies": 1234,
+                "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                "visibility": "admin_hidden",
+                "release_locked": True,
+            },
+        )
+        self.assertEqual(cards[0]["status"], "completed")
+        self.assertEqual(cards[0]["percent"], 100)
+        self.assertIn("1,234", cards[0]["details"][0])
+        self.assertIn("release locked: yes", cards[0]["details"][2])
+        self.assertTrue(all(card["disabled"] for card in cards))
+
+    def test_hidden_domain_store_allowlists_archaea_only(self) -> None:
+        self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")
+        with self.assertRaises(ValueError):
+            production_store.normalize_domain_pipeline_key("bacteria")
+        with self.assertRaises(ValueError):
+            production_store.normalize_domain_pipeline_key("virus")
+        config = production_store.domain_pipeline_config("archaea")
+        self.assertEqual(config["root_taxon_id"], production_store.ARCHAEA_TAXON_ID)
+        self.assertFalse(config["public_enabled"])
+        self.assertTrue(config["release_locked"])
+        self.assertTrue(production_store.domain_inventory_api_url("archaea").endswith("/2157/dataset_report"))
+        self.assertRegex(production_store.default_domain_snapshot_id("archaea"), r"^\d{8}T\d{6}Z_genbank_archaea_root$")
+
+    def test_hidden_domain_schema_isolated_from_bacterial_tables(self) -> None:
+        schema = production_store.SCHEMA_SQL
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_snapshot", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_master", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_standardization", schema)
+        self.assertIn("CHECK (domain_key <> 'bacteria')", schema)
+        self.assertIn("release_locked BOOLEAN NOT NULL DEFAULT TRUE", schema)
+        self.assertIn("PRIMARY KEY (domain_key, snapshot_id)", schema)
 
     def test_canonical_seed_skips_legacy_sqlite_when_accession_cache_exists(self) -> None:
         coverage = {
