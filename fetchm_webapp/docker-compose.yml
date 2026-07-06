@@ -12,6 +12,7 @@ x-fetchm-env-file: &fetchm-env-file
 x-fetchm-data-volumes: &fetchm-data-volumes
   volumes:
     - ./data:/app/fetchm_webapp/data
+    - /mnt/storage/db/gtdbtk/r232/current:/app/fetchm_webapp/data/external_tools/databases/gtdbtk:ro
     - /home/ai-pc/.taxonkit:/home/fetchm/.taxonkit:ro
 
 x-fetchm-worker-base: &fetchm-worker-base
