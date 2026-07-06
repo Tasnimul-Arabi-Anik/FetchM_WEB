@@ -10,6 +10,7 @@ import dataset_production_store as production_store
 from domain_profiles import domain_profile, domain_profile_contract, hidden_domain_keys, hidden_domain_store_configs
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_hidden_virus_sequences as virus_import_tool
+from tools import qa_hidden_virus_pipeline as virus_qa_tool
 from virus_canonical import virus_canonical_entities, virus_standardization_row_fields
 
 
@@ -136,6 +137,78 @@ class VirusCanonicalModelTests(unittest.TestCase):
         self.assertIn("NC_123456.1", encoded)
         relationship = json.loads(fields["Virus_Host_Relationships_JSON"])[0]
         self.assertEqual(relationship["target_domain"], "archaea")
+
+
+class VirusQaTests(unittest.TestCase):
+    def _fake_virus_qa_connection(self, *, invalid_relationship_type: int = 0):
+        class FakeConnection:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, sql: str, params: tuple[object, ...] = ()):  # noqa: ANN001
+                if "FROM domain_inventory_snapshot" in sql:
+                    return SimpleResult(("completed", "admin_hidden", True, 2))
+                if "FROM domain_virus_sequence_record" in sql and "COUNT(DISTINCT" in sql:
+                    return SimpleResult((2, 0, 0, 0, 2, 1))
+                if "FROM domain_virus_genome_group" in sql and "zero_segment_count" in sql:
+                    return SimpleResult((1, 0, 0))
+                if "domain_virus_genome_group AS g" in sql:
+                    return SimpleResult((0,))
+                if "FROM domain_taxon_relationship" in sql and "wrong_domain" in sql:
+                    return SimpleResult((2, 0, 0, invalid_relationship_type, 0, 0, 0, 0))
+                if "LEFT JOIN domain_virus_sequence_record" in sql:
+                    return SimpleResult((0,))
+                if "GROUP BY relationship_type" in sql:
+                    return SimpleResult(rows=[("natural_host", 1), ("propagated_in", 1)])
+                if "GROUP BY target_domain" in sql:
+                    return SimpleResult(rows=[("bacteria", 2)])
+                raise AssertionError(f"Unexpected SQL: {sql}")
+
+        class SimpleResult:
+            def __init__(self, row=None, rows=None):
+                self.row = row
+                self.rows = rows or []
+
+            def fetchone(self):
+                return self.row
+
+            def fetchall(self):
+                return self.rows
+
+        return FakeConnection()
+
+    def test_hidden_virus_qa_passes_valid_sequence_group_relationship_model(self) -> None:
+        with patch.object(virus_qa_tool, "connect", lambda: self._fake_virus_qa_connection()):
+            summary = virus_qa_tool.collect_hidden_virus_qa("virus-snapshot")
+        self.assertEqual(summary["status"], "pass")
+        self.assertEqual(summary["hard_failure_count"], 0)
+        self.assertEqual(summary["virus_sequence_records"], 2)
+        self.assertEqual(summary["virus_genome_groups"], 1)
+        self.assertEqual(summary["taxon_relationships"], 2)
+        self.assertEqual(summary["relationship_type_counts"], {"natural_host": 1, "propagated_in": 1})
+        self.assertEqual(summary["target_domain_counts"], {"bacteria": 2})
+        self.assertTrue(any(check["key"] == "snapshot_release_locked" and check["status"] == "pass" for check in summary["checks"]))
+
+    def test_hidden_virus_qa_fails_uncontrolled_relationship_type(self) -> None:
+        with patch.object(virus_qa_tool, "connect", lambda: self._fake_virus_qa_connection(invalid_relationship_type=1)):
+            summary = virus_qa_tool.collect_hidden_virus_qa("virus-snapshot")
+        self.assertEqual(summary["status"], "fail")
+        self.assertTrue(any(check["key"] == "relationships_types_controlled" for check in summary["hard_failures"]))
+
+    def test_hidden_virus_qa_outputs_json_and_markdown(self) -> None:
+        with patch.object(virus_qa_tool, "connect", lambda: self._fake_virus_qa_connection()):
+            summary = virus_qa_tool.collect_hidden_virus_qa("virus-snapshot")
+        with TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            virus_qa_tool.write_outputs(summary, output_dir)
+            self.assertTrue((output_dir / "virus_qa_summary.json").exists())
+            markdown = (output_dir / "virus_qa_summary.md").read_text()
+        self.assertIn("Hidden Virus QA Summary", markdown)
+        self.assertIn("Release locked: true", markdown)
+
 
 
 class VirusPersistenceTests(unittest.TestCase):
