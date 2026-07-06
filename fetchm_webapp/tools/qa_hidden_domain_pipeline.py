@@ -26,6 +26,12 @@ EXPECTED_DOMAIN_PROFILES = {
         "release_status": "locked_admin_hidden",
         "visibility": "admin_hidden",
     },
+    "virus": {
+        "label": "Virus",
+        "profile": "virus_hidden_v1",
+        "release_status": "locked_admin_hidden",
+        "visibility": "admin_hidden",
+    },
 }
 
 

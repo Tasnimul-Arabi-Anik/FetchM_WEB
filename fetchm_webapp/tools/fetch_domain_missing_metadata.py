@@ -13,6 +13,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from itertools import repeat
 from pathlib import Path
 from typing import Any
 
@@ -88,18 +89,20 @@ def fetch_reports(
     raise RuntimeError(error or "NCBI metadata report request failed")
 
 
-def standardizable_domain_row(report: dict[str, Any]) -> dict[str, Any]:
+def standardizable_domain_row(report: dict[str, Any], domain_key: str = "archaea") -> dict[str, Any]:
+    key = normalize_domain_pipeline_key(domain_key)
+    config = domain_pipeline_config(key)
     row = standardizable_row(report)
-    row["FetchM_Domain"] = "Archaea"
-    row["FetchM_Domain_Key"] = "archaea"
-    row["FetchM_Domain_Profile"] = "archaea_hidden_v1"
-    row["FetchM_Public_Release_Status"] = "locked_admin_hidden"
+    row["FetchM_Domain"] = str(config["label"])
+    row["FetchM_Domain_Key"] = key
+    row["FetchM_Domain_Profile"] = str(config.get("profile") or f"{key}_hidden_v1")
+    row["FetchM_Public_Release_Status"] = str(config.get("release_status") or "locked_admin_hidden")
     return row
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--domain", default="archaea", help="Hidden domain key. Currently only 'archaea' is supported.")
+    parser.add_argument("--domain", default="archaea", help="Hidden domain key, for example 'archaea' or 'virus'.")
     parser.add_argument("--snapshot-id", required=True)
     parser.add_argument("--batch-size", type=int, default=20)
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for controlled validation only.")
@@ -126,7 +129,8 @@ def main() -> int:
     standardization_default = int(os.environ.get("FETCHM_WEBAPP_CANONICAL_STANDARDIZATION_WORKERS", "10") or "10")
     standardization_workers = min(32, max(1, args.standardization_workers or standardization_default))
     fingerprint = str(standardization_rule_manifest().get("version") or "not available")
-    domain_rule_fingerprint = f"{fingerprint};domain_profile=archaea_hidden_v1"
+    domain_profile = str(config.get("profile") or f"{args.domain}_hidden_v1")
+    domain_rule_fingerprint = f"{fingerprint};domain_profile={domain_profile}"
     fetched = standardized = batches = 0
     last_accession = ""
     standardization_executor = ProcessPoolExecutor(max_workers=standardization_workers) if standardization_workers > 1 else None
@@ -168,11 +172,12 @@ def main() -> int:
                     reports.extend(future.result())
                 insert_domain_inventory_batch(args.domain, args.snapshot_id, reports)
                 if standardization_executor is None or len(reports) <= 1:
-                    rows = [standardizable_domain_row(report) for report in reports]
+                    rows = [standardizable_domain_row(report, args.domain) for report in reports]
                 else:
                     rows = list(standardization_executor.map(
                         standardizable_domain_row,
                         reports,
+                        repeat(args.domain),
                         chunksize=max(1, len(reports) // (standardization_workers * 4)),
                     ))
                 seeded = seed_domain_standardized_metadata_batch(
@@ -206,7 +211,7 @@ def main() -> int:
         "snapshot_id": args.snapshot_id,
         "metadata_source": "NCBI Datasets REST API v2 full accession report",
         "standardization_status": "refetched_all_ncbi_full_report" if args.refetch_all else "fetched_ncbi_full_report",
-        "domain_profile": "archaea_hidden_v1",
+        "domain_profile": domain_profile,
         "release_locked": bool(config.get("release_locked", True)),
         "public_enabled": bool(config.get("public_enabled")),
         "refetch_all": bool(args.refetch_all),
