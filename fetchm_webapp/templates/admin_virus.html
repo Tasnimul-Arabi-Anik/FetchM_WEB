@@ -81,6 +81,61 @@
     {% endif %}
   </section>
 
+  {% set model = virus_model|default({}) %}
+  <section class="panel">
+    <h2>{% if model.organism_query %}Virus Model for {{ model.organism_query }}{% else %}Hidden Virus Model{% endif %}</h2>
+    <p class="section-note">Sequence-level Virus entities and host relationships are stored separately from bacterial and archaeal assembly workflows. This model remains admin-only and release locked.</p>
+    {% if model.error %}<p class="danger-text top-gap">Virus model summary unavailable: {{ model.error }}</p>{% endif %}
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ model.virus_sequence_records or 0 }}</strong><span>Virus sequence records</span></div>
+      <div class="health-card"><strong>{{ model.virus_genome_groups or 0 }}</strong><span>Genome groups</span></div>
+      <div class="health-card"><strong>{{ model.taxon_relationships or 0 }}</strong><span>Host/taxon relationships</span></div>
+      <div class="health-card"><strong>{{ model.relationship_density or 0 }}</strong><span>Relationships per record</span></div>
+      <div class="health-card"><strong>{{ model.segmented_sequence_records or 0 }}</strong><span>Segment-labelled records</span></div>
+      <div class="health-card"><strong>{{ 'locked' if model.release_locked|default(true) else 'unlocked' }}</strong><span>Public release</span></div>
+    </div>
+    <section class="grid metadata-report-grid top-gap">
+      {% for group, label in [
+        (model.top_relationship_types|default([]), 'Relationship types'),
+        (model.top_target_domains|default([]), 'Target domains'),
+        (model.top_target_taxa|default([]), 'Target taxa'),
+        (model.top_molecule_types|default([]), 'Molecule types')
+      ] %}
+        <article class="panel compact-panel">
+          <h3>{{ label }}</h3>
+          {% if group %}
+            <div class="pipeline-detail-list">
+              {% for row in group %}<span>{{ row.value }} · {{ row.count }}</span>{% endfor %}
+            </div>
+          {% else %}
+            <p class="empty">No values recorded.</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </section>
+    {% if model.examples %}
+      <div class="table-wrap top-gap" role="region" aria-label="Hidden Virus sequence model examples">
+        <table>
+          <caption>Representative hidden Virus sequence-model records</caption>
+          <thead><tr><th scope="col">Sequence</th><th scope="col">Assembly</th><th scope="col">Organism</th><th scope="col">Genome group</th><th scope="col">Molecule</th><th scope="col">Segment</th><th scope="col">Completeness</th></tr></thead>
+          <tbody>
+            {% for row in model.examples %}
+              <tr>
+                <th scope="row">{{ row.sequence_accession }}</th>
+                <td>{{ row.assembly_accession }}</td>
+                <td>{{ row.organism_name }}</td>
+                <td>{{ row.genome_group_id }}</td>
+                <td>{{ row.molecule_type }}</td>
+                <td>{{ row.segment }}</td>
+                <td>{{ row.genome_completeness }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </section>
+
   {% if results %}
   <section class="panel">
     <h2>Search Results</h2>

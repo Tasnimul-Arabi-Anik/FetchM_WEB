@@ -948,6 +948,31 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                     "public_enabled": False,
                     "release_locked": True,
                 }],
+            ), patch(
+                "dataset_production_store.hidden_virus_model_summary",
+                return_value={
+                    "available": True,
+                    "organism_query": "",
+                    "virus_sequence_records": 3,
+                    "virus_genome_groups": 2,
+                    "taxon_relationships": 4,
+                    "relationship_density": 1.33,
+                    "segmented_sequence_records": 1,
+                    "release_locked": True,
+                    "top_relationship_types": [{"value": "natural_host", "count": 3}],
+                    "top_target_domains": [{"value": "eukaryota", "count": 3}],
+                    "top_target_taxa": [{"value": "Homo sapiens", "count": 3}],
+                    "top_molecule_types": [{"value": "RNA", "count": 2}],
+                    "examples": [{
+                        "sequence_accession": "OP123456.1",
+                        "assembly_accession": "",
+                        "organism_name": "Betacoronavirus example",
+                        "genome_group_id": "virus-group",
+                        "molecule_type": "RNA",
+                        "segment": "4",
+                        "genome_completeness": "complete",
+                    }],
+                },
             ):
                 page = client.get("/admin/virus?q=Beta")
             html = page.data.decode("utf-8")
@@ -956,6 +981,10 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("Betacoronavirus", html)
             self.assertIn("release locked", html.lower())
             self.assertIn("/admin/virus/genus/Betacoronavirus", html)
+            self.assertIn("Hidden Virus Model", html)
+            self.assertIn("Virus sequence records", html)
+            self.assertIn("natural_host", html)
+            self.assertIn("OP123456.1", html)
 
     def test_hidden_virus_admin_queue_routes_call_domain_tasks(self) -> None:
         with isolated_initialized_app_client() as client:
@@ -1114,8 +1143,35 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             }
             with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
                 "dataset_production_store.domain_taxon_report", return_value=report
-            ):
+            ), patch(
+                "dataset_production_store.hidden_virus_model_summary",
+                return_value={
+                    "available": True,
+                    "organism_query": "Betacoronavirus",
+                    "virus_sequence_records": 3,
+                    "virus_genome_groups": 2,
+                    "taxon_relationships": 4,
+                    "relationship_density": 1.33,
+                    "segmented_sequence_records": 1,
+                    "release_locked": True,
+                    "top_relationship_types": [{"value": "natural_host", "count": 3}],
+                    "top_target_domains": [{"value": "eukaryota", "count": 3}],
+                    "top_target_taxa": [{"value": "Homo sapiens", "count": 3}],
+                    "top_molecule_types": [{"value": "RNA", "count": 2}],
+                    "examples": [{
+                        "sequence_accession": "OP123456.1",
+                        "assembly_accession": "",
+                        "organism_name": "Betacoronavirus example",
+                        "genome_group_id": "virus-group",
+                        "molecule_type": "RNA",
+                        "segment": "4",
+                        "genome_completeness": "complete",
+                    }],
+                },
+            ) as model_summary:
                 page = client.get("/admin/virus/genus/Betacoronavirus")
+            model_summary.assert_called_once()
+            self.assertEqual(model_summary.call_args.kwargs["organism_query"], "Betacoronavirus")
             html = page.data.decode("utf-8")
             self.assertEqual(page.status_code, 200)
             self.assertIn("Betacoronavirus", html)
@@ -1125,6 +1181,9 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("Virus profile kept separate", html)
             self.assertIn("Download hidden metadata CSV", html)
             self.assertIn("/admin/virus/genus/Betacoronavirus/metadata.csv", html)
+            self.assertIn("Virus Model for Betacoronavirus", html)
+            self.assertIn("Host/taxon relationships", html)
+            self.assertIn("Homo sapiens", html)
 
             with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
                 "dataset_production_store.domain_taxon_metadata_csv",
