@@ -1,0 +1,24 @@
+{
+  "boundary": [
+    "No public Virus routes enabled",
+    "No live Virus snapshot build performed in this batch",
+    "Bacteria and Archaea continue using the assembly-inventory report path"
+  ],
+  "domain_key": "virus",
+  "generated_at_utc": "2026-07-06T19:33:12.327859+00:00",
+  "implemented": [
+    "domain_taxon_search_results uses domain_virus_sequence_record for hidden Virus searches",
+    "domain_taxon_report returns hidden Virus sequence-record reports without requiring assembly inventory rows",
+    "domain_taxon_metadata_csv exports hidden Virus sequence metadata columns",
+    "admin Virus template uses record-oriented labels for sequence-model reports"
+  ],
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "release_locked": true,
+  "status": "hidden sequence-model admin reporting scaffold",
+  "validation": {
+    "focused_tests": "python -m unittest tests.test_domain_profiles -> 19 passed",
+    "full_tests": "python -m unittest discover -s tests -p 'test_*.py' -> 181 passed",
+    "py_compile": "passed for dataset_production_store.py and test_domain_profiles.py"
+  }
+}

@@ -196,6 +196,100 @@ class VirusModelSummaryTests(unittest.TestCase):
 
 
 
+class VirusSequenceAdminReportTests(unittest.TestCase):
+    def _fake_sequence_connection(self):
+        sequence_row = (
+            "OP123456.1",
+            "",
+            "Influenza A virus",
+            11320,
+            "SAMN1",
+            "RNA",
+            "4",
+            "complete",
+            "A/Dhaka/1/2026",
+            "virus-sequence-snapshot",
+            {
+                "Collection Date": "2026-01-02",
+                "Country": "Bangladesh",
+                "host": "Homo sapiens",
+                "isolation_source": "nasopharyngeal swab",
+            },
+        )
+
+        class SimpleResult:
+            def __init__(self, row=None, rows=None):
+                self.row = row
+                self.rows = rows or []
+
+            def fetchone(self):
+                return self.row
+
+            def fetchall(self):
+                return self.rows
+
+        class FakeConnection:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, sql: str, params: tuple[object, ...] = ()):  # noqa: ANN001
+                if "SELECT source_snapshot_id" in sql:
+                    return SimpleResult(("virus-sequence-snapshot",))
+                if "SELECT sequence_accession, organism_name" in sql:
+                    return SimpleResult(rows=[("OP123456.1", "Influenza A virus")])
+                if "SELECT sequence_accession, assembly_accession, organism_name" in sql:
+                    return SimpleResult(rows=[sequence_row])
+                raise AssertionError(f"Unexpected SQL: {sql}")
+
+        return FakeConnection()
+
+    def test_virus_taxon_search_reads_sequence_model_without_assembly_inventory(self) -> None:
+        with patch.object(production_store, "bootstrap_schema", lambda: None), patch.object(
+            production_store, "connect", lambda: self._fake_sequence_connection()
+        ):
+            results = production_store.domain_taxon_search_results("virus", "Influenza A")
+        species = [row for row in results if row["rank"] == "species" and row["name"] == "Influenza A virus"]
+        self.assertEqual(len(species), 1)
+        self.assertEqual(species[0]["snapshot_id"], "virus-sequence-snapshot")
+        self.assertEqual(species[0]["sequence_count"], 1)
+        self.assertFalse(species[0]["public_enabled"])
+        self.assertTrue(species[0]["release_locked"])
+
+    def test_virus_taxon_report_uses_sequence_accession_records(self) -> None:
+        with patch.object(production_store, "bootstrap_schema", lambda: None), patch.object(
+            production_store, "connect", lambda: self._fake_sequence_connection()
+        ):
+            report = production_store.domain_taxon_report("virus", "species", "Influenza A virus")
+        self.assertIsNotNone(report)
+        assert report is not None
+        self.assertEqual(report["snapshot_id"], "virus-sequence-snapshot")
+        self.assertEqual(report["row_count"], 1)
+        self.assertEqual(report["record_label"], "hidden viral sequence records")
+        self.assertEqual(report["examples"][0]["assembly_accession"], "OP123456.1")
+        self.assertEqual(report["examples"][0]["molecule_type"], "RNA")
+        self.assertEqual(report["top_molecule_types"], [{"value": "RNA", "count": 1}])
+        self.assertEqual(report["summary_metrics"]["complete_genome_count"], 1)
+        self.assertTrue(any("sequence/genome-group model" in note for note in report["presentation_notes"]))
+
+    def test_virus_taxon_metadata_csv_exports_sequence_columns(self) -> None:
+        with patch.object(production_store, "bootstrap_schema", lambda: None), patch.object(
+            production_store, "connect", lambda: self._fake_sequence_connection()
+        ):
+            export = production_store.domain_taxon_metadata_csv("virus", "species", "Influenza A virus")
+        self.assertIsNotNone(export)
+        assert export is not None
+        self.assertEqual(export["row_count"], 1)
+        self.assertIn("virus_species_Influenza-A-virus_metadata.csv", export["filename"])
+        self.assertIn("sequence_accession", export["content"])
+        self.assertIn("OP123456.1", export["content"])
+        self.assertIn("Virus_Molecule_Type", export["content"])
+
+
+
+
 class VirusQaTests(unittest.TestCase):
     def _fake_virus_qa_connection(self, *, invalid_relationship_type: int = 0):
         class FakeConnection:

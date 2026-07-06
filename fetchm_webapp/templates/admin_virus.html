@@ -143,7 +143,7 @@
       {% for item in results %}
         <article class="admin-card">
           <div class="job-card-head"><strong>{{ item.name }}</strong><span class="status">{{ item.rank }}</span></div>
-          <div class="job-meta">{{ item.genome_count }} hidden assemblies · {{ item.snapshot_id }}</div>
+          <div class="job-meta">{{ item.sequence_count or item.genome_count }} hidden records · {{ item.snapshot_id }}</div>
           <div class="action-row top-gap">
             <a class="button-like ghost" href="{{ url_for('admin_virus_taxon_report', rank=item.rank, name=item.name) }}">Open admin report</a>
           </div>
@@ -161,7 +161,7 @@
     <div>
       <p class="eyebrow">{{ report.rank_label }} report</p>
       <h2>{{ report.name }}</h2>
-      <p class="lede">{{ report.row_count }} hidden viral assemblies in snapshot {{ report.snapshot_id }}. This is an admin-only Virus view; public bacterial and hidden Archaea views remain unchanged.</p>
+      <p class="lede">{{ report.row_count }} {{ report.record_label|default('hidden viral assemblies') }} in snapshot {{ report.snapshot_id }}. This is an admin-only Virus view; public bacterial and hidden Archaea views remain unchanged.</p>
     </div>
     <div class="status-box">
       <span class="status running">release locked</span>
@@ -173,7 +173,7 @@
   </section>
 
   <section class="metrics-grid">
-    <article class="metric-card"><strong>{{ report.row_count }}</strong><span>Hidden assemblies</span></article>
+    <article class="metric-card"><strong>{{ report.row_count }}</strong><span>{{ report.record_label|default('Hidden assemblies') }}</span></article>
     <article class="metric-card"><strong>{{ metrics.distinct_species_count or 0 }}</strong><span>Species-level labels</span></article>
     <article class="metric-card"><strong>{{ metrics.distinct_country_count or 0 }}</strong><span>Countries</span></article>
     <article class="metric-card"><strong>{% if metrics.year_start and metrics.year_end %}{{ metrics.year_start }}-{{ metrics.year_end }}{% else %}Unknown{% endif %}</strong><span>Collection year span</span></article>
@@ -255,11 +255,11 @@
   </section>
 
   <section class="panel">
-    <h2>Representative Assemblies</h2>
-    <div class="table-wrap" role="region" aria-label="Hidden viral assembly examples">
+    <h2>Representative Records</h2>
+    <div class="table-wrap" role="region" aria-label="Hidden viral record examples">
       <table>
-        <caption>Hidden Virus assemblies matching {{ report.name }}</caption>
-        <thead><tr><th scope="col">Assembly</th><th scope="col">Organism</th><th scope="col">BioSample</th><th scope="col">Country</th><th scope="col">Date</th><th scope="col">Source</th><th scope="col">Material</th><th scope="col">Environment</th><th scope="col">Assembly level</th></tr></thead>
+        <caption>Hidden Virus records matching {{ report.name }}</caption>
+        <thead><tr><th scope="col">Accession</th><th scope="col">Organism</th><th scope="col">BioSample</th><th scope="col">Country</th><th scope="col">Date</th><th scope="col">Source</th><th scope="col">Material</th><th scope="col">Environment</th><th scope="col">Assembly level</th></tr></thead>
         <tbody>
           {% for row in report.examples %}
             <tr>
