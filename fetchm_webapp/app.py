@@ -28183,6 +28183,41 @@ def admin_archaea_taxon_report(rank: str, name: str) -> str:
     )
 
 
+@app.route("/admin/archaea/<rank>/<path:name>/metadata.csv")
+def admin_archaea_metadata_csv(rank: str, name: str) -> Any:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    try:
+        from dataset_production_store import domain_taxon_metadata_csv
+        export = domain_taxon_metadata_csv("archaea", rank, name)
+    except Exception as exc:
+        flash(f"Hidden Archaea metadata export failed: {str(exc)[:240]}", "error")
+        return redirect(url_for("admin_archaea_taxon_report", rank=rank, name=name))
+    if export is None:
+        abort(404)
+    record_audit_event(
+        "admin.archaea_metadata_csv_download",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={
+            "domain": "archaea",
+            "rank": rank,
+            "name": name,
+            "snapshot_id": export.get("snapshot_id"),
+            "row_count": export.get("row_count"),
+            "public_enabled": False,
+        },
+    )
+    return Response(
+        str(export["content"]),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={export['filename']}"},
+    )
+
+
 @app.route("/admin/standardization")
 def admin_standardization() -> str:
     require_admin()

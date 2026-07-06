@@ -113,6 +113,7 @@
       <div class="job-meta">Admin-only report</div>
       <div class="job-meta">Profile {{ metrics.standardized_profile or 'not recorded' }}</div>
       <div class="job-meta">{{ metrics.release_status or 'locked_admin_hidden' }}</div>
+      <a class="button-like ghost" href="{{ url_for('admin_archaea_metadata_csv', rank=report.rank, name=report.name) }}">Download hidden metadata CSV</a>
     </div>
   </section>
 
