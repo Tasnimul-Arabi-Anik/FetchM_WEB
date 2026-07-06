@@ -11,12 +11,12 @@ Implemented in this milestone:
 - Archaea root inventory can be built from NCBI Datasets REST API using TaxID `2157`.
 - Hidden metadata can be fetched and standardized into `domain_assembly_standardization`.
 - Hidden inventory and metadata coverage status are visible in Admin only.
+- Admin-only Archaea genus/species search and compact taxon reports are available at `/admin/archaea`.
 - Public search, sequence/QC entrypoints, Global Insights, and release activation remain locked.
 
 Not implemented yet:
 
 - Archaeal rule pack and QA gate.
-- Admin-only archaeal taxon search/report pages.
 - Scheduled hidden Archaea runs.
 - Manual public promotion.
 
@@ -56,6 +56,16 @@ The default snapshot ID is formatted as:
 ```text
 YYYYMMDDTHHMMSSZ_genbank_archaea_root
 ```
+
+## Admin Search
+
+Admin users can search hidden Archaea metadata at:
+
+```text
+/admin/archaea?q=Methanocaldococcus
+```
+
+Taxon reports currently support genus and species labels derived from organism names in hidden standardized metadata. Higher-rank archaeal browsing remains blocked until taxonomy lineage materialization is implemented for the hidden domain.
 
 ## Release Lock
 

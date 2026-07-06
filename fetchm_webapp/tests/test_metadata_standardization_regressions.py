@@ -557,6 +557,84 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(row["FetchM_Public_Release_Status"], "locked_admin_hidden")
         self.assertEqual(row["Isolation Source"], "hot spring")
 
+    def test_hidden_domain_taxon_labels_derive_genus_and_species(self) -> None:
+        labels = production_store.domain_taxon_labels_for_organism("Methanocaldococcus jannaschii DSM 2661")
+        self.assertIn({"rank": "genus", "name": "Methanocaldococcus"}, labels)
+        self.assertIn({"rank": "species", "name": "Methanocaldococcus jannaschii"}, labels)
+
+    def test_hidden_archaea_admin_routes_require_admin_and_render_results(self) -> None:
+        with isolated_initialized_app_client() as client:
+            response = client.get("/admin/archaea", follow_redirects=False)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn("/login", response.headers.get("Location", ""))
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_search_results",
+                return_value=[{
+                    "domain_key": "archaea",
+                    "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                    "rank": "genus",
+                    "name": "Methanocaldococcus",
+                    "genome_count": 12,
+                    "public_enabled": False,
+                    "release_locked": True,
+                }],
+            ):
+                page = client.get("/admin/archaea?q=Methano")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Hidden Archaea Metadata", html)
+            self.assertIn("Methanocaldococcus", html)
+            self.assertIn("release locked", html.lower())
+            self.assertIn("/admin/archaea/genus/Methanocaldococcus", html)
+
+    def test_hidden_archaea_admin_report_renders_summary(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            report = {
+                "domain_key": "archaea",
+                "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                "rank": "genus",
+                "rank_label": "Genus",
+                "name": "Methanocaldococcus",
+                "row_count": 1,
+                "public_enabled": False,
+                "release_locked": True,
+                "top_countries": [{"value": "USA", "count": 1}],
+                "top_hosts": [],
+                "top_isolation_sources": [{"value": "hot spring", "count": 1}],
+                "top_sample_types": [],
+                "top_environment_media": [{"value": "water", "count": 1}],
+                "top_assembly_levels": [{"value": "Complete Genome", "count": 1}],
+                "examples": [{
+                    "assembly_accession": "GCA_000000001.1",
+                    "organism_name": "Methanocaldococcus jannaschii",
+                    "biosample_accession": "SAMN00000001",
+                    "country": "USA",
+                    "host": "",
+                    "isolation_source": "hot spring",
+                    "sample_type": "",
+                    "environment_medium": "water",
+                    "assembly_level": "Complete Genome",
+                }],
+            }
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_report", return_value=report
+            ):
+                page = client.get("/admin/archaea/genus/Methanocaldococcus")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Methanocaldococcus", html)
+            self.assertIn("GCA_000000001.1", html)
+            self.assertIn("hot spring", html)
+            self.assertIn("Admin-only report", html)
+
     def test_hidden_domain_store_allowlists_archaea_only(self) -> None:
         self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")
         with self.assertRaises(ValueError):
