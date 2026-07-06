@@ -71,3 +71,7 @@ fetchm_webapp/standardization/review/**/phase2a_projected_row_changes.tsv
 fetchm_webapp/standardization/review/**/phase2a_projected_row_changes.tsv.gz
 fetchm_webapp/standardization/review/**/*_full_row_changes.tsv
 fetchm_webapp/standardization/review/**/*_full_row_changes.tsv.gz
+# Historical non-runtime sample/figure artifacts removed from Git.
+/vibrio_v2.tsv
+/figures/*.tif
+/figures/*.tiff

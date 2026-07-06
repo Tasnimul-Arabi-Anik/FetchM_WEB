@@ -1,4 +1,0 @@
-raw_host,final_is_approved,final_host,final_taxid,final_confidence,rule_type,match_method,reviewer_note
-water lettuce,TRUE,Pistia stratiotes,4477,high,exact_host,reviewed_common_name,Reviewed common name for Pistia stratiotes; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
-waterlettuce,TRUE,Pistia stratiotes,4477,high,exact_host,reviewed_common_name,Reviewed concatenated common-name variant for Pistia stratiotes; TaxID confirmed with local NCBI Taxonomy via TaxonKit.
-water-lettuce,TRUE,Pistia stratiotes,4477,high,exact_host,reviewed_common_name,Reviewed hyphenated common-name variant for Pistia stratiotes; TaxID confirmed with local NCBI Taxonomy via TaxonKit.

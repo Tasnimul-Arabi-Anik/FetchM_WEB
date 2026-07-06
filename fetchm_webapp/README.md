@@ -1,6 +1,6 @@
 # fetchM Web App
 
-This folder contains a separate Flask web application for submitting `fetchm` jobs online without changing the existing CLI package in [`../fetchm`](../fetchm).
+This folder contains the Flask web application for submitting FetchM jobs online. The web runtime uses bundled helpers under `fetchm_webapp/lib/fetchm_runtime/`; the maintained standalone CLI is FetchM2.
 
 ## What it does
 
@@ -9,7 +9,7 @@ This folder contains a separate Flask web application for submitting `fetchm` jo
 - stores each submission in its own job directory under `fetchm_webapp/data/jobs/`
 - stores managed taxon TSV files under `fetchm_webapp/data/species/`
 - stores job metadata and queue state in SQLite
-- runs the existing CLI from a dedicated background worker process
+- runs metadata, sequence, and managed-taxon jobs from dedicated background worker processes
 - shows job status, command, logs, and downloadable output files in the browser
 
 ## Layout
@@ -25,11 +25,10 @@ fetchm_webapp/
 
 ## Run locally
 
-1. Create a Python environment with the original `fetchm` dependencies plus the web app dependency.
-2. Install the web dependency:
+1. Create a Python environment for the web application.
+2. Install the web dependencies:
 
 ```bash
-pip install -r fetchm/requirements.txt
 pip install -r fetchm_webapp/requirements.txt
 ```
 
@@ -168,6 +167,6 @@ Job uploads, logs, and outputs are persisted in `fetchm_webapp/data/`.
 - Managed taxon TSV files are built from `datasets summary genome taxon ... --as-json-lines`, then written into the tab-separated column layout that `fetchm metadata` already expects.
 - If an assembly source is selected, the sync uses `--assembly-source GenBank` or `--assembly-source RefSeq` so the catalog count matches that NCBI view.
 - Automatic discovery uses `datasets summary taxonomy taxon <scope> --children --rank <species|genus>`, filtered to taxa with at least one assembly, then queues any new taxa for TSV sync.
-- The web app sets `PYTHONPATH` so it can execute `python -m fetchm.cli` against the existing package under `../fetchm`.
+- The web app uses runtime helpers bundled under `fetchm_webapp/lib/fetchm_runtime/`; it does not depend on the historical root `fetchm/` package at runtime.
 - Uploaded files, logs, and outputs are stored on disk.
 - Jobs are visible only to the account that created them.

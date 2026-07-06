@@ -1,4 +1,0 @@
-raw_value,classification,note
-chicken breast meat,protect_food_anatomy_from_site_mapping,Food anatomy phrase protected from clinical breast site routing.
-pork liver,protect_food_anatomy_from_site_mapping,Food anatomy phrase protected from clinical liver site routing.
-beef heart,protect_food_anatomy_from_site_mapping,Food anatomy phrase protected from clinical heart site routing.

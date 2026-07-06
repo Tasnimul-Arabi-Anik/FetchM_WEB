@@ -1,7 +1,0 @@
-raw_value	Host_Disease_SD	Host_Health_State_SD	Isolation_Source_SD	Isolation_Source_SD_Broad	Sample_Type_SD	Isolation_Site_SD	Environment_Medium_SD	status	notes
-clinical sample			clinical/host-associated material	clinical/host-associated material	clinical sample			pass	Context-bearing aggregate label; do not infer disease.
-clinical patient		patient	clinical sample	clinical/host-associated material	patient/clinical			pass	Reviewed Batch 7 disease/health-state consolidation example.
-patient sample		patient						pass	Reviewed Batch 7 disease/health-state consolidation example.
-respiratory sample			clinical/host-associated material	clinical/host-associated material	respiratory sample	respiratory tract		pass	Respiratory site/sample context; do not infer disease.
-hospital environment			healthcare-associated environment	healthcare-associated environment			healthcare facility	pass	Reviewed Batch 7 disease/health-state consolidation example.
-healthcare worker nasal			clinical/host-associated material	clinical/host-associated material		nasal cavity/sinus/upper respiratory tract		pass	Reviewed Batch 7 disease/health-state consolidation example.

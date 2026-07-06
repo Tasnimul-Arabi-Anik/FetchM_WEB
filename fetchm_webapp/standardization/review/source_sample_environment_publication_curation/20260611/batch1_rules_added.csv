@@ -1,5 +1,0 @@
-raw_value,decision,implementation
-pathogen.cl,suppress exact descriptor,existing exact suppression verified; sample sentinel sanitized
-other,suppress exact placeholder,existing exact suppression verified; sample sentinel sanitized
-specimen,suppress exact descriptor,added exact source suppression and sample sentinel sanitization
-uncategorized,suppress exact placeholder,added exact source suppression and sample sentinel sanitization
