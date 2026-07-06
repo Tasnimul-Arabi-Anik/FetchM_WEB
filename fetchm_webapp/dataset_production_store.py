@@ -22,6 +22,19 @@ DATASET_DATABASE_URL_ENV = "FETCHM_WEBAPP_DATASET_DATABASE_URL"
 CANONICAL_SOURCE_DATABASE = "genbank"
 CANONICAL_ACCESSION_NAMESPACE = "GCA"
 BACTERIA_TAXON_ID = 2
+ARCHAEA_TAXON_ID = 2157
+
+DOMAIN_PIPELINE_CONFIGS: dict[str, dict[str, Any]] = {
+    "archaea": {
+        "domain_key": "archaea",
+        "label": "Archaea",
+        "root_taxon_id": ARCHAEA_TAXON_ID,
+        "source_database": CANONICAL_SOURCE_DATABASE,
+        "canonical_accession_namespace": CANONICAL_ACCESSION_NAMESPACE,
+        "public_enabled": False,
+        "release_locked": True,
+    },
+}
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS canonical_inventory_task (
@@ -288,6 +301,105 @@ CREATE INDEX IF NOT EXISTS idx_canonical_metadata_restandardization_task_status
 ON canonical_metadata_restandardization_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_assembly_standardization_status
 ON assembly_standardization (status, updated_at);
+
+CREATE TABLE IF NOT EXISTS domain_inventory_snapshot (
+    domain_key TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    visibility TEXT NOT NULL DEFAULT 'admin_hidden',
+    release_locked BOOLEAN NOT NULL DEFAULT TRUE,
+    requested_at TIMESTAMPTZ NOT NULL,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    source_database TEXT NOT NULL,
+    canonical_accession_namespace TEXT NOT NULL,
+    root_taxon_id BIGINT NOT NULL,
+    invocation TEXT NOT NULL,
+    datasets_version TEXT,
+    raw_records BIGINT NOT NULL DEFAULT 0,
+    root_unique_assemblies BIGINT NOT NULL DEFAULT 0,
+    noncanonical_records BIGINT NOT NULL DEFAULT 0,
+    duplicate_records BIGINT NOT NULL DEFAULT 0,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    PRIMARY KEY (domain_key, snapshot_id),
+    CHECK (domain_key <> 'bacteria'),
+    CHECK (visibility IN ('admin_hidden', 'release_candidate', 'public')),
+    CHECK (release_locked IS TRUE OR visibility = 'public')
+);
+
+CREATE TABLE IF NOT EXISTS domain_inventory_page (
+    domain_key TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    page_number BIGINT NOT NULL,
+    input_page_token TEXT,
+    next_page_token TEXT,
+    status TEXT NOT NULL,
+    attempt_count INTEGER NOT NULL DEFAULT 0,
+    expected_total BIGINT,
+    raw_records BIGINT NOT NULL DEFAULT 0,
+    canonical_records BIGINT NOT NULL DEFAULT 0,
+    noncanonical_records BIGINT NOT NULL DEFAULT 0,
+    duplicate_records BIGINT NOT NULL DEFAULT 0,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    PRIMARY KEY (domain_key, snapshot_id, page_number),
+    FOREIGN KEY (domain_key, snapshot_id)
+        REFERENCES domain_inventory_snapshot(domain_key, snapshot_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS domain_assembly_master (
+    domain_key TEXT NOT NULL,
+    assembly_accession TEXT NOT NULL,
+    canonical_accession_namespace TEXT NOT NULL,
+    source_database TEXT NOT NULL,
+    organism_name TEXT,
+    tax_id BIGINT,
+    species_tax_id BIGINT,
+    biosample_accession TEXT,
+    paired_refseq_accession TEXT,
+    first_seen_snapshot_id TEXT NOT NULL,
+    latest_snapshot_id TEXT NOT NULL,
+    raw_fingerprint TEXT NOT NULL,
+    raw_payload JSONB NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (domain_key, assembly_accession)
+);
+
+CREATE TABLE IF NOT EXISTS domain_inventory_membership (
+    domain_key TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    assembly_accession TEXT NOT NULL,
+    raw_fingerprint TEXT NOT NULL,
+    PRIMARY KEY (domain_key, snapshot_id, assembly_accession),
+    FOREIGN KEY (domain_key, snapshot_id)
+        REFERENCES domain_inventory_snapshot(domain_key, snapshot_id) ON DELETE CASCADE,
+    FOREIGN KEY (domain_key, assembly_accession)
+        REFERENCES domain_assembly_master(domain_key, assembly_accession)
+);
+
+CREATE TABLE IF NOT EXISTS domain_assembly_standardization (
+    domain_key TEXT NOT NULL,
+    assembly_accession TEXT NOT NULL,
+    input_fingerprint TEXT NOT NULL,
+    rule_fingerprint TEXT NOT NULL,
+    standardized_payload JSONB NOT NULL,
+    status TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL,
+    PRIMARY KEY (domain_key, assembly_accession),
+    FOREIGN KEY (domain_key, assembly_accession)
+        REFERENCES domain_assembly_master(domain_key, assembly_accession)
+);
+
+CREATE INDEX IF NOT EXISTS idx_domain_inventory_snapshot_status
+ON domain_inventory_snapshot (domain_key, status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_domain_inventory_page_status
+ON domain_inventory_page (domain_key, snapshot_id, status, page_number);
+CREATE INDEX IF NOT EXISTS idx_domain_inventory_membership_accession
+ON domain_inventory_membership (domain_key, assembly_accession);
+CREATE INDEX IF NOT EXISTS idx_domain_assembly_standardization_status
+ON domain_assembly_standardization (domain_key, status, updated_at);
 """
 
 def utc_now() -> datetime:
@@ -310,6 +422,291 @@ def bootstrap_schema() -> None:
     with connect() as connection:
         connection.execute(SCHEMA_SQL)
         connection.commit()
+
+
+def normalize_domain_pipeline_key(value: str | None) -> str:
+    candidate = str(value or "").strip().lower()
+    if candidate in DOMAIN_PIPELINE_CONFIGS:
+        return candidate
+    raise ValueError(f"Unsupported hidden domain pipeline: {value!r}")
+
+
+def domain_pipeline_config(domain_key: str | None) -> dict[str, Any]:
+    key = normalize_domain_pipeline_key(domain_key)
+    return dict(DOMAIN_PIPELINE_CONFIGS[key])
+
+
+def domain_inventory_api_url(domain_key: str | None) -> str:
+    config = domain_pipeline_config(domain_key)
+    return f"https://api.ncbi.nlm.nih.gov/datasets/v2/genome/taxon/{config['root_taxon_id']}/dataset_report"
+
+
+def default_domain_snapshot_id(domain_key: str | None, now: datetime | None = None) -> str:
+    key = normalize_domain_pipeline_key(domain_key)
+    timestamp = (now or utc_now()).strftime("%Y%m%dT%H%M%SZ")
+    return f"{timestamp}_genbank_{key}_root"
+
+
+def start_domain_inventory_snapshot(domain_key: str, snapshot_id: str, invocation: str, datasets_version: str | None) -> None:
+    key = normalize_domain_pipeline_key(domain_key)
+    config = domain_pipeline_config(key)
+    bootstrap_schema()
+    with connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO domain_inventory_snapshot (
+                domain_key, snapshot_id, status, visibility, release_locked, requested_at, started_at,
+                source_database, canonical_accession_namespace, root_taxon_id, invocation, datasets_version
+            ) VALUES (%s, %s, 'running', 'admin_hidden', TRUE, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (domain_key, snapshot_id) DO UPDATE SET
+                status = 'running', started_at = EXCLUDED.started_at, completed_at = NULL,
+                visibility = 'admin_hidden', release_locked = TRUE, invocation = EXCLUDED.invocation,
+                datasets_version = EXCLUDED.datasets_version, error = NULL
+            """,
+            (
+                key, snapshot_id, utc_now(), utc_now(), config["source_database"],
+                config["canonical_accession_namespace"], config["root_taxon_id"], invocation, datasets_version,
+            ),
+        )
+        connection.commit()
+
+
+def start_domain_inventory_page(domain_key: str, snapshot_id: str, page_number: int, input_page_token: str | None) -> None:
+    key = normalize_domain_pipeline_key(domain_key)
+    with connect() as connection:
+        connection.execute(
+            """
+            INSERT INTO domain_inventory_page (
+                domain_key, snapshot_id, page_number, input_page_token, status, attempt_count, started_at
+            ) VALUES (%s, %s, %s, %s, 'running', 1, %s)
+            ON CONFLICT (domain_key, snapshot_id, page_number) DO UPDATE SET
+                status = 'running', attempt_count = domain_inventory_page.attempt_count + 1,
+                input_page_token = EXCLUDED.input_page_token, started_at = EXCLUDED.started_at,
+                completed_at = NULL, error = NULL
+            """,
+            (key, snapshot_id, page_number, input_page_token, utc_now()),
+        )
+        connection.commit()
+
+
+def latest_domain_inventory_page_checkpoint(domain_key: str, snapshot_id: str) -> dict[str, Any] | None:
+    key = normalize_domain_pipeline_key(domain_key)
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT page_number, next_page_token, expected_total
+            FROM domain_inventory_page
+            WHERE domain_key = %s AND snapshot_id = %s AND status = 'completed'
+            ORDER BY page_number DESC LIMIT 1
+            """,
+            (key, snapshot_id),
+        ).fetchone()
+    if row is None:
+        return None
+    return {"page_number": int(row[0]), "next_page_token": row[1], "expected_total": int(row[2] or 0)}
+
+
+def finish_domain_inventory_page(
+    domain_key: str,
+    snapshot_id: str,
+    page_number: int,
+    status: str,
+    *,
+    next_page_token: str | None = None,
+    expected_total: int = 0,
+    raw_records: int = 0,
+    canonical_records: int = 0,
+    noncanonical_records: int = 0,
+    duplicate_records: int = 0,
+    error: str | None = None,
+) -> None:
+    key = normalize_domain_pipeline_key(domain_key)
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE domain_inventory_page SET status = %s, completed_at = %s, next_page_token = %s,
+                   expected_total = %s, raw_records = %s, canonical_records = %s,
+                   noncanonical_records = %s, duplicate_records = %s, error = %s
+            WHERE domain_key = %s AND snapshot_id = %s AND page_number = %s
+            """,
+            (
+                status, utc_now(), next_page_token, expected_total or None, raw_records, canonical_records,
+                noncanonical_records, duplicate_records, error[:4000] if error else None, key, snapshot_id, page_number,
+            ),
+        )
+        connection.commit()
+
+
+def domain_inventory_page_progress(domain_key: str, snapshot_id: str) -> dict[str, int]:
+    key = normalize_domain_pipeline_key(domain_key)
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) FILTER (WHERE status = 'completed'), COUNT(*) FILTER (WHERE status = 'failed'),
+                   COALESCE(MAX(expected_total), 0),
+                   COALESCE(SUM(raw_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(noncanonical_records) FILTER (WHERE status = 'completed'), 0),
+                   COALESCE(SUM(duplicate_records) FILTER (WHERE status = 'completed'), 0)
+            FROM domain_inventory_page WHERE domain_key = %s AND snapshot_id = %s
+            """,
+            (key, snapshot_id),
+        ).fetchone()
+    expected_total = int(row[2] or 0)
+    return {
+        "page_completed": int(row[0] or 0),
+        "page_failed": int(row[1] or 0),
+        "expected_total": expected_total,
+        "expected_pages": (expected_total + 999) // 1000 if expected_total else 0,
+        "raw_records": int(row[3] or 0),
+        "noncanonical_records": int(row[4] or 0),
+        "duplicate_records": int(row[5] or 0),
+    }
+
+
+def insert_domain_inventory_batch(domain_key: str, snapshot_id: str, records: Iterable[dict[str, Any]]) -> tuple[int, int, int]:
+    key = normalize_domain_pipeline_key(domain_key)
+    config = domain_pipeline_config(key)
+    canonical = 0
+    noncanonical = 0
+    duplicates = 0
+    now = utc_now()
+    with connect() as connection:
+        for payload in records:
+            record = normalized_inventory_record(payload)
+            accession = record["assembly_accession"]
+            if not accession.startswith("GCA_"):
+                noncanonical += 1
+                continue
+            connection.execute(
+                """
+                INSERT INTO domain_assembly_master (
+                    domain_key, assembly_accession, canonical_accession_namespace, source_database, organism_name, tax_id,
+                    species_tax_id, biosample_accession, paired_refseq_accession, first_seen_snapshot_id,
+                    latest_snapshot_id, raw_fingerprint, raw_payload, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (domain_key, assembly_accession) DO UPDATE SET
+                    organism_name = COALESCE(NULLIF(EXCLUDED.organism_name, ''), domain_assembly_master.organism_name),
+                    tax_id = COALESCE(EXCLUDED.tax_id, domain_assembly_master.tax_id),
+                    species_tax_id = COALESCE(EXCLUDED.species_tax_id, domain_assembly_master.species_tax_id),
+                    biosample_accession = COALESCE(NULLIF(EXCLUDED.biosample_accession, ''), domain_assembly_master.biosample_accession),
+                    paired_refseq_accession = COALESCE(NULLIF(EXCLUDED.paired_refseq_accession, ''), domain_assembly_master.paired_refseq_accession),
+                    latest_snapshot_id = EXCLUDED.latest_snapshot_id,
+                    raw_fingerprint = CASE WHEN EXCLUDED.organism_name <> '' OR EXCLUDED.biosample_accession <> '' THEN EXCLUDED.raw_fingerprint ELSE domain_assembly_master.raw_fingerprint END,
+                    raw_payload = CASE WHEN EXCLUDED.organism_name <> '' OR EXCLUDED.biosample_accession <> '' THEN EXCLUDED.raw_payload ELSE domain_assembly_master.raw_payload END,
+                    updated_at = EXCLUDED.updated_at
+                """,
+                (
+                    key, accession, config["canonical_accession_namespace"], config["source_database"],
+                    record["organism_name"], record["tax_id"], record["species_tax_id"],
+                    record["biosample_accession"], record["paired_refseq_accession"], snapshot_id, snapshot_id,
+                    record["raw_fingerprint"], Jsonb(record["raw_payload"]), now,
+                ),
+            )
+            result = connection.execute(
+                """
+                INSERT INTO domain_inventory_membership (domain_key, snapshot_id, assembly_accession, raw_fingerprint)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (domain_key, snapshot_id, assembly_accession) DO NOTHING
+                RETURNING assembly_accession
+                """,
+                (key, snapshot_id, accession, record["raw_fingerprint"]),
+            ).fetchone()
+            if result is None:
+                duplicates += 1
+                continue
+            canonical += 1
+        connection.commit()
+    return canonical, noncanonical, duplicates
+
+
+def finish_domain_inventory_snapshot(domain_key: str, snapshot_id: str, raw_records: int, noncanonical: int, duplicates: int) -> dict[str, Any]:
+    key = normalize_domain_pipeline_key(domain_key)
+    config = domain_pipeline_config(key)
+    with connect() as connection:
+        root_total = int(connection.execute(
+            "SELECT COUNT(*) FROM domain_inventory_membership WHERE domain_key = %s AND snapshot_id = %s",
+            (key, snapshot_id),
+        ).fetchone()[0] or 0)
+        status = "completed" if root_total > 0 and noncanonical == 0 else "failed"
+        summary = {
+            "domain_key": key,
+            "label": config["label"],
+            "source_database": config["source_database"],
+            "canonical_accession_namespace": config["canonical_accession_namespace"],
+            "root_taxon_id": config["root_taxon_id"],
+            "root_unique_assemblies": root_total,
+            "raw_records": raw_records,
+            "noncanonical_records": noncanonical,
+            "duplicate_records": duplicates,
+            "visibility": "admin_hidden",
+            "release_locked": True,
+        }
+        connection.execute(
+            """
+            UPDATE domain_inventory_snapshot
+            SET status = %s, completed_at = %s, raw_records = %s, root_unique_assemblies = %s,
+                noncanonical_records = %s, duplicate_records = %s, summary_json = %s,
+                visibility = 'admin_hidden', release_locked = TRUE
+            WHERE domain_key = %s AND snapshot_id = %s
+            """,
+            (status, utc_now(), raw_records, root_total, noncanonical, duplicates, Jsonb(summary), key, snapshot_id),
+        )
+        connection.commit()
+    summary["status"] = status
+    return summary
+
+
+def fail_domain_inventory_snapshot(domain_key: str, snapshot_id: str, error: str) -> None:
+    key = normalize_domain_pipeline_key(domain_key)
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE domain_inventory_snapshot
+            SET status = %s, completed_at = %s, error = %s, visibility = 'admin_hidden', release_locked = TRUE
+            WHERE domain_key = %s AND snapshot_id = %s
+            """,
+            ("failed", utc_now(), error[:4000], key, snapshot_id),
+        )
+        connection.commit()
+
+
+def latest_domain_inventory_snapshot(domain_key: str) -> dict[str, Any] | None:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT snapshot_id, status, visibility, release_locked, requested_at, started_at, completed_at,
+                   source_database, canonical_accession_namespace, root_taxon_id, root_unique_assemblies,
+                   raw_records, noncanonical_records, duplicate_records, error, summary_json
+            FROM domain_inventory_snapshot
+            WHERE domain_key = %s
+            ORDER BY requested_at DESC LIMIT 1
+            """,
+            (key,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        "domain_key": key,
+        "snapshot_id": row[0],
+        "status": row[1],
+        "visibility": row[2],
+        "release_locked": bool(row[3]),
+        "requested_at": row[4],
+        "started_at": row[5],
+        "completed_at": row[6],
+        "source_database": row[7],
+        "canonical_accession_namespace": row[8],
+        "root_taxon_id": int(row[9] or 0),
+        "root_unique_assemblies": int(row[10] or 0),
+        "raw_records": int(row[11] or 0),
+        "noncanonical_records": int(row[12] or 0),
+        "duplicate_records": int(row[13] or 0),
+        "error": row[14],
+        "summary": dict(row[15] or {}),
+    }
+
 
 def active_canonical_pipeline_task(connection: Any | None = None) -> tuple[str, str, str] | None:
     """Return the oldest staged canonical operation still in progress."""

@@ -376,8 +376,8 @@
       <div class="health-card"><strong>{{ dataset_pipeline.canonical_domain.status_label }}</strong><span>Pipeline status</span></div>
       <div class="health-card"><strong>Off</strong><span>Public release</span></div>
       <div class="health-card"><strong>Separate</strong><span>Rules and QA required</span></div>
-      <div class="health-card"><strong>0</strong><span>Canonical archaeal rows written</span></div>
-      <div class="health-card"><strong>Bacteria unchanged</strong><span>Production dataset</span></div>
+      <div class="health-card"><strong>{{ dataset_pipeline.background_root_inventory.root_unique_assemblies if dataset_pipeline.background_root_inventory else 0 }}</strong><span>Hidden archaeal inventory rows</span></div>
+      <div class="health-card"><strong>{{ 'Locked' if (not dataset_pipeline.background_root_inventory or dataset_pipeline.background_root_inventory.release_locked) else 'Unlocked' }}</strong><span>Public promotion gate</span></div>
     </div>
     <div class="pipeline-board top-gap">
       {% for stage in canonical_pipeline_cards %}
