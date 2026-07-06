@@ -41,12 +41,13 @@ prefetched `.dmnd` file. This makes PanResistome run with
 `--checkm2_auto_download_db false`, so it reuses the local database instead of
 checking/downloading during every QC job.
 
-GTDB-Tk remains opt-in because its reference data is large. Install the GTDB-Tk
-database once under `data/external_tools/databases/gtdbtk/` and set
-`FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH` only when taxonomy QC is intentionally
-enabled. FetchM Web treats the module as unavailable until the directory contains
-the expected extracted GTDB-Tk database subdirectories, not just a partial
-download archive.
+GTDB-Tk remains opt-in because its reference data is large. In production,
+FetchM reuses the shared GTDB-Tk R232 reference at
+`/mnt/storage/db/gtdbtk/r232/current` by mounting it read-only over the container
+path configured by `FETCHM_WEBAPP_QUALITY_GTDBTK_DATA_PATH`:
+`/app/fetchm_webapp/data/external_tools/databases/gtdbtk`. FetchM Web treats the
+module as unavailable until the directory contains the expected extracted GTDB-Tk
+database subdirectories, not just a partial download archive.
 
 Recommended setup on the deployment host:
 
@@ -57,12 +58,9 @@ fetchm_webapp/external_tools/quality_check/setup_gtdbtk_database.sh
 The helper creates a persistent `gtdbtk=2.7.1` Conda environment, downloads the
 current GTDB-Tk R232 reference package with resumable parallel `aria2c` when
 available, extracts it into the mounted database directory, and records the
-Conda environment `GTDBTK_DATA_PATH`. The Docker Compose deployment maps this
-directory into the web and job-worker containers as:
-
-```text
-/app/fetchm_webapp/data/external_tools/databases/gtdbtk
-```
+Conda environment `GTDBTK_DATA_PATH`. The Docker Compose deployment should expose
+only the extracted/current database directory to runtime containers, preferably
+as a read-only bind mount.
 
 ## Performance defaults
 
