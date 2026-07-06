@@ -983,7 +983,9 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
         if latest is None:
             return None
         snapshot_id = str(latest["snapshot_id"] or "")
-    prefix = f"{normalized_name.casefold()}%"
+    # Prefilter with contains-match, then enforce the exact parsed taxon label below.
+    # This keeps Candidatus/provisional labels searchable by canonical genus/species.
+    name_filter = f"%{normalized_name.casefold()}%"
     rows: list[dict[str, Any]] = []
     with connect() as connection:
         db_rows = connection.execute(
@@ -1000,7 +1002,7 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
             ORDER BY m.assembly_accession
             LIMIT 50000
             """,
-            (key, snapshot_id, prefix),
+            (key, snapshot_id, name_filter),
         ).fetchall()
     for db_row in db_rows:
         payload = db_row[5] if isinstance(db_row[5], dict) else {}
