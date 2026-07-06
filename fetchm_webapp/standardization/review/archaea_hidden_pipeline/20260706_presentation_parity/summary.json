@@ -1,0 +1,58 @@
+{
+  "branch": "hidden-archaea-pipeline-backend",
+  "commits": [
+    {
+      "sha": "ff49852",
+      "title": "Expand hidden Archaea admin metadata reports"
+    },
+    {
+      "sha": "37148c3",
+      "title": "Add hidden Archaea metadata CSV export"
+    }
+  ],
+  "live_data_validation": {
+    "collection_year_end": 2024,
+    "collection_year_start": 1983,
+    "complete_genomes": 16,
+    "countries": 37,
+    "coverage_labels": [
+      "Host",
+      "Isolation source",
+      "Sample type",
+      "Environment medium",
+      "Broad environment",
+      "Local environment"
+    ],
+    "profile": "archaea_hidden_v1",
+    "rank": "genus",
+    "release_status": "locked_admin_hidden",
+    "row_count": 968,
+    "snapshot_id": "20260706T163621Z_genbank_archaea_root",
+    "species_level_labels": 50,
+    "taxon": "Methanobrevibacter"
+  },
+  "remaining_before_public_release": [
+    "Separate public-release approval remains required.",
+    "Archaea-specific readiness thresholds and public Global Insights are not enabled.",
+    "Admin-only sequence/QC workflow parity can be added later if needed."
+  ],
+  "safety": {
+    "canonical_bacterial_tables_changed": false,
+    "large_artifacts_committed": false,
+    "public_enabled": false,
+    "public_routes_exposed": false,
+    "release_locked": true
+  },
+  "scope": [
+    "Expanded admin-only Archaea taxon reports with bacterial-style metadata coverage, completeness, provenance, and distribution summaries.",
+    "Added admin-only standardized metadata CSV export for hidden Archaea genus/species reports.",
+    "Kept public Archaea release locked and public bacterial routes unchanged."
+  ],
+  "status": "hidden_archaea_presentation_parity_increment_complete",
+  "validation": {
+    "focused_tests": "2 hidden Archaea report/export tests OK",
+    "full_unittest_discovery": "156 tests OK",
+    "git_diff_check": "passed",
+    "py_compile": "passed"
+  }
+}
