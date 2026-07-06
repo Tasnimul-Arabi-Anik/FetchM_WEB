@@ -302,6 +302,40 @@ ON canonical_metadata_restandardization_task (status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_assembly_standardization_status
 ON assembly_standardization (status, updated_at);
 
+CREATE TABLE IF NOT EXISTS domain_inventory_task (
+    id BIGSERIAL PRIMARY KEY,
+    domain_key TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    UNIQUE (domain_key, snapshot_id),
+    CHECK (domain_key <> 'bacteria')
+);
+
+CREATE TABLE IF NOT EXISTS domain_metadata_fetch_task (
+    id BIGSERIAL PRIMARY KEY,
+    domain_key TEXT NOT NULL,
+    snapshot_id TEXT NOT NULL,
+    status TEXT NOT NULL,
+    requested_by TEXT,
+    requested_at TIMESTAMPTZ NOT NULL,
+    continue_after BOOLEAN NOT NULL DEFAULT FALSE,
+    refetch_all BOOLEAN NOT NULL DEFAULT FALSE,
+    claimed_by TEXT,
+    claimed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error TEXT,
+    summary_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    CHECK (domain_key <> 'bacteria')
+);
+
 CREATE TABLE IF NOT EXISTS domain_inventory_snapshot (
     domain_key TEXT NOT NULL,
     snapshot_id TEXT NOT NULL,
@@ -392,6 +426,10 @@ CREATE TABLE IF NOT EXISTS domain_assembly_standardization (
         REFERENCES domain_assembly_master(domain_key, assembly_accession)
 );
 
+CREATE INDEX IF NOT EXISTS idx_domain_inventory_task_status
+ON domain_inventory_task (domain_key, status, requested_at);
+CREATE INDEX IF NOT EXISTS idx_domain_metadata_fetch_task_status
+ON domain_metadata_fetch_task (domain_key, status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_domain_inventory_snapshot_status
 ON domain_inventory_snapshot (domain_key, status, requested_at);
 CREATE INDEX IF NOT EXISTS idx_domain_inventory_page_status
@@ -1010,6 +1048,202 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
         "top_environment_media": _top_payload_values(rows, "Environment_Medium_SD"),
         "top_assembly_levels": _top_payload_values(rows, "Assembly Level"),
         "examples": examples,
+    }
+
+
+def active_domain_pipeline_task(domain_key: str, connection: Any | None = None) -> tuple[str, str, str] | None:
+    key = normalize_domain_pipeline_key(domain_key)
+    query = """
+        SELECT snapshot_id, status, task_type FROM (
+            SELECT snapshot_id, status, requested_at, 'inventory' AS task_type
+            FROM domain_inventory_task
+            WHERE domain_key = %s AND status IN ('pending', 'running')
+            UNION ALL
+            SELECT snapshot_id, status, requested_at, 'metadata_fetch' AS task_type
+            FROM domain_metadata_fetch_task
+            WHERE domain_key = %s AND status IN ('pending', 'running')
+        ) active_tasks ORDER BY requested_at ASC LIMIT 1
+    """
+    if connection is not None:
+        row = connection.execute(query, (key, key)).fetchone()
+    else:
+        bootstrap_schema()
+        with connect() as owned_connection:
+            row = owned_connection.execute(query, (key, key)).fetchone()
+    if row is None:
+        return None
+    return str(row[0]), str(row[1]), str(row[2])
+
+
+def queue_domain_inventory_task(
+    domain_key: str,
+    requested_by: str | None = None,
+    *,
+    continue_after: bool = False,
+    snapshot_id: str | None = None,
+) -> tuple[str | None, str | None]:
+    key = normalize_domain_pipeline_key(domain_key)
+    snapshot_id = snapshot_id or default_domain_snapshot_id(key)
+    bootstrap_schema()
+    with connect() as connection:
+        active = active_domain_pipeline_task(key, connection)
+        if active is not None:
+            return None, f"Hidden {key} pipeline task for {active[0]} is already {active[1]}."
+        connection.execute(
+            """
+            INSERT INTO domain_inventory_task (domain_key, snapshot_id, status, requested_by, requested_at, continue_after)
+            VALUES (%s, %s, 'pending', %s, %s, %s)
+            ON CONFLICT (domain_key, snapshot_id) DO UPDATE SET
+                status = CASE WHEN domain_inventory_task.status IN ('failed') THEN 'pending' ELSE domain_inventory_task.status END,
+                requested_at = CASE WHEN domain_inventory_task.status IN ('failed') THEN EXCLUDED.requested_at ELSE domain_inventory_task.requested_at END,
+                requested_by = COALESCE(EXCLUDED.requested_by, domain_inventory_task.requested_by),
+                continue_after = EXCLUDED.continue_after,
+                error = CASE WHEN domain_inventory_task.status IN ('failed') THEN NULL ELSE domain_inventory_task.error END
+            """,
+            (key, snapshot_id, requested_by, utc_now(), bool(continue_after)),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+
+def claim_domain_inventory_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, domain_key, snapshot_id, continue_after
+            FROM domain_inventory_task
+            WHERE status = 'pending'
+            ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            "UPDATE domain_inventory_task SET status = 'running', claimed_by = %s, claimed_at = %s WHERE id = %s",
+            (worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {"id": int(row[0]), "domain_key": str(row[1]), "snapshot_id": str(row[2]), "continue_after": bool(row[3])}
+
+
+def finish_domain_inventory_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE domain_inventory_task
+            SET status = %s, completed_at = %s, error = %s, summary_json = %s
+            WHERE id = %s
+            """,
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+
+def queue_domain_metadata_fetch_task(
+    domain_key: str,
+    requested_by: str | None = None,
+    *,
+    snapshot_id: str | None = None,
+    continue_after: bool = False,
+    refetch_all: bool = False,
+) -> tuple[str | None, str | None]:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    if not snapshot_id:
+        latest = latest_domain_inventory_snapshot(key)
+        if latest is None:
+            return None, f"No hidden {key} inventory snapshot is available."
+        snapshot_id = str(latest["snapshot_id"] or "")
+    with connect() as connection:
+        active = active_domain_pipeline_task(key, connection)
+        if active is not None:
+            return None, f"Hidden {key} pipeline task for {active[0]} is already {active[1]}."
+        inventory = connection.execute(
+            "SELECT status FROM domain_inventory_snapshot WHERE domain_key = %s AND snapshot_id = %s",
+            (key, snapshot_id),
+        ).fetchone()
+        if inventory is None or str(inventory[0]) != "completed":
+            return None, f"Hidden {key} inventory snapshot is not completed."
+        connection.execute(
+            """
+            INSERT INTO domain_metadata_fetch_task (
+                domain_key, snapshot_id, status, requested_by, requested_at, continue_after, refetch_all
+            ) VALUES (%s, %s, 'pending', %s, %s, %s, %s)
+            """,
+            (key, snapshot_id, requested_by, utc_now(), bool(continue_after), bool(refetch_all)),
+        )
+        connection.commit()
+    return snapshot_id, None
+
+
+def claim_domain_metadata_fetch_task(worker_name: str) -> dict[str, Any] | None:
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT id, domain_key, snapshot_id, continue_after, refetch_all
+            FROM domain_metadata_fetch_task
+            WHERE status = 'pending'
+            ORDER BY requested_at ASC
+            FOR UPDATE SKIP LOCKED LIMIT 1
+            """
+        ).fetchone()
+        if row is None:
+            return None
+        connection.execute(
+            "UPDATE domain_metadata_fetch_task SET status = 'running', claimed_by = %s, claimed_at = %s WHERE id = %s",
+            (worker_name, utc_now(), row[0]),
+        )
+        connection.commit()
+        return {
+            "id": int(row[0]),
+            "domain_key": str(row[1]),
+            "snapshot_id": str(row[2]),
+            "continue_after": bool(row[3]),
+            "refetch_all": bool(row[4]),
+        }
+
+
+def finish_domain_metadata_fetch_task(task_id: int, status: str, error: str | None = None, summary: dict[str, Any] | None = None) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE domain_metadata_fetch_task
+            SET status = %s, completed_at = %s, error = %s, summary_json = %s
+            WHERE id = %s
+            """,
+            (status, utc_now(), error[:4000] if error else None, Jsonb(summary or {}), task_id),
+        )
+        connection.commit()
+
+
+def latest_domain_metadata_fetch_task(domain_key: str) -> dict[str, Any] | None:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT snapshot_id, status, requested_at, claimed_at, completed_at, error, summary_json, refetch_all
+            FROM domain_metadata_fetch_task
+            WHERE domain_key = %s
+            ORDER BY requested_at DESC LIMIT 1
+            """,
+            (key,),
+        ).fetchone()
+    if row is None:
+        return None
+    return {
+        "domain_key": key,
+        "snapshot_id": row[0],
+        "status": row[1],
+        "requested_at": row[2],
+        "claimed_at": row[3],
+        "completed_at": row[4],
+        "error": row[5],
+        "summary": dict(row[6] or {}),
+        "refetch_all": bool(row[7]),
     }
 
 

@@ -32,6 +32,22 @@
       <div class="health-card"><strong>{{ inventory.standardized_metadata_coverage.standardized_assemblies if inventory.standardized_metadata_coverage else 0 }}</strong><span>Standardized rows</span></div>
       <div class="health-card"><strong>{{ inventory.standardized_metadata_coverage.missing_standardized_assemblies if inventory.standardized_metadata_coverage else 0 }}</strong><span>Missing metadata</span></div>
     </div>
+    <div class="action-row top-gap">
+      <form action="{{ url_for('admin_queue_archaea_inventory') }}" method="post">
+        <button type="submit">Queue hidden inventory</button>
+        <label class="pipeline-check compact"><input type="checkbox" name="continue_after" value="1" checked>Fetch metadata after inventory</label>
+      </form>
+      <form action="{{ url_for('admin_queue_archaea_metadata_fetch') }}" method="post">
+        <button type="submit" class="ghost" {% if not inventory.available or inventory.status != 'completed' %}disabled{% endif %}>Fetch missing metadata</button>
+      </form>
+      <form action="{{ url_for('admin_queue_archaea_metadata_fetch') }}" method="post" onsubmit="return confirm('Refetch every hidden Archaea metadata row from NCBI? Public data remains locked, but this may be expensive.')">
+        <input type="hidden" name="refetch_all" value="1">
+        <button type="submit" class="ghost" {% if not inventory.available or inventory.status != 'completed' %}disabled{% endif %}>Refetch all hidden metadata</button>
+      </form>
+    </div>
+    {% if inventory.metadata_fetch_task %}
+      <p class="job-meta top-gap">Latest hidden metadata task: {{ inventory.metadata_fetch_task.status }} · {{ inventory.metadata_fetch_task.snapshot_id }}{% if inventory.metadata_fetch_task.error %} · {{ inventory.metadata_fetch_task.error }}{% endif %}</p>
+    {% endif %}
   </section>
 
   {% if results %}

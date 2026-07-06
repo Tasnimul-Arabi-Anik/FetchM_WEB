@@ -12,12 +12,13 @@ Implemented in this milestone:
 - Hidden metadata can be fetched and standardized into `domain_assembly_standardization`.
 - Hidden inventory and metadata coverage status are visible in Admin only.
 - Admin-only Archaea genus/species search and compact taxon reports are available at `/admin/archaea`.
+- Admin users can queue hidden inventory and metadata-fetch tasks for root-inventory workers.
 - Public search, sequence/QC entrypoints, Global Insights, and release activation remain locked.
 
 Not implemented yet:
 
 - Archaeal rule pack and QA gate.
-- Scheduled hidden Archaea runs.
+- Recurring schedule automation for hidden Archaea runs.
 - Manual public promotion.
 
 ## Inventory Command
@@ -41,6 +42,8 @@ python tools/fetch_domain_missing_metadata.py \
   --domain archaea \
   --snapshot-id YYYYMMDDTHHMMSSZ_genbank_archaea_root
 ```
+
+The same steps can also be queued from `/admin/archaea`; root-inventory workers claim those hidden tasks after canonical bacterial work.
 
 Run a small metadata validation batch:
 
