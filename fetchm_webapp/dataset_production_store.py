@@ -1323,6 +1323,324 @@ def _percent(numerator: int, denominator: int) -> int:
     return int(round((numerator / denominator) * 100))
 
 
+
+
+def _latest_virus_sequence_snapshot_id() -> str | None:
+    """Return the most recently updated hidden Virus sequence snapshot."""
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT source_snapshot_id
+            FROM domain_virus_sequence_record
+            WHERE domain_key = 'virus'
+              AND COALESCE(NULLIF(source_snapshot_id, ''), '') <> ''
+            GROUP BY source_snapshot_id
+            ORDER BY MAX(updated_at) DESC NULLS LAST, source_snapshot_id DESC
+            LIMIT 1
+            """
+        ).fetchone()
+    return str(row[0] or "") if row else None
+
+
+def _virus_taxon_labels_for_organism(value: Any) -> list[dict[str, str]]:
+    labels = domain_taxon_labels_for_organism(value)
+    cleaned = normalize_taxon_label(value)
+    if cleaned and not any(label["rank"] == "species" and label["name"].casefold() == cleaned.casefold() for label in labels):
+        labels.append({"rank": "species", "name": cleaned})
+    return labels
+
+
+def _virus_sequence_payload(row: Any) -> dict[str, Any]:
+    raw_payload = row[10] if len(row) > 10 and isinstance(row[10], dict) else {}
+    payload = dict(raw_payload)
+    sequence_accession = str(row[0] or "")
+    assembly_accession = str(row[1] or "")
+    organism_name = str(row[2] or "")
+    biosample_accession = str(row[4] or "")
+    payload.update({
+        "Organism Name": organism_name,
+        "Assembly BioSample Accession": biosample_accession,
+        "FetchM_Domain": "Virus",
+        "FetchM_Domain_Key": "virus",
+        "FetchM_Domain_Profile": "virus_hidden_v1",
+        "FetchM_Public_Release_Status": "locked_admin_hidden",
+        "FetchM_Virus_Record_Model": "virus_assembly_surrogate" if assembly_accession else "virus_sequence",
+        "Virus_Primary_Accession": sequence_accession,
+        "Virus_Sequence_Accession": "" if assembly_accession else sequence_accession,
+        "Virus_Assembly_Accession": assembly_accession,
+        "Virus_Molecule_Type": str(row[5] or ""),
+        "Virus_Segment": str(row[6] or ""),
+        "Virus_Genome_Completeness": str(row[7] or ""),
+        "Virus_Isolate": str(row[8] or ""),
+    })
+    return payload
+
+
+def _virus_sequence_rows_for_taxon(rank: str, name: str, snapshot_id: str | None) -> tuple[str | None, list[dict[str, Any]]]:
+    normalized_name = normalize_taxon_label(name)
+    if not snapshot_id:
+        snapshot_id = _latest_virus_sequence_snapshot_id()
+    if not snapshot_id:
+        return None, []
+    name_filter = f"%{normalized_name.casefold()}%"
+    bootstrap_schema()
+    with connect() as connection:
+        db_rows = connection.execute(
+            """
+            SELECT sequence_accession, assembly_accession, organism_name, tax_id,
+                   biosample_accession, molecule_type, segment_name, genome_completeness,
+                   isolate_name, source_snapshot_id, raw_payload
+            FROM domain_virus_sequence_record
+            WHERE domain_key = 'virus'
+              AND source_snapshot_id = %s
+              AND lower(COALESCE(organism_name, '')) LIKE %s
+            ORDER BY sequence_accession
+            LIMIT 50000
+            """,
+            (snapshot_id, name_filter),
+        ).fetchall()
+    rows: list[dict[str, Any]] = []
+    for db_row in db_rows:
+        organism = str(db_row[2] or "")
+        labels = _virus_taxon_labels_for_organism(organism)
+        if not any(label["rank"] == rank and label["name"].casefold() == normalized_name.casefold() for label in labels):
+            continue
+        payload = _virus_sequence_payload(db_row)
+        rows.append({
+            "sequence_accession": str(db_row[0] or ""),
+            "assembly_accession": str(db_row[1] or ""),
+            "organism_name": organism,
+            "tax_id": int(db_row[3] or 0),
+            "species_tax_id": 0,
+            "biosample_accession": str(db_row[4] or ""),
+            "molecule_type": str(db_row[5] or ""),
+            "segment": str(db_row[6] or ""),
+            "genome_completeness": str(db_row[7] or ""),
+            "isolate": str(db_row[8] or ""),
+            "payload": payload,
+        })
+    return snapshot_id, rows
+
+
+def _virus_sequence_taxon_search_results(query: str, *, snapshot_id: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    cleaned = normalize_taxon_label(query)
+    if len(cleaned) < 2:
+        return []
+    if not snapshot_id:
+        snapshot_id = _latest_virus_sequence_snapshot_id()
+    if not snapshot_id:
+        return []
+    query_key = cleaned.casefold()
+    like_value = f"%{query_key}%"
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    bootstrap_schema()
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT sequence_accession, organism_name
+            FROM domain_virus_sequence_record
+            WHERE domain_key = 'virus'
+              AND source_snapshot_id = %s
+              AND lower(COALESCE(organism_name, '')) LIKE %s
+            ORDER BY sequence_accession
+            LIMIT 20000
+            """,
+            (snapshot_id, like_value),
+        ).fetchall()
+    for row in rows:
+        organism = str(row[1] or "")
+        for label in _virus_taxon_labels_for_organism(organism):
+            name = label["name"]
+            name_key = name.casefold()
+            if query_key not in name_key:
+                continue
+            group_key = (label["rank"], name_key)
+            item = grouped.setdefault(
+                group_key,
+                {
+                    "domain_key": "virus",
+                    "snapshot_id": snapshot_id,
+                    "rank": label["rank"],
+                    "name": name,
+                    "genome_count": 0,
+                    "sequence_count": 0,
+                    "public_enabled": False,
+                    "release_locked": True,
+                },
+            )
+            item["genome_count"] = int(item["genome_count"] or 0) + 1
+            item["sequence_count"] = int(item["sequence_count"] or 0) + 1
+    rank_priority = {"genus": 0, "species": 1}
+    results = list(grouped.values())
+    results.sort(
+        key=lambda item: (
+            0 if str(item["name"]).casefold().startswith(query_key) else 1,
+            rank_priority.get(str(item["rank"]), 9),
+            -int(item["sequence_count"] or 0),
+            str(item["name"]).casefold(),
+        )
+    )
+    return results[:max(1, int(limit))]
+
+
+def _virus_sequence_taxon_report(rank: str, name: str, *, snapshot_id: str | None = None) -> dict[str, Any] | None:
+    snapshot_id, rows = _virus_sequence_rows_for_taxon(rank, name, snapshot_id)
+    if not snapshot_id or not rows:
+        return None
+    normalized_name = normalize_taxon_label(name)
+    examples = []
+    for row in rows[:50]:
+        payload = row["payload"]
+        examples.append({
+            "primary_accession": row["sequence_accession"],
+            "assembly_accession": row["assembly_accession"] or row["sequence_accession"],
+            "organism_name": row["organism_name"],
+            "biosample_accession": row["biosample_accession"],
+            "country": _payload_value(payload, "Country"),
+            "collection_date": _payload_value(payload, "Collection Date"),
+            "host": _payload_value(payload, "Host_SD") or _payload_value(payload, "host"),
+            "host_context": _payload_value(payload, "Host_Context_SD"),
+            "isolation_source": _payload_value(payload, "Isolation_Source_SD") or _payload_value(payload, "isolation_source"),
+            "sample_type": _payload_value(payload, "Sample_Type_SD"),
+            "sample_material": _payload_value(payload, "Sample_Material_SD"),
+            "environment_medium": _payload_value(payload, "Environment_Medium_SD"),
+            "environment_broad": _payload_value(payload, "Environment_Broad_Scale_SD"),
+            "environment_local": _payload_value(payload, "Environment_Local_Scale_SD"),
+            "isolation_site": _payload_value(payload, "Isolation_Site_SD"),
+            "assembly_level": row["genome_completeness"],
+            "molecule_type": row["molecule_type"],
+            "segment": row["segment"],
+        })
+    species_labels = {
+        label["name"].casefold()
+        for row in rows
+        for label in _virus_taxon_labels_for_organism(row["organism_name"])
+        if label["rank"] == "species"
+    }
+    year_start, year_end = _domain_year_span(rows)
+    complete_count = sum(1 for row in rows if row["genome_completeness"].casefold() in {"complete", "complete genome"})
+    standardized_coverage = [
+        _domain_standardized_coverage(rows, "Virus_Primary_Accession", "Virus_Primary_Accession", "Virus accession"),
+        _domain_standardized_coverage(rows, "Virus_Molecule_Type", "Virus_Molecule_Type", "Molecule type"),
+        _domain_standardized_coverage(rows, "Virus_Segment", "Virus_Segment", "Segment"),
+        _domain_standardized_coverage(rows, "Virus_Genome_Completeness", "Virus_Genome_Completeness", "Genome completeness"),
+        _domain_standardized_coverage(rows, "Assembly BioSample Accession", "Assembly BioSample Accession", "BioSample"),
+    ]
+    completeness_rows = _domain_completeness_rows(rows, [
+        "Virus_Primary_Accession",
+        "Virus_Molecule_Type",
+        "Virus_Segment",
+        "Virus_Genome_Completeness",
+        "Assembly BioSample Accession",
+        "Country",
+        "Collection Date",
+    ])
+    return {
+        "domain_key": "virus",
+        "snapshot_id": snapshot_id,
+        "rank": rank,
+        "rank_label": "Genus" if rank == "genus" else "Species",
+        "name": normalized_name,
+        "row_count": len(rows),
+        "public_enabled": False,
+        "release_locked": True,
+        "record_label": "hidden viral sequence records",
+        "summary_metrics": {
+            "distinct_species_count": len(species_labels),
+            "distinct_country_count": _payload_distinct_count(rows, "Country"),
+            "year_start": year_start,
+            "year_end": year_end,
+            "complete_genome_count": complete_count,
+            "complete_genome_percent": _percent(complete_count, len(rows)),
+            "standardized_profile": "virus_hidden_v1",
+            "release_status": "locked_admin_hidden",
+        },
+        "standardized_coverage": standardized_coverage,
+        "completeness_rows": completeness_rows,
+        "domain_profiles": [{"value": "virus_hidden_v1", "count": len(rows)}],
+        "release_statuses": [{"value": "locked_admin_hidden", "count": len(rows)}],
+        "top_countries": _top_payload_values(rows, "Country"),
+        "top_hosts": _top_payload_values(rows, "Host_SD"),
+        "top_host_contexts": _top_payload_values(rows, "Host_Context_SD"),
+        "top_host_diseases": _top_payload_values(rows, "Host_Disease_SD"),
+        "top_host_health_states": _top_payload_values(rows, "Host_Health_State_SD"),
+        "top_isolation_sources": _top_payload_values(rows, "Isolation_Source_SD"),
+        "top_sample_types": _top_payload_values(rows, "Sample_Type_SD"),
+        "top_sample_materials": _top_payload_values(rows, "Sample_Material_SD"),
+        "top_environment_media": _top_payload_values(rows, "Environment_Medium_SD"),
+        "top_environment_broad": _top_payload_values(rows, "Environment_Broad_Scale_SD"),
+        "top_environment_local": _top_payload_values(rows, "Environment_Local_Scale_SD"),
+        "top_isolation_sites": _top_payload_values(rows, "Isolation_Site_SD"),
+        "top_assembly_levels": _top_payload_values(rows, "Virus_Genome_Completeness"),
+        "top_molecule_types": _top_payload_values(rows, "Virus_Molecule_Type"),
+        "examples": examples,
+        "presentation_notes": [
+            "Admin-only hidden Virus sequence report; public routes remain disabled.",
+            "Rows come from the Virus sequence/genome-group model, not the bacterial or archaeal assembly model.",
+            "Host relationships are stored separately as taxon relationships and do not change the Virus record domain.",
+        ],
+    }
+
+
+def _virus_sequence_taxon_metadata_csv(rank: str, name: str, *, snapshot_id: str | None = None) -> dict[str, Any] | None:
+    snapshot_id, rows = _virus_sequence_rows_for_taxon(rank, name, snapshot_id)
+    if not snapshot_id or not rows:
+        return None
+    normalized_name = normalize_taxon_label(name)
+    export_rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for row in rows:
+        export_rows.append((
+            {
+                "sequence_accession": row["sequence_accession"],
+                "assembly_accession": row["assembly_accession"],
+                "organism_name": row["organism_name"],
+                "tax_id": row["tax_id"],
+                "biosample_accession": row["biosample_accession"],
+                "molecule_type": row["molecule_type"],
+                "segment": row["segment"],
+                "genome_completeness": row["genome_completeness"],
+                "fetchm_domain_key": "virus",
+                "fetchm_snapshot_id": snapshot_id,
+                "fetchm_visibility": "admin_hidden",
+                "fetchm_public_enabled": "false",
+            },
+            row["payload"],
+        ))
+    base_columns = [
+        "sequence_accession",
+        "assembly_accession",
+        "organism_name",
+        "tax_id",
+        "biosample_accession",
+        "molecule_type",
+        "segment",
+        "genome_completeness",
+        "fetchm_domain_key",
+        "fetchm_snapshot_id",
+        "fetchm_visibility",
+        "fetchm_public_enabled",
+    ]
+    payload_columns = sorted({key for _base, payload in export_rows for key in payload}, key=lambda item: item.casefold())
+    columns = base_columns + [column for column in payload_columns if column not in base_columns]
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=columns, extrasaction="ignore")
+    writer.writeheader()
+    for base, payload in export_rows:
+        csv_row = dict(payload)
+        csv_row.update(base)
+        writer.writerow(csv_row)
+    filename = f"virus_{rank}_{_safe_domain_export_label(normalized_name)}_metadata.csv"
+    return {
+        "filename": filename,
+        "content": buffer.getvalue(),
+        "row_count": len(export_rows),
+        "snapshot_id": snapshot_id,
+        "domain_key": "virus",
+        "rank": rank,
+        "name": normalized_name,
+    }
+
 def domain_taxon_search_results(
     domain_key: str,
     query: str,
@@ -1334,6 +1652,8 @@ def domain_taxon_search_results(
     cleaned = normalize_taxon_label(query)
     if len(cleaned) < 2:
         return []
+    if key == "virus":
+        return _virus_sequence_taxon_search_results(cleaned, snapshot_id=snapshot_id, limit=limit)
     if not snapshot_id:
         latest = latest_domain_inventory_snapshot(key)
         if latest is None:
@@ -1465,6 +1785,8 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
     normalized_name = normalize_taxon_label(name)
     if not normalized_name:
         return None
+    if key == "virus":
+        return _virus_sequence_taxon_report(rank, normalized_name, snapshot_id=snapshot_id)
     if not snapshot_id:
         latest = latest_domain_inventory_snapshot(key)
         if latest is None:
@@ -1621,6 +1943,8 @@ def domain_taxon_metadata_csv(domain_key: str, rank: str, name: str, *, snapshot
     normalized_name = normalize_taxon_label(name)
     if not normalized_name:
         return None
+    if key == "virus":
+        return _virus_sequence_taxon_metadata_csv(rank, normalized_name, snapshot_id=snapshot_id)
     if not snapshot_id:
         latest = latest_domain_inventory_snapshot(key)
         if latest is None:
