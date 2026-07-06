@@ -28,6 +28,7 @@ from dataset_production_store import (
     missing_domain_standardized_accession_batch,
     normalize_domain_pipeline_key,
     seed_domain_standardized_metadata_batch,
+    seed_virus_canonical_entities_batch,
 )
 from global_insights.generator import standardization_rule_manifest
 from tools.fetch_canonical_missing_metadata import API_BASE, standardizable_row
@@ -135,6 +136,7 @@ def main() -> int:
     domain_profile = str(config.get("profile") or f"{args.domain}_hidden_v1")
     domain_rule_fingerprint = f"{fingerprint};domain_profile={domain_profile}"
     fetched = standardized = batches = 0
+    virus_sequences_seeded = virus_relationships_seeded = 0
     last_accession = ""
     standardization_executor = ProcessPoolExecutor(max_workers=standardization_workers) if standardization_workers > 1 else None
     try:
@@ -188,6 +190,14 @@ def main() -> int:
                     rule_fingerprint=domain_rule_fingerprint,
                     status="fetched_ncbi_full_report",
                 )
+                if args.domain == "virus":
+                    virus_seeded = seed_virus_canonical_entities_batch(
+                        args.snapshot_id,
+                        reports,
+                        source_status="refetched_all_ncbi_full_report" if args.refetch_all else "fetched_ncbi_full_report",
+                    )
+                    virus_sequences_seeded += int(virus_seeded["virus_sequences_seeded"] or 0)
+                    virus_relationships_seeded += int(virus_seeded["taxon_relationships_seeded"] or 0)
                 if seeded["seeded"] != len(accessions):
                     raise RuntimeError(f"Only {seeded['seeded']} of {len(accessions)} retrieved rows were standardized.")
                 fetched += len(reports)
@@ -221,6 +231,8 @@ def main() -> int:
         "batches_complete": batches,
         "fetched_rows": fetched,
         "standardized_rows": standardized,
+        "virus_sequences_seeded": virus_sequences_seeded,
+        "virus_taxon_relationships_seeded": virus_relationships_seeded,
         "request_workers": request_workers,
         "standardization_workers": standardization_workers,
         "configured_api_key_count": len([key for key in api_keys if key]),

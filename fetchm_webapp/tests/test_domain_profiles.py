@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import json
 import unittest
+from tempfile import TemporaryDirectory
+from pathlib import Path
+from unittest.mock import patch
 
 import dataset_production_store as production_store
 from domain_profiles import domain_profile, domain_profile_contract, hidden_domain_keys, hidden_domain_store_configs
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
+from tools import import_hidden_virus_sequences as virus_import_tool
 from virus_canonical import virus_canonical_entities, virus_standardization_row_fields
 
 
@@ -132,6 +136,147 @@ class VirusCanonicalModelTests(unittest.TestCase):
         self.assertIn("NC_123456.1", encoded)
         relationship = json.loads(fields["Virus_Host_Relationships_JSON"])[0]
         self.assertEqual(relationship["target_domain"], "archaea")
+
+
+class VirusPersistenceTests(unittest.TestCase):
+    def test_seed_virus_canonical_entities_batch_writes_virus_tables(self) -> None:
+        executed: list[tuple[str, tuple[object, ...]]] = []
+
+        class FakeCursor:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, sql: str, params: tuple[object, ...] = ()):  # noqa: ANN001
+                executed.append((sql, tuple(params or ())))
+                return self
+
+        class FakeConnection:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def cursor(self):
+                return FakeCursor()
+
+            def commit(self):
+                executed.append(("COMMIT", ()))
+
+        reports = [{
+            "nuccore_accession": "NC_000866.4",
+            "organism_name": "Escherichia phage T4",
+            "tax_id": 10665,
+            "molecule_type": "dsDNA",
+            "genome_completeness": "complete",
+            "host": {"name": "Escherichia coli", "tax_id": 562},
+            "lab_host": "Escherichia coli K-12",
+            "biosample_accession": "SAMN00000010",
+        }]
+        with patch.object(production_store, "bootstrap_schema", lambda: None), patch.object(
+            production_store, "connect", lambda: FakeConnection()
+        ):
+            summary = production_store.seed_virus_canonical_entities_batch("virus-snapshot", reports)
+
+        self.assertEqual(summary["virus_sequences_seeded"], 1)
+        self.assertEqual(summary["virus_genome_groups_touched"], 1)
+        self.assertEqual(summary["taxon_relationships_seeded"], 2)
+        sql_text = "\n".join(sql for sql, _ in executed)
+        self.assertIn("domain_virus_sequence_record", sql_text)
+        self.assertIn("domain_virus_genome_group", sql_text)
+        self.assertIn("domain_taxon_relationship", sql_text)
+        flattened_params = "\n".join(str(param) for _, params in executed for param in params)
+        self.assertIn("NC_000866.4", flattened_params)
+        self.assertIn("Escherichia coli", flattened_params)
+        self.assertIn("virus-snapshot", flattened_params)
+
+    def test_hidden_virus_sequence_import_loads_and_summarizes_reports(self) -> None:
+        payload = {
+            "reports": [
+                {
+                    "nuccore_accession": "OP123456.1",
+                    "organism_name": "Influenza A virus",
+                    "genome_group_id": "flu-group",
+                    "segment": "4",
+                    "host": "Homo sapiens",
+                },
+                {"not_an_accession": "skip me"},
+            ]
+        }
+        with TemporaryDirectory() as tmpdir:
+            path = Path(tmpdir) / "virus_reports.json"
+            path.write_text(json.dumps(payload))
+            reports = virus_import_tool.load_reports(path)
+        self.assertEqual(len(reports), 2)
+        summary = virus_import_tool.summarize_reports(reports, "virus-snapshot")
+        self.assertEqual(summary["reports_loaded"], 2)
+        self.assertEqual(summary["reports_valid"], 1)
+        self.assertEqual(summary["reports_skipped"], 1)
+        self.assertEqual(summary["virus_sequence_records"], 1)
+        self.assertEqual(summary["virus_genome_groups"], 1)
+        self.assertEqual(summary["taxon_relationships"], 1)
+
+    def test_standardizable_domain_row_adds_virus_fields_for_virus_only(self) -> None:
+        report = {
+            "accession": "GCA_000000999.1",
+            "organism": {"organism_name": "Example virus", "tax_id": 999999},
+            "assembly_info": {"biosample": {"host": "Homo sapiens"}},
+        }
+        row = domain_fetch_tool.standardizable_domain_row(report, "archaea")
+        self.assertNotIn("Virus_Primary_Accession", row)
+
+        row = domain_fetch_tool.standardizable_domain_row(report, "virus")
+        self.assertEqual(row["FetchM_Domain_Key"], "virus")
+        self.assertEqual(row["Virus_Primary_Accession"], "GCA_000000999.1")
+        self.assertEqual(row["FetchM_Virus_Record_Model"], "virus_assembly_surrogate")
+
+    def test_hidden_virus_metadata_fetch_command_persists_virus_entities(self) -> None:
+        report = {
+            "accession": "GCA_000000999.1",
+            "organism": {"organism_name": "Example virus", "tax_id": 999999},
+            "assembly_info": {"biosample": {"host": "Homo sapiens"}},
+        }
+        argv = [
+            "fetch_domain_missing_metadata.py",
+            "--domain",
+            "virus",
+            "--snapshot-id",
+            "virus-snapshot",
+            "--batch-size",
+            "1",
+            "--request-workers",
+            "1",
+            "--standardization-workers",
+            "1",
+            "--request-sleep",
+            "0",
+        ]
+        with patch.object(domain_fetch_tool.sys, "argv", argv), patch.object(
+            domain_fetch_tool, "missing_domain_standardized_accession_batch", side_effect=[["GCA_000000999.1"], []]
+        ), patch.object(domain_fetch_tool, "fetch_reports", return_value=[report]), patch.object(
+            domain_fetch_tool, "insert_domain_inventory_batch", return_value=(1, 0, 0)
+        ), patch.object(
+            domain_fetch_tool, "seed_domain_standardized_metadata_batch", return_value={"total": 1, "seeded": 1, "skipped_not_in_domain_root": 0}
+        ), patch.object(
+            domain_fetch_tool, "seed_virus_canonical_entities_batch", return_value={
+                "virus_sequences_seeded": 1,
+                "taxon_relationships_seeded": 1,
+            }
+        ) as seed_virus, patch.object(
+            domain_fetch_tool, "domain_standardized_metadata_coverage", return_value={
+                "root_unique_assemblies": 1,
+                "standardized_assemblies": 1,
+                "missing_standardized_assemblies": 0,
+            }
+        ), patch.object(domain_fetch_tool, "standardization_rule_manifest", return_value={"version": "test-rules"}):
+            self.assertEqual(domain_fetch_tool.main(), 0)
+        seed_virus.assert_called_once()
+        self.assertEqual(seed_virus.call_args.args[0], "virus-snapshot")
+        self.assertEqual(seed_virus.call_args.args[1], [report])
+
 
 
 if __name__ == "__main__":

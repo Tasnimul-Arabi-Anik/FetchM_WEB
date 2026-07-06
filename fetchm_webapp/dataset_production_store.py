@@ -899,6 +899,182 @@ def seed_domain_standardized_metadata_batch(
     return {"total": total, "seeded": seeded, "skipped_not_in_domain_root": skipped}
 
 
+
+
+def seed_virus_canonical_entities_batch(
+    snapshot_id: str,
+    reports: Iterable[dict[str, Any]],
+    *,
+    source_status: str = "hidden_virus_metadata_fetch",
+) -> dict[str, int | str]:
+    """Persist hidden Virus sequence, genome-group and host-relationship entities.
+
+    This is separate from domain_assembly_standardization. It lets the hidden
+    Virus lane preserve viral record cardinality and host relationships while
+    public bacterial and hidden archaeal assembly workflows stay unchanged.
+    """
+    config = domain_pipeline_config("virus")
+    profile = str(config.get("profile") or "virus_hidden_v1")
+    total = sequences = genome_groups = relationships = skipped = 0
+    touched_groups: set[str] = set()
+    now = utc_now()
+    from virus_canonical import virus_canonical_entities
+
+    bootstrap_schema()
+    with connect() as connection:
+        with connection.cursor() as cursor:
+            for report in reports:
+                total += 1
+                try:
+                    entities = virus_canonical_entities(report, snapshot_id=snapshot_id, profile=profile)
+                except ValueError:
+                    skipped += 1
+                    continue
+                sequence = entities["virus_sequence"]
+                group = entities["virus_genome_group"]
+                raw_payload = entities["raw_payload"]
+                raw_fingerprint = metadata_payload_fingerprint(raw_payload)
+                sequence_accession = str(sequence.get("primary_accession") or "").strip()
+                if not sequence_accession:
+                    skipped += 1
+                    continue
+                cursor.execute(
+                    """
+                    INSERT INTO domain_virus_sequence_record (
+                        domain_key, sequence_accession, genome_group_id, assembly_accession, source_database,
+                        organism_name, tax_id, biosample_accession, molecule_type, segment_name,
+                        genome_completeness, isolate_name, source_snapshot_id, raw_fingerprint,
+                        raw_payload, updated_at
+                    ) VALUES ('virus', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (domain_key, sequence_accession) DO UPDATE SET
+                        genome_group_id = EXCLUDED.genome_group_id,
+                        assembly_accession = COALESCE(NULLIF(EXCLUDED.assembly_accession, ''), domain_virus_sequence_record.assembly_accession),
+                        source_database = EXCLUDED.source_database,
+                        organism_name = COALESCE(NULLIF(EXCLUDED.organism_name, ''), domain_virus_sequence_record.organism_name),
+                        tax_id = COALESCE(EXCLUDED.tax_id, domain_virus_sequence_record.tax_id),
+                        biosample_accession = COALESCE(NULLIF(EXCLUDED.biosample_accession, ''), domain_virus_sequence_record.biosample_accession),
+                        molecule_type = COALESCE(NULLIF(EXCLUDED.molecule_type, ''), domain_virus_sequence_record.molecule_type),
+                        segment_name = COALESCE(NULLIF(EXCLUDED.segment_name, ''), domain_virus_sequence_record.segment_name),
+                        genome_completeness = COALESCE(NULLIF(EXCLUDED.genome_completeness, ''), domain_virus_sequence_record.genome_completeness),
+                        isolate_name = COALESCE(NULLIF(EXCLUDED.isolate_name, ''), domain_virus_sequence_record.isolate_name),
+                        source_snapshot_id = EXCLUDED.source_snapshot_id,
+                        raw_fingerprint = EXCLUDED.raw_fingerprint,
+                        raw_payload = EXCLUDED.raw_payload,
+                        updated_at = EXCLUDED.updated_at
+                    """,
+                    (
+                        sequence_accession,
+                        str(sequence.get("genome_group_id") or ""),
+                        str(sequence.get("assembly_accession") or ""),
+                        "genbank",
+                        str(sequence.get("organism_name") or ""),
+                        sequence.get("tax_id"),
+                        str(sequence.get("biosample_accession") or ""),
+                        str(sequence.get("molecule_type") or ""),
+                        str(sequence.get("segment") or ""),
+                        str(sequence.get("genome_completeness") or ""),
+                        str(sequence.get("isolate") or ""),
+                        snapshot_id,
+                        raw_fingerprint,
+                        Jsonb(raw_payload),
+                        now,
+                    ),
+                )
+                sequences += 1
+                group_id = str(group.get("genome_group_id") or sequence.get("genome_group_id") or "").strip()
+                if group_id:
+                    touched_groups.add(group_id)
+                    cursor.execute(
+                        """
+                        INSERT INTO domain_virus_genome_group (
+                            domain_key, genome_group_id, representative_accession, organism_name, tax_id,
+                            biosample_accession, segment_count, source_snapshot_id, raw_payload, updated_at
+                        ) VALUES ('virus', %s, %s, %s, %s, %s, 0, %s, %s, %s)
+                        ON CONFLICT (domain_key, genome_group_id) DO UPDATE SET
+                            representative_accession = COALESCE(NULLIF(domain_virus_genome_group.representative_accession, ''), EXCLUDED.representative_accession),
+                            organism_name = COALESCE(NULLIF(EXCLUDED.organism_name, ''), domain_virus_genome_group.organism_name),
+                            tax_id = COALESCE(EXCLUDED.tax_id, domain_virus_genome_group.tax_id),
+                            biosample_accession = COALESCE(NULLIF(EXCLUDED.biosample_accession, ''), domain_virus_genome_group.biosample_accession),
+                            source_snapshot_id = EXCLUDED.source_snapshot_id,
+                            raw_payload = EXCLUDED.raw_payload,
+                            updated_at = EXCLUDED.updated_at
+                        """,
+                        (
+                            group_id,
+                            str(group.get("representative_accession") or sequence_accession),
+                            str(group.get("organism_name") or sequence.get("organism_name") or ""),
+                            group.get("tax_id") or sequence.get("tax_id"),
+                            str(group.get("biosample_accession") or sequence.get("biosample_accession") or ""),
+                            snapshot_id,
+                            Jsonb({"source_status": source_status, "representative_report": raw_payload}),
+                            now,
+                        ),
+                    )
+                    genome_groups += 1
+                for relationship in entities["host_relationships"]:
+                    cursor.execute(
+                        """
+                        INSERT INTO domain_taxon_relationship (
+                            relationship_id, domain_key, subject_accession, subject_record_type,
+                            relationship_type, target_taxon_id, target_taxon_name, target_domain,
+                            evidence_type, confidence, source_field, raw_value, normalized_value,
+                            source_snapshot_id, updated_at
+                        ) VALUES (%s, 'virus', %s, 'virus_sequence', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (relationship_id) DO UPDATE SET
+                            target_taxon_id = EXCLUDED.target_taxon_id,
+                            target_taxon_name = EXCLUDED.target_taxon_name,
+                            target_domain = EXCLUDED.target_domain,
+                            evidence_type = EXCLUDED.evidence_type,
+                            confidence = EXCLUDED.confidence,
+                            source_field = EXCLUDED.source_field,
+                            raw_value = EXCLUDED.raw_value,
+                            normalized_value = EXCLUDED.normalized_value,
+                            source_snapshot_id = EXCLUDED.source_snapshot_id,
+                            updated_at = EXCLUDED.updated_at
+                        """,
+                        (
+                            str(relationship["relationship_id"]),
+                            sequence_accession,
+                            str(relationship["relationship_type"]),
+                            relationship.get("target_taxon_id"),
+                            str(relationship["target_taxon_name"]),
+                            str(relationship["target_domain"]),
+                            str(relationship["evidence_type"]),
+                            str(relationship["confidence"]),
+                            str(relationship["source_field"]),
+                            str(relationship["raw_value"]),
+                            str(relationship["normalized_value"]),
+                            snapshot_id,
+                            now,
+                        ),
+                    )
+                    relationships += 1
+            for group_id in sorted(touched_groups):
+                cursor.execute(
+                    """
+                    UPDATE domain_virus_genome_group AS g
+                    SET segment_count = COALESCE((
+                        SELECT COUNT(*) FROM domain_virus_sequence_record AS r
+                        WHERE r.domain_key = 'virus' AND r.genome_group_id = g.genome_group_id
+                    ), 0), updated_at = %s
+                    WHERE g.domain_key = 'virus' AND g.genome_group_id = %s
+                    """,
+                    (now, group_id),
+                )
+        connection.commit()
+    return {
+        "domain_key": "virus",
+        "snapshot_id": snapshot_id,
+        "total_reports": total,
+        "virus_sequences_seeded": sequences,
+        "virus_genome_groups_touched": len(touched_groups),
+        "virus_genome_group_upserts": genome_groups,
+        "taxon_relationships_seeded": relationships,
+        "skipped_reports": skipped,
+        "source_status": source_status,
+    }
+
+
 def domain_standardized_metadata_coverage(domain_key: str, snapshot_id: str) -> dict[str, int | str]:
     key = normalize_domain_pipeline_key(domain_key)
     bootstrap_schema()
