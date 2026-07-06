@@ -502,10 +502,19 @@ def background_pipeline_preview_cards(
     label = str(domain.get("label") or "Domain")
     taxon_id = str(domain.get("root_taxon_id") or "")
     inventory_status = dict(inventory or {})
+    coverage = dict(inventory_status.get("standardized_metadata_coverage") or {})
     inventory_available = bool(inventory_status.get("available"))
     inventory_count = int(inventory_status.get("root_unique_assemblies") or 0)
+    standardized_count = int(coverage.get("standardized_assemblies") or 0)
+    missing_count = int(coverage.get("missing_standardized_assemblies") or 0)
     inventory_snapshot = str(inventory_status.get("snapshot_id") or "none")
     inventory_percent = canonical_status_percent(inventory_status.get("status")) if inventory_available else 0
+    metadata_percent = int((standardized_count / inventory_count) * 100) if inventory_count else 0
+    metadata_status = "not generated"
+    if inventory_count and missing_count == 0 and standardized_count == inventory_count:
+        metadata_status = "hidden complete"
+    elif standardized_count:
+        metadata_status = "hidden partial"
     inventory_details = [
         f"Planned root: NCBI {label} / TaxID {taxon_id}",
         "Separate domain inventory tables; bacterial tables are not reused.",
@@ -535,12 +544,13 @@ def background_pipeline_preview_cards(
             "key": "standardization_rules",
             "label": f"Review {label.lower()} metadata rules",
             "short": "Build a domain-specific rule pack before canonical writes.",
-            "status": "not started",
-            "percent": 0,
-            "metric_label": "Rules",
+            "status": metadata_status,
+            "percent": metadata_percent,
+            "metric_label": "Metadata",
             "details": [
+                f"Hidden standardized rows: {standardized_count:,} / {inventory_count:,}",
+                f"Remaining for hidden fetch: {missing_count:,}",
                 "Shared parser primitives are acceptable; biological meanings and thresholds stay separate.",
-                "No bacterial standardization rules are broadened by this admin option.",
             ],
             "button": "Hidden",
             "disabled": True,
@@ -8719,12 +8729,15 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
     try:
         from dataset_production_store import (
             domain_inventory_page_progress,
+            domain_standardized_metadata_coverage,
             latest_domain_inventory_snapshot,
         )
         row = latest_domain_inventory_snapshot(domain_key)
         if row is None:
             return status
-        progress = domain_inventory_page_progress(domain_key, str(row.get("snapshot_id") or ""))
+        snapshot_id = str(row.get("snapshot_id") or "")
+        progress = domain_inventory_page_progress(domain_key, snapshot_id)
+        coverage = domain_standardized_metadata_coverage(domain_key, snapshot_id)
     except Exception as exc:
         status["error"] = str(exc)[:160]
         return status
@@ -8752,6 +8765,7 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
             "expected_pages": int(progress.get("expected_pages") or 0),
             "records_processed": int(progress.get("raw_records") or 0),
         },
+        "standardized_metadata_coverage": coverage,
     })
     return status
 

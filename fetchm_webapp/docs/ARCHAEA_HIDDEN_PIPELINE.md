@@ -9,12 +9,12 @@ Implemented in this milestone:
 - Admin selector can choose `Archaea` as a hidden preparation lane.
 - PostgreSQL storage uses separate `domain_*` tables and rejects `bacteria` on the hidden-domain path.
 - Archaea root inventory can be built from NCBI Datasets REST API using TaxID `2157`.
-- Hidden inventory status is visible in Admin only.
+- Hidden metadata can be fetched and standardized into `domain_assembly_standardization`.
+- Hidden inventory and metadata coverage status are visible in Admin only.
 - Public search, sequence/QC entrypoints, Global Insights, and release activation remain locked.
 
 Not implemented yet:
 
-- Archaeal metadata fetch and standardization.
 - Archaeal rule pack and QA gate.
 - Admin-only archaeal taxon search/report pages.
 - Scheduled hidden Archaea runs.
@@ -32,6 +32,23 @@ Full hidden inventory run:
 
 ```bash
 python tools/build_domain_root_inventory.py --domain archaea
+```
+
+Fetch missing hidden metadata after an inventory snapshot exists:
+
+```bash
+python tools/fetch_domain_missing_metadata.py \
+  --domain archaea \
+  --snapshot-id YYYYMMDDTHHMMSSZ_genbank_archaea_root
+```
+
+Run a small metadata validation batch:
+
+```bash
+python tools/fetch_domain_missing_metadata.py \
+  --domain archaea \
+  --snapshot-id YYYYMMDDTHHMMSSZ_genbank_archaea_root \
+  --max-batches 1
 ```
 
 The default snapshot ID is formatted as:
@@ -56,4 +73,5 @@ Do not expose Archaea publicly until a separate reviewed release task explicitly
 - Do not run bacterial canonical inventory tools with TaxID `2157`.
 - Do not write Archaea rows into `bacterial_inventory_snapshot`, `bacterial_inventory_membership`, or `assembly_standardization`.
 - Do not reuse bacterial biological thresholds as archaeal acceptance criteria without review.
+- Treat `archaea_hidden_v1` as a background profile until archaeal QA is reviewed.
 - Preserve bacterial public behavior while Archaea remains hidden.

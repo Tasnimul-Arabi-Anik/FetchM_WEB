@@ -35,6 +35,7 @@ from global_insights.generator import generate_demo_snapshot, generate_global_in
 import dataset_production_store as production_store
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
+from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_host_review_decisions as host_review_importer
 
 
@@ -518,13 +519,43 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                 "snapshot_id": "20260706T000000Z_genbank_archaea_root",
                 "visibility": "admin_hidden",
                 "release_locked": True,
+                "standardized_metadata_coverage": {
+                    "standardized_assemblies": 1000,
+                    "missing_standardized_assemblies": 234,
+                },
             },
         )
         self.assertEqual(cards[0]["status"], "completed")
         self.assertEqual(cards[0]["percent"], 100)
         self.assertIn("1,234", cards[0]["details"][0])
         self.assertIn("release locked: yes", cards[0]["details"][2])
+        self.assertEqual(cards[1]["status"], "hidden partial")
+        self.assertEqual(cards[1]["percent"], 81)
+        self.assertIn("1,000 / 1,234", cards[1]["details"][0])
         self.assertTrue(all(card["disabled"] for card in cards))
+
+    def test_hidden_domain_metadata_rows_are_tagged_admin_hidden(self) -> None:
+        report = {
+            "accession": "GCA_000000001.1",
+            "organism": {"organism_name": "Methanocaldococcus jannaschii", "tax_id": 2190},
+            "assembly_info": {
+                "assembly_name": "ASM1",
+                "assembly_level": "Complete Genome",
+                "biosample": {
+                    "accession": "SAMN00000001",
+                    "host": "",
+                    "isolation_source": "hot spring",
+                    "attributes": [{"name": "geo_loc_name", "value": "USA"}],
+                },
+            },
+        }
+        row = domain_fetch_tool.standardizable_domain_row(report)
+        self.assertEqual(row["Assembly Accession"], "GCA_000000001.1")
+        self.assertEqual(row["FetchM_Domain"], "Archaea")
+        self.assertEqual(row["FetchM_Domain_Key"], "archaea")
+        self.assertEqual(row["FetchM_Domain_Profile"], "archaea_hidden_v1")
+        self.assertEqual(row["FetchM_Public_Release_Status"], "locked_admin_hidden")
+        self.assertEqual(row["Isolation Source"], "hot spring")
 
     def test_hidden_domain_store_allowlists_archaea_only(self) -> None:
         self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")
@@ -544,6 +575,7 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_snapshot", schema)
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_master", schema)
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_standardization", schema)
+        self.assertIn("standardized_payload JSONB NOT NULL", schema)
         self.assertIn("CHECK (domain_key <> 'bacteria')", schema)
         self.assertIn("release_locked BOOLEAN NOT NULL DEFAULT TRUE", schema)
         self.assertIn("PRIMARY KEY (domain_key, snapshot_id)", schema)
