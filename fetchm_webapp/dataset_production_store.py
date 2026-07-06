@@ -708,6 +708,128 @@ def latest_domain_inventory_snapshot(domain_key: str) -> dict[str, Any] | None:
     }
 
 
+def domain_inventory_accession_batch(
+    domain_key: str,
+    snapshot_id: str,
+    *,
+    after_accession: str = "",
+    limit: int = 100,
+) -> list[str]:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT assembly_accession
+            FROM domain_inventory_membership
+            WHERE domain_key = %s AND snapshot_id = %s AND assembly_accession > %s
+            ORDER BY assembly_accession
+            LIMIT %s
+            """,
+            (key, snapshot_id, after_accession, min(1000, max(1, int(limit)))),
+        ).fetchall()
+    return [str(row[0]) for row in rows]
+
+
+def missing_domain_standardized_accession_batch(domain_key: str, snapshot_id: str, *, limit: int = 100) -> list[str]:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT i.assembly_accession
+            FROM domain_inventory_membership AS i
+            LEFT JOIN domain_assembly_standardization AS s
+              ON s.domain_key = i.domain_key AND s.assembly_accession = i.assembly_accession
+            WHERE i.domain_key = %s AND i.snapshot_id = %s AND s.assembly_accession IS NULL
+            ORDER BY i.assembly_accession
+            LIMIT %s
+            """,
+            (key, snapshot_id, min(1000, max(1, int(limit)))),
+        ).fetchall()
+    return [str(row[0]) for row in rows]
+
+
+def seed_domain_standardized_metadata_batch(
+    domain_key: str,
+    snapshot_id: str,
+    rows: Iterable[dict[str, Any]],
+    *,
+    rule_fingerprint: str,
+    status: str = "reused_existing",
+) -> dict[str, int]:
+    key = normalize_domain_pipeline_key(domain_key)
+    total = seeded = skipped = 0
+    now = utc_now()
+    with connect() as connection:
+        with connection.cursor() as cursor:
+            for payload in rows:
+                total += 1
+                accession = str(payload.get("Assembly Accession") or payload.get("assembly_accession") or "").strip()
+                if not accession:
+                    skipped += 1
+                    continue
+                input_fingerprint = str(payload.get("FetchM_Standardization_Input_Fingerprint") or "").strip()
+                if not input_fingerprint:
+                    input_fingerprint = metadata_payload_fingerprint(payload)
+                result = cursor.execute(
+                    """
+                    INSERT INTO domain_assembly_standardization (
+                        domain_key, assembly_accession, input_fingerprint, rule_fingerprint,
+                        standardized_payload, status, updated_at
+                    )
+                    SELECT %s, %s, %s, %s, %s, %s, %s
+                    WHERE EXISTS (
+                        SELECT 1 FROM domain_inventory_membership
+                        WHERE domain_key = %s AND snapshot_id = %s AND assembly_accession = %s
+                    )
+                    ON CONFLICT (domain_key, assembly_accession) DO UPDATE SET
+                        input_fingerprint = EXCLUDED.input_fingerprint,
+                        rule_fingerprint = EXCLUDED.rule_fingerprint,
+                        standardized_payload = EXCLUDED.standardized_payload,
+                        status = EXCLUDED.status,
+                        updated_at = EXCLUDED.updated_at
+                    RETURNING assembly_accession
+                    """,
+                    (
+                        key, accession, input_fingerprint, rule_fingerprint, Jsonb(payload), status, now,
+                        key, snapshot_id, accession,
+                    ),
+                ).fetchone()
+                if result is None:
+                    skipped += 1
+                else:
+                    seeded += 1
+        connection.commit()
+    return {"total": total, "seeded": seeded, "skipped_not_in_domain_root": skipped}
+
+
+def domain_standardized_metadata_coverage(domain_key: str, snapshot_id: str) -> dict[str, int | str]:
+    key = normalize_domain_pipeline_key(domain_key)
+    bootstrap_schema()
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT COUNT(*) AS root_total,
+                   COUNT(s.assembly_accession) AS standardized_total
+            FROM domain_inventory_membership AS i
+            LEFT JOIN domain_assembly_standardization AS s
+              ON s.domain_key = i.domain_key AND s.assembly_accession = i.assembly_accession
+            WHERE i.domain_key = %s AND i.snapshot_id = %s
+            """,
+            (key, snapshot_id),
+        ).fetchone()
+    root_total = int(row[0] or 0)
+    standardized_total = int(row[1] or 0)
+    return {
+        "domain_key": key,
+        "snapshot_id": snapshot_id,
+        "root_unique_assemblies": root_total,
+        "standardized_assemblies": standardized_total,
+        "missing_standardized_assemblies": max(0, root_total - standardized_total),
+    }
+
+
 def active_canonical_pipeline_task(connection: Any | None = None) -> tuple[str, str, str] | None:
     """Return the oldest staged canonical operation still in progress."""
     query = """
