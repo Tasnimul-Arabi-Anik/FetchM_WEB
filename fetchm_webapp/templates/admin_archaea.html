@@ -50,6 +50,37 @@
     {% endif %}
   </section>
 
+  <section class="panel">
+    <h2>Hidden Refresh Schedule</h2>
+    <p class="section-note">Runs inventory and metadata fetch in the root-inventory worker. Results remain admin-only and release locked.</p>
+    <form action="{{ url_for('admin_set_archaea_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
+      <label><span>Scheduled refresh</span><select name="archaea_pipeline_schedule_enabled"><option value="1" {% if schedule.enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not schedule.enabled %}selected{% endif %}>Paused</option></select></label>
+      <label><span>Every N days</span><input type="number" name="archaea_pipeline_interval_days" min="1" max="365" value="{{ schedule.interval_days }}"></label>
+      <label><span>UTC hour</span><input type="number" name="archaea_pipeline_schedule_hour_utc" min="0" max="23" value="{{ schedule.schedule_hour_utc }}"></label>
+      <button type="submit">Save hidden schedule</button>
+    </form>
+    <p class="job-meta top-gap">Scheduled tasks queue inventory with metadata fetch enabled. Public release remains disabled.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Locked Release Gate</h2>
+    <p class="section-note">This gate reports hidden readiness only. It cannot publish Archaea publicly.</p>
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ release_gate.status }}</strong><span>Gate status</span></div>
+      <div class="health-card"><strong>{{ 'yes' if release_gate.release_locked else 'no' }}</strong><span>Release locked</span></div>
+      <div class="health-card"><strong>{{ release_gate.standardized_assemblies or 0 }}</strong><span>Standardized rows</span></div>
+      <div class="health-card"><strong>{{ release_gate.missing_standardized_assemblies or 0 }}</strong><span>Missing metadata</span></div>
+    </div>
+    <div class="pipeline-detail-list top-gap">
+      {% for check in release_gate.checks %}
+        <span>{{ check.label }}: {{ check.status }} · {{ check.detail }}</span>
+      {% endfor %}
+    </div>
+    {% if release_gate.blockers %}
+      <p class="danger-text top-gap">Blocked: {{ release_gate.blockers|join(' ') }}</p>
+    {% endif %}
+  </section>
+
   {% if results %}
   <section class="panel">
     <h2>Search Results</h2>
