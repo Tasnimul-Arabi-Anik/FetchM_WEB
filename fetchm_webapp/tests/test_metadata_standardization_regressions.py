@@ -591,6 +591,41 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("release locked", html.lower())
             self.assertIn("/admin/archaea/genus/Methanocaldococcus", html)
 
+    def test_hidden_archaea_admin_queue_routes_call_domain_tasks(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260706T000000Z_genbank_archaea_root", None)
+            ) as queue_inventory:
+                response = client.post(
+                    "/admin/archaea/pipeline/inventory",
+                    data={"_csrf_token": "token", "continue_after": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_inventory.assert_called_once()
+            self.assertEqual(queue_inventory.call_args.args[0], "archaea")
+            self.assertTrue(queue_inventory.call_args.kwargs["continue_after"])
+
+            with client.session_transaction() as session:
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.queue_domain_metadata_fetch_task", return_value=("20260706T000000Z_genbank_archaea_root", None)
+            ) as queue_fetch:
+                response = client.post(
+                    "/admin/archaea/pipeline/metadata-fetch",
+                    data={"_csrf_token": "token", "refetch_all": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_fetch.assert_called_once()
+            self.assertEqual(queue_fetch.call_args.args[0], "archaea")
+            self.assertTrue(queue_fetch.call_args.kwargs["refetch_all"])
+
     def test_hidden_archaea_admin_report_renders_summary(self) -> None:
         with isolated_initialized_app_client() as client:
             with fetchm_app.app.app_context():
@@ -650,6 +685,8 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
 
     def test_hidden_domain_schema_isolated_from_bacterial_tables(self) -> None:
         schema = production_store.SCHEMA_SQL
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_task", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_metadata_fetch_task", schema)
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_snapshot", schema)
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_master", schema)
         self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_standardization", schema)

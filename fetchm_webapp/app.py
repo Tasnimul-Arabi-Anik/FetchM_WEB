@@ -8734,6 +8734,7 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
             domain_inventory_page_progress,
             domain_standardized_metadata_coverage,
             latest_domain_inventory_snapshot,
+            latest_domain_metadata_fetch_task,
         )
         row = latest_domain_inventory_snapshot(domain_key)
         if row is None:
@@ -8741,6 +8742,7 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
         snapshot_id = str(row.get("snapshot_id") or "")
         progress = domain_inventory_page_progress(domain_key, snapshot_id)
         coverage = domain_standardized_metadata_coverage(domain_key, snapshot_id)
+        metadata_task = latest_domain_metadata_fetch_task(domain_key)
     except Exception as exc:
         status["error"] = str(exc)[:160]
         return status
@@ -8769,6 +8771,7 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
             "records_processed": int(progress.get("raw_records") or 0),
         },
         "standardized_metadata_coverage": coverage,
+        "metadata_fetch_task": metadata_task,
     })
     return status
 
@@ -24727,6 +24730,10 @@ def run_worker_loop() -> None:
                     continue
                 if process_canonical_partition_task(worker_name):
                     continue
+                if process_hidden_domain_inventory_task(worker_name):
+                    continue
+                if process_hidden_domain_metadata_fetch_task(worker_name):
+                    continue
                 time.sleep(WORKER_POLL_INTERVAL)
                 continue
             if WORKER_MODE in {"all", "metadata"}:
@@ -25028,6 +25035,92 @@ def maybe_queue_next_canonical_pipeline_task(current_step: str, snapshot_id: str
                 queue_partition_task("canonical-pipeline", snapshot_id=snapshot_id)
     except Exception as exc:
         logging.warning("Canonical pipeline follow-up could not be queued after %s for %s: %s", current_step, snapshot_id, exc)
+
+
+def maybe_queue_next_domain_pipeline_task(current_step: str, domain_key: str, snapshot_id: str, continue_after: bool) -> None:
+    if not continue_after:
+        return
+    try:
+        from dataset_production_store import queue_domain_metadata_fetch_task
+        if current_step == "inventory":
+            queue_domain_metadata_fetch_task(domain_key, "hidden-domain-pipeline", snapshot_id=snapshot_id)
+    except Exception as exc:
+        logging.warning("Hidden %s pipeline follow-up could not be queued after %s for %s: %s", domain_key, current_step, snapshot_id, exc)
+
+
+def process_hidden_domain_inventory_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_domain_inventory_task, finish_domain_inventory_task
+        task = claim_domain_inventory_task(worker_name)
+    except Exception as exc:
+        logging.warning("Hidden domain inventory task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "build_domain_root_inventory.py"),
+        "--domain", str(task["domain_key"]),
+        "--snapshot-id", str(task["snapshot_id"]),
+    ]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=7200)
+    except subprocess.TimeoutExpired:
+        error = "Hidden domain inventory timed out after 2 hours."
+        finish_domain_inventory_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s inventory task %s timed out.", task["domain_key"], task["snapshot_id"])
+        return True
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_domain_inventory_task(int(task["id"]), "completed", summary=summary)
+        maybe_queue_next_domain_pipeline_task("inventory", str(task["domain_key"]), str(task["snapshot_id"]), bool(task.get("continue_after")))
+    else:
+        error = (result.stderr or result.stdout or "Hidden domain inventory command failed.")[-4000:]
+        finish_domain_inventory_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s inventory task %s failed: %s", task["domain_key"], task["snapshot_id"], error)
+    return True
+
+
+def process_hidden_domain_metadata_fetch_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_domain_metadata_fetch_task, finish_domain_metadata_fetch_task
+        task = claim_domain_metadata_fetch_task(worker_name)
+    except Exception as exc:
+        logging.warning("Hidden domain metadata fetch task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "fetch_domain_missing_metadata.py"),
+        "--domain", str(task["domain_key"]),
+        "--snapshot-id", str(task["snapshot_id"]),
+    ]
+    if task.get("refetch_all"):
+        command.append("--refetch-all")
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=14400)
+    except subprocess.TimeoutExpired:
+        error = "Hidden domain metadata fetch timed out after 4 hours."
+        finish_domain_metadata_fetch_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s metadata fetch task %s timed out.", task["domain_key"], task["snapshot_id"])
+        return True
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_domain_metadata_fetch_task(int(task["id"]), "completed", summary=summary)
+    else:
+        error = (result.stderr or result.stdout or "Hidden domain metadata fetch command failed.")[-4000:]
+        finish_domain_metadata_fetch_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s metadata fetch task %s failed: %s", task["domain_key"], task["snapshot_id"], error)
+    return True
 
 
 def process_canonical_inventory_task(worker_name: str) -> bool:
@@ -27804,6 +27897,59 @@ def admin_archaea() -> str:
         error=error,
         **admin_common_context("archaea"),
     )
+
+
+@app.route("/admin/archaea/pipeline/inventory", methods=["POST"])
+def admin_queue_archaea_inventory() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_inventory_task
+        snapshot_id, error = queue_domain_inventory_task(
+            "archaea",
+            str(user["username"]),
+            continue_after=canonical_continue_requested_from_form(),
+        )
+    except Exception as exc:
+        flash(f"Hidden Archaea inventory could not be queued: {exc}", "error")
+        return redirect(url_for("admin_archaea"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.archaea_inventory_queue",
+            target_type="hidden_domain_inventory",
+            target_id=snapshot_id,
+            metadata={"domain": "archaea", "continue_after": canonical_continue_requested_from_form(), "public_enabled": False},
+        )
+        flash(f"Hidden Archaea inventory queued: {snapshot_id}.", "success")
+    return redirect(url_for("admin_archaea"))
+
+
+@app.route("/admin/archaea/pipeline/metadata-fetch", methods=["POST"])
+def admin_queue_archaea_metadata_fetch() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_metadata_fetch_task
+        snapshot_id, error = queue_domain_metadata_fetch_task(
+            "archaea",
+            str(user["username"]),
+            continue_after=False,
+            refetch_all=request.form.get("refetch_all") == "1",
+        )
+    except Exception as exc:
+        flash(f"Hidden Archaea metadata fetch could not be queued: {exc}", "error")
+        return redirect(url_for("admin_archaea"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.archaea_metadata_fetch_queue",
+            target_type="hidden_domain_metadata_fetch",
+            target_id=snapshot_id,
+            metadata={"domain": "archaea", "refetch_all": request.form.get("refetch_all") == "1", "public_enabled": False},
+        )
+        flash(f"Hidden Archaea metadata fetch queued for {snapshot_id}.", "success")
+    return redirect(url_for("admin_archaea"))
 
 
 @app.route("/admin/archaea/<rank>/<path:name>")
