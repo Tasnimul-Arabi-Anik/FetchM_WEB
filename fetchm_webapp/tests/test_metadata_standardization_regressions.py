@@ -678,6 +678,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
                 "Methanobrevibacter",
                 snapshot_id="20260706T000000Z_genbank_archaea_root",
             )
+            export = production_store.domain_taxon_metadata_csv(
+                "archaea",
+                "genus",
+                "Methanobrevibacter",
+                snapshot_id="20260706T000000Z_genbank_archaea_root",
+            )
         self.assertIsNotNone(report)
         self.assertEqual(report["row_count"], 1)
         self.assertEqual(report["name"], "Methanobrevibacter")
@@ -693,6 +699,12 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertEqual(coverage["Isolation source"]["standardized_percent"], 100)
         self.assertEqual(report["top_environment_broad"][0]["value"], "hydrothermal vent")
         self.assertEqual(report["top_sample_materials"][0]["value"], "water")
+        self.assertIsNotNone(export)
+        self.assertEqual(export["row_count"], 1)
+        self.assertEqual(export["filename"], "archaea_genus_Methanobrevibacter_metadata.csv")
+        self.assertIn("fetchm_visibility", export["content"])
+        self.assertIn("admin_hidden", export["content"])
+        self.assertIn("GCA_000000001.1", export["content"])
 
     def test_hidden_archaea_admin_routes_require_admin_and_render_results(self) -> None:
         with isolated_initialized_app_client() as client:
@@ -887,6 +899,23 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             self.assertIn("Admin-only report", html)
             self.assertIn("Standardization Coverage", html)
             self.assertIn("Core Completeness", html)
+            self.assertIn("Download hidden metadata CSV", html)
+            self.assertIn("/admin/archaea/genus/Methanocaldococcus/metadata.csv", html)
+
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_metadata_csv",
+                return_value={
+                    "filename": "archaea_genus_Methanocaldococcus_metadata.csv",
+                    "content": "assembly_accession\nGCA_000000001.1\n",
+                    "row_count": 1,
+                    "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                },
+            ):
+                csv_response = client.get("/admin/archaea/genus/Methanocaldococcus/metadata.csv")
+            self.assertEqual(csv_response.status_code, 200)
+            self.assertIn("text/csv", csv_response.headers.get("Content-Type", ""))
+            self.assertIn("attachment", csv_response.headers.get("Content-Disposition", ""))
+            self.assertIn("GCA_000000001.1", csv_response.data.decode("utf-8"))
 
     def test_hidden_domain_store_allowlists_archaea_only(self) -> None:
         self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")

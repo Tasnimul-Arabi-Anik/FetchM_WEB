@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
+import io
 import json
 import os
 import re
@@ -1195,6 +1197,98 @@ def domain_taxon_report(domain_key: str, rank: str, name: str, *, snapshot_id: s
             "Rows use the archaea_hidden_v1 profile while reusing shared normalization primitives.",
             "Archaea-specific biological thresholds and public release remain blocked pending separate review.",
         ],
+    }
+
+
+def _safe_domain_export_label(value: str) -> str:
+    cleaned = re.sub(r"[^A-Za-z0-9._-]+", "-", value.strip()).strip("-._")
+    return cleaned[:120] or "taxon"
+
+
+def domain_taxon_metadata_csv(domain_key: str, rank: str, name: str, *, snapshot_id: str | None = None) -> dict[str, Any] | None:
+    """Build an admin-only standardized metadata CSV for a hidden domain taxon."""
+    key = normalize_domain_pipeline_key(domain_key)
+    rank = str(rank or "").strip().lower()
+    if rank not in {"genus", "species"}:
+        raise ValueError(f"Unsupported hidden domain taxon rank: {rank!r}")
+    normalized_name = normalize_taxon_label(name)
+    if not normalized_name:
+        return None
+    if not snapshot_id:
+        latest = latest_domain_inventory_snapshot(key)
+        if latest is None:
+            return None
+        snapshot_id = str(latest["snapshot_id"] or "")
+    name_filter = f"%{normalized_name.casefold()}%"
+    export_rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    with connect() as connection:
+        db_rows = connection.execute(
+            """
+            SELECT m.assembly_accession, m.organism_name, m.tax_id, m.species_tax_id,
+                   m.biosample_accession, s.standardized_payload
+            FROM domain_inventory_membership AS i
+            JOIN domain_assembly_master AS m
+              ON m.domain_key = i.domain_key AND m.assembly_accession = i.assembly_accession
+            LEFT JOIN domain_assembly_standardization AS s
+              ON s.domain_key = i.domain_key AND s.assembly_accession = i.assembly_accession
+            WHERE i.domain_key = %s AND i.snapshot_id = %s
+              AND lower(COALESCE(NULLIF(s.standardized_payload->>'Organism Name', ''), m.organism_name, '')) LIKE %s
+            ORDER BY m.assembly_accession
+            LIMIT 50000
+            """,
+            (key, snapshot_id, name_filter),
+        ).fetchall()
+    for db_row in db_rows:
+        payload = db_row[5] if isinstance(db_row[5], dict) else {}
+        organism = _payload_value(payload, "Organism Name") or str(db_row[1] or "")
+        labels = domain_taxon_labels_for_organism(organism)
+        if not any(label["rank"] == rank and label["name"].casefold() == normalized_name.casefold() for label in labels):
+            continue
+        export_rows.append((
+            {
+                "assembly_accession": str(db_row[0] or ""),
+                "organism_name": organism,
+                "tax_id": int(db_row[2] or 0),
+                "species_tax_id": int(db_row[3] or 0),
+                "biosample_accession": str(db_row[4] or _payload_value(payload, "Assembly BioSample Accession")),
+                "fetchm_domain_key": key,
+                "fetchm_snapshot_id": snapshot_id,
+                "fetchm_visibility": "admin_hidden",
+                "fetchm_public_enabled": "false",
+            },
+            payload,
+        ))
+    if not export_rows:
+        return None
+    base_columns = [
+        "assembly_accession",
+        "organism_name",
+        "tax_id",
+        "species_tax_id",
+        "biosample_accession",
+        "fetchm_domain_key",
+        "fetchm_snapshot_id",
+        "fetchm_visibility",
+        "fetchm_public_enabled",
+    ]
+    payload_columns = sorted({key for _base, payload in export_rows for key in payload}, key=lambda item: item.casefold())
+    columns = base_columns + [column for column in payload_columns if column not in base_columns]
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=columns, extrasaction="ignore")
+    writer.writeheader()
+    for base, payload in export_rows:
+        row = dict(payload)
+        row.update(base)
+        writer.writerow(row)
+    filename = f"{key}_{rank}_{_safe_domain_export_label(normalized_name)}_metadata.csv"
+    return {
+        "filename": filename,
+        "content": buffer.getvalue(),
+        "row_count": len(export_rows),
+        "snapshot_id": snapshot_id,
+        "domain_key": key,
+        "rank": rank,
+        "name": normalized_name,
     }
 
 
