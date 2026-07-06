@@ -563,6 +563,48 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         self.assertIn({"rank": "genus", "name": "Methanocaldococcus"}, labels)
         self.assertIn({"rank": "species", "name": "Methanocaldococcus jannaschii"}, labels)
 
+
+    def test_hidden_domain_taxon_report_includes_candidatus_prefixed_genus(self) -> None:
+        captured_params = []
+
+        class FakeResult:
+            def fetchall(self):
+                return [
+                    (
+                        "GCA_000000001.1",
+                        "Candidatus Methanobrevibacter intestini isolate A",
+                        0,
+                        0,
+                        "SAMN00000001",
+                        {
+                            "Organism Name": "Candidatus Methanobrevibacter intestini isolate A",
+                            "Country": "USA",
+                            "FetchM_Public_Release_Status": "locked_admin_hidden",
+                        },
+                    )
+                ]
+
+        class FakeConnection:
+            def execute(self, _query, params):
+                captured_params.append(params)
+                return FakeResult()
+
+        @contextmanager
+        def fake_connect():
+            yield FakeConnection()
+
+        with patch.object(production_store, "connect", fake_connect):
+            report = production_store.domain_taxon_report(
+                "archaea",
+                "genus",
+                "Methanobrevibacter",
+                snapshot_id="20260706T000000Z_genbank_archaea_root",
+            )
+        self.assertIsNotNone(report)
+        self.assertEqual(report["row_count"], 1)
+        self.assertEqual(report["name"], "Methanobrevibacter")
+        self.assertEqual(captured_params[0][2], "%methanobrevibacter%")
+
     def test_hidden_archaea_admin_routes_require_admin_and_render_results(self) -> None:
         with isolated_initialized_app_client() as client:
             response = client.get("/admin/archaea", follow_redirects=False)
