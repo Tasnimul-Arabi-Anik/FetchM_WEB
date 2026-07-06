@@ -1,0 +1,61 @@
+{
+  "status": "admin_hidden_operational_build_complete",
+  "branch": "hidden-archaea-pipeline-backend",
+  "source_commit": "a89fd6c9a321102b1588b29835f194a4e7c8c248",
+  "snapshot_id": "20260706T163621Z_genbank_archaea_root",
+  "domain_key": "archaea",
+  "root_taxon_id": 2157,
+  "source_database": "GenBank",
+  "canonical_accession_namespace": "GCA",
+  "visibility": "admin_hidden",
+  "release_locked": true,
+  "public_enabled": false,
+  "inventory": {
+    "status": "completed",
+    "root_unique_assemblies": 44183,
+    "raw_records": 44183,
+    "noncanonical_records": 0,
+    "duplicate_records": 0,
+    "pages_completed": 45,
+    "expected_total": 44183
+  },
+  "metadata_fetch": {
+    "status": "completed",
+    "standardized_assemblies": 44183,
+    "missing_standardized_assemblies": 0,
+    "fetched_rows": 44183,
+    "standardization_status": "fetched_ncbi_full_report",
+    "domain_profile": "archaea_hidden_v1",
+    "release_status": "locked_admin_hidden",
+    "request_workers": 10,
+    "standardization_workers": 32,
+    "batches_complete": 2210
+  },
+  "schedule": {
+    "enabled": true,
+    "interval_days": 60,
+    "schedule_hour_utc": 18,
+    "currently_due": false
+  },
+  "admin_search_validation": {
+    "query": "Methano",
+    "top_result": "Methanobrevibacter",
+    "top_result_genome_count": 968,
+    "report_row_count": 968,
+    "report_release_locked": true
+  },
+  "access_control_validation": {
+    "unauthenticated_admin_archaea_status": 302,
+    "unauthenticated_admin_archaea_location": "/login?next=/admin/archaea"
+  },
+  "tests": {
+    "full_unittest_discovery": "154 tests OK",
+    "py_compile": "passed",
+    "git_diff_check": "passed"
+  },
+  "notes": [
+    "Archaea is built in separate domain_* PostgreSQL tables, not bacterial canonical tables.",
+    "Public routes, Global Insights, and release activation remain disabled for Archaea.",
+    "Runtime health endpoint still reports the existing build metadata commit string, but capability checks confirmed the hidden Archaea functions are present in recreated web/root-inventory containers."
+  ]
+}
