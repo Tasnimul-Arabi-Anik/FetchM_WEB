@@ -1,0 +1,17 @@
+{
+  "domain_key": "virus",
+  "generated_at_utc": "2026-07-06T19:20:44+00:00",
+  "implemented": [
+    "hidden_virus_model_summary aggregates Virus sequence, genome-group, relationship, molecule-type, and example metrics",
+    "/admin/virus displays hidden Virus model metrics independently of public release",
+    "/admin/virus/<rank>/<name> displays model metrics filtered by organism query",
+    "admin template labels persisted host/taxon relationships separately from assembly-style metadata"
+  ],
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "release_locked": true,
+  "status": "hidden admin model-summary scaffold",
+  "validation": {
+    "focused_tests": "18 passed"
+  }
+}

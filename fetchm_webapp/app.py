@@ -28257,6 +28257,12 @@ def admin_virus() -> str:
     results: list[dict[str, Any]] = []
     error = ""
     inventory = domain_root_inventory_dashboard("virus")
+    virus_model = {"available": False, "error": "not loaded"}
+    try:
+        from dataset_production_store import hidden_virus_model_summary
+        virus_model = hidden_virus_model_summary()
+    except Exception as exc:
+        virus_model = {"available": False, "error": str(exc)[:240], "public_enabled": False, "release_locked": True}
     if query:
         if len(query) < 2:
             error = "Enter at least two characters to search hidden Virus metadata."
@@ -28274,6 +28280,7 @@ def admin_virus() -> str:
         inventory=inventory,
         schedule=hidden_domain_pipeline_schedule_summary("virus"),
         release_gate=build_hidden_domain_release_gate_summary("virus", inventory),
+        virus_model=virus_model,
         error=error,
         **admin_common_context("virus"),
     )
@@ -28375,10 +28382,12 @@ def admin_virus_taxon_report(rank: str, name: str) -> str:
         abort(404)
     inventory = domain_root_inventory_dashboard("virus")
     report = None
+    virus_model = {"available": False, "error": "not loaded"}
     error = ""
     try:
-        from dataset_production_store import domain_taxon_report
+        from dataset_production_store import domain_taxon_report, hidden_virus_model_summary
         report = domain_taxon_report("virus", rank, name)
+        virus_model = hidden_virus_model_summary(organism_query=name)
     except Exception as exc:
         error = str(exc)[:240]
     if report is None and not error:
@@ -28397,6 +28406,7 @@ def admin_virus_taxon_report(rank: str, name: str) -> str:
         inventory=inventory,
         schedule=hidden_domain_pipeline_schedule_summary("virus"),
         release_gate=build_hidden_domain_release_gate_summary("virus", inventory),
+        virus_model=virus_model,
         error=error,
         **admin_common_context("virus"),
     )

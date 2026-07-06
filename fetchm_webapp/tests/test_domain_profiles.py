@@ -139,6 +139,63 @@ class VirusCanonicalModelTests(unittest.TestCase):
         self.assertEqual(relationship["target_domain"], "archaea")
 
 
+class VirusModelSummaryTests(unittest.TestCase):
+    def test_hidden_virus_model_summary_aggregates_sequences_relationships_and_examples(self) -> None:
+        class SimpleResult:
+            def __init__(self, row=None, rows=None):
+                self.row = row
+                self.rows = rows or []
+
+            def fetchone(self):
+                return self.row
+
+            def fetchall(self):
+                return self.rows
+
+        class FakeConnection:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def execute(self, sql: str, params: tuple[object, ...] = ()):  # noqa: ANN001
+                if "COUNT(DISTINCT seq.genome_group_id)" in sql:
+                    return SimpleResult((3, 1, 2, 2, 1, 2, 2))
+                if "FROM domain_virus_genome_group AS g" in sql:
+                    return SimpleResult((2,))
+                if "SELECT COUNT(*)" in sql and "FROM domain_taxon_relationship AS rel" in sql:
+                    return SimpleResult((4,))
+                if "GROUP BY rel.relationship_type" in sql:
+                    return SimpleResult(rows=[("natural_host", 3), ("propagated_in", 1)])
+                if "GROUP BY rel.target_domain" in sql:
+                    return SimpleResult(rows=[("eukaryota", 3), ("bacteria", 1)])
+                if "GROUP BY rel.target_taxon_name" in sql:
+                    return SimpleResult(rows=[("Homo sapiens", 3), ("Escherichia coli", 1)])
+                if "GROUP BY seq.molecule_type" in sql:
+                    return SimpleResult(rows=[("RNA", 2), ("dsDNA", 1)])
+                if "SELECT seq.sequence_accession" in sql:
+                    return SimpleResult(rows=[("OP123456.1", "", "Influenza A virus", "flu-group", "RNA", "4", "complete", "SAMN1")])
+                raise AssertionError(f"Unexpected SQL: {sql}")
+
+        with patch.object(production_store, "bootstrap_schema", lambda: None), patch.object(
+            production_store, "connect", lambda: FakeConnection()
+        ):
+            summary = production_store.hidden_virus_model_summary(snapshot_id="virus-snapshot", organism_query="Influenza")
+        self.assertTrue(summary["available"])
+        self.assertEqual(summary["virus_sequence_records"], 3)
+        self.assertEqual(summary["virus_assembly_surrogates"], 1)
+        self.assertEqual(summary["virus_genome_groups"], 2)
+        self.assertEqual(summary["taxon_relationships"], 4)
+        self.assertEqual(summary["relationship_density"], 1.33)
+        self.assertEqual(summary["top_relationship_types"][0], {"value": "natural_host", "count": 3})
+        self.assertEqual(summary["top_target_domains"][1], {"value": "bacteria", "count": 1})
+        self.assertEqual(summary["examples"][0]["sequence_accession"], "OP123456.1")
+        self.assertFalse(summary["public_enabled"])
+        self.assertTrue(summary["release_locked"])
+
+
+
 class VirusQaTests(unittest.TestCase):
     def _fake_virus_qa_connection(self, *, invalid_relationship_type: int = 0):
         class FakeConnection:

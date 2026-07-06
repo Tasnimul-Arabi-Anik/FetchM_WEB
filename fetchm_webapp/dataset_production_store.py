@@ -1101,6 +1101,182 @@ def domain_standardized_metadata_coverage(domain_key: str, snapshot_id: str) -> 
     }
 
 
+
+
+def hidden_virus_model_summary(
+    *,
+    snapshot_id: str | None = None,
+    organism_query: str | None = None,
+    limit: int = 10,
+) -> dict[str, Any]:
+    """Return admin-only metrics from hidden Virus sequence/group/relationship tables."""
+    filters = ["seq.domain_key = 'virus'"]
+    params: list[Any] = []
+    if snapshot_id:
+        filters.append("seq.source_snapshot_id = %s")
+        params.append(snapshot_id)
+    query = normalize_taxon_label(organism_query or "")
+    if query:
+        filters.append("lower(COALESCE(seq.organism_name, '')) LIKE %s")
+        params.append(f"%{query.casefold()}%")
+    where_clause = " AND ".join(filters)
+
+    group_filters = ["seq.domain_key = 'virus'", "seq.genome_group_id = g.genome_group_id"]
+    group_params: list[Any] = []
+    if snapshot_id:
+        group_filters.append("seq.source_snapshot_id = %s")
+        group_params.append(snapshot_id)
+    if query:
+        group_filters.append("lower(COALESCE(seq.organism_name, '')) LIKE %s")
+        group_params.append(f"%{query.casefold()}%")
+    group_where_clause = " AND ".join(group_filters)
+
+    relationship_where = "rel.domain_key = 'virus'"
+    relationship_params: list[Any] = []
+    if snapshot_id:
+        relationship_where += " AND rel.source_snapshot_id = %s"
+        relationship_params.append(snapshot_id)
+    if query:
+        relationship_where += " AND lower(COALESCE(seq.organism_name, '')) LIKE %s"
+        relationship_params.append(f"%{query.casefold()}%")
+    bootstrap_schema()
+    with connect() as connection:
+        sequence_counts = connection.execute(
+            f"""
+            SELECT COUNT(*) AS total,
+                   COUNT(*) FILTER (WHERE COALESCE(NULLIF(seq.assembly_accession, ''), '') <> '') AS assembly_surrogates,
+                   COUNT(*) FILTER (WHERE COALESCE(NULLIF(seq.assembly_accession, ''), '') = '') AS sequence_accession_records,
+                   COUNT(DISTINCT seq.genome_group_id) AS distinct_groups,
+                   COUNT(*) FILTER (WHERE COALESCE(NULLIF(seq.segment_name, ''), '') <> '') AS segmented_records,
+                   COUNT(*) FILTER (WHERE lower(COALESCE(seq.genome_completeness, '')) IN ('complete', 'complete genome')) AS complete_records,
+                   COUNT(DISTINCT NULLIF(seq.molecule_type, '')) AS molecule_type_count
+            FROM domain_virus_sequence_record AS seq
+            WHERE {where_clause}
+            """,
+            tuple(params),
+        ).fetchone()
+        genome_group_count = connection.execute(
+            f"""
+            SELECT COUNT(DISTINCT g.genome_group_id)
+            FROM domain_virus_genome_group AS g
+            WHERE g.domain_key = 'virus'
+              AND EXISTS (
+                  SELECT 1 FROM domain_virus_sequence_record AS seq
+                  WHERE {group_where_clause}
+              )
+            """,
+            tuple(group_params),
+        ).fetchone()
+        relationship_count = connection.execute(
+            f"""
+            SELECT COUNT(*)
+            FROM domain_taxon_relationship AS rel
+            JOIN domain_virus_sequence_record AS seq
+              ON seq.domain_key = rel.domain_key AND seq.sequence_accession = rel.subject_accession
+            WHERE {relationship_where}
+            """,
+            tuple(relationship_params),
+        ).fetchone()
+        relationship_types = connection.execute(
+            f"""
+            SELECT rel.relationship_type, COUNT(*)
+            FROM domain_taxon_relationship AS rel
+            JOIN domain_virus_sequence_record AS seq
+              ON seq.domain_key = rel.domain_key AND seq.sequence_accession = rel.subject_accession
+            WHERE {relationship_where}
+            GROUP BY rel.relationship_type
+            ORDER BY COUNT(*) DESC, rel.relationship_type
+            LIMIT %s
+            """,
+            tuple(relationship_params + [max(1, int(limit))]),
+        ).fetchall()
+        target_domains = connection.execute(
+            f"""
+            SELECT rel.target_domain, COUNT(*)
+            FROM domain_taxon_relationship AS rel
+            JOIN domain_virus_sequence_record AS seq
+              ON seq.domain_key = rel.domain_key AND seq.sequence_accession = rel.subject_accession
+            WHERE {relationship_where}
+            GROUP BY rel.target_domain
+            ORDER BY COUNT(*) DESC, rel.target_domain
+            LIMIT %s
+            """,
+            tuple(relationship_params + [max(1, int(limit))]),
+        ).fetchall()
+        target_taxa = connection.execute(
+            f"""
+            SELECT rel.target_taxon_name, COUNT(*)
+            FROM domain_taxon_relationship AS rel
+            JOIN domain_virus_sequence_record AS seq
+              ON seq.domain_key = rel.domain_key AND seq.sequence_accession = rel.subject_accession
+            WHERE {relationship_where}
+            GROUP BY rel.target_taxon_name
+            ORDER BY COUNT(*) DESC, rel.target_taxon_name
+            LIMIT %s
+            """,
+            tuple(relationship_params + [max(1, int(limit))]),
+        ).fetchall()
+        molecule_types = connection.execute(
+            f"""
+            SELECT seq.molecule_type, COUNT(*)
+            FROM domain_virus_sequence_record AS seq
+            WHERE {where_clause} AND COALESCE(NULLIF(seq.molecule_type, ''), '') <> ''
+            GROUP BY seq.molecule_type
+            ORDER BY COUNT(*) DESC, seq.molecule_type
+            LIMIT %s
+            """,
+            tuple(params + [max(1, int(limit))]),
+        ).fetchall()
+        examples = connection.execute(
+            f"""
+            SELECT seq.sequence_accession, seq.assembly_accession, seq.organism_name, seq.genome_group_id,
+                   seq.molecule_type, seq.segment_name, seq.genome_completeness, seq.biosample_accession
+            FROM domain_virus_sequence_record AS seq
+            WHERE {where_clause}
+            ORDER BY seq.sequence_accession
+            LIMIT %s
+            """,
+            tuple(params + [max(1, min(50, int(limit)))]),
+        ).fetchall()
+    total_sequences = int(sequence_counts[0] or 0)
+    genome_groups = int(genome_group_count[0] or 0)
+    relationships = int(relationship_count[0] or 0)
+    return {
+        "available": total_sequences > 0,
+        "snapshot_id": snapshot_id or "all_hidden_virus_rows",
+        "organism_query": query,
+        "virus_sequence_records": total_sequences,
+        "virus_assembly_surrogates": int(sequence_counts[1] or 0),
+        "virus_sequence_accession_records": int(sequence_counts[2] or 0),
+        "virus_genome_groups": genome_groups,
+        "distinct_sequence_groups": int(sequence_counts[3] or 0),
+        "segmented_sequence_records": int(sequence_counts[4] or 0),
+        "complete_sequence_records": int(sequence_counts[5] or 0),
+        "molecule_type_count": int(sequence_counts[6] or 0),
+        "taxon_relationships": relationships,
+        "relationship_density": round(relationships / total_sequences, 2) if total_sequences else 0.0,
+        "top_relationship_types": [{"value": str(row[0] or ""), "count": int(row[1] or 0)} for row in relationship_types],
+        "top_target_domains": [{"value": str(row[0] or ""), "count": int(row[1] or 0)} for row in target_domains],
+        "top_target_taxa": [{"value": str(row[0] or ""), "count": int(row[1] or 0)} for row in target_taxa],
+        "top_molecule_types": [{"value": str(row[0] or ""), "count": int(row[1] or 0)} for row in molecule_types],
+        "examples": [
+            {
+                "sequence_accession": str(row[0] or ""),
+                "assembly_accession": str(row[1] or ""),
+                "organism_name": str(row[2] or ""),
+                "genome_group_id": str(row[3] or ""),
+                "molecule_type": str(row[4] or ""),
+                "segment": str(row[5] or ""),
+                "genome_completeness": str(row[6] or ""),
+                "biosample_accession": str(row[7] or ""),
+            }
+            for row in examples
+        ],
+        "public_enabled": False,
+        "release_locked": True,
+    }
+
+
 def domain_taxon_labels_for_organism(value: Any) -> list[dict[str, str]]:
     partition = canonical_partition_from_organism_name(value)
     labels: list[dict[str, str]] = []
