@@ -13,12 +13,13 @@ Implemented in this milestone:
 - Hidden inventory and metadata coverage status are visible in Admin only.
 - Admin-only Archaea genus/species search and compact taxon reports are available at `/admin/archaea`.
 - Admin users can queue hidden inventory and metadata-fetch tasks for root-inventory workers.
+- Admin users can pause or enable recurring hidden Archaea refreshes. Scheduled runs queue inventory with metadata fetch enabled.
+- The admin page reports a locked release gate so readiness is visible without enabling public promotion.
 - Public search, sequence/QC entrypoints, Global Insights, and release activation remain locked.
 
 Not implemented yet:
 
-- Archaeal rule pack and QA gate.
-- Recurring schedule automation for hidden Archaea runs.
+- Archaeal rule pack and QA gate beyond the locked readiness summary.
 - Manual public promotion.
 
 ## Inventory Command
@@ -44,6 +45,19 @@ python tools/fetch_domain_missing_metadata.py \
 ```
 
 The same steps can also be queued from `/admin/archaea`; root-inventory workers claim those hidden tasks after canonical bacterial work.
+
+## Recurring Hidden Refresh
+
+The recurring schedule is managed from `/admin/archaea`. It stores three settings:
+
+```text
+archaea_pipeline_schedule_enabled
+archaea_pipeline_interval_days
+archaea_pipeline_schedule_hour_utc
+```
+
+When enabled, root-inventory workers check the hidden schedule once per minute, queue a hidden Archaea inventory task only if no hidden task is active, and set `continue_after=true` so metadata fetch follows the inventory. Scheduled runs do not unlock public routes or publish Global Insights.
+
 
 Run a small metadata validation batch:
 

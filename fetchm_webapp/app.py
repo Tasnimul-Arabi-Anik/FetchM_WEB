@@ -7467,6 +7467,9 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_scope", "2"),
         ("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN),
+        ("archaea_pipeline_schedule_enabled", "0"),
+        ("archaea_pipeline_interval_days", "60"),
+        ("archaea_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_auto_publish_insights", "1"),
         ("dataset_pipeline_discovery_sequential", "1"),
         ("dataset_pipeline_catalog_sequential", "1"),
@@ -8773,6 +8776,101 @@ def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
     return status
 
 
+
+
+def hidden_domain_pipeline_schedule_summary(domain_key: str, db: sqlite3.Connection | None = None) -> dict[str, Any]:
+    """Return admin-facing hidden-domain schedule settings."""
+    key = str(domain_key or "").strip().lower()
+    if key != "archaea":
+        raise ValueError(f"Unsupported hidden domain pipeline: {domain_key!r}")
+    connection = db or get_db()
+    try:
+        interval_days = max(1, min(365, int(get_setting(f"{key}_pipeline_interval_days", "60", connection) or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(get_setting(f"{key}_pipeline_schedule_hour_utc", "18", connection) or "18")))
+    except ValueError:
+        schedule_hour = 18
+    enabled = get_setting(f"{key}_pipeline_schedule_enabled", "0", connection) == "1"
+    return {
+        "domain_key": key,
+        "enabled": enabled,
+        "interval_days": interval_days,
+        "schedule_hour_utc": schedule_hour,
+        "requested_by": "scheduled-hidden-domain-pipeline",
+        "continue_after": True,
+        "public_enabled": False,
+    }
+
+
+def build_hidden_domain_release_gate_summary(domain_key: str, inventory: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Summarize hidden-domain readiness while keeping public release locked."""
+    key = str(domain_key or "").strip().lower()
+    if key != "archaea":
+        raise ValueError(f"Unsupported hidden domain pipeline: {domain_key!r}")
+    state = dict(inventory or {})
+    coverage = dict(state.get("standardized_metadata_coverage") or {})
+    checks: list[dict[str, Any]] = []
+    blockers: list[str] = []
+
+    configured = bool(state.get("configured"))
+    checks.append({
+        "key": "store_configured",
+        "label": "Dataset store",
+        "status": "pass" if configured else "blocked",
+        "detail": "configured" if configured else "FETCHM_WEBAPP_DATASET_DATABASE_URL is not configured",
+    })
+    if not configured:
+        blockers.append("Dataset production store is not configured.")
+
+    inventory_completed = bool(state.get("available")) and str(state.get("status") or "") == "completed"
+    checks.append({
+        "key": "inventory_completed",
+        "label": "Archaea inventory",
+        "status": "pass" if inventory_completed else "blocked",
+        "detail": f"{int(state.get('root_unique_assemblies') or 0):,} hidden assemblies" if inventory_completed else str(state.get("status") or "not generated"),
+    })
+    if not inventory_completed:
+        blockers.append("Hidden Archaea root inventory has not completed.")
+
+    root_total = int(coverage.get("root_unique_assemblies") or state.get("root_unique_assemblies") or 0)
+    standardized = int(coverage.get("standardized_assemblies") or 0)
+    missing = int(coverage.get("missing_standardized_assemblies") or max(0, root_total - standardized))
+    metadata_ready = root_total > 0 and missing == 0
+    checks.append({
+        "key": "metadata_coverage",
+        "label": "Metadata coverage",
+        "status": "pass" if metadata_ready else "blocked",
+        "detail": f"{standardized:,} / {root_total:,} standardized; {missing:,} missing",
+    })
+    if root_total <= 0:
+        blockers.append("Hidden Archaea inventory contains no canonical GCA assemblies.")
+    elif missing > 0:
+        blockers.append(f"{missing:,} hidden Archaea assemblies still lack standardized metadata.")
+
+    checks.append({
+        "key": "public_release_lock",
+        "label": "Public release lock",
+        "status": "locked",
+        "detail": "Public Archaea release requires a future manual unlock and QA approval.",
+    })
+    blockers.append("Public Archaea release is locked by policy until manually approved.")
+
+    return {
+        "domain_key": key,
+        "status": "locked",
+        "can_release": False,
+        "release_locked": True,
+        "public_enabled": False,
+        "checks": checks,
+        "blockers": blockers,
+        "snapshot_id": state.get("snapshot_id") or "",
+        "root_unique_assemblies": root_total,
+        "standardized_assemblies": standardized,
+        "missing_standardized_assemblies": missing,
+    }
+
 def canonical_root_inventory_dashboard() -> dict[str, Any]:
     """Return the latest canonical GenBank inventory state without blocking admin rendering."""
     configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
@@ -9655,6 +9753,68 @@ def schedule_due_canonical_pipeline_run() -> None:
             auto_publish = get_setting("canonical_pipeline_auto_publish_verified", "1", db) == "1"
         set_canonical_auto_publish_intent(snapshot_id, auto_publish)
         logging.info("Scheduled canonical staged refresh queued: %s (auto_publish=%s)", snapshot_id, auto_publish)
+
+
+
+
+def hidden_domain_pipeline_due(domain_key: str, now_dt: datetime | None = None) -> bool:
+    """Return whether a hidden-domain inventory+metadata refresh should be queued."""
+    key = str(domain_key or "").strip().lower()
+    if key != "archaea":
+        raise ValueError(f"Unsupported hidden domain pipeline: {domain_key!r}")
+    now = now_dt or datetime.now(timezone.utc)
+    with get_sqlite_connection() as db:
+        schedule = hidden_domain_pipeline_schedule_summary(key, db)
+    if not schedule["enabled"]:
+        return False
+    interval_days = int(schedule["interval_days"])
+    schedule_hour = int(schedule["schedule_hour_utc"])
+    try:
+        from dataset_production_store import active_domain_pipeline_task, latest_domain_inventory_snapshot
+        if active_domain_pipeline_task(key) is not None:
+            return False
+        latest = latest_domain_inventory_snapshot(key)
+    except Exception as exc:
+        logging.warning("Hidden %s schedule status could not be read: %s", key, exc)
+        return False
+    last_requested = latest.get("requested_at") if latest else None
+    if isinstance(last_requested, str):
+        try:
+            last_requested = parse_utc(last_requested)
+        except ValueError:
+            last_requested = None
+    if isinstance(last_requested, datetime):
+        if last_requested.tzinfo is None:
+            last_requested = last_requested.replace(tzinfo=timezone.utc)
+        due_at = (last_requested + timedelta(days=interval_days)).replace(
+            hour=schedule_hour, minute=0, second=0, microsecond=0
+        )
+    else:
+        due_at = now.replace(hour=schedule_hour, minute=0, second=0, microsecond=0)
+    return now >= due_at
+
+
+def schedule_due_hidden_domain_pipeline_run(domain_key: str = "archaea", now_dt: datetime | None = None) -> None:
+    """Queue a hidden Archaea refresh on cadence; public release remains locked."""
+    key = str(domain_key or "").strip().lower()
+    if key != "archaea":
+        raise ValueError(f"Unsupported hidden domain pipeline: {domain_key!r}")
+    if not hidden_domain_pipeline_due(key, now_dt=now_dt):
+        return
+    try:
+        from dataset_production_store import queue_domain_inventory_task
+        snapshot_id, error = queue_domain_inventory_task(
+            key,
+            "scheduled-hidden-domain-pipeline",
+            continue_after=True,
+        )
+    except Exception as exc:
+        logging.warning("Scheduled hidden %s inventory could not be queued: %s", key, exc)
+        return
+    if error:
+        logging.info("Scheduled hidden %s inventory was not queued: %s", key, error)
+    elif snapshot_id:
+        logging.info("Scheduled hidden %s inventory queued: %s", key, snapshot_id)
 
 
 def schedule_due_dataset_pipeline_run() -> None:
@@ -24716,6 +24876,7 @@ def run_worker_loop() -> None:
             if WORKER_MODE == "root-inventory":
                 if now - last_canonical_schedule_check >= 60:
                     schedule_due_canonical_pipeline_run()
+                    schedule_due_hidden_domain_pipeline_run("archaea")
                     last_canonical_schedule_check = now
                 if process_canonical_inventory_task(worker_name):
                     continue
@@ -27891,6 +28052,8 @@ def admin_archaea() -> str:
         results=results,
         report=None,
         inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("archaea"),
+        release_gate=build_hidden_domain_release_gate_summary("archaea", inventory),
         error=error,
         **admin_common_context("archaea"),
     )
@@ -27949,6 +28112,41 @@ def admin_queue_archaea_metadata_fetch() -> Any:
     return redirect(url_for("admin_archaea"))
 
 
+
+
+@app.route("/admin/archaea/pipeline/schedule", methods=["POST"])
+def admin_set_archaea_pipeline_schedule() -> Any:
+    user = require_admin()
+    enabled = "1" if request.form.get("archaea_pipeline_schedule_enabled") == "1" else "0"
+    try:
+        interval_days = max(1, min(365, int(request.form.get("archaea_pipeline_interval_days") or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(request.form.get("archaea_pipeline_schedule_hour_utc") or "18")))
+    except ValueError:
+        schedule_hour = 18
+    set_setting("archaea_pipeline_schedule_enabled", enabled)
+    set_setting("archaea_pipeline_interval_days", str(interval_days))
+    set_setting("archaea_pipeline_schedule_hour_utc", str(schedule_hour))
+    record_audit_event(
+        "admin.archaea_pipeline_schedule",
+        target_type="hidden_domain_pipeline_schedule",
+        target_id="archaea",
+        metadata={
+            "domain": "archaea",
+            "enabled": enabled == "1",
+            "interval_days": interval_days,
+            "schedule_hour_utc": schedule_hour,
+            "continue_after": True,
+            "public_enabled": False,
+            "release_locked": True,
+            "admin_user": str(user["username"]),
+        },
+    )
+    flash("Hidden Archaea schedule updated. Public release remains locked.", "success")
+    return redirect(url_for("admin_archaea"))
+
 @app.route("/admin/archaea/<rank>/<path:name>")
 def admin_archaea_taxon_report(rank: str, name: str) -> str:
     require_admin()
@@ -27978,6 +28176,8 @@ def admin_archaea_taxon_report(rank: str, name: str) -> str:
         results=[],
         report=report,
         inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("archaea"),
+        release_gate=build_hidden_domain_release_gate_summary("archaea", inventory),
         error=error,
         **admin_common_context("archaea"),
     )

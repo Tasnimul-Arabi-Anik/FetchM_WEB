@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import sys
@@ -625,6 +626,90 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             queue_fetch.assert_called_once()
             self.assertEqual(queue_fetch.call_args.args[0], "archaea")
             self.assertTrue(queue_fetch.call_args.kwargs["refetch_all"])
+
+
+    def test_hidden_archaea_admin_schedule_route_updates_settings(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}):
+                response = client.post(
+                    "/admin/archaea/pipeline/schedule",
+                    data={
+                        "_csrf_token": "token",
+                        "archaea_pipeline_schedule_enabled": "1",
+                        "archaea_pipeline_interval_days": "45",
+                        "archaea_pipeline_schedule_hour_utc": "3",
+                    },
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            with fetchm_app.app.app_context():
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_schedule_enabled"), "1")
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_interval_days"), "45")
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_schedule_hour_utc"), "3")
+                summary = fetchm_app.hidden_domain_pipeline_schedule_summary("archaea")
+            self.assertTrue(summary["enabled"])
+            self.assertEqual(summary["interval_days"], 45)
+            self.assertEqual(summary["schedule_hour_utc"], 3)
+
+    def test_hidden_archaea_schedule_queues_due_inventory_with_metadata_fetch(self) -> None:
+        now = datetime(2026, 7, 6, 18, 0, tzinfo=timezone.utc)
+        with isolated_initialized_app_client():
+            with fetchm_app.app.app_context():
+                fetchm_app.set_setting("archaea_pipeline_schedule_enabled", "1")
+                fetchm_app.set_setting("archaea_pipeline_interval_days", "30")
+                fetchm_app.set_setting("archaea_pipeline_schedule_hour_utc", "18")
+            latest = {
+                "snapshot_id": "20260401T180000Z_genbank_archaea_root",
+                "status": "completed",
+                "requested_at": now - timedelta(days=60),
+            }
+            with patch("dataset_production_store.active_domain_pipeline_task", return_value=None), patch(
+                "dataset_production_store.latest_domain_inventory_snapshot", return_value=latest
+            ), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260706T180000Z_genbank_archaea_root", None)
+            ) as queue_inventory:
+                fetchm_app.schedule_due_hidden_domain_pipeline_run("archaea", now_dt=now)
+            queue_inventory.assert_called_once_with(
+                "archaea",
+                "scheduled-hidden-domain-pipeline",
+                continue_after=True,
+            )
+
+    def test_hidden_archaea_schedule_does_not_queue_when_paused(self) -> None:
+        with isolated_initialized_app_client():
+            with fetchm_app.app.app_context():
+                fetchm_app.set_setting("archaea_pipeline_schedule_enabled", "0")
+            with patch("dataset_production_store.queue_domain_inventory_task") as queue_inventory:
+                fetchm_app.schedule_due_hidden_domain_pipeline_run(
+                    "archaea",
+                    now_dt=datetime(2026, 7, 6, 18, 0, tzinfo=timezone.utc),
+                )
+            queue_inventory.assert_not_called()
+
+    def test_hidden_archaea_release_gate_remains_locked(self) -> None:
+        inventory = {
+            "configured": True,
+            "available": True,
+            "status": "completed",
+            "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+            "root_unique_assemblies": 100,
+            "standardized_metadata_coverage": {
+                "root_unique_assemblies": 100,
+                "standardized_assemblies": 100,
+                "missing_standardized_assemblies": 0,
+            },
+        }
+        gate = fetchm_app.build_hidden_domain_release_gate_summary("archaea", inventory)
+        self.assertEqual(gate["status"], "locked")
+        self.assertFalse(gate["can_release"])
+        self.assertTrue(gate["release_locked"])
+        self.assertEqual(gate["missing_standardized_assemblies"], 0)
+        self.assertTrue(any("locked by policy" in blocker for blocker in gate["blockers"]))
 
     def test_hidden_archaea_admin_report_renders_summary(self) -> None:
         with isolated_initialized_app_client() as client:
