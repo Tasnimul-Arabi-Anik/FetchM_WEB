@@ -15,11 +15,12 @@ Implemented in this milestone:
 - Admin users can queue hidden inventory and metadata-fetch tasks for root-inventory workers.
 - Admin users can pause or enable recurring hidden Archaea refreshes. Scheduled runs queue inventory with metadata fetch enabled.
 - The admin page reports a locked release gate so readiness is visible without enabling public promotion.
+- `tools/qa_hidden_domain_pipeline.py` verifies hidden-domain snapshot, metadata coverage, payload tags, task completion, and release-lock invariants.
 - Public search, sequence/QC entrypoints, Global Insights, and release activation remain locked.
 
 Not implemented yet:
 
-- Archaeal rule pack and QA gate beyond the locked readiness summary.
+- Public-release archaeal biological rule pack and manuscript/readiness thresholds.
 - Manual public promotion.
 
 ## Inventory Command
@@ -94,6 +95,21 @@ release_locked = true
 ```
 
 Do not expose Archaea publicly until a separate reviewed release task explicitly unlocks it after metadata coverage, QA, and manuscript-readiness checks pass.
+
+## QA Command
+
+Run the hidden-domain QA gate against the latest or a specific hidden Archaea snapshot:
+
+```bash
+python tools/qa_hidden_domain_pipeline.py \
+  --domain archaea \
+  --snapshot-id YYYYMMDDTHHMMSSZ_genbank_archaea_root \
+  --output-dir data/standardization/review/archaea_hidden_pipeline/YYYYMMDD_qa \
+  --fail-on-hard-errors
+```
+
+The gate checks completed inventory and metadata tasks, full metadata coverage, `admin_hidden` visibility, `release_locked=true`, `archaea_hidden_v1` payload tags, `locked_admin_hidden` payload status, and hidden table domain isolation.
+
 
 ## Safety Rules
 
