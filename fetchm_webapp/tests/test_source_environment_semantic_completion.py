@@ -38,6 +38,7 @@ class SourceEnvironmentSemanticCompletionTests(unittest.TestCase):
                 "Sample_Material_SD",
                 "Sampling_Context_SD",
                 "Host_Anatomical_Material_SD",
+                "Host_Study_Group_SD",
                 "Host_Hospitalization_Status_SD",
                 "Host_Vital_Status_SD",
                 "Host_Colonization_Status_SD",
@@ -48,7 +49,7 @@ class SourceEnvironmentSemanticCompletionTests(unittest.TestCase):
         )
         self.assertNotIn("Sample_Processing_SD", SEMANTIC_AXIS_STANDARDIZATION_COLUMNS)
         self.assertNotIn("Sample_Collection_Device_SD", SEMANTIC_AXIS_STANDARDIZATION_COLUMNS)
-        self.assertNotIn("Host_Study_Group_SD", SEMANTIC_AXIS_STANDARDIZATION_COLUMNS)
+        self.assertIn("Host_Study_Group_SD", SEMANTIC_AXIS_STANDARDIZATION_COLUMNS)
 
     def test_phase2a_site_correction_composes_with_environment_completion(self) -> None:
         result = run_payload({"Isolation_Site_SD": "manure"})
