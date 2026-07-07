@@ -1,0 +1,30 @@
+{
+  "backup_table": "assembly_standardization_backup_semantic_closure_bucket_a_20260707095230",
+  "canonical_write_run": true,
+  "deployment_run": false,
+  "generated_at": "2026-07-07T10:00:23.304482+00:00",
+  "global_insights_regenerated": false,
+  "hard_failures": {
+    "destination_conflicts": 0,
+    "geography_date_changes": 0,
+    "host_taxonomy_changes": 0,
+    "legacy_compatibility_field_changes": 0,
+    "missing_provenance": 0,
+    "outside_allowlist_changes": 0,
+    "protected_field_changes": 0,
+    "raw_changes": 0,
+    "second_pass_changes": 0
+  },
+  "implementation_commit": "74de51ebb9aaee37736882e20fffa0c4794f76be",
+  "post_apply_zero_change_dry_run": {
+    "destination_conflicts": 0,
+    "projected_rows_changed": 0,
+    "second_pass_changes": 0
+  },
+  "provenance_events": 7098,
+  "rows_changed": 1129,
+  "rows_scanned": 3131699,
+  "rules_count": 5,
+  "rules_path": "/tmp/fetchm_semantic_closure/fetchm_webapp/standardization/semantic_closure_phase1_apply_now_rules.csv",
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root"
+}

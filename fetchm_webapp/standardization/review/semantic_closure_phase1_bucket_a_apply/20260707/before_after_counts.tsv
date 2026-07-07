@@ -1,0 +1,8 @@
+field	value	before_count	after_count	delta
+Host_Health_State_SD	healthy/control	1077	0	-1077
+Host_Health_State_SD	diseased/patient	50	0	-50
+Host_Health_State_SD	healthy	3566	4643	1077
+Host_Health_State_SD	diseased	53683	53733	50
+Host_Study_Group_SD	control	0	1077	1077
+Host_Context_SD	human-associated	6486	6535	49
+Isolation_Site_SD	catheter	2	0	-2
