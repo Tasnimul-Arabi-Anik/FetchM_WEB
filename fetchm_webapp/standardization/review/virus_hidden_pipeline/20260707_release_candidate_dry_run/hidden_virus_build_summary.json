@@ -1,0 +1,56 @@
+{
+  "boundary": {
+    "archaeal_workflow_changed": false,
+    "bacterial_workflow_changed": false,
+    "live_fetch_performed": false,
+    "public_routes_enabled": false
+  },
+  "consistency_errors": [],
+  "domain_key": "virus",
+  "dry_run": true,
+  "generated_at_utc": "2026-07-07T13:36:05.275157+00:00",
+  "import_summary": {
+    "examples": [
+      {
+        "genome_group_id": "reviewed-seed-influenza-a-dhaka-2026",
+        "primary_accession": "OP123456.1",
+        "record_model": "virus_sequence",
+        "relationship_count": 1
+      },
+      {
+        "genome_group_id": "reviewed-seed-escherichia-phage-t4",
+        "primary_accession": "NC_000866.4",
+        "record_model": "virus_sequence",
+        "relationship_count": 2
+      },
+      {
+        "genome_group_id": "reviewed-seed-sulfolobus-spindle-shaped-virus-1",
+        "primary_accession": "NC_001338.1",
+        "record_model": "virus_sequence",
+        "relationship_count": 1
+      }
+    ],
+    "reports_loaded": 3,
+    "reports_skipped": 0,
+    "reports_valid": 3,
+    "taxon_relationships": 4,
+    "virus_assembly_surrogates": 0,
+    "virus_genome_groups": 3,
+    "virus_sequence_records": 3
+  },
+  "input_file": "standardization/review/virus_hidden_pipeline/reviewed_seed_reports/hidden_virus_reviewed_seed_reports.json",
+  "input_sha256": "dafaaabcac9535f23c0f652a26b00d86afad3bf5fe7ffb80421fe08c7cd8f6af",
+  "persistence": {
+    "dry_run": true
+  },
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "qa": null,
+  "release_gate": {
+    "reason": "hidden Virus release remains locked pending explicit public-release approval",
+    "safe_to_publish": false
+  },
+  "release_locked": true,
+  "snapshot_id": "20260707T_reviewed_seed_virus_sequence_model",
+  "status": "dry_run_pass"
+}
