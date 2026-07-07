@@ -11,6 +11,7 @@ from domain_profiles import domain_profile, domain_profile_contract, hidden_doma
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_hidden_virus_sequences as virus_import_tool
 from tools import qa_hidden_virus_pipeline as virus_qa_tool
+from tools import run_hidden_virus_sequence_build as virus_build_tool
 from virus_canonical import virus_canonical_entities, virus_standardization_row_fields
 
 
@@ -193,6 +194,120 @@ class VirusModelSummaryTests(unittest.TestCase):
         self.assertEqual(summary["examples"][0]["sequence_accession"], "OP123456.1")
         self.assertFalse(summary["public_enabled"])
         self.assertTrue(summary["release_locked"])
+
+
+
+class VirusOperationalBuildTests(unittest.TestCase):
+    def _write_reviewed_reports(self, directory: Path) -> Path:
+        payload = {
+            "reports": [
+                {
+                    "nuccore_accession": "TESTVIRUS0001",
+                    "organism_name": "Example segmented virus",
+                    "genome_group_id": "example-virus-group",
+                    "segment": "segment-a",
+                    "molecule_type": "RNA",
+                    "completeness": "complete",
+                    "biosample_accession": "SAMNTEST1",
+                }
+            ]
+        }
+        path = directory / "reviewed_sequence_reports.json"
+        path.write_text(json.dumps(payload))
+        return path
+
+    def test_hidden_virus_operational_build_dry_run_does_not_persist(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            input_path = self._write_reviewed_reports(root)
+            output_dir = root / "artifacts"
+            with patch.object(virus_build_tool.production_store, "seed_virus_canonical_entities_batch") as seed:
+                summary = virus_build_tool.run_hidden_virus_build(
+                    input_path=input_path,
+                    snapshot_id="virus-sequence-build",
+                    output_dir=output_dir,
+                    dry_run=True,
+                )
+            self.assertTrue((output_dir / "hidden_virus_build_summary.json").exists())
+            self.assertTrue((output_dir / "hidden_virus_build_summary.md").exists())
+        seed.assert_not_called()
+        self.assertEqual(summary["status"], "dry_run_pass")
+        self.assertEqual(summary["import_summary"]["reports_valid"], 1)
+        self.assertTrue(summary["release_locked"])
+        self.assertFalse(summary["release_gate"]["safe_to_publish"])
+
+    def test_hidden_virus_operational_build_persists_and_runs_qa(self) -> None:
+        qa_summary = {
+            "domain_key": "virus",
+            "snapshot_id": "virus-sequence-build",
+            "status": "pass",
+            "hard_failure_count": 0,
+            "virus_sequence_records": 1,
+            "virus_genome_groups": 1,
+            "taxon_relationships": 0,
+            "relationship_type_counts": {},
+            "target_domain_counts": {},
+            "checks": [{"key": "public_release_disabled", "status": "pass", "detail": "locked", "hard": True}],
+            "hard_failures": [],
+        }
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            input_path = self._write_reviewed_reports(root)
+            output_dir = root / "artifacts"
+            with patch.object(
+                virus_build_tool.production_store,
+                "seed_virus_canonical_entities_batch",
+                return_value={
+                    "domain_key": "virus",
+                    "snapshot_id": "virus-sequence-build",
+                    "total_reports": 1,
+                    "virus_sequences_seeded": 1,
+                    "virus_genome_groups_touched": 1,
+                    "taxon_relationships_seeded": 0,
+                    "skipped_reports": 0,
+                },
+            ) as seed, patch.object(
+                virus_build_tool.virus_qa,
+                "collect_hidden_virus_qa",
+                return_value=qa_summary,
+            ) as qa:
+                summary = virus_build_tool.run_hidden_virus_build(
+                    input_path=input_path,
+                    snapshot_id="virus-sequence-build",
+                    output_dir=output_dir,
+                )
+            build_json = json.loads((output_dir / "hidden_virus_build_summary.json").read_text())
+            build_md = (output_dir / "hidden_virus_build_summary.md").read_text()
+            self.assertTrue((output_dir / "virus_qa_summary.json").exists())
+            self.assertTrue((output_dir / "virus_qa_summary.md").exists())
+        seed.assert_called_once()
+        qa.assert_called_once_with("virus-sequence-build")
+        self.assertEqual(summary["status"], "pass")
+        self.assertEqual(build_json["persistence"]["virus_sequences_seeded"], 1)
+        self.assertFalse(build_json["release_gate"]["safe_to_publish"])
+        self.assertIn("Hidden Virus Operational Build", build_md)
+        self.assertIn("Release locked: true", build_md)
+
+    def test_hidden_virus_operational_build_reports_consistency_failure(self) -> None:
+        with TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            input_path = self._write_reviewed_reports(root)
+            with patch.object(
+                virus_build_tool.production_store,
+                "seed_virus_canonical_entities_batch",
+                return_value={"virus_sequences_seeded": 0},
+            ), patch.object(
+                virus_build_tool.virus_qa,
+                "collect_hidden_virus_qa",
+                return_value={"hard_failure_count": 0, "status": "pass"},
+            ):
+                summary = virus_build_tool.run_hidden_virus_build(
+                    input_path=input_path,
+                    snapshot_id="virus-sequence-build",
+                    output_dir=root / "artifacts",
+                )
+        self.assertEqual(summary["status"], "fail")
+        self.assertIn("persisted Virus sequence count", summary["consistency_errors"][0])
 
 
 
