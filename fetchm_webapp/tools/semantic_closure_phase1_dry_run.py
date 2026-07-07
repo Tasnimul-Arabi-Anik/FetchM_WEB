@@ -547,6 +547,9 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, *, example
         "deployment_authorized": False,
     }
     idempotency = {"second_pass_changes": second_pass_changes, "status": "pass" if second_pass_changes == 0 else "fail"}
+    total_destination_conflicts = sum(counts.get("conflict", 0) for counts in rule_counts.values())
+    total_existing_different = sum(counts.get("existing_different", 0) for counts in rule_counts.values())
+    total_conditional_skips = sum(counts.get("conditional_assignment_skip", 0) for counts in rule_counts.values())
     summary = {
         "generated_at": utc_now(),
         "phase": "semantic_closure_phase1_dry_run_only",
@@ -559,9 +562,9 @@ def run_dry_run(snapshot_id: str, rules_path: Path, output_dir: Path, *, example
         "projected_changed_field_assignments": sum(field_change_counts.values()),
         "projected_new_axis_assignments": sum(new_axis_counts.values()),
         "projected_clears": sum(clear_counts.values()),
-        "destination_conflicts": len(outcome_rows.get("conflict", [])),
-        "skipped_existing_different_destinations": len(outcome_rows.get("existing_different", [])),
-        "conditional_assignment_skips": len(outcome_rows.get("conditional_assignment_skip", [])),
+        "destination_conflicts": total_destination_conflicts,
+        "skipped_existing_different_destinations": total_existing_different,
+        "conditional_assignment_skips": total_conditional_skips,
         "raw_changes": hard_failures["raw_changes"],
         "legacy_compatibility_field_changes": hard_failures["legacy_compatibility_field_changes"],
         "host_taxonomy_changes": hard_failures["host_taxonomy_changes"],
