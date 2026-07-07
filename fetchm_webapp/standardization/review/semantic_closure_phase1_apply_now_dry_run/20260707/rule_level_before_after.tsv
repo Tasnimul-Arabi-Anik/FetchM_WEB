@@ -1,0 +1,6 @@
+rule_id	current_field	current_value	destination_field	destination_value	matched_rows	applied	already_same	existing_different	conditional_assignment_skip	clear_only
+SC1-SITE-CATHETER-CLEAR	Isolation_Site_SD	catheter			2	0	0	0	0	2
+SC1-HHS-HEALTHY-CONTROL-HEALTH	Host_Health_State_SD	healthy/control	Host_Health_State_SD	healthy	1077	1077	0	0	0	0
+SC1-HHS-HEALTHY-CONTROL-STUDY	Host_Health_State_SD	healthy/control	Host_Study_Group_SD	control	1077	1077	0	0	0	0
+SC1-HHS-DISEASED-PATIENT-HEALTH	Host_Health_State_SD	diseased/patient	Host_Health_State_SD	diseased	50	50	0	0	0	0
+SC1-HHS-DISEASED-PATIENT-HUMAN	Host_Health_State_SD	diseased/patient	Host_Context_SD	human-associated	50	49	0	0	1	0

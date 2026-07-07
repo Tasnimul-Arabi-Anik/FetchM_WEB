@@ -1,0 +1,4 @@
+queue	assignment_occurrences	note
+strict_field_violation_assignment_occurrences	910373	from final_semantic_closure/20260701_audit; Phase 1 dry-run intentionally applies only reviewed allowlist
+ambiguous_or_review_assignment_occurrences	4199315	not applied in Phase 1
+preserved_compatibility_or_conflict_assignment_occurrences	190318	not applied in Phase 1

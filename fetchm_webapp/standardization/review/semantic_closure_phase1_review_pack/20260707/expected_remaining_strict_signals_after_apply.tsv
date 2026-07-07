@@ -1,0 +1,4 @@
+queue	current_assignment_occurrences	apply_now_projected_clears	expected_remaining_or_reviewed_after_apply_now	note
+strict_field_violation_assignment_occurrences	910373	3389	906984	only Bucket A strict health/catheter rules are included; environment rules remain held
+environment_axis_rules_held	140075	0	140075	held for manual review pack inspection
+manual_review_or_condition_skips	52	0	52	not applied by Bucket A dry run

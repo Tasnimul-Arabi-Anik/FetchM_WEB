@@ -1,0 +1,27 @@
+{
+  "apply_now_destination_conflicts": 0,
+  "apply_now_dry_run_dir": "fetchm_webapp/standardization/review/semantic_closure_phase1_apply_now_dry_run/20260707",
+  "apply_now_projected_clears": 3389,
+  "apply_now_projected_new_axis_assignments": 2253,
+  "apply_now_projected_rows_changed": 1129,
+  "apply_now_rules": 5,
+  "apply_now_second_pass_changes": 0,
+  "canonical_write_run": false,
+  "deployment_run": false,
+  "environment_rules_held": 8,
+  "full_phase1_destination_conflicts": 0,
+  "full_phase1_projected_clears": 96915,
+  "full_phase1_projected_new_axis_assignments": 36054,
+  "full_phase1_projected_rows_changed": 93660,
+  "full_phase1_second_pass_changes": 0,
+  "generated_at": "2026-07-07T09:12:22.783204+00:00",
+  "global_insights_regenerated": false,
+  "hold_rules": 10,
+  "implementation_commit": "8fb153c36ac3b498bb29b8ea2ac837457bd6e387",
+  "promotion_gate": {
+    "reason": "manual review required before canonical write",
+    "safe_to_apply": false
+  },
+  "snapshot_id": "20260602T140414Z_genbank_bacteria_root",
+  "source_dry_run_dir": "fetchm_webapp/standardization/review/semantic_closure_phase1_dry_run/20260707"
+}
