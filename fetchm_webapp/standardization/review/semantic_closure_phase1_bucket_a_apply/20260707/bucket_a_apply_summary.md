@@ -11,3 +11,7 @@
 ## Hard Failures
 
 - none
+
+## Scope Note
+
+This file records the canonical apply step only. Global Insights regeneration and deployment smoke-test evidence are recorded separately in `global_insights_regeneration.json`, `live_smoke_test.md`, and the final freeze artifacts.

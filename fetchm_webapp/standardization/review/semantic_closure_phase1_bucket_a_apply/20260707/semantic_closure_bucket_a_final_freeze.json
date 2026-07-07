@@ -1,0 +1,42 @@
+{
+  "artifact_paths": {
+    "apply_summary": "fetchm_webapp/standardization/review/semantic_closure_phase1_bucket_a_apply/20260707/bucket_a_apply_summary.json",
+    "global_insights_regeneration": "fetchm_webapp/standardization/review/semantic_closure_phase1_bucket_a_apply/20260707/global_insights_regeneration.json",
+    "live_smoke_test": "fetchm_webapp/standardization/review/semantic_closure_phase1_bucket_a_apply/20260707/live_smoke_test.md",
+    "qa_summary": "fetchm_webapp/standardization/review/semantic_closure_phase1_bucket_a_apply/20260707/qa_summary.md"
+  },
+  "backup_table": "assembly_standardization_backup_semantic_closure_bucket_a_20260707095230",
+  "bucket_a_canonical_metadata_applied": true,
+  "bucket_b_environment_rules_applied": false,
+  "canonical_metadata_changes_after_freeze_artifact": 0,
+  "canonical_snapshot": "20260602T140414Z_genbank_bacteria_root",
+  "containers_not_recreated": [
+    "PostgreSQL",
+    "standardization workers"
+  ],
+  "deployed_containers_recreated": [
+    "fetchm-web",
+    "fetchm-insights-worker"
+  ],
+  "evidence_commit_before_freeze": "ba4345785efe9b8fa53c833a11a35ec1c07912f1",
+  "git_reconciliation_note": "The live runtime was built from the Bucket A implementation commit 74de51e. The final GitHub main freeze commit is expected to be a later bookkeeping/evidence commit containing 74de51e and ba43457 as ancestors; no additional runtime code or canonical metadata changes are required for this freeze artifact.",
+  "global_insights_regenerated_after_apply": true,
+  "global_insights_row_count": 3131699,
+  "global_insights_snapshot": "20260707T103702Z_global_insights",
+  "host_study_group_control_rows": 1077,
+  "implementation_commit": "74de51ebb9aaee37736882e20fffa0c4794f76be",
+  "live_healthz_commit": "74de51ebb9aaee37736882e20fffa0c4794f76be",
+  "manual_approval": "Bucket A manually approved and applied; Bucket B not approved",
+  "post_apply_dry_run_changed_rows": 0,
+  "remaining_counts": {
+    "Host_Health_State_SD=diseased/patient": 0,
+    "Host_Health_State_SD=healthy/control": 0,
+    "Isolation_Site_SD=catheter": 0
+  },
+  "rows_changed": 1129,
+  "rows_scanned": 3131699,
+  "status": "Semantic Closure Bucket A complete; environment Bucket B held for separate review",
+  "tests": {
+    "unittest_discovery": "150 passed"
+  }
+}
