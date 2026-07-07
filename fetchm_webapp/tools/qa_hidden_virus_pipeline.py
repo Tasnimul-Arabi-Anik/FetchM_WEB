@@ -203,17 +203,24 @@ def collect_hidden_virus_qa(snapshot_id: str | None = None) -> dict[str, Any]:
 def write_outputs(summary: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "virus_qa_summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    checks = "\n".join(f"- `{check['key']}`: {check['status']} - {check['detail']}" for check in summary["checks"])
-    relationship_types = "\n".join(f"- {key}: {value:,}" for key, value in summary["relationship_type_counts"].items()) or "- none"
-    target_domains = "\n".join(f"- {key}: {value:,}" for key, value in summary["target_domain_counts"].items()) or "- none"
+    checks_rows = summary.get("checks") or []
+    checks = "\n".join(
+        f"- `{check.get('key', 'unknown')}`: {check.get('status', 'unknown')} - {check.get('detail', '')}"
+        for check in checks_rows
+        if isinstance(check, dict)
+    ) or "- none"
+    relationship_counts = summary.get("relationship_type_counts") or {}
+    target_counts = summary.get("target_domain_counts") or {}
+    relationship_types = "\n".join(f"- {key}: {int(value or 0):,}" for key, value in relationship_counts.items()) or "- none"
+    target_domains = "\n".join(f"- {key}: {int(value or 0):,}" for key, value in target_counts.items()) or "- none"
     markdown = (
         "# Hidden Virus QA Summary\n\n"
-        f"- Snapshot: `{summary['snapshot_id']}`\n"
-        f"- Status: `{summary['status']}`\n"
-        f"- Hard failures: {summary['hard_failure_count']}\n"
-        f"- Virus sequence records: {summary['virus_sequence_records']:,}\n"
-        f"- Virus genome groups: {summary['virus_genome_groups']:,}\n"
-        f"- Taxon relationships: {summary['taxon_relationships']:,}\n"
+        f"- Snapshot: `{summary.get('snapshot_id', 'unknown')}`\n"
+        f"- Status: `{summary.get('status', 'unknown')}`\n"
+        f"- Hard failures: {int(summary.get('hard_failure_count', 0) or 0)}\n"
+        f"- Virus sequence records: {int(summary.get('virus_sequence_records', 0) or 0):,}\n"
+        f"- Virus genome groups: {int(summary.get('virus_genome_groups', 0) or 0):,}\n"
+        f"- Taxon relationships: {int(summary.get('taxon_relationships', 0) or 0):,}\n"
         "- Public enabled: false\n"
         "- Release locked: true\n\n"
         "## Relationship Types\n\n"
