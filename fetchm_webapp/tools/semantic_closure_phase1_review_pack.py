@@ -208,6 +208,8 @@ def write_review_pack(
     rules_path: Path,
     examples_per_rule_outcome: int,
     chunk_size: int,
+    reported_full_dry_run_dir: str | None = None,
+    reported_apply_now_dry_run_dir: str | None = None,
 ) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
     rules = closure.load_rules(rules_path)
@@ -275,8 +277,8 @@ def write_review_pack(
         "generated_at": utc_now(),
         "implementation_commit": git_commit(),
         "snapshot_id": snapshot_id,
-        "source_dry_run_dir": str(full_dry_run_dir),
-        "apply_now_dry_run_dir": str(apply_now_dry_run_dir),
+        "source_dry_run_dir": reported_full_dry_run_dir or str(full_dry_run_dir),
+        "apply_now_dry_run_dir": reported_apply_now_dry_run_dir or str(apply_now_dry_run_dir),
         "full_phase1_projected_rows_changed": full_summary.get("projected_rows_changed"),
         "full_phase1_projected_clears": full_summary.get("projected_clears"),
         "full_phase1_projected_new_axis_assignments": full_summary.get("projected_new_axis_assignments"),
@@ -318,6 +320,8 @@ def main(argv: Iterable[str] | None = None) -> int:
     parser.add_argument("--full-dry-run-dir", type=Path, default=DEFAULT_DRY_RUN_DIR)
     parser.add_argument("--apply-now-dry-run-dir", type=Path, default=DEFAULT_APPLY_NOW_DRY_RUN_DIR)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_ROOT / DEFAULT_DATE)
+    parser.add_argument("--reported-full-dry-run-dir", default=None)
+    parser.add_argument("--reported-apply-now-dry-run-dir", default=None)
     parser.add_argument("--examples-per-rule-outcome", type=int, default=20)
     parser.add_argument("--chunk-size", type=int, default=5000)
     args = parser.parse_args(list(argv) if argv is not None else None)
@@ -329,6 +333,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         args.rules,
         max(1, args.examples_per_rule_outcome),
         max(1, args.chunk_size),
+        args.reported_full_dry_run_dir,
+        args.reported_apply_now_dry_run_dir,
     )
     print(json.dumps({
         "output_dir": str(args.output_dir),
