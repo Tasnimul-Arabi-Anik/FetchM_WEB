@@ -3,7 +3,13 @@
 Snapshot ID: `20260602T140414Z_genbank_bacteria_root`
 Generated: 2026-07-01T06:45:29.503137+00:00
 Input standardization commit: `28ff0c440ebc0a7351140a69c01427355b7b4fe9`
-Audit code commit: `48dedba5809d45bccfb2a11a78a0f155ab4105b2`
+
+## Provenance
+
+- Base application commit: `48dedba5809d45bccfb2a11a78a0f155ab4105b2`
+- Audit code commit: `42f90fe71bd6c2f0dec6df6e4e022c8872636ce0`
+- Artifact commit: `e5be85e2c4976c8a96075bd7018388a0543085f6`
+- Release manifest commit: `e2da6e45ad1defd3a3d3d6fbecc713d8ee268a40`
 
 ## Scope
 
