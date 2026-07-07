@@ -432,6 +432,119 @@ SEQUENCE_PREVIEW_COLUMNS = [
     "Assembly Stats Number of Contigs",
 ]
 
+
+CANONICAL_PIPELINE_DOMAINS = {
+    "bacteria": {
+        "key": "bacteria",
+        "label": "Bacteria",
+        "short_label": "Bacterial",
+        "root_taxon_id": "2",
+        "root_name": "Bacteria",
+        "assembly_namespace": "GCA",
+        "source_database": "GenBank",
+        "public_status": "public",
+        "admin_status": "production",
+        "status_label": "Production",
+        "enabled": True,
+        "public_enabled": True,
+        "canonical_backend_ready": True,
+        "description": "Active public bacterial canonical metadata workflow.",
+        "scope_note": "NCBI Bacteria root, GenBank GCA assemblies.",
+    },
+    "archaea": {
+        "key": "archaea",
+        "label": "Archaea",
+        "short_label": "Archaeal",
+        "root_taxon_id": "2157",
+        "root_name": "Archaea",
+        "assembly_namespace": "GCA",
+        "source_database": "GenBank",
+        "public_status": "hidden",
+        "admin_status": "background_prep",
+        "status_label": "Hidden prep",
+        "enabled": False,
+        "public_enabled": False,
+        "canonical_backend_ready": False,
+        "description": "Admin-only preparation lane for an archaeal metadata pipeline. Public routes remain disabled until a separate archaeal snapshot, ruleset, QA gate, and release are reviewed.",
+        "scope_note": "NCBI Archaea root, TaxID 2157. Separate archaeal standardization rules required before production.",
+    },
+}
+DEFAULT_CANONICAL_PIPELINE_DOMAIN = "bacteria"
+
+
+def normalize_canonical_pipeline_domain(value: str | None) -> str:
+    candidate = (value or "").strip().lower()
+    if candidate in CANONICAL_PIPELINE_DOMAINS:
+        return candidate
+    return DEFAULT_CANONICAL_PIPELINE_DOMAIN
+
+
+def canonical_pipeline_domain_config(value: str | None) -> dict[str, Any]:
+    key = normalize_canonical_pipeline_domain(value)
+    return dict(CANONICAL_PIPELINE_DOMAINS[key])
+
+
+def canonical_pipeline_domain_options(selected: str | None) -> list[dict[str, Any]]:
+    selected_key = normalize_canonical_pipeline_domain(selected)
+    options: list[dict[str, Any]] = []
+    for key, config in CANONICAL_PIPELINE_DOMAINS.items():
+        option = dict(config)
+        option["selected"] = key == selected_key
+        options.append(option)
+    return options
+
+
+def background_pipeline_preview_cards(domain: Mapping[str, Any]) -> list[dict[str, Any]]:
+    label = str(domain.get("label") or "Domain")
+    taxon_id = str(domain.get("root_taxon_id") or "")
+    return [
+        {
+            "index": 1,
+            "key": "inventory",
+            "label": f"Prepare {label} inventory",
+            "short": "Create a separate root inventory before any public release.",
+            "status": "not enabled",
+            "percent": 0,
+            "metric_label": "Inventory",
+            "details": [
+                f"Planned root: NCBI {label} / TaxID {taxon_id}",
+                "Requires separate snapshot storage; bacterial tables are not reused.",
+            ],
+            "button": "Hidden",
+            "disabled": True,
+        },
+        {
+            "index": 2,
+            "key": "standardization_rules",
+            "label": f"Review {label.lower()} metadata rules",
+            "short": "Build a domain-specific rule pack before canonical writes.",
+            "status": "not started",
+            "percent": 0,
+            "metric_label": "Rules",
+            "details": [
+                "Shared parser primitives are acceptable; biological meanings and thresholds stay separate.",
+                "No bacterial standardization rules are broadened by this admin option.",
+            ],
+            "button": "Hidden",
+            "disabled": True,
+        },
+        {
+            "index": 3,
+            "key": "qa_gate",
+            "label": f"Validate {label.lower()} QA gate",
+            "short": "Run domain-specific coverage, leakage, and readiness checks.",
+            "status": "blocked",
+            "percent": 0,
+            "metric_label": "QA",
+            "details": [
+                "Public routes remain disabled until QA and release evidence pass review.",
+                "Promotion requires a separate manual approval step.",
+            ],
+            "button": "Hidden",
+            "disabled": True,
+        },
+    ]
+
 DISCOVERY_POLICIES = {
     "paused": {"label": "Paused", "hours": None},
     "weekly": {"label": "Weekly", "hours": 168},
@@ -7329,6 +7442,7 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_discovery_interval_days", "7"),
         ("dataset_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_scope", "2"),
+        ("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN),
         ("dataset_pipeline_auto_publish_insights", "1"),
         ("dataset_pipeline_discovery_sequential", "1"),
         ("dataset_pipeline_catalog_sequential", "1"),
@@ -9185,6 +9299,8 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     discovery_schedule_enabled = get_setting("dataset_pipeline_discovery_schedule_enabled", "0", connection) == "1"
     discovery_interval_days = get_setting("dataset_pipeline_discovery_interval_days", "7", connection)
     schedule_hour_utc = get_setting("dataset_pipeline_schedule_hour_utc", "18", connection)
+    selected_domain_key = normalize_canonical_pipeline_domain(get_setting("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN, connection))
+    selected_domain = canonical_pipeline_domain_config(selected_domain_key)
     return {
         "enabled": get_setting("dataset_pipeline_enabled", "0", connection) == "1",
         "discovery_schedule_enabled": discovery_schedule_enabled,
@@ -9192,6 +9308,11 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "schedule_hour_utc": schedule_hour_utc,
         "scope": get_setting("dataset_pipeline_scope", "2", connection),
         "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "canonical_domain": selected_domain,
+        "canonical_domain_options": canonical_pipeline_domain_options(selected_domain_key),
+        "canonical_domain_key": selected_domain_key,
+        "canonical_domain_is_bacteria": selected_domain_key == DEFAULT_CANONICAL_PIPELINE_DOMAIN,
+        "background_pipeline_cards": background_pipeline_preview_cards(selected_domain) if not selected_domain.get("canonical_backend_ready") else [],
         "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
         "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
         "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),
@@ -27493,12 +27614,30 @@ def admin_dashboard() -> str:
     db = get_db()
     admin_summary = build_admin_summary_dashboard(db)
     dataset_pipeline = build_dataset_pipeline_dashboard(db)
-    canonical_release_gate = build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"])
-    canonical_pipeline_cards = build_canonical_pipeline_cards(
-        dataset_pipeline["root_inventory"],
-        canonical_release_gate,
-        admin_summary.get("latest_insight"),
-    )
+    if dataset_pipeline.get("canonical_domain_is_bacteria"):
+        canonical_release_gate = build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"])
+        canonical_pipeline_cards = build_canonical_pipeline_cards(
+            dataset_pipeline["root_inventory"],
+            canonical_release_gate,
+            admin_summary.get("latest_insight"),
+        )
+    else:
+        canonical_release_gate = {
+            "status": "hidden",
+            "snapshot_id": "",
+            "active_snapshot_id": get_active_canonical_snapshot_id(db),
+            "is_active": False,
+            "can_activate": False,
+            "blockers": ["Archaea pipeline is admin-only until a separate snapshot backend and QA gate are implemented."],
+            "cautions": [],
+            "root_unique_assemblies": 0,
+            "standardized_assemblies": 0,
+            "accounted_unique_assemblies": 0,
+            "unresolved_genus_assemblies": 0,
+            "metadata_only": True,
+            "canonical_sequence_qc": False,
+        }
+        canonical_pipeline_cards = dataset_pipeline.get("background_pipeline_cards") or []
     return render_template(
         "admin_overview_v2.html",
         admin_summary=admin_summary,
@@ -28146,6 +28285,30 @@ def admin_set_system_monitor() -> Any:
     flash("System monitor settings updated.", "success")
     return redirect(url_for("admin_dashboard"))
 
+
+@app.route("/admin/dataset-pipeline/domain", methods=["POST"])
+def admin_set_canonical_pipeline_domain() -> Any:
+    require_admin()
+    domain_key = normalize_canonical_pipeline_domain(request.form.get("canonical_pipeline_domain"))
+    domain = canonical_pipeline_domain_config(domain_key)
+    set_setting("canonical_pipeline_domain", domain_key)
+    record_audit_event(
+        "admin.canonical_pipeline_domain",
+        target_type="canonical_pipeline",
+        target_id=domain_key,
+        metadata={
+            "domain": domain_key,
+            "label": domain.get("label"),
+            "root_taxon_id": domain.get("root_taxon_id"),
+            "public_enabled": bool(domain.get("public_enabled")),
+            "canonical_backend_ready": bool(domain.get("canonical_backend_ready")),
+        },
+    )
+    if domain.get("canonical_backend_ready"):
+        flash(f"Canonical pipeline scope set to {domain['label']}.", "success")
+    else:
+        flash(f"{domain['label']} pipeline selected for hidden admin preparation only. Public routes and canonical writes remain disabled.", "warning")
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/dataset-pipeline/settings", methods=["POST"])
 def admin_set_dataset_pipeline_settings() -> Any:
