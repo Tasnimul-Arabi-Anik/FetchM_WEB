@@ -9,6 +9,7 @@ from unittest.mock import patch
 import dataset_production_store as production_store
 from domain_profiles import domain_profile, domain_profile_contract, hidden_domain_keys, hidden_domain_store_configs
 from tools import check_hidden_archaea_release_candidate as archaea_gate_tool
+from tools import check_hidden_virus_release_candidate as virus_gate_tool
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_hidden_virus_sequences as virus_import_tool
 from tools import qa_hidden_virus_pipeline as virus_qa_tool
@@ -148,6 +149,138 @@ class ArchaeaReleaseCandidateGateTests(unittest.TestCase):
             summary_md = (output_dir / "archaea_release_candidate_gate.md").read_text()
         self.assertEqual(summary_json["status"], "pass")
         self.assertIn("Hidden Archaea Release-Candidate Gate", summary_md)
+        self.assertIn("public release remains locked", summary_md.lower())
+
+
+class VirusReleaseCandidateGateTests(unittest.TestCase):
+    def _hidden_virus_contract(self, *, public_enabled: bool = False, release_locked: bool = True) -> dict[str, object]:
+        return {
+            "key": "virus",
+            "label": "Virus",
+            "root_taxon_id": 10239,
+            "profile": "virus_hidden_v1",
+            "visibility": "admin_hidden",
+            "public_enabled": public_enabled,
+            "release_locked": release_locked,
+            "canonical_entities": ["virus_sequence", "virus_genome_group", "taxon_relationship"],
+            "primary_record_model": "virus_sequence_or_assembly_surrogate",
+            "source_adapters": ["ncbi_datasets_genome_report", "ncbi_virus_sequence_report"],
+            "standardization_axes": ["virus_taxonomy", "host_relationship", "geography", "collection_date"],
+            "qa_gates": ["hidden_domain_profile_qa", "virus_relationship_semantics_qa", "release_lock_qa"],
+            "ui_facets": ["virus_taxonomy", "host_taxonomy", "molecule_type"],
+            "notes": [],
+        }
+
+    def _patch_successful_gate_inputs(self):
+        return (
+            patch.object(virus_gate_tool, "domain_profile_contract", return_value=self._hidden_virus_contract()),
+            patch.object(
+                virus_gate_tool,
+                "collect_hidden_virus_qa",
+                return_value={
+                    "status": "pass",
+                    "hard_failure_count": 0,
+                    "relationship_type_counts": {"natural_host": 3, "propagated_in": 1},
+                    "target_domain_counts": {"eukaryota": 1, "bacteria": 2, "archaea": 1},
+                },
+            ),
+            patch.object(
+                virus_gate_tool,
+                "hidden_virus_model_summary",
+                return_value={
+                    "available": True,
+                    "virus_sequence_records": 3,
+                    "virus_genome_groups": 3,
+                    "taxon_relationships": 4,
+                    "top_target_domains": [{"value": "bacteria", "count": 2}],
+                },
+            ),
+            patch.object(
+                virus_gate_tool,
+                "domain_taxon_search_results",
+                return_value=[{
+                    "domain_key": "virus",
+                    "snapshot_id": "virus-seed",
+                    "rank": "genus",
+                    "name": "Influenza",
+                    "sequence_count": 1,
+                    "genome_count": 1,
+                    "public_enabled": False,
+                    "release_locked": True,
+                }],
+            ),
+            patch.object(
+                virus_gate_tool,
+                "domain_taxon_report",
+                return_value={
+                    "domain_key": "virus",
+                    "snapshot_id": "virus-seed",
+                    "rank": "genus",
+                    "name": "Influenza",
+                    "row_count": 1,
+                    "public_enabled": False,
+                    "release_locked": True,
+                },
+            ),
+            patch.object(
+                virus_gate_tool,
+                "domain_taxon_metadata_csv",
+                return_value={
+                    "domain_key": "virus",
+                    "snapshot_id": "virus-seed",
+                    "rank": "genus",
+                    "name": "Influenza",
+                    "row_count": 1,
+                    "filename": "virus_genus_Influenza_metadata.csv",
+                    "content": "sequence_accession\nOP123456.1\n",
+                },
+            ),
+        )
+
+    def test_virus_release_candidate_gate_passes_but_keeps_public_release_locked(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = virus_gate_tool.collect_virus_release_candidate("virus-seed")
+        self.assertEqual(summary["status"], "pass")
+        self.assertTrue(summary["release_candidate_ready"])
+        self.assertFalse(summary["safe_to_publicly_release"])
+        self.assertTrue(summary["manual_public_release_required"])
+        self.assertEqual(summary["virus_sequence_records"], 3)
+        self.assertEqual(summary["virus_genome_groups"], 3)
+        self.assertEqual(summary["taxon_relationships"], 4)
+        self.assertEqual(summary["admin_validation"]["taxon_report_rows"], 1)
+
+    def test_virus_release_candidate_gate_fails_if_profile_is_unlocked(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patch.object(virus_gate_tool, "domain_profile_contract", return_value=self._hidden_virus_contract(public_enabled=True, release_locked=False)), patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = virus_gate_tool.collect_virus_release_candidate("virus-seed")
+        self.assertEqual(summary["status"], "fail")
+        self.assertFalse(summary["release_candidate_ready"])
+        self.assertIn("public_release_disabled", {check["key"] for check in summary["hard_failures"]})
+        self.assertIn("release_locked", {check["key"] for check in summary["hard_failures"]})
+
+    def test_virus_release_candidate_gate_fails_report_export_mismatch(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patch.object(
+            virus_gate_tool,
+            "domain_taxon_metadata_csv",
+            return_value={"row_count": 2, "filename": "virus_genus_Influenza_metadata.csv"},
+        ):
+            summary = virus_gate_tool.collect_virus_release_candidate("virus-seed")
+        self.assertEqual(summary["status"], "fail")
+        self.assertIn("admin_metadata_csv_matches_report", {check["key"] for check in summary["hard_failures"]})
+
+    def test_virus_release_candidate_gate_writes_compact_outputs(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = virus_gate_tool.collect_virus_release_candidate("virus-seed")
+        with TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            virus_gate_tool.write_outputs(summary, output_dir)
+            summary_json = json.loads((output_dir / "virus_release_candidate_gate.json").read_text())
+            summary_md = (output_dir / "virus_release_candidate_gate.md").read_text()
+        self.assertEqual(summary_json["status"], "pass")
+        self.assertIn("Hidden Virus Release-Candidate Gate", summary_md)
         self.assertIn("public release remains locked", summary_md.lower())
 
 

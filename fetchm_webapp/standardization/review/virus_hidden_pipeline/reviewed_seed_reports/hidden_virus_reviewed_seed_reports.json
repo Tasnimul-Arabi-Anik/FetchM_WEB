@@ -1,0 +1,56 @@
+{
+  "description": "Small reviewed hidden Virus seed set for validating FetchM virus_sequence, virus_genome_group, and host-relationship semantics. This is not a full NCBI Virus root inventory.",
+  "reports": [
+    {
+      "biosample_accession": "SAMNREVIEW0001",
+      "collection_date": "2026-01-02",
+      "country": "Bangladesh",
+      "genome_completeness": "complete",
+      "genome_group_id": "reviewed-seed-influenza-a-dhaka-2026",
+      "host": {
+        "name": "Homo sapiens",
+        "tax_id": 9606
+      },
+      "isolate": "A/Dhaka/1/2026",
+      "isolation_source": "nasopharyngeal swab",
+      "molecule_type": "RNA",
+      "nuccore_accession": "OP123456.1",
+      "organism_name": "Influenza A virus",
+      "segment": "4",
+      "tax_id": 11320
+    },
+    {
+      "biosample_accession": "SAMNREVIEW0002",
+      "genome_completeness": "complete",
+      "genome_group_id": "reviewed-seed-escherichia-phage-t4",
+      "host": {
+        "name": "Escherichia coli",
+        "tax_id": 562
+      },
+      "isolate": "T4",
+      "isolation_source": "bacterial culture",
+      "lab_host": "Escherichia coli K-12",
+      "molecule_type": "dsDNA",
+      "nuccore_accession": "NC_000866.4",
+      "organism_name": "Escherichia phage T4",
+      "segment": "complete genome",
+      "tax_id": 10665
+    },
+    {
+      "biosample_accession": "SAMNREVIEW0003",
+      "genome_completeness": "complete",
+      "genome_group_id": "reviewed-seed-sulfolobus-spindle-shaped-virus-1",
+      "host": {
+        "name": "Sulfolobus islandicus",
+        "tax_id": 43080
+      },
+      "isolate": "SSV1",
+      "isolation_source": "archaeal culture",
+      "molecule_type": "dsDNA",
+      "nuccore_accession": "NC_001338.1",
+      "organism_name": "Sulfolobus spindle-shaped virus 1",
+      "segment": "complete genome",
+      "tax_id": 244589
+    }
+  ]
+}
