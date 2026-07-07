@@ -1,0 +1,7 @@
+{
+  "canonical_write_authorized": false,
+  "deployment_authorized": false,
+  "global_insights_regeneration_authorized": false,
+  "reason": "manual review required before canonical write",
+  "safe_to_apply": false
+}
