@@ -8,11 +8,147 @@ from unittest.mock import patch
 
 import dataset_production_store as production_store
 from domain_profiles import domain_profile, domain_profile_contract, hidden_domain_keys, hidden_domain_store_configs
+from tools import check_hidden_archaea_release_candidate as archaea_gate_tool
 from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_hidden_virus_sequences as virus_import_tool
 from tools import qa_hidden_virus_pipeline as virus_qa_tool
 from tools import run_hidden_virus_sequence_build as virus_build_tool
 from virus_canonical import virus_canonical_entities, virus_standardization_row_fields
+
+
+class ArchaeaReleaseCandidateGateTests(unittest.TestCase):
+    def _hidden_archaea_contract(self, *, public_enabled: bool = False, release_locked: bool = True) -> dict[str, object]:
+        return {
+            "key": "archaea",
+            "label": "Archaea",
+            "root_taxon_id": 2157,
+            "profile": "archaea_hidden_v1",
+            "visibility": "admin_hidden",
+            "public_enabled": public_enabled,
+            "release_locked": release_locked,
+            "canonical_entities": ["prokaryote_assembly", "biosample", "standardized_metadata_payload"],
+            "primary_record_model": "prokaryote_assembly",
+            "source_adapters": ["ncbi_datasets_genome_report"],
+            "standardization_axes": ["prokaryote_source", "geography", "collection_date", "environment"],
+            "qa_gates": ["hidden_domain_profile_qa", "metadata_coverage_qa", "release_lock_qa"],
+            "ui_facets": ["assembly_level", "source", "environment", "country", "collection_year"],
+            "notes": [],
+        }
+
+    def _patch_successful_gate_inputs(self):
+        return (
+            patch.object(archaea_gate_tool, "domain_profile_contract", return_value=self._hidden_archaea_contract()),
+            patch.object(
+                archaea_gate_tool,
+                "collect_hidden_domain_qa",
+                return_value={
+                    "status": "pass",
+                    "hard_failure_count": 0,
+                    "payload_rows": 44183,
+                },
+            ),
+            patch.object(
+                archaea_gate_tool,
+                "domain_standardized_metadata_coverage",
+                return_value={
+                    "domain_key": "archaea",
+                    "snapshot_id": "archaea-snapshot",
+                    "root_unique_assemblies": 44183,
+                    "standardized_assemblies": 44183,
+                    "missing_standardized_assemblies": 0,
+                },
+            ),
+            patch.object(
+                archaea_gate_tool,
+                "domain_taxon_search_results",
+                return_value=[{
+                    "domain_key": "archaea",
+                    "snapshot_id": "archaea-snapshot",
+                    "rank": "genus",
+                    "name": "Methanobrevibacter",
+                    "genome_count": 968,
+                    "public_enabled": False,
+                    "release_locked": True,
+                }],
+            ),
+            patch.object(
+                archaea_gate_tool,
+                "domain_taxon_report",
+                return_value={
+                    "domain_key": "archaea",
+                    "snapshot_id": "archaea-snapshot",
+                    "rank": "genus",
+                    "name": "Methanobrevibacter",
+                    "row_count": 968,
+                    "public_enabled": False,
+                    "release_locked": True,
+                },
+            ),
+            patch.object(
+                archaea_gate_tool,
+                "domain_taxon_metadata_csv",
+                return_value={
+                    "domain_key": "archaea",
+                    "snapshot_id": "archaea-snapshot",
+                    "rank": "genus",
+                    "name": "Methanobrevibacter",
+                    "row_count": 968,
+                    "filename": "archaea_genus_Methanobrevibacter_metadata.csv",
+                    "content": "assembly_accession\nGCA_1\n",
+                },
+            ),
+        )
+
+    def test_archaea_release_candidate_gate_passes_but_keeps_public_release_locked(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = archaea_gate_tool.collect_archaea_release_candidate("archaea-snapshot")
+        self.assertEqual(summary["status"], "pass")
+        self.assertTrue(summary["release_candidate_ready"])
+        self.assertFalse(summary["safe_to_publicly_release"])
+        self.assertTrue(summary["manual_public_release_required"])
+        self.assertFalse(summary["public_enabled"])
+        self.assertTrue(summary["release_locked"])
+        self.assertEqual(summary["root_unique_assemblies"], 44183)
+        self.assertEqual(summary["standardized_assemblies"], 44183)
+        self.assertEqual(summary["missing_standardized_assemblies"], 0)
+        self.assertEqual(summary["admin_validation"]["taxon_report_rows"], 968)
+        self.assertEqual(summary["admin_validation"]["metadata_csv_rows"], 968)
+
+    def test_archaea_release_candidate_gate_fails_if_profile_is_unlocked(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patch.object(archaea_gate_tool, "domain_profile_contract", return_value=self._hidden_archaea_contract(public_enabled=True, release_locked=False)), patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = archaea_gate_tool.collect_archaea_release_candidate("archaea-snapshot")
+        self.assertEqual(summary["status"], "fail")
+        self.assertFalse(summary["release_candidate_ready"])
+        self.assertFalse(summary["safe_to_publicly_release"])
+        failed_keys = {check["key"] for check in summary["hard_failures"]}
+        self.assertIn("public_release_disabled", failed_keys)
+        self.assertIn("release_locked", failed_keys)
+
+    def test_archaea_release_candidate_gate_fails_report_export_mismatch(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patch.object(
+            archaea_gate_tool,
+            "domain_taxon_metadata_csv",
+            return_value={"row_count": 967, "filename": "archaea_genus_Methanobrevibacter_metadata.csv"},
+        ):
+            summary = archaea_gate_tool.collect_archaea_release_candidate("archaea-snapshot")
+        self.assertEqual(summary["status"], "fail")
+        self.assertIn("admin_metadata_csv_matches_report", {check["key"] for check in summary["hard_failures"]})
+
+    def test_archaea_release_candidate_gate_writes_compact_outputs(self) -> None:
+        patches = self._patch_successful_gate_inputs()
+        with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            summary = archaea_gate_tool.collect_archaea_release_candidate("archaea-snapshot")
+        with TemporaryDirectory() as tmpdir:
+            output_dir = Path(tmpdir)
+            archaea_gate_tool.write_outputs(summary, output_dir)
+            summary_json = json.loads((output_dir / "archaea_release_candidate_gate.json").read_text())
+            summary_md = (output_dir / "archaea_release_candidate_gate.md").read_text()
+        self.assertEqual(summary_json["status"], "pass")
+        self.assertIn("Hidden Archaea Release-Candidate Gate", summary_md)
+        self.assertIn("public release remains locked", summary_md.lower())
 
 
 class DomainProfileContractTests(unittest.TestCase):
