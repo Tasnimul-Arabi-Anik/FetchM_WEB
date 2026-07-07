@@ -432,6 +432,165 @@ SEQUENCE_PREVIEW_COLUMNS = [
     "Assembly Stats Number of Contigs",
 ]
 
+
+CANONICAL_PIPELINE_DOMAINS = {
+    "bacteria": {
+        "key": "bacteria",
+        "label": "Bacteria",
+        "short_label": "Bacterial",
+        "root_taxon_id": "2",
+        "root_name": "Bacteria",
+        "assembly_namespace": "GCA",
+        "source_database": "GenBank",
+        "public_status": "public",
+        "admin_status": "production",
+        "status_label": "Production",
+        "enabled": True,
+        "public_enabled": True,
+        "canonical_backend_ready": True,
+        "description": "Active public bacterial canonical metadata workflow.",
+        "scope_note": "NCBI Bacteria root, GenBank GCA assemblies.",
+    },
+    "archaea": {
+        "key": "archaea",
+        "label": "Archaea",
+        "short_label": "Archaeal",
+        "root_taxon_id": "2157",
+        "root_name": "Archaea",
+        "assembly_namespace": "GCA",
+        "source_database": "GenBank",
+        "public_status": "hidden",
+        "admin_status": "background_prep",
+        "status_label": "Hidden prep",
+        "enabled": False,
+        "public_enabled": False,
+        "canonical_backend_ready": False,
+        "inventory_backend_ready": True,
+        "description": "Admin-only preparation lane for an archaeal metadata pipeline. Public routes remain disabled until a separate archaeal snapshot, ruleset, QA gate, and release are reviewed.",
+        "scope_note": "NCBI Archaea root, TaxID 2157. Separate archaeal standardization rules required before production.",
+    },
+    "virus": {
+        "key": "virus",
+        "label": "Virus",
+        "short_label": "Viral",
+        "root_taxon_id": "10239",
+        "root_name": "Viruses",
+        "assembly_namespace": "GCA",
+        "source_database": "GenBank",
+        "public_status": "hidden",
+        "admin_status": "background_prep",
+        "status_label": "Hidden prep",
+        "enabled": False,
+        "public_enabled": False,
+        "canonical_backend_ready": False,
+        "inventory_backend_ready": True,
+        "description": "Admin-only preparation lane for a viral metadata pipeline. Public routes remain disabled until a separate viral semantic model, QA gate, and release are reviewed.",
+        "scope_note": "NCBI Viruses root, TaxID 10239. Viral host relationships, segments, completeness, and readiness rules require a separate semantic pipeline.",
+    },
+}
+HIDDEN_DOMAIN_PIPELINE_KEYS = tuple(key for key in CANONICAL_PIPELINE_DOMAINS if key != "bacteria")
+DEFAULT_CANONICAL_PIPELINE_DOMAIN = "bacteria"
+
+
+def normalize_canonical_pipeline_domain(value: str | None) -> str:
+    candidate = (value or "").strip().lower()
+    if candidate in CANONICAL_PIPELINE_DOMAINS:
+        return candidate
+    return DEFAULT_CANONICAL_PIPELINE_DOMAIN
+
+
+def canonical_pipeline_domain_config(value: str | None) -> dict[str, Any]:
+    key = normalize_canonical_pipeline_domain(value)
+    return dict(CANONICAL_PIPELINE_DOMAINS[key])
+
+
+def canonical_pipeline_domain_options(selected: str | None) -> list[dict[str, Any]]:
+    selected_key = normalize_canonical_pipeline_domain(selected)
+    options: list[dict[str, Any]] = []
+    for key, config in CANONICAL_PIPELINE_DOMAINS.items():
+        option = dict(config)
+        option["selected"] = key == selected_key
+        options.append(option)
+    return options
+
+
+def background_pipeline_preview_cards(
+    domain: Mapping[str, Any],
+    inventory: Mapping[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    label = str(domain.get("label") or "Domain")
+    taxon_id = str(domain.get("root_taxon_id") or "")
+    inventory_status = dict(inventory or {})
+    coverage = dict(inventory_status.get("standardized_metadata_coverage") or {})
+    inventory_available = bool(inventory_status.get("available"))
+    inventory_count = int(inventory_status.get("root_unique_assemblies") or 0)
+    standardized_count = int(coverage.get("standardized_assemblies") or 0)
+    missing_count = int(coverage.get("missing_standardized_assemblies") or 0)
+    inventory_snapshot = str(inventory_status.get("snapshot_id") or "none")
+    inventory_percent = canonical_status_percent(inventory_status.get("status")) if inventory_available else 0
+    metadata_percent = int((standardized_count / inventory_count) * 100) if inventory_count else 0
+    metadata_status = "not generated"
+    if inventory_count and missing_count == 0 and standardized_count == inventory_count:
+        metadata_status = "hidden complete"
+    elif standardized_count:
+        metadata_status = "hidden partial"
+    inventory_details = [
+        f"Planned root: NCBI {label} / TaxID {taxon_id}",
+        "Separate domain inventory tables; bacterial tables are not reused.",
+        "Public release remains locked until manual approval.",
+    ]
+    if inventory_available:
+        inventory_details = [
+            f"Hidden assemblies inventoried: {inventory_count:,}",
+            f"Snapshot: {inventory_snapshot}",
+            f"Visibility: {inventory_status.get('visibility') or 'admin_hidden'}; release locked: {'yes' if inventory_status.get('release_locked', True) else 'no'}",
+        ]
+    return [
+        {
+            "index": 1,
+            "key": "inventory",
+            "label": f"Prepare {label} inventory",
+            "short": "Create a separate root inventory before any public release.",
+            "status": inventory_status.get("status") if inventory_available else "not generated",
+            "percent": inventory_percent,
+            "metric_label": "Inventory",
+            "details": inventory_details,
+            "button": "Hidden",
+            "disabled": True,
+        },
+        {
+            "index": 2,
+            "key": "standardization_rules",
+            "label": f"Review {label.lower()} metadata rules",
+            "short": "Build a domain-specific rule pack before canonical writes.",
+            "status": metadata_status,
+            "percent": metadata_percent,
+            "metric_label": "Metadata",
+            "details": [
+                f"Hidden standardized rows: {standardized_count:,} / {inventory_count:,}",
+                f"Remaining for hidden fetch: {missing_count:,}",
+                "Shared parser primitives are acceptable; biological meanings and thresholds stay separate.",
+            ],
+            "button": "Hidden",
+            "disabled": True,
+        },
+        {
+            "index": 3,
+            "key": "qa_gate",
+            "label": f"Validate {label.lower()} QA gate",
+            "short": "Run domain-specific coverage, leakage, and readiness checks.",
+            "status": "blocked",
+            "percent": 0,
+            "metric_label": "QA",
+            "details": [
+                "Public routes remain disabled until QA and release evidence pass review.",
+                "Promotion requires a separate manual approval step.",
+            ],
+            "button": "Hidden",
+            "disabled": True,
+        },
+    ]
+
 DISCOVERY_POLICIES = {
     "paused": {"label": "Paused", "hours": None},
     "weekly": {"label": "Weekly", "hours": 168},
@@ -7329,6 +7488,13 @@ def ensure_default_settings(db: sqlite3.Connection) -> None:
         ("dataset_pipeline_discovery_interval_days", "7"),
         ("dataset_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_scope", "2"),
+        ("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN),
+        ("archaea_pipeline_schedule_enabled", "0"),
+        ("archaea_pipeline_interval_days", "60"),
+        ("archaea_pipeline_schedule_hour_utc", "18"),
+        ("virus_pipeline_schedule_enabled", "0"),
+        ("virus_pipeline_interval_days", "60"),
+        ("virus_pipeline_schedule_hour_utc", "18"),
         ("dataset_pipeline_auto_publish_insights", "1"),
         ("dataset_pipeline_discovery_sequential", "1"),
         ("dataset_pipeline_catalog_sequential", "1"),
@@ -8571,6 +8737,173 @@ def build_dataset_pipeline_step_cards(
     return cards
 
 
+def domain_root_inventory_dashboard(domain_key: str) -> dict[str, Any]:
+    """Return latest hidden domain inventory state without public release side effects."""
+    configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
+    status: dict[str, Any] = {
+        "domain_key": domain_key,
+        "configured": configured,
+        "available": False,
+        "status": "not configured" if not configured else "not generated",
+        "visibility": "admin_hidden",
+        "release_locked": True,
+        "root_unique_assemblies": 0,
+        "raw_records": 0,
+        "source_database": "GenBank",
+        "canonical_accession_namespace": "GCA",
+    }
+    if not configured:
+        return status
+    try:
+        from dataset_production_store import (
+            domain_inventory_page_progress,
+            domain_standardized_metadata_coverage,
+            latest_domain_inventory_snapshot,
+            latest_domain_metadata_fetch_task,
+        )
+        row = latest_domain_inventory_snapshot(domain_key)
+        if row is None:
+            return status
+        snapshot_id = str(row.get("snapshot_id") or "")
+        progress = domain_inventory_page_progress(domain_key, snapshot_id)
+        coverage = domain_standardized_metadata_coverage(domain_key, snapshot_id)
+        metadata_task = latest_domain_metadata_fetch_task(domain_key)
+    except Exception as exc:
+        status["error"] = str(exc)[:160]
+        return status
+    status.update({
+        "available": True,
+        "snapshot_id": row.get("snapshot_id"),
+        "status": row.get("status") or "not generated",
+        "visibility": row.get("visibility") or "admin_hidden",
+        "release_locked": bool(row.get("release_locked", True)),
+        "requested_at": row.get("requested_at"),
+        "started_at": row.get("started_at"),
+        "completed_at": row.get("completed_at"),
+        "root_unique_assemblies": int(row.get("root_unique_assemblies") or 0),
+        "raw_records": int(row.get("raw_records") or 0),
+        "noncanonical_records": int(row.get("noncanonical_records") or 0),
+        "duplicate_records": int(row.get("duplicate_records") or 0),
+        "source_database": row.get("source_database") or "GenBank",
+        "canonical_accession_namespace": row.get("canonical_accession_namespace") or "GCA",
+        "root_taxon_id": int(row.get("root_taxon_id") or 0),
+        "error": row.get("error"),
+        "chunk_progress": {
+            "completed": int(progress.get("page_completed") or 0),
+            "failed": int(progress.get("page_failed") or 0),
+            "expected_total": int(progress.get("expected_total") or 0),
+            "expected_pages": int(progress.get("expected_pages") or 0),
+            "records_processed": int(progress.get("raw_records") or 0),
+        },
+        "standardized_metadata_coverage": coverage,
+        "metadata_fetch_task": metadata_task,
+    })
+    return status
+
+
+
+
+def hidden_domain_pipeline_config(domain_key: str | None) -> dict[str, Any]:
+    key = str(domain_key or "").strip().lower()
+    config = CANONICAL_PIPELINE_DOMAINS.get(key)
+    if not config or key == "bacteria":
+        raise ValueError(f"Unsupported hidden domain pipeline: {domain_key!r}")
+    return dict(config)
+
+
+def hidden_domain_pipeline_schedule_summary(domain_key: str, db: sqlite3.Connection | None = None) -> dict[str, Any]:
+    """Return admin-facing hidden-domain schedule settings."""
+    domain = hidden_domain_pipeline_config(domain_key)
+    key = str(domain["key"])
+    connection = db or get_db()
+    try:
+        interval_days = max(1, min(365, int(get_setting(f"{key}_pipeline_interval_days", "60", connection) or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(get_setting(f"{key}_pipeline_schedule_hour_utc", "18", connection) or "18")))
+    except ValueError:
+        schedule_hour = 18
+    enabled = get_setting(f"{key}_pipeline_schedule_enabled", "0", connection) == "1"
+    return {
+        "domain_key": key,
+        "domain_label": domain["label"],
+        "enabled": enabled,
+        "interval_days": interval_days,
+        "schedule_hour_utc": schedule_hour,
+        "requested_by": "scheduled-hidden-domain-pipeline",
+        "continue_after": True,
+        "public_enabled": False,
+    }
+
+
+def build_hidden_domain_release_gate_summary(domain_key: str, inventory: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """Summarize hidden-domain readiness while keeping public release locked."""
+    domain = hidden_domain_pipeline_config(domain_key)
+    key = str(domain["key"])
+    label = str(domain["label"])
+    state = dict(inventory or {})
+    coverage = dict(state.get("standardized_metadata_coverage") or {})
+    checks: list[dict[str, Any]] = []
+    blockers: list[str] = []
+
+    configured = bool(state.get("configured"))
+    checks.append({
+        "key": "store_configured",
+        "label": "Dataset store",
+        "status": "pass" if configured else "blocked",
+        "detail": "configured" if configured else "FETCHM_WEBAPP_DATASET_DATABASE_URL is not configured",
+    })
+    if not configured:
+        blockers.append("Dataset production store is not configured.")
+
+    inventory_completed = bool(state.get("available")) and str(state.get("status") or "") == "completed"
+    checks.append({
+        "key": "inventory_completed",
+        "label": f"{label} inventory",
+        "status": "pass" if inventory_completed else "blocked",
+        "detail": f"{int(state.get('root_unique_assemblies') or 0):,} hidden assemblies" if inventory_completed else str(state.get("status") or "not generated"),
+    })
+    if not inventory_completed:
+        blockers.append(f"Hidden {label} root inventory has not completed.")
+
+    root_total = int(coverage.get("root_unique_assemblies") or state.get("root_unique_assemblies") or 0)
+    standardized = int(coverage.get("standardized_assemblies") or 0)
+    missing = int(coverage.get("missing_standardized_assemblies") or max(0, root_total - standardized))
+    metadata_ready = root_total > 0 and missing == 0
+    checks.append({
+        "key": "metadata_coverage",
+        "label": "Metadata coverage",
+        "status": "pass" if metadata_ready else "blocked",
+        "detail": f"{standardized:,} / {root_total:,} standardized; {missing:,} missing",
+    })
+    if root_total <= 0:
+        blockers.append(f"Hidden {label} inventory contains no canonical GCA assemblies.")
+    elif missing > 0:
+        blockers.append(f"{missing:,} hidden {label} assemblies still lack standardized metadata.")
+
+    checks.append({
+        "key": "public_release_lock",
+        "label": "Public release lock",
+        "status": "locked",
+        "detail": f"Public {label} release requires a future manual unlock and QA approval.",
+    })
+    blockers.append(f"Public {label} release is locked by policy until manually approved.")
+
+    return {
+        "domain_key": key,
+        "status": "locked",
+        "can_release": False,
+        "release_locked": True,
+        "public_enabled": False,
+        "checks": checks,
+        "blockers": blockers,
+        "snapshot_id": state.get("snapshot_id") or "",
+        "root_unique_assemblies": root_total,
+        "standardized_assemblies": standardized,
+        "missing_standardized_assemblies": missing,
+    }
+
 def canonical_root_inventory_dashboard() -> dict[str, Any]:
     """Return the latest canonical GenBank inventory state without blocking admin rendering."""
     configured = bool(os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip())
@@ -9185,6 +9518,9 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
     discovery_schedule_enabled = get_setting("dataset_pipeline_discovery_schedule_enabled", "0", connection) == "1"
     discovery_interval_days = get_setting("dataset_pipeline_discovery_interval_days", "7", connection)
     schedule_hour_utc = get_setting("dataset_pipeline_schedule_hour_utc", "18", connection)
+    selected_domain_key = normalize_canonical_pipeline_domain(get_setting("canonical_pipeline_domain", DEFAULT_CANONICAL_PIPELINE_DOMAIN, connection))
+    selected_domain = canonical_pipeline_domain_config(selected_domain_key)
+    background_root_inventory = domain_root_inventory_dashboard(selected_domain_key) if selected_domain_key != DEFAULT_CANONICAL_PIPELINE_DOMAIN else None
     return {
         "enabled": get_setting("dataset_pipeline_enabled", "0", connection) == "1",
         "discovery_schedule_enabled": discovery_schedule_enabled,
@@ -9192,6 +9528,15 @@ def build_dataset_pipeline_dashboard(db: sqlite3.Connection | None = None) -> di
         "schedule_hour_utc": schedule_hour_utc,
         "scope": get_setting("dataset_pipeline_scope", "2", connection),
         "auto_publish_insights": get_setting("dataset_pipeline_auto_publish_insights", "0", connection) == "1",
+        "canonical_domain": selected_domain,
+        "canonical_domain_options": canonical_pipeline_domain_options(selected_domain_key),
+        "canonical_domain_key": selected_domain_key,
+        "canonical_domain_is_bacteria": selected_domain_key == DEFAULT_CANONICAL_PIPELINE_DOMAIN,
+        "background_root_inventory": background_root_inventory,
+        "background_pipeline_cards": background_pipeline_preview_cards(
+            selected_domain,
+            background_root_inventory,
+        ) if not selected_domain.get("canonical_backend_ready") else [],
         "canonical_schedule_enabled": get_setting("canonical_pipeline_schedule_enabled", "0", connection) == "1",
         "canonical_interval_days": get_setting("canonical_pipeline_interval_days", "60", connection),
         "canonical_schedule_hour_utc": get_setting("canonical_pipeline_schedule_hour_utc", "18", connection),
@@ -9441,6 +9786,66 @@ def schedule_due_canonical_pipeline_run() -> None:
             auto_publish = get_setting("canonical_pipeline_auto_publish_verified", "1", db) == "1"
         set_canonical_auto_publish_intent(snapshot_id, auto_publish)
         logging.info("Scheduled canonical staged refresh queued: %s (auto_publish=%s)", snapshot_id, auto_publish)
+
+
+
+
+def hidden_domain_pipeline_due(domain_key: str, now_dt: datetime | None = None) -> bool:
+    """Return whether a hidden-domain inventory+metadata refresh should be queued."""
+    domain = hidden_domain_pipeline_config(domain_key)
+    key = str(domain["key"])
+    now = now_dt or datetime.now(timezone.utc)
+    with get_sqlite_connection() as db:
+        schedule = hidden_domain_pipeline_schedule_summary(key, db)
+    if not schedule["enabled"]:
+        return False
+    interval_days = int(schedule["interval_days"])
+    schedule_hour = int(schedule["schedule_hour_utc"])
+    try:
+        from dataset_production_store import active_domain_pipeline_task, latest_domain_inventory_snapshot
+        if active_domain_pipeline_task(key) is not None:
+            return False
+        latest = latest_domain_inventory_snapshot(key)
+    except Exception as exc:
+        logging.warning("Hidden %s schedule status could not be read: %s", key, exc)
+        return False
+    last_requested = latest.get("requested_at") if latest else None
+    if isinstance(last_requested, str):
+        try:
+            last_requested = parse_utc(last_requested)
+        except ValueError:
+            last_requested = None
+    if isinstance(last_requested, datetime):
+        if last_requested.tzinfo is None:
+            last_requested = last_requested.replace(tzinfo=timezone.utc)
+        due_at = (last_requested + timedelta(days=interval_days)).replace(
+            hour=schedule_hour, minute=0, second=0, microsecond=0
+        )
+    else:
+        due_at = now.replace(hour=schedule_hour, minute=0, second=0, microsecond=0)
+    return now >= due_at
+
+
+def schedule_due_hidden_domain_pipeline_run(domain_key: str = "archaea", now_dt: datetime | None = None) -> None:
+    """Queue a hidden-domain refresh on cadence; public release remains locked."""
+    domain = hidden_domain_pipeline_config(domain_key)
+    key = str(domain["key"])
+    if not hidden_domain_pipeline_due(key, now_dt=now_dt):
+        return
+    try:
+        from dataset_production_store import queue_domain_inventory_task
+        snapshot_id, error = queue_domain_inventory_task(
+            key,
+            "scheduled-hidden-domain-pipeline",
+            continue_after=True,
+        )
+    except Exception as exc:
+        logging.warning("Scheduled hidden %s inventory could not be queued: %s", key, exc)
+        return
+    if error:
+        logging.info("Scheduled hidden %s inventory was not queued: %s", key, error)
+    elif snapshot_id:
+        logging.info("Scheduled hidden %s inventory queued: %s", key, snapshot_id)
 
 
 def schedule_due_dataset_pipeline_run() -> None:
@@ -24502,6 +24907,8 @@ def run_worker_loop() -> None:
             if WORKER_MODE == "root-inventory":
                 if now - last_canonical_schedule_check >= 60:
                     schedule_due_canonical_pipeline_run()
+                    for hidden_domain_key in HIDDEN_DOMAIN_PIPELINE_KEYS:
+                        schedule_due_hidden_domain_pipeline_run(hidden_domain_key)
                     last_canonical_schedule_check = now
                 if process_canonical_inventory_task(worker_name):
                     continue
@@ -24512,6 +24919,10 @@ def run_worker_loop() -> None:
                 if process_canonical_metadata_restandardization_task(worker_name):
                     continue
                 if process_canonical_partition_task(worker_name):
+                    continue
+                if process_hidden_domain_inventory_task(worker_name):
+                    continue
+                if process_hidden_domain_metadata_fetch_task(worker_name):
                     continue
                 time.sleep(WORKER_POLL_INTERVAL)
                 continue
@@ -24814,6 +25225,92 @@ def maybe_queue_next_canonical_pipeline_task(current_step: str, snapshot_id: str
                 queue_partition_task("canonical-pipeline", snapshot_id=snapshot_id)
     except Exception as exc:
         logging.warning("Canonical pipeline follow-up could not be queued after %s for %s: %s", current_step, snapshot_id, exc)
+
+
+def maybe_queue_next_domain_pipeline_task(current_step: str, domain_key: str, snapshot_id: str, continue_after: bool) -> None:
+    if not continue_after:
+        return
+    try:
+        from dataset_production_store import queue_domain_metadata_fetch_task
+        if current_step == "inventory":
+            queue_domain_metadata_fetch_task(domain_key, "hidden-domain-pipeline", snapshot_id=snapshot_id)
+    except Exception as exc:
+        logging.warning("Hidden %s pipeline follow-up could not be queued after %s for %s: %s", domain_key, current_step, snapshot_id, exc)
+
+
+def process_hidden_domain_inventory_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_domain_inventory_task, finish_domain_inventory_task
+        task = claim_domain_inventory_task(worker_name)
+    except Exception as exc:
+        logging.warning("Hidden domain inventory task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "build_domain_root_inventory.py"),
+        "--domain", str(task["domain_key"]),
+        "--snapshot-id", str(task["snapshot_id"]),
+    ]
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=7200)
+    except subprocess.TimeoutExpired:
+        error = "Hidden domain inventory timed out after 2 hours."
+        finish_domain_inventory_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s inventory task %s timed out.", task["domain_key"], task["snapshot_id"])
+        return True
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_domain_inventory_task(int(task["id"]), "completed", summary=summary)
+        maybe_queue_next_domain_pipeline_task("inventory", str(task["domain_key"]), str(task["snapshot_id"]), bool(task.get("continue_after")))
+    else:
+        error = (result.stderr or result.stdout or "Hidden domain inventory command failed.")[-4000:]
+        finish_domain_inventory_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s inventory task %s failed: %s", task["domain_key"], task["snapshot_id"], error)
+    return True
+
+
+def process_hidden_domain_metadata_fetch_task(worker_name: str) -> bool:
+    if not os.environ.get("FETCHM_WEBAPP_DATASET_DATABASE_URL", "").strip():
+        return False
+    try:
+        from dataset_production_store import claim_domain_metadata_fetch_task, finish_domain_metadata_fetch_task
+        task = claim_domain_metadata_fetch_task(worker_name)
+    except Exception as exc:
+        logging.warning("Hidden domain metadata fetch task claim unavailable: %s", exc)
+        return False
+    if task is None:
+        return False
+    command = [
+        "python", str(BASE_DIR / "tools" / "fetch_domain_missing_metadata.py"),
+        "--domain", str(task["domain_key"]),
+        "--snapshot-id", str(task["snapshot_id"]),
+    ]
+    if task.get("refetch_all"):
+        command.append("--refetch-all")
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, check=False, timeout=14400)
+    except subprocess.TimeoutExpired:
+        error = "Hidden domain metadata fetch timed out after 4 hours."
+        finish_domain_metadata_fetch_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s metadata fetch task %s timed out.", task["domain_key"], task["snapshot_id"])
+        return True
+    if result.returncode == 0:
+        try:
+            summary = json.loads(result.stdout.strip().splitlines()[-1]) if result.stdout.strip() else {}
+        except json.JSONDecodeError:
+            summary = {"stdout": result.stdout[-1000:]}
+        finish_domain_metadata_fetch_task(int(task["id"]), "completed", summary=summary)
+    else:
+        error = (result.stderr or result.stdout or "Hidden domain metadata fetch command failed.")[-4000:]
+        finish_domain_metadata_fetch_task(int(task["id"]), "failed", error)
+        logging.error("Hidden %s metadata fetch task %s failed: %s", task["domain_key"], task["snapshot_id"], error)
+    return True
 
 
 def process_canonical_inventory_task(worker_name: str) -> bool:
@@ -27493,12 +27990,30 @@ def admin_dashboard() -> str:
     db = get_db()
     admin_summary = build_admin_summary_dashboard(db)
     dataset_pipeline = build_dataset_pipeline_dashboard(db)
-    canonical_release_gate = build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"])
-    canonical_pipeline_cards = build_canonical_pipeline_cards(
-        dataset_pipeline["root_inventory"],
-        canonical_release_gate,
-        admin_summary.get("latest_insight"),
-    )
+    if dataset_pipeline.get("canonical_domain_is_bacteria"):
+        canonical_release_gate = build_canonical_metadata_release_gate(db, dataset_pipeline["root_inventory"])
+        canonical_pipeline_cards = build_canonical_pipeline_cards(
+            dataset_pipeline["root_inventory"],
+            canonical_release_gate,
+            admin_summary.get("latest_insight"),
+        )
+    else:
+        canonical_release_gate = {
+            "status": "hidden",
+            "snapshot_id": "",
+            "active_snapshot_id": get_active_canonical_snapshot_id(db),
+            "is_active": False,
+            "can_activate": False,
+            "blockers": ["Archaea pipeline is admin-only until a separate snapshot backend and QA gate are implemented."],
+            "cautions": [],
+            "root_unique_assemblies": 0,
+            "standardized_assemblies": 0,
+            "accounted_unique_assemblies": 0,
+            "unresolved_genus_assemblies": 0,
+            "metadata_only": True,
+            "canonical_sequence_qc": False,
+        }
+        canonical_pipeline_cards = dataset_pipeline.get("background_pipeline_cards") or []
     return render_template(
         "admin_overview_v2.html",
         admin_summary=admin_summary,
@@ -27544,6 +28059,391 @@ def admin_metadata() -> str:
         taxa=list_recent_metadata_taxa(100),
         metadata_dashboard=build_metadata_dashboard(),
         **admin_common_context("metadata"),
+    )
+
+
+@app.route("/admin/archaea")
+def admin_archaea() -> str:
+    require_admin()
+    query = normalize_species_name(request.args.get("q") or "")
+    results: list[dict[str, Any]] = []
+    error = ""
+    inventory = domain_root_inventory_dashboard("archaea")
+    if query:
+        if len(query) < 2:
+            error = "Enter at least two characters to search hidden Archaea metadata."
+        else:
+            try:
+                from dataset_production_store import domain_taxon_search_results
+                results = domain_taxon_search_results("archaea", query, limit=25)
+            except Exception as exc:
+                error = str(exc)[:240]
+    return render_template(
+        "admin_archaea.html",
+        query=query,
+        results=results,
+        report=None,
+        inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("archaea"),
+        release_gate=build_hidden_domain_release_gate_summary("archaea", inventory),
+        error=error,
+        **admin_common_context("archaea"),
+    )
+
+
+@app.route("/admin/archaea/pipeline/inventory", methods=["POST"])
+def admin_queue_archaea_inventory() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_inventory_task
+        snapshot_id, error = queue_domain_inventory_task(
+            "archaea",
+            str(user["username"]),
+            continue_after=canonical_continue_requested_from_form(),
+        )
+    except Exception as exc:
+        flash(f"Hidden Archaea inventory could not be queued: {exc}", "error")
+        return redirect(url_for("admin_archaea"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.archaea_inventory_queue",
+            target_type="hidden_domain_inventory",
+            target_id=snapshot_id,
+            metadata={"domain": "archaea", "continue_after": canonical_continue_requested_from_form(), "public_enabled": False},
+        )
+        flash(f"Hidden Archaea inventory queued: {snapshot_id}.", "success")
+    return redirect(url_for("admin_archaea"))
+
+
+@app.route("/admin/archaea/pipeline/metadata-fetch", methods=["POST"])
+def admin_queue_archaea_metadata_fetch() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_metadata_fetch_task
+        snapshot_id, error = queue_domain_metadata_fetch_task(
+            "archaea",
+            str(user["username"]),
+            continue_after=False,
+            refetch_all=request.form.get("refetch_all") == "1",
+        )
+    except Exception as exc:
+        flash(f"Hidden Archaea metadata fetch could not be queued: {exc}", "error")
+        return redirect(url_for("admin_archaea"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.archaea_metadata_fetch_queue",
+            target_type="hidden_domain_metadata_fetch",
+            target_id=snapshot_id,
+            metadata={"domain": "archaea", "refetch_all": request.form.get("refetch_all") == "1", "public_enabled": False},
+        )
+        flash(f"Hidden Archaea metadata fetch queued for {snapshot_id}.", "success")
+    return redirect(url_for("admin_archaea"))
+
+
+
+
+@app.route("/admin/archaea/pipeline/schedule", methods=["POST"])
+def admin_set_archaea_pipeline_schedule() -> Any:
+    user = require_admin()
+    enabled = "1" if request.form.get("archaea_pipeline_schedule_enabled") == "1" else "0"
+    try:
+        interval_days = max(1, min(365, int(request.form.get("archaea_pipeline_interval_days") or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(request.form.get("archaea_pipeline_schedule_hour_utc") or "18")))
+    except ValueError:
+        schedule_hour = 18
+    set_setting("archaea_pipeline_schedule_enabled", enabled)
+    set_setting("archaea_pipeline_interval_days", str(interval_days))
+    set_setting("archaea_pipeline_schedule_hour_utc", str(schedule_hour))
+    record_audit_event(
+        "admin.archaea_pipeline_schedule",
+        target_type="hidden_domain_pipeline_schedule",
+        target_id="archaea",
+        metadata={
+            "domain": "archaea",
+            "enabled": enabled == "1",
+            "interval_days": interval_days,
+            "schedule_hour_utc": schedule_hour,
+            "continue_after": True,
+            "public_enabled": False,
+            "release_locked": True,
+            "admin_user": str(user["username"]),
+        },
+    )
+    flash("Hidden Archaea schedule updated. Public release remains locked.", "success")
+    return redirect(url_for("admin_archaea"))
+
+@app.route("/admin/archaea/<rank>/<path:name>")
+def admin_archaea_taxon_report(rank: str, name: str) -> str:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    inventory = domain_root_inventory_dashboard("archaea")
+    report = None
+    error = ""
+    try:
+        from dataset_production_store import domain_taxon_report
+        report = domain_taxon_report("archaea", rank, name)
+    except Exception as exc:
+        error = str(exc)[:240]
+    if report is None and not error:
+        abort(404)
+    record_audit_event(
+        "admin.archaea_taxon_report",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={"domain": "archaea", "rank": rank, "name": name, "public_enabled": False},
+    )
+    return render_template(
+        "admin_archaea.html",
+        query=name,
+        results=[],
+        report=report,
+        inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("archaea"),
+        release_gate=build_hidden_domain_release_gate_summary("archaea", inventory),
+        error=error,
+        **admin_common_context("archaea"),
+    )
+
+
+@app.route("/admin/archaea/<rank>/<path:name>/metadata.csv")
+def admin_archaea_metadata_csv(rank: str, name: str) -> Any:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    try:
+        from dataset_production_store import domain_taxon_metadata_csv
+        export = domain_taxon_metadata_csv("archaea", rank, name)
+    except Exception as exc:
+        flash(f"Hidden Archaea metadata export failed: {str(exc)[:240]}", "error")
+        return redirect(url_for("admin_archaea_taxon_report", rank=rank, name=name))
+    if export is None:
+        abort(404)
+    record_audit_event(
+        "admin.archaea_metadata_csv_download",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={
+            "domain": "archaea",
+            "rank": rank,
+            "name": name,
+            "snapshot_id": export.get("snapshot_id"),
+            "row_count": export.get("row_count"),
+            "public_enabled": False,
+        },
+    )
+    return Response(
+        str(export["content"]),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={export['filename']}"},
+    )
+
+
+@app.route("/admin/virus")
+def admin_virus() -> str:
+    require_admin()
+    query = normalize_species_name(request.args.get("q") or "")
+    results: list[dict[str, Any]] = []
+    error = ""
+    inventory = domain_root_inventory_dashboard("virus")
+    virus_model = {"available": False, "error": "not loaded"}
+    try:
+        from dataset_production_store import hidden_virus_model_summary
+        virus_model = hidden_virus_model_summary()
+    except Exception as exc:
+        virus_model = {"available": False, "error": str(exc)[:240], "public_enabled": False, "release_locked": True}
+    if query:
+        if len(query) < 2:
+            error = "Enter at least two characters to search hidden Virus metadata."
+        else:
+            try:
+                from dataset_production_store import domain_taxon_search_results
+                results = domain_taxon_search_results("virus", query, limit=25)
+            except Exception as exc:
+                error = str(exc)[:240]
+    return render_template(
+        "admin_virus.html",
+        query=query,
+        results=results,
+        report=None,
+        inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("virus"),
+        release_gate=build_hidden_domain_release_gate_summary("virus", inventory),
+        virus_model=virus_model,
+        error=error,
+        **admin_common_context("virus"),
+    )
+
+
+@app.route("/admin/virus/pipeline/inventory", methods=["POST"])
+def admin_queue_virus_inventory() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_inventory_task
+        snapshot_id, error = queue_domain_inventory_task(
+            "virus",
+            str(user["username"]),
+            continue_after=canonical_continue_requested_from_form(),
+        )
+    except Exception as exc:
+        flash(f"Hidden Virus inventory could not be queued: {exc}", "error")
+        return redirect(url_for("admin_virus"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.virus_inventory_queue",
+            target_type="hidden_domain_inventory",
+            target_id=snapshot_id,
+            metadata={"domain": "virus", "continue_after": canonical_continue_requested_from_form(), "public_enabled": False},
+        )
+        flash(f"Hidden Virus inventory queued: {snapshot_id}.", "success")
+    return redirect(url_for("admin_virus"))
+
+
+@app.route("/admin/virus/pipeline/metadata-fetch", methods=["POST"])
+def admin_queue_virus_metadata_fetch() -> Any:
+    user = require_admin()
+    try:
+        from dataset_production_store import queue_domain_metadata_fetch_task
+        snapshot_id, error = queue_domain_metadata_fetch_task(
+            "virus",
+            str(user["username"]),
+            continue_after=False,
+            refetch_all=request.form.get("refetch_all") == "1",
+        )
+    except Exception as exc:
+        flash(f"Hidden Virus metadata fetch could not be queued: {exc}", "error")
+        return redirect(url_for("admin_virus"))
+    if error:
+        flash(error, "error")
+    else:
+        record_audit_event(
+            "admin.virus_metadata_fetch_queue",
+            target_type="hidden_domain_metadata_fetch",
+            target_id=snapshot_id,
+            metadata={"domain": "virus", "refetch_all": request.form.get("refetch_all") == "1", "public_enabled": False},
+        )
+        flash(f"Hidden Virus metadata fetch queued for {snapshot_id}.", "success")
+    return redirect(url_for("admin_virus"))
+
+
+@app.route("/admin/virus/pipeline/schedule", methods=["POST"])
+def admin_set_virus_pipeline_schedule() -> Any:
+    user = require_admin()
+    enabled = "1" if request.form.get("virus_pipeline_schedule_enabled") == "1" else "0"
+    try:
+        interval_days = max(1, min(365, int(request.form.get("virus_pipeline_interval_days") or "60")))
+    except ValueError:
+        interval_days = 60
+    try:
+        schedule_hour = max(0, min(23, int(request.form.get("virus_pipeline_schedule_hour_utc") or "18")))
+    except ValueError:
+        schedule_hour = 18
+    set_setting("virus_pipeline_schedule_enabled", enabled)
+    set_setting("virus_pipeline_interval_days", str(interval_days))
+    set_setting("virus_pipeline_schedule_hour_utc", str(schedule_hour))
+    record_audit_event(
+        "admin.virus_pipeline_schedule",
+        target_type="hidden_domain_pipeline_schedule",
+        target_id="virus",
+        metadata={
+            "domain": "virus",
+            "enabled": enabled == "1",
+            "interval_days": interval_days,
+            "schedule_hour_utc": schedule_hour,
+            "continue_after": True,
+            "public_enabled": False,
+            "release_locked": True,
+            "admin_user": str(user["username"]),
+        },
+    )
+    flash("Hidden Virus schedule updated. Public release remains locked.", "success")
+    return redirect(url_for("admin_virus"))
+
+
+@app.route("/admin/virus/<rank>/<path:name>")
+def admin_virus_taxon_report(rank: str, name: str) -> str:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    inventory = domain_root_inventory_dashboard("virus")
+    report = None
+    virus_model = {"available": False, "error": "not loaded"}
+    error = ""
+    try:
+        from dataset_production_store import domain_taxon_report, hidden_virus_model_summary
+        report = domain_taxon_report("virus", rank, name)
+        virus_model = hidden_virus_model_summary(organism_query=name)
+    except Exception as exc:
+        error = str(exc)[:240]
+    if report is None and not error:
+        abort(404)
+    record_audit_event(
+        "admin.virus_taxon_report",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={"domain": "virus", "rank": rank, "name": name, "public_enabled": False},
+    )
+    return render_template(
+        "admin_virus.html",
+        query=name,
+        results=[],
+        report=report,
+        inventory=inventory,
+        schedule=hidden_domain_pipeline_schedule_summary("virus"),
+        release_gate=build_hidden_domain_release_gate_summary("virus", inventory),
+        virus_model=virus_model,
+        error=error,
+        **admin_common_context("virus"),
+    )
+
+
+@app.route("/admin/virus/<rank>/<path:name>/metadata.csv")
+def admin_virus_metadata_csv(rank: str, name: str) -> Any:
+    require_admin()
+    rank = normalize_species_name(rank).lower()
+    name = normalize_species_name(unquote(name))
+    if rank not in {"genus", "species"} or not name:
+        abort(404)
+    try:
+        from dataset_production_store import domain_taxon_metadata_csv
+        export = domain_taxon_metadata_csv("virus", rank, name)
+    except Exception as exc:
+        flash(f"Hidden Virus metadata export failed: {str(exc)[:240]}", "error")
+        return redirect(url_for("admin_virus_taxon_report", rank=rank, name=name))
+    if export is None:
+        abort(404)
+    record_audit_event(
+        "admin.virus_metadata_csv_download",
+        target_type="hidden_domain_taxon",
+        target_id=f"{rank}:{name}",
+        metadata={
+            "domain": "virus",
+            "rank": rank,
+            "name": name,
+            "snapshot_id": export.get("snapshot_id"),
+            "row_count": export.get("row_count"),
+            "public_enabled": False,
+        },
+    )
+    return Response(
+        str(export["content"]),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={export['filename']}"},
     )
 
 
@@ -28146,6 +29046,30 @@ def admin_set_system_monitor() -> Any:
     flash("System monitor settings updated.", "success")
     return redirect(url_for("admin_dashboard"))
 
+
+@app.route("/admin/dataset-pipeline/domain", methods=["POST"])
+def admin_set_canonical_pipeline_domain() -> Any:
+    require_admin()
+    domain_key = normalize_canonical_pipeline_domain(request.form.get("canonical_pipeline_domain"))
+    domain = canonical_pipeline_domain_config(domain_key)
+    set_setting("canonical_pipeline_domain", domain_key)
+    record_audit_event(
+        "admin.canonical_pipeline_domain",
+        target_type="canonical_pipeline",
+        target_id=domain_key,
+        metadata={
+            "domain": domain_key,
+            "label": domain.get("label"),
+            "root_taxon_id": domain.get("root_taxon_id"),
+            "public_enabled": bool(domain.get("public_enabled")),
+            "canonical_backend_ready": bool(domain.get("canonical_backend_ready")),
+        },
+    )
+    if domain.get("canonical_backend_ready"):
+        flash(f"Canonical pipeline scope set to {domain['label']}.", "success")
+    else:
+        flash(f"{domain['label']} pipeline selected for hidden admin preparation only. Public routes and canonical writes remain disabled.", "warning")
+    return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/dataset-pipeline/settings", methods=["POST"])
 def admin_set_dataset_pipeline_settings() -> Any:

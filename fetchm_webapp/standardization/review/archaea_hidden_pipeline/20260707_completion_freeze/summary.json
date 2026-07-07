@@ -1,0 +1,42 @@
+{
+  "admin_validation": {
+    "metadata_csv_rows": 968,
+    "query": "Methano",
+    "report_release_locked": true,
+    "taxon_report_rows": 968,
+    "top_result": "Methanobrevibacter",
+    "top_result_genome_count": 968,
+    "top_result_rank": "genus"
+  },
+  "branch": "hidden-domain-admin-pipelines-v1",
+  "branch_commit": "5931a4ad42e0a09e583172dd590531a0322b550d",
+  "decision": "Archaea hidden admin database is complete enough for PR review; public release remains locked and requires separate approval.",
+  "domain_key": "archaea",
+  "hard_failure_count": 0,
+  "main_base_commit": "24121f70a57d2baa9b058d1c850fe15e52051623",
+  "missing_standardized_assemblies": 0,
+  "payload_rows": 44183,
+  "profile": "archaea_hidden_v1",
+  "public_enabled": false,
+  "qa_status": "pass",
+  "release_locked": true,
+  "root_taxon_id": 2157,
+  "root_unique_assemblies": 44183,
+  "safety": {
+    "bacterial_canonical_metadata_changed": false,
+    "bucket_b_environment_rules_applied": false,
+    "global_insights_regenerated": false,
+    "public_routes_enabled": false,
+    "virus_database_build_run": false
+  },
+  "snapshot_id": "20260706T163621Z_genbank_archaea_root",
+  "standardized_assemblies": 44183,
+  "status": "hidden_archaea_admin_database_complete_for_review",
+  "validation": {
+    "domain_profile_tests": "22 passed",
+    "full_unittest_discovery": "195 passed",
+    "git_diff_check": "passed",
+    "hidden_domain_qa": "pass",
+    "py_compile": "passed"
+  }
+}

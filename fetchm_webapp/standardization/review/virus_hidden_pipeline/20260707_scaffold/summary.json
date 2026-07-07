@@ -1,0 +1,42 @@
+{
+  "domain_key": "virus",
+  "generated_at_utc": "2026-07-06T18:43:47+00:00",
+  "implemented": [
+    "Virus domain option in admin pipeline selector",
+    "admin-only /admin/virus search and report routes",
+    "hidden Virus inventory queue route",
+    "hidden Virus metadata fetch queue route",
+    "hidden Virus regular schedule settings and due-queue hook",
+    "Virus profile tagging in hidden-domain metadata fetch rows",
+    "Virus profile checks in hidden-domain QA tool",
+    "admin navigation entry for hidden Virus lane"
+  ],
+  "label": "Virus",
+  "not_implemented_yet": [
+    "viral sequence/segment canonical model",
+    "virus-specific host relationship model",
+    "virus-specific completeness/readiness thresholds",
+    "full Virus inventory snapshot build",
+    "Virus metadata QA artifacts from a real snapshot",
+    "public Virus search/release"
+  ],
+  "pipeline_scope": "hidden admin scaffold only",
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "release_locked": true,
+  "root_taxon_id": "10239",
+  "safety_boundary": [
+    "Bacterial public workflow unchanged",
+    "Archaea hidden workflow preserved",
+    "Virus public release disabled",
+    "No canonical viral metadata write performed",
+    "No Global Insights regeneration performed"
+  ],
+  "validation": {
+    "full_unittest_discovery": "162 passed",
+    "git_diff_check": "passed",
+    "py_compile": "passed",
+    "targeted_hidden_domain_tests": "10 passed"
+  },
+  "visibility": "admin_hidden"
+}

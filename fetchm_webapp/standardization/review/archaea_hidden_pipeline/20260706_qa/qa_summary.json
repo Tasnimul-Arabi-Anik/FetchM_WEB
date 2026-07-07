@@ -1,0 +1,118 @@
+{
+  "domain_key": "archaea",
+  "snapshot_id": "20260706T163621Z_genbank_archaea_root",
+  "generated_at": "2026-07-06T17:07:30.785205+00:00",
+  "status": "pass",
+  "hard_failure_count": 0,
+  "root_unique_assemblies": 44183,
+  "standardized_assemblies": 44183,
+  "missing_standardized_assemblies": 0,
+  "payload_rows": 44183,
+  "checks": [
+    {
+      "key": "snapshot_completed",
+      "status": "pass",
+      "detail": "status=completed",
+      "hard": true
+    },
+    {
+      "key": "visibility_admin_hidden",
+      "status": "pass",
+      "detail": "visibility=admin_hidden",
+      "hard": true
+    },
+    {
+      "key": "release_locked",
+      "status": "pass",
+      "detail": "release_locked=True",
+      "hard": true
+    },
+    {
+      "key": "root_nonempty",
+      "status": "pass",
+      "detail": "root_unique_assemblies=44,183",
+      "hard": true
+    },
+    {
+      "key": "raw_equals_root",
+      "status": "pass",
+      "detail": "raw_records=44,183; root=44,183",
+      "hard": true
+    },
+    {
+      "key": "noncanonical_zero",
+      "status": "pass",
+      "detail": "noncanonical_records=0",
+      "hard": true
+    },
+    {
+      "key": "duplicates_zero",
+      "status": "pass",
+      "detail": "duplicate_records=0",
+      "hard": true
+    },
+    {
+      "key": "metadata_complete",
+      "status": "pass",
+      "detail": "standardized=44,183; root=44,183; missing=0",
+      "hard": true
+    },
+    {
+      "key": "payload_count_matches_root",
+      "status": "pass",
+      "detail": "payloads=44,183; root=44,183",
+      "hard": true
+    },
+    {
+      "key": "payload_domain_key",
+      "status": "pass",
+      "detail": "tagged=44,183; total=44,183",
+      "hard": true
+    },
+    {
+      "key": "payload_domain_label",
+      "status": "pass",
+      "detail": "tagged=44,183; total=44,183",
+      "hard": true
+    },
+    {
+      "key": "payload_profile",
+      "status": "pass",
+      "detail": "tagged=44,183; total=44,183",
+      "hard": true
+    },
+    {
+      "key": "payload_release_status",
+      "status": "pass",
+      "detail": "tagged=44,183; total=44,183",
+      "hard": true
+    },
+    {
+      "key": "payload_status",
+      "status": "pass",
+      "detail": "fetched_status=44,183; total=44,183",
+      "hard": true
+    },
+    {
+      "key": "hidden_table_domain_isolated",
+      "status": "pass",
+      "detail": "invalid_domain_key_rows=0",
+      "hard": true
+    },
+    {
+      "key": "inventory_task_completed",
+      "status": "pass",
+      "detail": "status=completed",
+      "hard": true
+    },
+    {
+      "key": "metadata_task_completed",
+      "status": "pass",
+      "detail": "status=completed",
+      "hard": true
+    }
+  ],
+  "hard_failures": [],
+  "release_locked": true,
+  "public_enabled": false
+}

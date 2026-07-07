@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% block page_title %}Hidden Archaea Pipeline | FetchM Admin{% endblock %}
+{% block content %}
+<main class="layout">
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">Admin-only domain pipeline</p>
+      <h1>Hidden Archaea Metadata</h1>
+      <p class="lede">Search archaeal taxa prepared in the hidden domain pipeline. These records are not public and cannot be promoted without a separate release gate.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">admin hidden</span>
+      <div class="job-meta">Snapshot {{ inventory.snapshot_id or 'not generated' }}</div>
+      <div class="job-meta">{{ inventory.root_unique_assemblies or 0 }} inventory rows</div>
+      <div class="job-meta">Release {{ 'locked' if inventory.release_locked else 'unlocked' }}</div>
+    </div>
+  </section>
+
+  {% include "_admin_nav.html" %}
+
+  <section class="panel">
+    <h2>Hidden Archaeal Taxon Search</h2>
+    <p class="section-note">Search genus or species labels derived from hidden Archaea standardized metadata. Public bacterial search is unchanged.</p>
+    <form action="{{ url_for('admin_archaea') }}" method="get" class="pipeline-settings top-gap">
+      <label><span>Taxon name</span><input type="search" name="q" value="{{ query }}" placeholder="Methanocaldococcus, Halobacterium"></label>
+      <button type="submit">Search hidden Archaea</button>
+    </form>
+    {% if error %}<p class="danger-text top-gap">{{ error }}</p>{% endif %}
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ inventory.status }}</strong><span>Inventory status</span></div>
+      <div class="health-card"><strong>{{ inventory.root_unique_assemblies or 0 }}</strong><span>Hidden inventory rows</span></div>
+      <div class="health-card"><strong>{{ inventory.standardized_metadata_coverage.standardized_assemblies if inventory.standardized_metadata_coverage else 0 }}</strong><span>Standardized rows</span></div>
+      <div class="health-card"><strong>{{ inventory.standardized_metadata_coverage.missing_standardized_assemblies if inventory.standardized_metadata_coverage else 0 }}</strong><span>Missing metadata</span></div>
+    </div>
+    <div class="action-row top-gap">
+      <form action="{{ url_for('admin_queue_archaea_inventory') }}" method="post">
+        <button type="submit">Queue hidden inventory</button>
+        <label class="pipeline-check compact"><input type="checkbox" name="continue_after" value="1" checked>Fetch metadata after inventory</label>
+      </form>
+      <form action="{{ url_for('admin_queue_archaea_metadata_fetch') }}" method="post">
+        <button type="submit" class="ghost" {% if not inventory.available or inventory.status != 'completed' %}disabled{% endif %}>Fetch missing metadata</button>
+      </form>
+      <form action="{{ url_for('admin_queue_archaea_metadata_fetch') }}" method="post" onsubmit="return confirm('Refetch every hidden Archaea metadata row from NCBI? Public data remains locked, but this may be expensive.')">
+        <input type="hidden" name="refetch_all" value="1">
+        <button type="submit" class="ghost" {% if not inventory.available or inventory.status != 'completed' %}disabled{% endif %}>Refetch all hidden metadata</button>
+      </form>
+    </div>
+    {% if inventory.metadata_fetch_task %}
+      <p class="job-meta top-gap">Latest hidden metadata task: {{ inventory.metadata_fetch_task.status }} · {{ inventory.metadata_fetch_task.snapshot_id }}{% if inventory.metadata_fetch_task.error %} · {{ inventory.metadata_fetch_task.error }}{% endif %}</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>Hidden Refresh Schedule</h2>
+    <p class="section-note">Runs inventory and metadata fetch in the root-inventory worker. Results remain admin-only and release locked.</p>
+    <form action="{{ url_for('admin_set_archaea_pipeline_schedule') }}" method="post" class="pipeline-settings top-gap">
+      <label><span>Scheduled refresh</span><select name="archaea_pipeline_schedule_enabled"><option value="1" {% if schedule.enabled %}selected{% endif %}>Enabled</option><option value="0" {% if not schedule.enabled %}selected{% endif %}>Paused</option></select></label>
+      <label><span>Every N days</span><input type="number" name="archaea_pipeline_interval_days" min="1" max="365" value="{{ schedule.interval_days }}"></label>
+      <label><span>UTC hour</span><input type="number" name="archaea_pipeline_schedule_hour_utc" min="0" max="23" value="{{ schedule.schedule_hour_utc }}"></label>
+      <button type="submit">Save hidden schedule</button>
+    </form>
+    <p class="job-meta top-gap">Scheduled tasks queue inventory with metadata fetch enabled. Public release remains disabled.</p>
+  </section>
+
+  <section class="panel">
+    <h2>Locked Release Gate</h2>
+    <p class="section-note">This gate reports hidden readiness only. It cannot publish Archaea publicly.</p>
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ release_gate.status }}</strong><span>Gate status</span></div>
+      <div class="health-card"><strong>{{ 'yes' if release_gate.release_locked else 'no' }}</strong><span>Release locked</span></div>
+      <div class="health-card"><strong>{{ release_gate.standardized_assemblies or 0 }}</strong><span>Standardized rows</span></div>
+      <div class="health-card"><strong>{{ release_gate.missing_standardized_assemblies or 0 }}</strong><span>Missing metadata</span></div>
+    </div>
+    <div class="pipeline-detail-list top-gap">
+      {% for check in release_gate.checks %}
+        <span>{{ check.label }}: {{ check.status }} · {{ check.detail }}</span>
+      {% endfor %}
+    </div>
+    {% if release_gate.blockers %}
+      <p class="danger-text top-gap">Blocked: {{ release_gate.blockers|join(' ') }}</p>
+    {% endif %}
+  </section>
+
+  {% if results %}
+  <section class="panel">
+    <h2>Search Results</h2>
+    <div class="admin-list">
+      {% for item in results %}
+        <article class="admin-card">
+          <div class="job-card-head"><strong>{{ item.name }}</strong><span class="status">{{ item.rank }}</span></div>
+          <div class="job-meta">{{ item.genome_count }} hidden assemblies · {{ item.snapshot_id }}</div>
+          <div class="action-row top-gap">
+            <a class="button-like ghost" href="{{ url_for('admin_archaea_taxon_report', rank=item.rank, name=item.name) }}">Open admin report</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+  {% elif query and not report and not error %}
+  <section class="panel"><p class="empty">No hidden Archaea taxa matched this query.</p></section>
+  {% endif %}
+
+  {% if report %}
+  {% set metrics = report.summary_metrics|default({}) %}
+  <section class="panel detail-head">
+    <div>
+      <p class="eyebrow">{{ report.rank_label }} report</p>
+      <h2>{{ report.name }}</h2>
+      <p class="lede">{{ report.row_count }} hidden archaeal assemblies in snapshot {{ report.snapshot_id }}. This is an admin-only Archaea view; public bacterial search and Global Insights remain unchanged.</p>
+    </div>
+    <div class="status-box">
+      <span class="status running">release locked</span>
+      <div class="job-meta">Admin-only report</div>
+      <div class="job-meta">Profile {{ metrics.standardized_profile or 'not recorded' }}</div>
+      <div class="job-meta">{{ metrics.release_status or 'locked_admin_hidden' }}</div>
+      <a class="button-like ghost" href="{{ url_for('admin_archaea_metadata_csv', rank=report.rank, name=report.name) }}">Download hidden metadata CSV</a>
+    </div>
+  </section>
+
+  <section class="metrics-grid">
+    <article class="metric-card"><strong>{{ report.row_count }}</strong><span>Hidden assemblies</span></article>
+    <article class="metric-card"><strong>{{ metrics.distinct_species_count or 0 }}</strong><span>Species-level labels</span></article>
+    <article class="metric-card"><strong>{{ metrics.distinct_country_count or 0 }}</strong><span>Countries</span></article>
+    <article class="metric-card"><strong>{% if metrics.year_start and metrics.year_end %}{{ metrics.year_start }}-{{ metrics.year_end }}{% else %}Unknown{% endif %}</strong><span>Collection year span</span></article>
+    <article class="metric-card"><strong>{{ metrics.complete_genome_count or 0 }}</strong><span>Complete genomes</span></article>
+  </section>
+
+  <section class="grid metadata-report-grid">
+    <section class="panel">
+      <h2>Standardization Coverage</h2>
+      <p class="section-note">Raw and standardized field coverage for the selected hidden Archaea taxon. Values are generated from the same standardized payload schema used by bacterial reports, with the Archaea profile kept separate.</p>
+      <div class="table-wrap" role="region" aria-label="Hidden Archaea standardization coverage">
+        <table>
+          <caption>Raw versus standardized metadata coverage for {{ report.name }}</caption>
+          <thead><tr><th scope="col">Field</th><th scope="col">Raw present</th><th scope="col">Standardized</th><th scope="col">Recovered</th></tr></thead>
+          <tbody>
+            {% for item in report.standardized_coverage|default([]) %}
+              <tr>
+                <th scope="row">{{ item.label }}</th>
+                <td>{{ item.raw_present }} ({{ item.raw_percent }}%)</td>
+                <td>{{ item.standardized_present }} ({{ item.standardized_percent }}%)</td>
+                <td>{{ item.recovered }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <h2>Core Completeness</h2>
+      <div class="coverage-bars">
+        {% for item in report.completeness_rows|default([]) %}
+          <div class="coverage-bar-card">
+            <div class="coverage-bar-head"><strong>{{ item.field }}</strong><span>{{ item.present_percent }}%</span></div>
+            <div class="coverage-track"><div class="coverage-fill" style="width: {{ item.present_percent }}%;"></div></div>
+            <div class="coverage-caption">{{ item.present }} present · {{ item.missing }} missing</div>
+          </div>
+        {% endfor %}
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel">
+    <h2>Domain Provenance</h2>
+    <div class="pipeline-detail-list">
+      {% for note in report.presentation_notes|default([]) %}<span>{{ note }}</span>{% endfor %}
+      {% for row in report.domain_profiles|default([]) %}<span>Profile {{ row.value }} · {{ row.count }}</span>{% endfor %}
+      {% for row in report.release_statuses|default([]) %}<span>Release status {{ row.value }} · {{ row.count }}</span>{% endfor %}
+    </div>
+  </section>
+
+  <section class="grid metadata-report-grid">
+    {% for group, label in [
+      (report.top_countries, 'Countries'),
+      (report.top_hosts, 'Hosts'),
+      (report.top_host_contexts|default([]), 'Host contexts'),
+      (report.top_host_diseases|default([]), 'Host diseases'),
+      (report.top_host_health_states|default([]), 'Host health states'),
+      (report.top_isolation_sources, 'Isolation sources'),
+      (report.top_sample_types, 'Sample types'),
+      (report.top_sample_materials|default([]), 'Sample materials'),
+      (report.top_environment_media, 'Environment media'),
+      (report.top_environment_broad|default([]), 'Broad environments'),
+      (report.top_environment_local|default([]), 'Local environments'),
+      (report.top_isolation_sites|default([]), 'Isolation sites'),
+      (report.top_assembly_levels, 'Assembly levels')
+    ] %}
+      <article class="panel">
+        <h3>{{ label }}</h3>
+        {% if group %}
+          <div class="pipeline-detail-list">
+            {% for row in group %}<span>{{ row.value }} · {{ row.count }}</span>{% endfor %}
+          </div>
+        {% else %}
+          <p class="empty">No values recorded.</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+
+  <section class="panel">
+    <h2>Representative Assemblies</h2>
+    <div class="table-wrap" role="region" aria-label="Hidden archaeal assembly examples">
+      <table>
+        <caption>Hidden Archaea assemblies matching {{ report.name }}</caption>
+        <thead><tr><th scope="col">Assembly</th><th scope="col">Organism</th><th scope="col">BioSample</th><th scope="col">Country</th><th scope="col">Date</th><th scope="col">Source</th><th scope="col">Material</th><th scope="col">Environment</th><th scope="col">Assembly level</th></tr></thead>
+        <tbody>
+          {% for row in report.examples %}
+            <tr>
+              <th scope="row">{{ row.assembly_accession }}</th>
+              <td>{{ row.organism_name }}</td>
+              <td>{{ row.biosample_accession }}</td>
+              <td>{{ row.country }}</td>
+              <td>{{ row.collection_date }}</td>
+              <td>{{ row.isolation_source or row.sample_type }}</td>
+              <td>{{ row.sample_material }}</td>
+              <td>{{ row.environment_medium or row.environment_broad or row.environment_local }}</td>
+              <td>{{ row.assembly_level }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

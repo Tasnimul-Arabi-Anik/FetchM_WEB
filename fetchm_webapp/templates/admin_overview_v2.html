@@ -279,10 +279,16 @@
     <div class="admin-group-head">
       <div>
         <p class="eyebrow">Canonical Database Pipeline</p>
-        <h2>Update or rebuild the bacterial database</h2>
+        <h2>{{ dataset_pipeline.canonical_domain.label }} pipeline</h2>
       </div>
-      <p class="section-note">Primary production workflow. New data is staged and verified first; public users keep the current active snapshot until you activate a verified release.</p>
+      <p class="section-note">{{ dataset_pipeline.canonical_domain.description }}</p>
     </div>
+    <form action="{{ url_for('admin_set_canonical_pipeline_domain') }}" method="post" class="pipeline-settings top-gap">
+      <label><span>Pipeline domain</span><select name="canonical_pipeline_domain">{% for option in dataset_pipeline.canonical_domain_options %}<option value="{{ option['key'] }}" {% if option.selected %}selected{% endif %}>{{ option.label }} — {{ option.status_label }}</option>{% endfor %}</select></label>
+      <button type="submit">Select pipeline</button>
+      <span class="section-note">{{ dataset_pipeline.canonical_domain.scope_note }} Public status: {{ dataset_pipeline.canonical_domain.public_status }}.</span>
+    </form>
+    {% if dataset_pipeline.canonical_domain_is_bacteria %}
     <div class="health-strip top-gap">
       <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.display_root_assemblies or dataset_pipeline.root_inventory.root_unique_assemblies or 0 }}</strong><span>{% if dataset_pipeline.root_inventory.task_active and dataset_pipeline.root_inventory.chunk_progress and dataset_pipeline.root_inventory.chunk_progress.expected_total %}Expected assemblies in scan{% else %}Unique bacterial assemblies{% endif %}</span></div>
       <div class="health-card"><strong>{{ dataset_pipeline.root_inventory.standardized_metadata_coverage.standardized_assemblies if dataset_pipeline.root_inventory.standardized_metadata_coverage else 0 }}</strong><span>Standardized metadata rows</span></div>
@@ -360,6 +366,52 @@
         </form>
       </div>
     </details>
+    {% else %}
+    <div class="hint-block top-gap compact">
+      <strong>Hidden preparation only</strong>
+      <p>{{ dataset_pipeline.canonical_domain.label }} is selected for admin planning, but canonical writes, public search, sequence/QC entrypoints, Global Insights, and deployment remain disabled until a separate domain snapshot backend, semantic rules, and QA gate are reviewed.</p>
+    </div>
+    <div class="health-strip top-gap">
+      <div class="health-card"><strong>{{ dataset_pipeline.canonical_domain.root_taxon_id }}</strong><span>NCBI root TaxID</span></div>
+      <div class="health-card"><strong>{{ dataset_pipeline.canonical_domain.status_label }}</strong><span>Pipeline status</span></div>
+      <div class="health-card"><strong>Off</strong><span>Public release</span></div>
+      <div class="health-card"><strong>Separate</strong><span>Rules and QA required</span></div>
+      <div class="health-card"><strong>{{ dataset_pipeline.background_root_inventory.root_unique_assemblies if dataset_pipeline.background_root_inventory else 0 }}</strong><span>Hidden {{ dataset_pipeline.canonical_domain.short_label|lower }} inventory rows</span></div>
+      <div class="health-card"><strong>{{ 'Locked' if (not dataset_pipeline.background_root_inventory or dataset_pipeline.background_root_inventory.release_locked) else 'Unlocked' }}</strong><span>Public promotion gate</span></div>
+    </div>
+    <div class="pipeline-board top-gap">
+      {% for stage in canonical_pipeline_cards %}
+        <article class="pipeline-step-card">
+          <div class="pipeline-step-main">
+            <div class="pipeline-step-title">
+              <span class="pipeline-index">{{ stage.index }}</span>
+              <div>
+                <h3>{{ stage.label }}</h3>
+                <p class="section-note">{{ stage.short }}</p>
+              </div>
+            </div>
+            <div class="pipeline-controls"><button type="button" disabled>{{ stage.button }}</button></div>
+          </div>
+          <div class="pipeline-progress-box">
+            <div class="pipeline-progress-top"><span>{{ stage.metric_label }}</span><span>{{ stage.percent }}%</span></div>
+            <div class="pipeline-bar" aria-hidden="true"><span style="width: {{ stage.percent }}%"></span></div>
+            <div class="pipeline-detail-list">
+              <span class="status-line">Status: {{ stage.status }}</span>
+              {% for detail in stage.details %}<span>{{ detail }}</span>{% endfor %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    <details class="admin-advanced top-gap">
+      <summary>{{ dataset_pipeline.canonical_domain.label }} background preparation boundary</summary>
+      <div class="pipeline-detail-list top-gap">
+        <span><strong>Do:</strong> prepare separate {{ dataset_pipeline.canonical_domain.short_label|lower }} inventory, standardization rules, QA, and snapshot evidence.</span>
+        <span><strong>Do not:</strong> mix {{ dataset_pipeline.canonical_domain.short_label|lower }} records into bacterial canonical tables or public Global Insights.</span>
+        <span><strong>Release:</strong> requires explicit manual approval after hidden validation.</span>
+      </div>
+    </details>
+    {% endif %}
   </section>
 
   <section class="panel legacy-pipeline-panel">

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import sys
@@ -32,9 +33,12 @@ from app import (
 )
 from external_tools.quality_check.runner import validate_quality_runtime
 from global_insights.generator import generate_demo_snapshot, generate_global_insights_snapshot, latest_geography_collection_date_provenance, latest_host_standardization_provenance, latest_source_sample_environment_provenance, run_standardization_simulator, taxonomy_label_metadata as global_taxonomy_label_metadata
+import dataset_production_store as production_store
 from dataset_production_store import canonical_partition_from_organism_name, parse_taxonkit_taxonomy_lineages
 from tools import seed_canonical_metadata_from_sqlite as canonical_seed_tool
+from tools import fetch_domain_missing_metadata as domain_fetch_tool
 from tools import import_host_review_decisions as host_review_importer
+from tools import qa_hidden_domain_pipeline as hidden_domain_qa_tool
 
 
 @contextmanager
@@ -483,6 +487,749 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
         root["metadata_fetch_task_active"] = True
         busy_cards = fetchm_app.build_canonical_pipeline_cards(root, gate, None)
         self.assertTrue(all(card["disabled"] for card in busy_cards))
+
+    def test_canonical_pipeline_domain_options_include_hidden_domains(self) -> None:
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain(None), "bacteria")
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain("Archaea"), "archaea")
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain("Virus"), "virus")
+        self.assertEqual(fetchm_app.normalize_canonical_pipeline_domain("unknown"), "bacteria")
+
+        options = fetchm_app.canonical_pipeline_domain_options("archaea")
+        by_key = {option["key"]: option for option in options}
+        self.assertEqual(set(by_key), {"bacteria", "archaea", "virus"})
+        self.assertTrue(by_key["archaea"]["selected"])
+        self.assertFalse(by_key["archaea"]["public_enabled"])
+        self.assertFalse(by_key["archaea"]["canonical_backend_ready"])
+        self.assertFalse(by_key["virus"]["public_enabled"])
+        self.assertFalse(by_key["virus"]["canonical_backend_ready"])
+        self.assertEqual(by_key["virus"]["root_taxon_id"], "10239")
+        self.assertTrue(by_key["bacteria"]["canonical_backend_ready"])
+
+    def test_hidden_domain_background_pipeline_preview_is_disabled(self) -> None:
+        for key, expected_taxid in [("archaea", "2157"), ("virus", "10239")]:
+            domain = fetchm_app.canonical_pipeline_domain_config(key)
+            cards = fetchm_app.background_pipeline_preview_cards(domain)
+            self.assertEqual([card["key"] for card in cards], ["inventory", "standardization_rules", "qa_gate"])
+            self.assertTrue(all(card["disabled"] for card in cards))
+            self.assertTrue(all(card["percent"] == 0 for card in cards))
+            self.assertIn(f"TaxID {expected_taxid}", cards[0]["details"][0])
+            self.assertIn("bacterial tables are not reused", cards[0]["details"][1])
+
+    def test_archaea_background_pipeline_preview_reports_hidden_inventory(self) -> None:
+        domain = fetchm_app.canonical_pipeline_domain_config("archaea")
+        cards = fetchm_app.background_pipeline_preview_cards(
+            domain,
+            {
+                "available": True,
+                "status": "completed",
+                "root_unique_assemblies": 1234,
+                "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                "visibility": "admin_hidden",
+                "release_locked": True,
+                "standardized_metadata_coverage": {
+                    "standardized_assemblies": 1000,
+                    "missing_standardized_assemblies": 234,
+                },
+            },
+        )
+        self.assertEqual(cards[0]["status"], "completed")
+        self.assertEqual(cards[0]["percent"], 100)
+        self.assertIn("1,234", cards[0]["details"][0])
+        self.assertIn("release locked: yes", cards[0]["details"][2])
+        self.assertEqual(cards[1]["status"], "hidden partial")
+        self.assertEqual(cards[1]["percent"], 81)
+        self.assertIn("1,000 / 1,234", cards[1]["details"][0])
+        self.assertTrue(all(card["disabled"] for card in cards))
+
+    def test_hidden_domain_metadata_rows_are_tagged_admin_hidden(self) -> None:
+        report = {
+            "accession": "GCA_000000001.1",
+            "organism": {"organism_name": "Methanocaldococcus jannaschii", "tax_id": 2190},
+            "assembly_info": {
+                "assembly_name": "ASM1",
+                "assembly_level": "Complete Genome",
+                "biosample": {
+                    "accession": "SAMN00000001",
+                    "host": "",
+                    "isolation_source": "hot spring",
+                    "attributes": [{"name": "geo_loc_name", "value": "USA"}],
+                },
+            },
+        }
+        row = domain_fetch_tool.standardizable_domain_row(report, "archaea")
+        self.assertEqual(row["Assembly Accession"], "GCA_000000001.1")
+        self.assertEqual(row["FetchM_Domain"], "Archaea")
+        self.assertEqual(row["FetchM_Domain_Key"], "archaea")
+        self.assertEqual(row["FetchM_Domain_Profile"], "archaea_hidden_v1")
+        self.assertEqual(row["FetchM_Public_Release_Status"], "locked_admin_hidden")
+        self.assertEqual(row["Isolation Source"], "hot spring")
+        viral_row = domain_fetch_tool.standardizable_domain_row(report, "virus")
+        self.assertEqual(viral_row["FetchM_Domain"], "Virus")
+        self.assertEqual(viral_row["FetchM_Domain_Key"], "virus")
+        self.assertEqual(viral_row["FetchM_Domain_Profile"], "virus_hidden_v1")
+        self.assertEqual(viral_row["FetchM_Public_Release_Status"], "locked_admin_hidden")
+
+    def test_hidden_domain_taxon_labels_derive_genus_and_species(self) -> None:
+        labels = production_store.domain_taxon_labels_for_organism("Methanocaldococcus jannaschii DSM 2661")
+        self.assertIn({"rank": "genus", "name": "Methanocaldococcus"}, labels)
+        self.assertIn({"rank": "species", "name": "Methanocaldococcus jannaschii"}, labels)
+
+
+
+    def test_hidden_domain_qa_passes_complete_locked_archaea_snapshot(self) -> None:
+        class FakeResult:
+            def __init__(self, row):
+                self.row = row
+
+            def fetchone(self):
+                return self.row
+
+        class FakeConnection:
+            def execute(self, query, _params):
+                if "FROM domain_inventory_snapshot" in query:
+                    return FakeResult(("completed", "admin_hidden", True, 44183, 44183, 0, 0, "done", None))
+                if "FROM domain_inventory_task" in query:
+                    return FakeResult(("completed", True, "done", None))
+                if "FROM domain_metadata_fetch_task" in query:
+                    return FakeResult(("completed", False, "done", None, {}))
+                if "FROM domain_assembly_standardization" in query:
+                    return FakeResult((44183, 44183, 44183, 44183, 44183, 44183, 0))
+                raise AssertionError(query)
+
+        @contextmanager
+        def fake_connect():
+            yield FakeConnection()
+
+        with patch.object(hidden_domain_qa_tool, "connect", fake_connect), patch.object(
+            hidden_domain_qa_tool,
+            "domain_standardized_metadata_coverage",
+            return_value={
+                "root_unique_assemblies": 44183,
+                "standardized_assemblies": 44183,
+                "missing_standardized_assemblies": 0,
+            },
+        ):
+            summary = hidden_domain_qa_tool.collect_hidden_domain_qa(
+                "archaea",
+                "20260706T163621Z_genbank_archaea_root",
+            )
+        self.assertEqual(summary["status"], "pass")
+        self.assertEqual(summary["hard_failure_count"], 0)
+        self.assertEqual(summary["standardized_assemblies"], 44183)
+        self.assertTrue(summary["release_locked"])
+
+    def test_hidden_domain_qa_writer_outputs_valid_markdown(self) -> None:
+        summary = {
+            "domain_key": "archaea",
+            "snapshot_id": "snapshot",
+            "status": "pass",
+            "hard_failure_count": 0,
+            "root_unique_assemblies": 1,
+            "standardized_assemblies": 1,
+            "missing_standardized_assemblies": 0,
+            "checks": [{"key": "release_locked", "status": "pass", "detail": "release_locked=True"}],
+        }
+        with TemporaryDirectory() as tmp:
+            output_dir = Path(tmp)
+            hidden_domain_qa_tool.write_outputs(summary, output_dir)
+            markdown = (output_dir / "qa_summary.md").read_text(encoding="utf-8")
+            payload = json.loads((output_dir / "qa_summary.json").read_text(encoding="utf-8"))
+        self.assertIn("# Hidden Domain QA Summary", markdown)
+        self.assertNotIn('f"-', markdown)
+        self.assertEqual(payload["domain_key"], "archaea")
+
+    def test_hidden_domain_taxon_report_includes_candidatus_prefixed_genus(self) -> None:
+        captured_params = []
+
+        class FakeResult:
+            def fetchall(self):
+                return [
+                    (
+                        "GCA_000000001.1",
+                        "Candidatus Methanobrevibacter intestini isolate A",
+                        0,
+                        0,
+                        "SAMN00000001",
+                        {
+                            "Organism Name": "Candidatus Methanobrevibacter intestini isolate A",
+                            "Country": "USA",
+                            "Collection Date": "2020",
+                            "Assembly Level": "Complete Genome",
+                            "Host": "human",
+                            "Host_SD": "Homo sapiens",
+                            "Host_Context_SD": "human-associated",
+                            "Isolation Source": "hot spring water",
+                            "Isolation_Source_SD": "hot spring",
+                            "Sample Type": "water",
+                            "Sample_Type_SD": "water",
+                            "Sample_Material_SD": "water",
+                            "Environment Medium": "water",
+                            "Environment_Medium_SD": "water",
+                            "Environment_Broad_Scale_SD": "hydrothermal vent",
+                            "FetchM_Domain_Profile": "archaea_hidden_v1",
+                            "FetchM_Public_Release_Status": "locked_admin_hidden",
+                        },
+                    )
+                ]
+
+        class FakeConnection:
+            def execute(self, _query, params):
+                captured_params.append(params)
+                return FakeResult()
+
+        @contextmanager
+        def fake_connect():
+            yield FakeConnection()
+
+        with patch.object(production_store, "connect", fake_connect):
+            report = production_store.domain_taxon_report(
+                "archaea",
+                "genus",
+                "Methanobrevibacter",
+                snapshot_id="20260706T000000Z_genbank_archaea_root",
+            )
+            export = production_store.domain_taxon_metadata_csv(
+                "archaea",
+                "genus",
+                "Methanobrevibacter",
+                snapshot_id="20260706T000000Z_genbank_archaea_root",
+            )
+        self.assertIsNotNone(report)
+        self.assertEqual(report["row_count"], 1)
+        self.assertEqual(report["name"], "Methanobrevibacter")
+        self.assertEqual(captured_params[0][2], "%methanobrevibacter%")
+        self.assertEqual(report["summary_metrics"]["distinct_species_count"], 1)
+        self.assertEqual(report["summary_metrics"]["distinct_country_count"], 1)
+        self.assertEqual(report["summary_metrics"]["year_start"], 2020)
+        self.assertEqual(report["summary_metrics"]["complete_genome_count"], 1)
+        self.assertEqual(report["summary_metrics"]["standardized_profile"], "archaea_hidden_v1")
+        coverage = {item["label"]: item for item in report["standardized_coverage"]}
+        self.assertEqual(coverage["Host"]["raw_present"], 1)
+        self.assertEqual(coverage["Host"]["standardized_present"], 1)
+        self.assertEqual(coverage["Isolation source"]["standardized_percent"], 100)
+        self.assertEqual(report["top_environment_broad"][0]["value"], "hydrothermal vent")
+        self.assertEqual(report["top_sample_materials"][0]["value"], "water")
+        self.assertIsNotNone(export)
+        self.assertEqual(export["row_count"], 1)
+        self.assertEqual(export["filename"], "archaea_genus_Methanobrevibacter_metadata.csv")
+        self.assertIn("fetchm_visibility", export["content"])
+        self.assertIn("admin_hidden", export["content"])
+        self.assertIn("GCA_000000001.1", export["content"])
+
+    def test_hidden_archaea_admin_routes_require_admin_and_render_results(self) -> None:
+        with isolated_initialized_app_client() as client:
+            response = client.get("/admin/archaea", follow_redirects=False)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn("/login", response.headers.get("Location", ""))
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_search_results",
+                return_value=[{
+                    "domain_key": "archaea",
+                    "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                    "rank": "genus",
+                    "name": "Methanocaldococcus",
+                    "genome_count": 12,
+                    "public_enabled": False,
+                    "release_locked": True,
+                }],
+            ):
+                page = client.get("/admin/archaea?q=Methano")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Hidden Archaea Metadata", html)
+            self.assertIn("Methanocaldococcus", html)
+            self.assertIn("release locked", html.lower())
+            self.assertIn("/admin/archaea/genus/Methanocaldococcus", html)
+
+    def test_hidden_archaea_admin_queue_routes_call_domain_tasks(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260706T000000Z_genbank_archaea_root", None)
+            ) as queue_inventory:
+                response = client.post(
+                    "/admin/archaea/pipeline/inventory",
+                    data={"_csrf_token": "token", "continue_after": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_inventory.assert_called_once()
+            self.assertEqual(queue_inventory.call_args.args[0], "archaea")
+            self.assertTrue(queue_inventory.call_args.kwargs["continue_after"])
+
+            with client.session_transaction() as session:
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.queue_domain_metadata_fetch_task", return_value=("20260706T000000Z_genbank_archaea_root", None)
+            ) as queue_fetch:
+                response = client.post(
+                    "/admin/archaea/pipeline/metadata-fetch",
+                    data={"_csrf_token": "token", "refetch_all": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_fetch.assert_called_once()
+            self.assertEqual(queue_fetch.call_args.args[0], "archaea")
+            self.assertTrue(queue_fetch.call_args.kwargs["refetch_all"])
+
+
+    def test_hidden_archaea_admin_schedule_route_updates_settings(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}):
+                response = client.post(
+                    "/admin/archaea/pipeline/schedule",
+                    data={
+                        "_csrf_token": "token",
+                        "archaea_pipeline_schedule_enabled": "1",
+                        "archaea_pipeline_interval_days": "45",
+                        "archaea_pipeline_schedule_hour_utc": "3",
+                    },
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            with fetchm_app.app.app_context():
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_schedule_enabled"), "1")
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_interval_days"), "45")
+                self.assertEqual(fetchm_app.get_setting("archaea_pipeline_schedule_hour_utc"), "3")
+                summary = fetchm_app.hidden_domain_pipeline_schedule_summary("archaea")
+            self.assertTrue(summary["enabled"])
+            self.assertEqual(summary["interval_days"], 45)
+            self.assertEqual(summary["schedule_hour_utc"], 3)
+
+    def test_hidden_archaea_schedule_queues_due_inventory_with_metadata_fetch(self) -> None:
+        now = datetime(2026, 7, 6, 18, 0, tzinfo=timezone.utc)
+        with isolated_initialized_app_client():
+            with fetchm_app.app.app_context():
+                fetchm_app.set_setting("archaea_pipeline_schedule_enabled", "1")
+                fetchm_app.set_setting("archaea_pipeline_interval_days", "30")
+                fetchm_app.set_setting("archaea_pipeline_schedule_hour_utc", "18")
+            latest = {
+                "snapshot_id": "20260401T180000Z_genbank_archaea_root",
+                "status": "completed",
+                "requested_at": now - timedelta(days=60),
+            }
+            with patch("dataset_production_store.active_domain_pipeline_task", return_value=None), patch(
+                "dataset_production_store.latest_domain_inventory_snapshot", return_value=latest
+            ), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260706T180000Z_genbank_archaea_root", None)
+            ) as queue_inventory:
+                fetchm_app.schedule_due_hidden_domain_pipeline_run("archaea", now_dt=now)
+            queue_inventory.assert_called_once_with(
+                "archaea",
+                "scheduled-hidden-domain-pipeline",
+                continue_after=True,
+            )
+
+    def test_hidden_archaea_schedule_does_not_queue_when_paused(self) -> None:
+        with isolated_initialized_app_client():
+            with fetchm_app.app.app_context():
+                fetchm_app.set_setting("archaea_pipeline_schedule_enabled", "0")
+            with patch("dataset_production_store.queue_domain_inventory_task") as queue_inventory:
+                fetchm_app.schedule_due_hidden_domain_pipeline_run(
+                    "archaea",
+                    now_dt=datetime(2026, 7, 6, 18, 0, tzinfo=timezone.utc),
+                )
+            queue_inventory.assert_not_called()
+
+    def test_hidden_archaea_release_gate_remains_locked(self) -> None:
+        inventory = {
+            "configured": True,
+            "available": True,
+            "status": "completed",
+            "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+            "root_unique_assemblies": 100,
+            "standardized_metadata_coverage": {
+                "root_unique_assemblies": 100,
+                "standardized_assemblies": 100,
+                "missing_standardized_assemblies": 0,
+            },
+        }
+        gate = fetchm_app.build_hidden_domain_release_gate_summary("archaea", inventory)
+        self.assertEqual(gate["status"], "locked")
+        self.assertFalse(gate["can_release"])
+        self.assertTrue(gate["release_locked"])
+        self.assertEqual(gate["missing_standardized_assemblies"], 0)
+        self.assertTrue(any("locked by policy" in blocker for blocker in gate["blockers"]))
+
+    def test_hidden_archaea_admin_report_renders_summary(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("archaea-admin", "archaea-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            report = {
+                "domain_key": "archaea",
+                "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                "rank": "genus",
+                "rank_label": "Genus",
+                "name": "Methanocaldococcus",
+                "row_count": 1,
+                "public_enabled": False,
+                "release_locked": True,
+                "top_countries": [{"value": "USA", "count": 1}],
+                "top_hosts": [],
+                "top_isolation_sources": [{"value": "hot spring", "count": 1}],
+                "top_sample_types": [],
+                "top_environment_media": [{"value": "water", "count": 1}],
+                "top_assembly_levels": [{"value": "Complete Genome", "count": 1}],
+                "examples": [{
+                    "assembly_accession": "GCA_000000001.1",
+                    "organism_name": "Methanocaldococcus jannaschii",
+                    "biosample_accession": "SAMN00000001",
+                    "country": "USA",
+                    "host": "",
+                    "isolation_source": "hot spring",
+                    "sample_type": "",
+                    "environment_medium": "water",
+                    "assembly_level": "Complete Genome",
+                }],
+            }
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_report", return_value=report
+            ):
+                page = client.get("/admin/archaea/genus/Methanocaldococcus")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Methanocaldococcus", html)
+            self.assertIn("GCA_000000001.1", html)
+            self.assertIn("hot spring", html)
+            self.assertIn("Admin-only report", html)
+            self.assertIn("Standardization Coverage", html)
+            self.assertIn("Core Completeness", html)
+            self.assertIn("Download hidden metadata CSV", html)
+            self.assertIn("/admin/archaea/genus/Methanocaldococcus/metadata.csv", html)
+
+            with patch.object(fetchm_app, "ADMIN_USERS", {"archaea-admin"}), patch(
+                "dataset_production_store.domain_taxon_metadata_csv",
+                return_value={
+                    "filename": "archaea_genus_Methanocaldococcus_metadata.csv",
+                    "content": "assembly_accession\nGCA_000000001.1\n",
+                    "row_count": 1,
+                    "snapshot_id": "20260706T000000Z_genbank_archaea_root",
+                },
+            ):
+                csv_response = client.get("/admin/archaea/genus/Methanocaldococcus/metadata.csv")
+            self.assertEqual(csv_response.status_code, 200)
+            self.assertIn("text/csv", csv_response.headers.get("Content-Type", ""))
+            self.assertIn("attachment", csv_response.headers.get("Content-Disposition", ""))
+            self.assertIn("GCA_000000001.1", csv_response.data.decode("utf-8"))
+
+
+    def test_hidden_virus_admin_routes_require_admin_and_render_results(self) -> None:
+        with isolated_initialized_app_client() as client:
+            response = client.get("/admin/virus", follow_redirects=False)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn("/login", response.headers.get("Location", ""))
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("virus-admin", "virus-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
+                "dataset_production_store.domain_taxon_search_results",
+                return_value=[{
+                    "domain_key": "virus",
+                    "snapshot_id": "20260707T000000Z_genbank_virus_root",
+                    "rank": "genus",
+                    "name": "Betacoronavirus",
+                    "genome_count": 12,
+                    "public_enabled": False,
+                    "release_locked": True,
+                }],
+            ), patch(
+                "dataset_production_store.hidden_virus_model_summary",
+                return_value={
+                    "available": True,
+                    "organism_query": "",
+                    "virus_sequence_records": 3,
+                    "virus_genome_groups": 2,
+                    "taxon_relationships": 4,
+                    "relationship_density": 1.33,
+                    "segmented_sequence_records": 1,
+                    "release_locked": True,
+                    "top_relationship_types": [{"value": "natural_host", "count": 3}],
+                    "top_target_domains": [{"value": "eukaryota", "count": 3}],
+                    "top_target_taxa": [{"value": "Homo sapiens", "count": 3}],
+                    "top_molecule_types": [{"value": "RNA", "count": 2}],
+                    "examples": [{
+                        "sequence_accession": "OP123456.1",
+                        "assembly_accession": "",
+                        "organism_name": "Betacoronavirus example",
+                        "genome_group_id": "virus-group",
+                        "molecule_type": "RNA",
+                        "segment": "4",
+                        "genome_completeness": "complete",
+                    }],
+                },
+            ):
+                page = client.get("/admin/virus?q=Beta")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Hidden Virus Metadata", html)
+            self.assertIn("Betacoronavirus", html)
+            self.assertIn("release locked", html.lower())
+            self.assertIn("/admin/virus/genus/Betacoronavirus", html)
+            self.assertIn("Hidden Virus Model", html)
+            self.assertIn("Virus sequence records", html)
+            self.assertIn("natural_host", html)
+            self.assertIn("OP123456.1", html)
+
+    def test_hidden_virus_admin_queue_routes_call_domain_tasks(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("virus-admin", "virus-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260707T000000Z_genbank_virus_root", None)
+            ) as queue_inventory:
+                response = client.post(
+                    "/admin/virus/pipeline/inventory",
+                    data={"_csrf_token": "token", "continue_after": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_inventory.assert_called_once()
+            self.assertEqual(queue_inventory.call_args.args[0], "virus")
+            self.assertTrue(queue_inventory.call_args.kwargs["continue_after"])
+
+            with client.session_transaction() as session:
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
+                "dataset_production_store.queue_domain_metadata_fetch_task", return_value=("20260707T000000Z_genbank_virus_root", None)
+            ) as queue_fetch:
+                response = client.post(
+                    "/admin/virus/pipeline/metadata-fetch",
+                    data={"_csrf_token": "token", "refetch_all": "1"},
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            queue_fetch.assert_called_once()
+            self.assertEqual(queue_fetch.call_args.args[0], "virus")
+            self.assertTrue(queue_fetch.call_args.kwargs["refetch_all"])
+
+    def test_hidden_virus_admin_schedule_route_updates_settings(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("virus-admin", "virus-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+                session["_csrf_token"] = "token"
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}):
+                response = client.post(
+                    "/admin/virus/pipeline/schedule",
+                    data={
+                        "_csrf_token": "token",
+                        "virus_pipeline_schedule_enabled": "1",
+                        "virus_pipeline_interval_days": "60",
+                        "virus_pipeline_schedule_hour_utc": "18",
+                    },
+                    follow_redirects=False,
+                )
+            self.assertEqual(response.status_code, 302)
+            with fetchm_app.app.app_context():
+                self.assertEqual(fetchm_app.get_setting("virus_pipeline_schedule_enabled"), "1")
+                self.assertEqual(fetchm_app.get_setting("virus_pipeline_interval_days"), "60")
+                self.assertEqual(fetchm_app.get_setting("virus_pipeline_schedule_hour_utc"), "18")
+                summary = fetchm_app.hidden_domain_pipeline_schedule_summary("virus")
+            self.assertTrue(summary["enabled"])
+            self.assertEqual(summary["domain_label"], "Virus")
+            self.assertEqual(summary["interval_days"], 60)
+            self.assertEqual(summary["schedule_hour_utc"], 18)
+
+    def test_hidden_virus_schedule_queues_due_inventory_with_metadata_fetch(self) -> None:
+        now = datetime(2026, 7, 7, 18, 0, tzinfo=timezone.utc)
+        with isolated_initialized_app_client():
+            with fetchm_app.app.app_context():
+                fetchm_app.set_setting("virus_pipeline_schedule_enabled", "1")
+                fetchm_app.set_setting("virus_pipeline_interval_days", "30")
+                fetchm_app.set_setting("virus_pipeline_schedule_hour_utc", "18")
+            latest = {
+                "snapshot_id": "20260401T180000Z_genbank_virus_root",
+                "status": "completed",
+                "requested_at": now - timedelta(days=60),
+            }
+            with patch("dataset_production_store.active_domain_pipeline_task", return_value=None), patch(
+                "dataset_production_store.latest_domain_inventory_snapshot", return_value=latest
+            ), patch(
+                "dataset_production_store.queue_domain_inventory_task", return_value=("20260707T180000Z_genbank_virus_root", None)
+            ) as queue_inventory:
+                fetchm_app.schedule_due_hidden_domain_pipeline_run("virus", now_dt=now)
+            queue_inventory.assert_called_once_with(
+                "virus",
+                "scheduled-hidden-domain-pipeline",
+                continue_after=True,
+            )
+
+    def test_hidden_virus_release_gate_remains_locked(self) -> None:
+        inventory = {
+            "configured": True,
+            "available": True,
+            "status": "completed",
+            "snapshot_id": "20260707T000000Z_genbank_virus_root",
+            "root_unique_assemblies": 100,
+            "standardized_metadata_coverage": {
+                "root_unique_assemblies": 100,
+                "standardized_assemblies": 100,
+                "missing_standardized_assemblies": 0,
+            },
+        }
+        gate = fetchm_app.build_hidden_domain_release_gate_summary("virus", inventory)
+        self.assertEqual(gate["domain_key"], "virus")
+        self.assertEqual(gate["status"], "locked")
+        self.assertFalse(gate["can_release"])
+        self.assertTrue(gate["release_locked"])
+        self.assertEqual(gate["missing_standardized_assemblies"], 0)
+        self.assertTrue(any("Public Virus release is locked" in blocker for blocker in gate["blockers"]))
+
+    def test_hidden_virus_admin_report_renders_summary(self) -> None:
+        with isolated_initialized_app_client() as client:
+            with fetchm_app.app.app_context():
+                user = fetchm_app.create_user("virus-admin", "virus-admin@example.com", "long-password-1")
+            with client.session_transaction() as session:
+                session["user_id"] = int(user["id"])
+            report = {
+                "domain_key": "virus",
+                "snapshot_id": "20260707T000000Z_genbank_virus_root",
+                "rank": "genus",
+                "rank_label": "Genus",
+                "name": "Betacoronavirus",
+                "row_count": 1,
+                "public_enabled": False,
+                "release_locked": True,
+                "summary_metrics": {"standardized_profile": "virus_hidden_v1"},
+                "standardized_coverage": [],
+                "completeness_rows": [],
+                "presentation_notes": ["Admin-only hidden Virus report; public routes remain disabled."],
+                "domain_profiles": [{"value": "virus_hidden_v1", "count": 1}],
+                "release_statuses": [{"value": "locked_admin_hidden", "count": 1}],
+                "top_countries": [{"value": "USA", "count": 1}],
+                "top_hosts": [{"value": "Homo sapiens", "count": 1}],
+                "top_isolation_sources": [{"value": "nasopharyngeal swab", "count": 1}],
+                "top_sample_types": [{"value": "swab", "count": 1}],
+                "top_sample_materials": [],
+                "top_environment_media": [],
+                "top_environment_broad": [],
+                "top_environment_local": [],
+                "top_assembly_levels": [{"value": "Complete Genome", "count": 1}],
+                "examples": [{
+                    "assembly_accession": "GCA_000000002.1",
+                    "organism_name": "Betacoronavirus example",
+                    "biosample_accession": "SAMN00000002",
+                    "country": "USA",
+                    "collection_date": "2020",
+                    "host": "Homo sapiens",
+                    "isolation_source": "nasopharyngeal swab",
+                    "sample_type": "swab",
+                    "sample_material": "",
+                    "environment_medium": "",
+                    "environment_broad": "",
+                    "environment_local": "",
+                    "assembly_level": "Complete Genome",
+                }],
+            }
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
+                "dataset_production_store.domain_taxon_report", return_value=report
+            ), patch(
+                "dataset_production_store.hidden_virus_model_summary",
+                return_value={
+                    "available": True,
+                    "organism_query": "Betacoronavirus",
+                    "virus_sequence_records": 3,
+                    "virus_genome_groups": 2,
+                    "taxon_relationships": 4,
+                    "relationship_density": 1.33,
+                    "segmented_sequence_records": 1,
+                    "release_locked": True,
+                    "top_relationship_types": [{"value": "natural_host", "count": 3}],
+                    "top_target_domains": [{"value": "eukaryota", "count": 3}],
+                    "top_target_taxa": [{"value": "Homo sapiens", "count": 3}],
+                    "top_molecule_types": [{"value": "RNA", "count": 2}],
+                    "examples": [{
+                        "sequence_accession": "OP123456.1",
+                        "assembly_accession": "",
+                        "organism_name": "Betacoronavirus example",
+                        "genome_group_id": "virus-group",
+                        "molecule_type": "RNA",
+                        "segment": "4",
+                        "genome_completeness": "complete",
+                    }],
+                },
+            ) as model_summary:
+                page = client.get("/admin/virus/genus/Betacoronavirus")
+            model_summary.assert_called_once()
+            self.assertEqual(model_summary.call_args.kwargs["organism_query"], "Betacoronavirus")
+            html = page.data.decode("utf-8")
+            self.assertEqual(page.status_code, 200)
+            self.assertIn("Betacoronavirus", html)
+            self.assertIn("GCA_000000002.1", html)
+            self.assertIn("nasopharyngeal swab", html)
+            self.assertIn("Admin-only report", html)
+            self.assertIn("Virus profile kept separate", html)
+            self.assertIn("Download hidden metadata CSV", html)
+            self.assertIn("/admin/virus/genus/Betacoronavirus/metadata.csv", html)
+            self.assertIn("Virus Model for Betacoronavirus", html)
+            self.assertIn("Host/taxon relationships", html)
+            self.assertIn("Homo sapiens", html)
+
+            with patch.object(fetchm_app, "ADMIN_USERS", {"virus-admin"}), patch(
+                "dataset_production_store.domain_taxon_metadata_csv",
+                return_value={
+                    "filename": "virus_genus_Betacoronavirus_metadata.csv",
+                    "content": "assembly_accession\nGCA_000000002.1\n",
+                    "row_count": 1,
+                    "snapshot_id": "20260707T000000Z_genbank_virus_root",
+                },
+            ):
+                csv_response = client.get("/admin/virus/genus/Betacoronavirus/metadata.csv")
+            self.assertEqual(csv_response.status_code, 200)
+            self.assertIn("text/csv", csv_response.headers.get("Content-Type", ""))
+            self.assertIn("attachment", csv_response.headers.get("Content-Disposition", ""))
+            self.assertIn("GCA_000000002.1", csv_response.data.decode("utf-8"))
+
+
+    def test_hidden_domain_store_allowlists_non_bacterial_hidden_domains(self) -> None:
+        self.assertEqual(production_store.normalize_domain_pipeline_key("Archaea"), "archaea")
+        self.assertEqual(production_store.normalize_domain_pipeline_key("Virus"), "virus")
+        with self.assertRaises(ValueError):
+            production_store.normalize_domain_pipeline_key("bacteria")
+        archaea_config = production_store.domain_pipeline_config("archaea")
+        self.assertEqual(archaea_config["root_taxon_id"], production_store.ARCHAEA_TAXON_ID)
+        self.assertEqual(archaea_config["profile"], "archaea_hidden_v1")
+        virus_config = production_store.domain_pipeline_config("virus")
+        self.assertEqual(virus_config["root_taxon_id"], production_store.VIRUS_TAXON_ID)
+        self.assertEqual(virus_config["profile"], "virus_hidden_v1")
+        self.assertFalse(virus_config["public_enabled"])
+        self.assertTrue(virus_config["release_locked"])
+        self.assertTrue(production_store.domain_inventory_api_url("archaea").endswith("/2157/dataset_report"))
+        self.assertTrue(production_store.domain_inventory_api_url("virus").endswith("/10239/dataset_report"))
+        self.assertRegex(production_store.default_domain_snapshot_id("archaea"), r"^\d{8}T\d{6}Z_genbank_archaea_root$")
+        self.assertRegex(production_store.default_domain_snapshot_id("virus"), r"^\d{8}T\d{6}Z_genbank_virus_root$")
+
+    def test_hidden_domain_schema_isolated_from_bacterial_tables(self) -> None:
+        schema = production_store.SCHEMA_SQL
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_task", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_metadata_fetch_task", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_inventory_snapshot", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_master", schema)
+        self.assertIn("CREATE TABLE IF NOT EXISTS domain_assembly_standardization", schema)
+        self.assertIn("standardized_payload JSONB NOT NULL", schema)
+        self.assertIn("CHECK (domain_key <> 'bacteria')", schema)
+        self.assertIn("release_locked BOOLEAN NOT NULL DEFAULT TRUE", schema)
+        self.assertIn("PRIMARY KEY (domain_key, snapshot_id)", schema)
 
     def test_canonical_seed_skips_legacy_sqlite_when_accession_cache_exists(self) -> None:
         coverage = {

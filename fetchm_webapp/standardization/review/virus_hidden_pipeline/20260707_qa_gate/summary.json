@@ -1,0 +1,30 @@
+{
+  "domain_key": "virus",
+  "generated_at_utc": "2026-07-06T19:08:57+00:00",
+  "hard_failures_checked": [
+    "missing sequence accessions",
+    "missing genome group IDs",
+    "empty or mismatched genome groups",
+    "relationships whose subject sequence is absent",
+    "uncontrolled relationship type",
+    "uncontrolled target domain",
+    "uncontrolled confidence label",
+    "missing relationship target or raw value",
+    "public release unlock on matching snapshot"
+  ],
+  "implemented": [
+    "tools/qa_hidden_virus_pipeline.py validates hidden Virus sequence records",
+    "QA validates genome group IDs and segment-count consistency",
+    "QA validates host/taxon relationships point to existing Virus subjects",
+    "QA validates controlled relationship types, target domains, and confidence labels",
+    "QA reports relationship-type and target-domain distributions",
+    "QA verifies matching hidden inventory snapshots remain admin-hidden and release-locked when present"
+  ],
+  "profile": "virus_hidden_v1",
+  "public_enabled": false,
+  "release_locked": true,
+  "status": "hidden Virus QA gate scaffold",
+  "validation": {
+    "focused_domain_profile_tests": "15 passed"
+  }
+}

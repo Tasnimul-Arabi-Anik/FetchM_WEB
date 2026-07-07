@@ -1,0 +1,132 @@
+{
+  "admin_validation": {
+    "metadata_csv_filename": "archaea_genus_Methanobrevibacter_metadata.csv",
+    "metadata_csv_rows": 968,
+    "query": "Methano",
+    "report_public_enabled": false,
+    "report_release_locked": true,
+    "result_count": 20,
+    "taxon_report_rows": 968,
+    "top_result": {
+      "domain_key": "archaea",
+      "genome_count": 968,
+      "name": "Methanobrevibacter",
+      "public_enabled": false,
+      "rank": "genus",
+      "release_locked": true,
+      "snapshot_id": "20260706T163621Z_genbank_archaea_root"
+    }
+  },
+  "checks": [
+    {
+      "detail": "profile=archaea_hidden_v1",
+      "hard": true,
+      "key": "profile_is_archaea_hidden_v1",
+      "status": "pass"
+    },
+    {
+      "detail": "public_enabled=False",
+      "hard": true,
+      "key": "public_release_disabled",
+      "status": "pass"
+    },
+    {
+      "detail": "release_locked=True",
+      "hard": true,
+      "key": "release_locked",
+      "status": "pass"
+    },
+    {
+      "detail": "primary_record_model=prokaryote_assembly",
+      "hard": true,
+      "key": "prokaryote_record_model",
+      "status": "pass"
+    },
+    {
+      "detail": "status=pass; hard_failures=0",
+      "hard": true,
+      "key": "hidden_domain_qa_passes",
+      "status": "pass"
+    },
+    {
+      "detail": "root_unique_assemblies=44,183",
+      "hard": true,
+      "key": "root_nonempty",
+      "status": "pass"
+    },
+    {
+      "detail": "standardized=44,183; root=44,183; missing=0",
+      "hard": true,
+      "key": "standardization_complete",
+      "status": "pass"
+    },
+    {
+      "detail": "query='Methano'; results=20",
+      "hard": true,
+      "key": "admin_taxon_search_returns_results",
+      "status": "pass"
+    },
+    {
+      "detail": "rank=genus; name=Methanobrevibacter; row_count=968",
+      "hard": true,
+      "key": "admin_taxon_report_available",
+      "status": "pass"
+    },
+    {
+      "detail": "search_count=968; report_rows=968",
+      "hard": true,
+      "key": "admin_taxon_report_matches_search_count",
+      "status": "pass"
+    },
+    {
+      "detail": "public_enabled=False; release_locked=True",
+      "hard": true,
+      "key": "admin_taxon_report_hidden_locked",
+      "status": "pass"
+    },
+    {
+      "detail": "row_count=968",
+      "hard": true,
+      "key": "admin_metadata_csv_available",
+      "status": "pass"
+    },
+    {
+      "detail": "csv_rows=968; report_rows=968",
+      "hard": true,
+      "key": "admin_metadata_csv_matches_report",
+      "status": "pass"
+    }
+  ],
+  "decision": "Hidden Archaea release-candidate prechecks pass; public release remains locked.",
+  "domain_key": "archaea",
+  "generated_at": "2026-07-07T13:03:21.828789+00:00",
+  "hard_failure_count": 0,
+  "hard_failures": [],
+  "hidden_domain_qa": {
+    "hard_failure_count": 0,
+    "payload_rows": 44183,
+    "status": "pass"
+  },
+  "manual_public_release_required": true,
+  "missing_standardized_assemblies": 0,
+  "public_enabled": false,
+  "release_candidate_ready": true,
+  "release_locked": true,
+  "remaining_public_release_blockers": [
+    "manual public release approval",
+    "public route and Global Insights activation explicitly not enabled by this gate",
+    "public manuscript/readiness thresholds remain a separate reviewed task"
+  ],
+  "root_unique_assemblies": 44183,
+  "safe_to_publicly_release": false,
+  "safety": {
+    "bacterial_canonical_metadata_changed": false,
+    "bucket_b_environment_rules_applied": false,
+    "global_insights_regenerated": false,
+    "public_archaea_routes_enabled": false,
+    "virus_database_build_run": false
+  },
+  "snapshot_id": "20260706T163621Z_genbank_archaea_root",
+  "standardized_assemblies": 44183,
+  "status": "pass"
+}
