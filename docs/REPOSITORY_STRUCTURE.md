@@ -60,8 +60,17 @@ Runtime data is intentionally not committed:
 - `.env`, Python caches, generated review tables, and local backup snapshots are
   ignored by Git.
 
+## Review Artifact Policy
+
+Generated review tables can be large and are reproducible from the tracked rules,
+tools, manifests, and Markdown/JSON summaries. Keep compact summaries, manifests,
+and reviewer-facing notes in Git. Archive full CSV/TSV/TXT/LOG outputs outside
+the repository or regenerate them when needed.
+
 ## Legacy CLI Package
 
-The root `fetchm/`, `bin/`, `figures/`, `pyproject.toml`, and `vibrio_v2.tsv`
-are retained for compatibility with the original FetchM CLI/package history.
-The actively developed web application is under `fetchm_webapp/`.
+The root `fetchm/`, `bin/`, `figures/fetchm_workflow.svg`,
+`figures/fetchm_workflow.dot`, and `pyproject.toml` are historical
+CLI/package artifacts. They are not used by the current Flask runtime, which uses
+`fetchm_webapp/lib/fetchm_runtime/`. FetchM2 is the maintained standalone CLI.
+Removing the legacy tree is deferred to a separate compatibility PR.

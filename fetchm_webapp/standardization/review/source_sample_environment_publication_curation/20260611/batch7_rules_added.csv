@@ -1,6 +1,0 @@
-rule_file,rule_or_helper,purpose
-app.py,HOST_DISEASE_SYNONYMS,"Added high-confidence disease aliases: diarrheal, diarrheal disease, septicemia, bacteraemia, skin infection, lower/upper respiratory infection."
-app.py,DISEASE_SAMPLE_SPLIT_SOURCE_TERMS,Suppress old exact source assignment for reviewed disease+sample phrases such as mastitis milk.
-app.py,canonical_anatomical_site,Route respiratory infection/disease phrases to respiratory tract site when explicit.
-controlled_categories.csv,16 approved Batch 7 rows,Added reviewed Host_Disease_SD and Sample_Type_SD phrase split rules for septicemia/bacteraemia/skin infection/respiratory infection/mastitis milk/urine from UTI/blood from sepsis/diarrheal stool.
-tests/test_metadata_standardization_regressions.py,test_batch7_disease_health_source_context,"Regression coverage for clear disease, health-state, disease+sample/site splits, clinical-context preservation, and prior-batch protections."

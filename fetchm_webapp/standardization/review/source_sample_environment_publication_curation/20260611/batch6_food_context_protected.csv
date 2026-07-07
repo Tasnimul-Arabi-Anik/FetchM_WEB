@@ -1,7 +1,0 @@
-raw_value,classification,note
-chicken feces,split_sample_type_and_host_context,Animal + material split: feces sample type plus poultry context.
-cattle feces,split_sample_type_and_host_context,Animal + material split.
-swine feces,split_sample_type_and_host_context,Animal + material split.
-cow milk,split_sample_type_and_host_context,Milk sample type plus livestock context.
-poultry litter,split_environment_and_host_context,Agricultural organic medium plus poultry context; no food/meat.
-animal bedding,split_environment_and_host_context,Agricultural organic medium plus animal context.

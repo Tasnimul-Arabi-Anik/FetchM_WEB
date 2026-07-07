@@ -1,4 +1,0 @@
-metric	value	status
-hard_exact_leakage_rows	0	pass
-review_signal_exact_cross_field_rows	149681	triage_signal
-metadata_descriptor_suppressed_rows	127799	informational

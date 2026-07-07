@@ -1,3 +1,0 @@
-assembly_accession	biosample	organism	review_value	Host_SD	Host_TaxID	Host_Context_SD	plant_context_evidence	plant_material_evidence	collection_device_evidence	before_Isolation_Site_SD	after_Isolation_Site_SD	after_Sample_Material_SD	after_Sample_Collection_Device_SD	after_Host_Context_SD	after_Sampling_Context_SD	conditional_assignment_skips	conflicts	removal_provenance
-GCA_016680365.1	SAMN17166583	Klebsiella pneumoniae	catheter	Homo sapiens	9606		false	false	false	catheter	catheter					[]	[]	[]
-GCA_016680545.1	SAMN17166581	Klebsiella pneumoniae	catheter	Homo sapiens	9606		false	false	false	catheter	catheter					[]	[]	[]
