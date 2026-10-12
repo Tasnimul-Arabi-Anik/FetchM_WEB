@@ -1,0 +1,68 @@
+{
+  "checked_at_utc": "2026-10-12T19:48:31.788126+00:00",
+  "local_activation_date": "2026-10-13",
+  "status": "automation_enabled_catch_up_running",
+  "existing_admin_controls_reused": true,
+  "settings": {
+    "canonical_pipeline_schedule_enabled": "1",
+    "canonical_pipeline_interval_days": "14",
+    "canonical_pipeline_schedule_hour_utc": "18",
+    "canonical_pipeline_auto_publish_verified": "1"
+  },
+  "next_due_at_utc": "2026-10-26T18:00:00+00:00",
+  "next_due_at_asia_dhaka": "2026-10-27T00:00:00+06:00",
+  "settings_backup": "maintenance_backups/before_bacterial_biweekly_20261012T193420Z.db",
+  "settings_backup_bytes": 28209319936,
+  "previous_active_snapshot": "20260602T140414Z_genbank_bacteria_root",
+  "previous_active_assemblies": 3131699,
+  "catch_up": {
+    "snapshot_id": "20261012T194443Z_genbank_bacteria_root",
+    "task_id": 10,
+    "status": "running",
+    "continue_after": true,
+    "auto_publish_after_release_gate": true,
+    "expected_total_reported_by_ncbi": 3388828,
+    "completed_pages_at_check": 71,
+    "raw_records_at_check": 71000,
+    "failed_pages_at_check": 0,
+    "noncanonical_records_at_check": 0,
+    "duplicate_records_at_check": 0,
+    "resumed_from_completed_page": 56,
+    "completion_not_yet_verified": true
+  },
+  "deployment": {
+    "worker_commit": "f7919d68eaceb03ac6da2292a1c98184ac904953",
+    "worker_branch": "maintenance/biweekly-worker-runtime",
+    "recreated_service": "fetchm-root-inventory-worker",
+    "worker_open_descriptors_at_check": 9,
+    "public_health_status": "ok",
+    "public_web_commit": "74de51ebb9aaee37736882e20fffa0c4794f76be",
+    "public_web_recreated": false,
+    "database_recreated": false,
+    "existing_insights_worker_matches_reviewed_generator": true
+  },
+  "validation": {
+    "bacterial_main_based_tests_passed": 156,
+    "combined_worker_tests_passed": 209,
+    "compile_passed": true,
+    "git_diff_check_passed": true,
+    "taxonomy_fixture_mounted_read_only": true,
+    "test_database_isolated_from_production": true
+  },
+  "efficiency": {
+    "reuse_standardized_accession_cache": true,
+    "fetch_only_missing_accession_metadata": true,
+    "skip_full_legacy_sqlite_reimport": true,
+    "inventory_page_checkpoints": true,
+    "overlapping_canonical_runs_blocked": true,
+    "legacy_catalog_and_discovery_schedules_left_paused": true,
+    "full_refetch_of_existing_biosample_edits": false,
+    "sequence_downloads": false
+  },
+  "semantic_scope": {
+    "existing_source_environment_completion_reused": true,
+    "approved_bucket_a_rules_reused_for_new_rows": true,
+    "held_bucket_b_rules_enabled": false,
+    "public_hidden_domain_release_enabled": false
+  }
+}

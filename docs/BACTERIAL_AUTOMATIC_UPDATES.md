@@ -38,3 +38,22 @@ an unchanged accession require a separately requested metadata refresh.
 
 Worker SQLite transaction contexts close their connections on exit, including
 rollback, so the continuous scheduler does not accumulate database handles.
+
+## Retrieval Performance
+
+The accession inventory retains NCBI's 1,000-report page limit and opaque
+page checkpoints. A single HTTP session is reused throughout a scan. Each
+page is persisted with two PostgreSQL bulk statements rather than two
+statements per accession. Duplicate reports keep the sequential writer's
+nonempty-field merge policy and first membership fingerprint.
+
+Missing full metadata reports are requested in batches of up to 100, with
+the response page size explicitly matching the requested batch. This avoids
+the API's smaller default report page. Existing cache reuse, request-worker
+limits, retry handling and release gates are unchanged.
+
+An isolated 1,000-record PostgreSQL benchmark measured 0.162 seconds for the
+old writer and 0.037 seconds for the batch writer. These numbers describe
+database persistence only; end-to-end inventory time also depends on NCBI
+response latency. A read-only live check retrieved all 100 requested full
+metadata reports in 2.116 seconds.
