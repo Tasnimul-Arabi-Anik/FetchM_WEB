@@ -778,8 +778,17 @@ def ensure_directories() -> None:
     CANONICAL_METADATA_REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
+class ClosingSQLiteConnection(sqlite3.Connection):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> bool:
+        # SQLite's transaction context commits/rolls back but does not close.
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
+
 def get_sqlite_connection() -> sqlite3.Connection:
-    connection = sqlite3.connect(DB_PATH, timeout=120)
+    connection = sqlite3.connect(DB_PATH, timeout=120, factory=ClosingSQLiteConnection)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA busy_timeout = 120000")
     connection.execute("PRAGMA journal_mode = WAL")
@@ -1885,10 +1894,24 @@ def row_has_reusable_standardization(row: Mapping[str, Any]) -> bool:
     return all(column in row for column in SECONDARY_STANDARDIZATION_COLUMNS)
 
 
+@lru_cache(maxsize=1)
+def managed_bucket_a_rules() -> dict[tuple[str, str], list[Any]]:
+    from tools.semantic_closure_phase1_dry_run import load_rules, rules_by_current
+
+    return rules_by_current(load_rules(STANDARDIZATION_DIR / "semantic_closure_phase1_apply_now_rules.csv"))
+
+
 def apply_managed_semantic_completion(row: dict[str, Any]) -> dict[str, Any]:
     from tools.source_environment_semantic_completion import apply_standardization_semantic_completion
+    from tools.semantic_closure_phase1_dry_run import apply_rules_to_payload, norm
 
-    return apply_standardization_semantic_completion(row)
+    completed = apply_standardization_semantic_completion(row)
+    grouped = managed_bucket_a_rules()
+    if any(norm(completed.get(field)) == value for field, value in grouped):
+        return apply_rules_to_payload(
+            completed, grouped, method="semantic_closure_phase1_bucket_a_apply"
+        )["after"]
+    return completed
 
 
 def normalize_managed_metadata_row(

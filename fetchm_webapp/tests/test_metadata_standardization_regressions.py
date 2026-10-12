@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import datetime, timezone
 import hashlib
 import json
+import sqlite3
 import sys
 import unittest
 from unittest.mock import patch
@@ -75,6 +77,96 @@ def isolated_initialized_app_client():
 
 
 class MetadataStandardizationRegressionTests(unittest.TestCase):
+    def test_recurring_refresh_preserves_bucket_a_corrections_and_is_idempotent(self) -> None:
+        examples = [
+            ({"Host_Health_State_SD": "healthy/control", "Host": "healthy control"}, "Host_Health_State_SD", "healthy"),
+            ({"Host_Health_State_SD": "diseased/patient", "Host": "Homo sapiens"}, "Host_Health_State_SD", "diseased"),
+            ({"Isolation_Site_SD": "catheter", "Isolation Source": "catheter"}, "Isolation_Site_SD", ""),
+        ]
+        for payload, field, expected in examples:
+            with self.subTest(payload=payload):
+                before = {**payload, "Isolation_Source_SD": "preserved", "Environment_Medium_SD": "marine"}
+                after = fetchm_app.apply_managed_semantic_completion(before)
+                self.assertEqual(after[field], expected)
+                self.assertEqual(after["Isolation_Source_SD"], "preserved")
+                self.assertEqual(after["Environment_Medium_SD"], "marine")
+                self.assertEqual(fetchm_app.apply_managed_semantic_completion(after), after)
+                for key, value in payload.items():
+                    if not key.endswith("_SD"):
+                        self.assertEqual(after[key], value)
+                events = [event for values in after["Semantic_Axis_Provenance"].values() for event in values]
+                closure_events = [event for event in events if event["rule_id"].startswith("SC1-")]
+                self.assertTrue(closure_events)
+                self.assertTrue(all(event["method"] == "semantic_closure_phase1_bucket_a_apply" for event in closure_events))
+                if expected == "healthy":
+                    self.assertEqual(after["Host_Study_Group_SD"], "control")
+
+    def test_sqlite_transaction_context_commits_and_closes(self) -> None:
+        with TemporaryDirectory() as tmp, patch.object(fetchm_app, "DB_PATH", Path(tmp) / "test.db"):
+            with fetchm_app.get_sqlite_connection() as connection:
+                connection.execute("CREATE TABLE test_values (value TEXT)")
+                connection.execute("INSERT INTO test_values VALUES ('committed')")
+            with self.assertRaises(sqlite3.ProgrammingError):
+                connection.execute("SELECT 1")
+            with fetchm_app.get_sqlite_connection() as check:
+                self.assertEqual(check.execute("SELECT value FROM test_values").fetchone()[0], "committed")
+
+    def test_sqlite_transaction_context_rolls_back_and_closes(self) -> None:
+        with TemporaryDirectory() as tmp, patch.object(fetchm_app, "DB_PATH", Path(tmp) / "test.db"):
+            with fetchm_app.get_sqlite_connection() as setup:
+                setup.execute("CREATE TABLE test_values (value TEXT)")
+            with self.assertRaisesRegex(ValueError, "abort"):
+                with fetchm_app.get_sqlite_connection() as connection:
+                    connection.execute("INSERT INTO test_values VALUES ('rolled back')")
+                    raise ValueError("abort")
+            with self.assertRaises(sqlite3.ProgrammingError):
+                connection.execute("SELECT 1")
+            with fetchm_app.get_sqlite_connection() as check:
+                self.assertEqual(check.execute("SELECT COUNT(*) FROM test_values").fetchone()[0], 0)
+
+    def test_sqlite_app_connection_lasts_until_app_context_ends(self) -> None:
+        with TemporaryDirectory() as tmp, patch.object(fetchm_app, "DB_PATH", Path(tmp) / "test.db"):
+            with fetchm_app.app.app_context():
+                connection = fetchm_app.get_db()
+                self.assertIs(connection, fetchm_app.get_db())
+                self.assertEqual(connection.execute("SELECT 1").fetchone()[0], 1)
+            with self.assertRaises(sqlite3.ProgrammingError):
+                connection.execute("SELECT 1")
+
+    def test_canonical_biweekly_schedule_waits_then_queues_continuing_update(self) -> None:
+        settings = {
+            "canonical_pipeline_schedule_enabled": "1",
+            "canonical_pipeline_interval_days": "14",
+            "canonical_pipeline_schedule_hour_utc": "18",
+            "canonical_pipeline_auto_publish_verified": "1",
+        }
+        latest = {"status": "completed", "requested_at": datetime(2026, 10, 13, 12, tzinfo=timezone.utc)}
+        with patch.object(fetchm_app, "get_sqlite_connection"), patch.object(
+            fetchm_app, "get_setting", side_effect=lambda key, default, db: settings.get(key, default)
+        ), patch("dataset_production_store.active_canonical_pipeline_task", return_value=None), patch(
+            "dataset_production_store.latest_inventory_task", return_value=latest
+        ), patch("dataset_production_store.queue_inventory_task", return_value=("candidate", None)) as queue, patch.object(
+            fetchm_app, "set_canonical_auto_publish_intent"
+        ) as intent, patch.object(fetchm_app, "datetime") as clock:
+            clock.now.return_value = datetime(2026, 10, 27, 17, 59, tzinfo=timezone.utc)
+            fetchm_app.schedule_due_canonical_pipeline_run()
+            queue.assert_not_called()
+            clock.now.return_value = datetime(2026, 10, 27, 18, tzinfo=timezone.utc)
+            fetchm_app.schedule_due_canonical_pipeline_run()
+            queue.assert_called_once_with("scheduled-canonical-pipeline", continue_after=True)
+            intent.assert_called_once_with("candidate", True)
+
+    def test_canonical_biweekly_schedule_does_not_overlap_active_update(self) -> None:
+        with patch.object(fetchm_app, "get_sqlite_connection"), patch.object(
+            fetchm_app, "get_setting", side_effect=lambda key, default, db: {
+                "canonical_pipeline_schedule_enabled": "1", "canonical_pipeline_interval_days": "14"
+            }.get(key, default)
+        ), patch("dataset_production_store.active_canonical_pipeline_task", return_value=("candidate", "running", "inventory")), patch(
+            "dataset_production_store.queue_inventory_task"
+        ) as queue:
+            fetchm_app.schedule_due_canonical_pipeline_run()
+            queue.assert_not_called()
+
     def test_source_sample_environment_provenance_loader(self) -> None:
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1928,13 +2020,15 @@ class MetadataStandardizationRegressionTests(unittest.TestCase):
             ("asymptomatic", "asymptomatic"),
             ("symptomatic", "symptomatic"),
             ("diseased", "diseased"),
-            ("control", "healthy/control"),
+            ("control", "healthy"),
             ("normal", "healthy"),
         ]:
             result = standardized(source)
             self.assertEqual(result["Host_Health_State_SD"], health_state, source)
             self.assertNotEqual(result["Isolation_Source_SD"], source, source)
             self.assertEqual(result["Environment_Medium_SD"], "", source)
+            if source == "control":
+                self.assertEqual(result["Host_Study_Group_SD"], "control")
 
         diarrheal_stool = standardized("diarrheal stool")
         self.assertEqual(diarrheal_stool["Sample_Type_SD"], "feces/stool")
