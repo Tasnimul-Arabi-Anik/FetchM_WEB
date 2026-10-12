@@ -75,7 +75,7 @@ def standardizable_row(report: dict[str, Any]) -> dict[str, Any]:
 
 def fetch_reports(accessions: list[str], *, api_key: str, max_attempts: int, retry_sleep: float, timeout: float) -> list[dict[str, Any]]:
     joined = ",".join(urllib.parse.quote(accession, safe="._") for accession in accessions)
-    url = f"{API_BASE}/{joined}/dataset_report?returned_content=COMPLETE"
+    url = f"{API_BASE}/{joined}/dataset_report?returned_content=COMPLETE&page_size={len(accessions)}"
     headers = {"Accept": "application/json", "User-Agent": "FetchM-WEB/canonical-metadata-fetch"}
     if api_key:
         headers["api-key"] = api_key
@@ -111,7 +111,7 @@ def fetch_reports(accessions: list[str], *, api_key: str, max_attempts: int, ret
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--snapshot-id", required=True)
-    parser.add_argument("--batch-size", type=int, default=20)
+    parser.add_argument("--batch-size", type=int, default=100)
     parser.add_argument("--max-batches", type=int, default=0, help="Limit batches for controlled validation only.")
     parser.add_argument("--refetch-all", action="store_true", help="Refetch and re-standardize every accession in the canonical inventory, not only missing accessions.")
     parser.add_argument("--max-attempts", type=int, default=5)
