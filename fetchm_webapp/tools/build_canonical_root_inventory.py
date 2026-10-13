@@ -4,17 +4,15 @@
 from __future__ import annotations
 
 import argparse
-import http.client
 import json
 import os
 import sys
 import time
-import urllib.error
-import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+import requests
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -33,7 +31,10 @@ from dataset_production_store import (
 API_URL = f"https://api.ncbi.nlm.nih.gov/datasets/v2/genome/taxon/{BACTERIA_TAXON_ID}/dataset_report"
 
 
-def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, Any]:
+def fetch_page(args: argparse.Namespace, page_token: str | None, *, client: requests.Session | None = None) -> dict[str, Any]:
+    if client is None:
+        with requests.Session() as owned_client:
+            return fetch_page(args, page_token, client=owned_client)
     params = {
         "filters.assembly_source": "GENBANK",
         "filters.assembly_version": "CURRENT",
@@ -42,17 +43,16 @@ def fetch_page(args: argparse.Namespace, page_token: str | None) -> dict[str, An
     }
     if page_token:
         params["page_token"] = page_token
-    url = API_URL + "?" + urllib.parse.urlencode(params)
     headers = {"Accept": "application/json", "User-Agent": "FetchM-WEB/canonical-bacterial-inventory"}
     if args.api_key:
         headers["api-key"] = args.api_key
-    request = urllib.request.Request(url, headers=headers)
     last_error = ""
     for attempt in range(1, max(1, args.max_attempts) + 1):
         try:
-            with urllib.request.urlopen(request, timeout=args.request_timeout) as response:
-                return json.load(response)
-        except (OSError, http.client.IncompleteRead, urllib.error.HTTPError, urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            with client.get(API_URL, params=params, headers=headers, timeout=args.request_timeout) as response:
+                response.raise_for_status()
+                return response.json()
+        except (requests.RequestException, OSError, TimeoutError, json.JSONDecodeError) as exc:
             last_error = f"REST page request attempt {attempt}/{args.max_attempts} failed: {exc}"
             print(last_error, file=sys.stderr, flush=True)
             if attempt < max(1, args.max_attempts):
@@ -88,23 +88,24 @@ def main() -> int:
         print(json.dumps({"snapshot_id": snapshot_id, **summary, **progress, "inventory_mode": "rest_page_checkpoints"}, sort_keys=True))
         return 0 if summary.get("status") == "completed" else 1
     try:
-        while True:
-            page_number += 1
-            start_inventory_page(snapshot_id, page_number, page_token)
-            payload = fetch_page(args, page_token)
-            reports = [report for report in payload.get("reports", []) if isinstance(report, dict)]
-            expected_total = int(payload.get("total_count") or 0)
-            written, invalid, duplicates = insert_inventory_batch(snapshot_id, reports) if reports else (0, 0, 0)
-            next_token = str(payload.get("next_page_token") or "") or None
-            finish_inventory_page(
-                snapshot_id, page_number, "completed", next_page_token=next_token, expected_total=expected_total,
-                raw_records=len(reports), canonical_records=written, noncanonical_records=invalid, duplicate_records=duplicates,
-            )
-            if args.max_pages and page_number >= args.max_pages:
-                raise RuntimeError("Validation max-pages limit reached; snapshot intentionally not complete.")
-            if not next_token:
-                break
-            page_token = next_token
+        with requests.Session() as client:
+            while True:
+                page_number += 1
+                start_inventory_page(snapshot_id, page_number, page_token)
+                payload = fetch_page(args, page_token, client=client)
+                reports = [report for report in payload.get("reports", []) if isinstance(report, dict)]
+                expected_total = int(payload.get("total_count") or 0)
+                written, invalid, duplicates = insert_inventory_batch(snapshot_id, reports) if reports else (0, 0, 0)
+                next_token = str(payload.get("next_page_token") or "") or None
+                finish_inventory_page(
+                    snapshot_id, page_number, "completed", next_page_token=next_token, expected_total=expected_total,
+                    raw_records=len(reports), canonical_records=written, noncanonical_records=invalid, duplicate_records=duplicates,
+                )
+                if args.max_pages and page_number >= args.max_pages:
+                    raise RuntimeError("Validation max-pages limit reached; snapshot intentionally not complete.")
+                if not next_token:
+                    break
+                page_token = next_token
         progress = inventory_page_progress(snapshot_id)
         summary = finish_inventory_snapshot(snapshot_id, progress["raw_records"], progress["noncanonical_records"], progress["duplicate_records"])
         summary.update(progress)

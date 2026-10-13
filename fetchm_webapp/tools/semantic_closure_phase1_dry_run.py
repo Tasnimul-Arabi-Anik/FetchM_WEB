@@ -226,12 +226,12 @@ def condition_met(rule: ClosureRule, payload: dict[str, Any]) -> tuple[bool, str
     return False, f"unknown_condition={rule.destination_condition}", "unknown_condition_failure"
 
 
-def provenance_entry(rule: ClosureRule, evidence: str) -> dict[str, Any]:
+def provenance_entry(rule: ClosureRule, evidence: str, method: str | None = None) -> dict[str, Any]:
     return {
         "rule_id": rule.rule_id,
         "source_current_field": rule.current_field,
         "source_current_value": rule.current_value,
-        "method": METHOD,
+        "method": method or METHOD,
         "confidence": rule.destination_confidence,
         "evidence": evidence,
         "evidence_requirement": rule.evidence_requirement,
@@ -260,16 +260,16 @@ def clear_field(payload: dict[str, Any], field: str) -> list[dict[str, str]]:
     return cleared
 
 
-def set_destination(payload: dict[str, Any], rule: ClosureRule, evidence: str) -> tuple[str, str]:
+def set_destination(payload: dict[str, Any], rule: ClosureRule, evidence: str, method: str | None = None) -> tuple[str, str]:
     if not rule.destination_field:
         return "clear_only", "no destination"
     current = str(payload.get(rule.destination_field) or "").strip()
     if not present(current):
         payload[rule.destination_field] = rule.destination_value
-        add_provenance(payload, rule.destination_field, provenance_entry(rule, evidence))
+        add_provenance(payload, rule.destination_field, provenance_entry(rule, evidence, method))
         return "applied", ""
     if norm(current) == norm(rule.destination_value):
-        add_provenance(payload, rule.destination_field, provenance_entry(rule, evidence))
+        add_provenance(payload, rule.destination_field, provenance_entry(rule, evidence, method))
         return "already_same", "same destination value already present"
     return "existing_different", f"existing={current}; proposed={rule.destination_value}"
 
@@ -285,7 +285,7 @@ def allowed_changed_fields(rules: list[ClosureRule]) -> set[str]:
     return allowed
 
 
-def add_removal_provenance(after: dict[str, Any], rule: ClosureRule, cleared: list[dict[str, str]], outcomes: list[dict[str, Any]]) -> dict[str, Any]:
+def add_removal_provenance(after: dict[str, Any], rule: ClosureRule, cleared: list[dict[str, str]], outcomes: list[dict[str, Any]], method: str | None = None) -> dict[str, Any]:
     primary = next((item for item in cleared if item["is_primary"] == "true"), None)
     if not primary:
         return {}
@@ -298,7 +298,7 @@ def add_removal_provenance(after: dict[str, Any], rule: ClosureRule, cleared: li
         "reason": rule.rationale,
         "destination_outcomes": outcomes,
         "destination_status": "removal_only" if not any(outcome.get("status") in {"applied", "already_same"} for outcome in outcomes) else "destination_recorded",
-        "method": METHOD,
+        "method": method or METHOD,
         "ruleset_version": RULESET_VERSION,
         "source_audit_commit": rule.source_audit_commit,
     }
@@ -306,7 +306,7 @@ def add_removal_provenance(after: dict[str, Any], rule: ClosureRule, cleared: li
     return event
 
 
-def apply_rules_to_payload(payload: dict[str, Any], grouped_rules: dict[tuple[str, str], list[ClosureRule]]) -> dict[str, Any]:
+def apply_rules_to_payload(payload: dict[str, Any], grouped_rules: dict[tuple[str, str], list[ClosureRule]], *, method: str | None = None) -> dict[str, Any]:
     before = deepcopy(payload)
     after = deepcopy(payload)
     matched_rules: list[ClosureRule] = []
@@ -344,15 +344,15 @@ def apply_rules_to_payload(payload: dict[str, Any], grouped_rules: dict[tuple[st
             if rule.destination_field == rule.current_field and rule.clear_current_field:
                 key_clears = clear_field(after, field)
                 clears.extend(key_clears)
-                status, detail = set_destination(after, rule, evidence)
+                status, detail = set_destination(after, rule, evidence, method)
                 event = {"rule_id": rule.rule_id, "field": rule.destination_field, "value": rule.destination_value, "condition": rule.destination_condition, "evidence": evidence, "status": status, "detail": detail}
                 outcomes.append(event)
                 key_outcomes.append(event)
                 destination_clear_allowed = True
                 if key_clears:
-                    removal_events.append(add_removal_provenance(after, rule, key_clears, key_outcomes))
+                    removal_events.append(add_removal_provenance(after, rule, key_clears, key_outcomes, method))
                 continue
-            status, detail = set_destination(after, rule, evidence)
+            status, detail = set_destination(after, rule, evidence, method)
             event = {"rule_id": rule.rule_id, "field": rule.destination_field, "value": rule.destination_value, "condition": rule.destination_condition, "evidence": evidence, "status": status, "detail": detail}
             outcomes.append(event)
             key_outcomes.append(event)
@@ -363,7 +363,7 @@ def apply_rules_to_payload(payload: dict[str, Any], grouped_rules: dict[tuple[st
             key_clears = clear_field(after, field)
             clears.extend(key_clears)
             if key_clears:
-                removal_events.append(add_removal_provenance(after, clear_rule, key_clears, key_outcomes))
+                removal_events.append(add_removal_provenance(after, clear_rule, key_clears, key_outcomes, method))
 
     changed_fields = [field for field in sorted(set(before) | set(after)) if before.get(field, "") != after.get(field, "")]
     allowed = allowed_changed_fields(matched_rules)

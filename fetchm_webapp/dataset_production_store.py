@@ -926,25 +926,59 @@ def normalized_inventory_record(payload: dict[str, Any]) -> dict[str, Any]:
         'raw_fingerprint': hashlib.sha256(raw_json.encode('utf-8')).hexdigest(), 'raw_payload': payload,
     }
 
-def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) -> tuple[int, int, int]:
-    canonical = 0
+def coalesce_inventory_records(records: Iterable[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, int]:
+    grouped: dict[str, dict[str, Any]] = {}
     noncanonical = 0
-    duplicates = 0
+    valid_records = 0
+    for payload in records:
+        record = normalized_inventory_record(payload)
+        accession = record['assembly_accession']
+        if not accession.startswith('GCA_'):
+            noncanonical += 1
+            continue
+        valid_records += 1
+        if accession not in grouped:
+            record['membership_fingerprint'] = record['raw_fingerprint']
+            grouped[accession] = record
+            continue
+        previous = grouped[accession]
+        # Preserve the sequential writer's nonempty-field merge and first
+        # membership fingerprint when a response repeats an accession.
+        for field in ('organism_name', 'biosample_accession', 'paired_refseq_accession'):
+            if record[field] != '':
+                previous[field] = record[field]
+        for field in ('tax_id', 'species_tax_id'):
+            if record[field] is not None:
+                previous[field] = record[field]
+        if record['organism_name'] != '' or record['biosample_accession'] != '':
+            previous['raw_fingerprint'] = record['raw_fingerprint']
+            previous['raw_payload'] = record['raw_payload']
+    return list(grouped.values()), noncanonical, valid_records
+
+
+def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) -> tuple[int, int, int]:
+    rows, noncanonical, valid_records = coalesce_inventory_records(records)
+    if not rows:
+        return 0, noncanonical, 0
     now = utc_now()
     with connect() as connection:
-        for payload in records:
-            record = normalized_inventory_record(payload)
-            accession = record['assembly_accession']
-            if not accession.startswith('GCA_'):
-                noncanonical += 1
-                continue
-            connection.execute(
+        connection.execute(
                 """
                 INSERT INTO assembly_master (
                     assembly_accession, canonical_accession_namespace, source_database, organism_name, tax_id,
                     species_tax_id, biosample_accession, paired_refseq_accession, first_seen_snapshot_id,
                     latest_snapshot_id, raw_fingerprint, raw_payload, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                )
+                SELECT incoming.assembly_accession, %s, %s, incoming.organism_name,
+                       incoming.tax_id, incoming.species_tax_id, incoming.biosample_accession,
+                       incoming.paired_refseq_accession, %s, %s, incoming.raw_fingerprint,
+                       incoming.raw_payload, %s
+                FROM jsonb_to_recordset(%s) AS incoming (
+                    assembly_accession TEXT, organism_name TEXT, tax_id BIGINT,
+                    species_tax_id BIGINT, biosample_accession TEXT,
+                    paired_refseq_accession TEXT, raw_fingerprint TEXT, raw_payload JSONB
+                )
+                WHERE TRUE
                 ON CONFLICT (assembly_accession) DO UPDATE SET
                     organism_name = COALESCE(NULLIF(EXCLUDED.organism_name, ''), assembly_master.organism_name),
                     tax_id = COALESCE(EXCLUDED.tax_id, assembly_master.tax_id),
@@ -956,23 +990,27 @@ def insert_inventory_batch(snapshot_id: str, records: Iterable[dict[str, Any]]) 
                     raw_payload = CASE WHEN EXCLUDED.organism_name <> '' OR EXCLUDED.biosample_accession <> '' THEN EXCLUDED.raw_payload ELSE assembly_master.raw_payload END,
                     updated_at = EXCLUDED.updated_at
                 """,
-                (accession, CANONICAL_ACCESSION_NAMESPACE, CANONICAL_SOURCE_DATABASE, record['organism_name'], record['tax_id'], record['species_tax_id'], record['biosample_accession'], record['paired_refseq_accession'], snapshot_id, snapshot_id, record['raw_fingerprint'], Jsonb(record['raw_payload']), now),
-            )
-            result = connection.execute(
-                """
+                (CANONICAL_ACCESSION_NAMESPACE, CANONICAL_SOURCE_DATABASE, snapshot_id, snapshot_id, now, Jsonb(rows)),
+        )
+        memberships = [
+            {'assembly_accession': row['assembly_accession'], 'raw_fingerprint': row['membership_fingerprint']}
+            for row in rows
+        ]
+        canonical = int(connection.execute(
+            """
+                WITH inserted AS (
                 INSERT INTO bacterial_inventory_membership (snapshot_id, assembly_accession, raw_fingerprint)
-                VALUES (%s, %s, %s)
+                SELECT %s, incoming.assembly_accession, incoming.raw_fingerprint
+                FROM jsonb_to_recordset(%s) AS incoming (assembly_accession TEXT, raw_fingerprint TEXT)
+                WHERE TRUE
                 ON CONFLICT (snapshot_id, assembly_accession) DO NOTHING
-                RETURNING assembly_accession
-                """,
-                (snapshot_id, accession, record['raw_fingerprint']),
-            ).fetchone()
-            if result is None:
-                duplicates += 1
-                continue
-            canonical += 1
+                RETURNING 1
+                ) SELECT COUNT(*) FROM inserted
+            """,
+            (snapshot_id, Jsonb(memberships)),
+        ).fetchone()[0])
         connection.commit()
-    return canonical, noncanonical, duplicates
+    return canonical, noncanonical, valid_records - canonical
 
 def finish_inventory_snapshot(snapshot_id: str, raw_records: int, noncanonical: int, duplicates: int) -> dict[str, Any]:
     with connect() as connection:

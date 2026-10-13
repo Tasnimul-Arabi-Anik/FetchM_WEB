@@ -64,6 +64,7 @@ services:
       fetchm-dataset-db:
         condition: service_healthy
     environment:
+      FETCHM_WEBAPP_GIT_COMMIT: "${FETCHM_WEBAPP_GIT_COMMIT:-unknown}"
       FETCHM_WEBAPP_DEBUG: "0"
       FETCHM_WEBAPP_WORKER_MODE: root-inventory
       FETCHM_WEBAPP_DERIVED_SPECIES_WORKER_ENABLED: "0"
